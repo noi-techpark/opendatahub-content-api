@@ -1147,6 +1147,8 @@ namespace DataModel
 
         public string? EventClassificationId { get; set; }
         public string? EventOrganizerId { get; set; }
+
+        public bool? IsBookable { get; set; }
     }
 
     //Includes variants
