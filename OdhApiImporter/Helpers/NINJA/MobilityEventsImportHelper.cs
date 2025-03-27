@@ -227,10 +227,11 @@ namespace OdhApiImporter.Helpers
                 eventtosave.Id = eventtosave.Id?.ToUpper();
 
                 //Set LicenseInfo
-                eventtosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
-                    eventtosave,
-                    Helper.LicenseHelper.GetLicenseforEvent
-                );
+                //eventtosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
+                //    eventtosave,
+                //    Helper.LicenseHelper.GetLicenseforEvent
+                //);
+                eventtosave.LicenseInfo = Helper.LicenseHelper.GetLicenseforEvent(eventtosave, true);
 
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 eventtosave._Meta = MetadataHelper.GetMetadataobject(eventtosave);

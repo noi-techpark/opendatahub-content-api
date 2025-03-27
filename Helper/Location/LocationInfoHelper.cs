@@ -820,6 +820,75 @@ namespace Helper.Location
             return isnull;
         }
 
+
+
+
+        /// <summary>
+        /// Recreate LocationInfo by passing queryFactory and querying the DB for each
+        /// </summary>
+        /// <param name="oldlocationinfo"></param>
+        /// <param name="queryFactory"></param>
+        /// <returns></returns>
+        public static async Task UpdateDistanceCalculation<T>(this T mydata, QueryFactory queryFactory, 
+            string? districtid = null, 
+            string? municipalityid = null            
+        ) where T : IDistanceInfoAware
+        {
+            try
+            {
+                if (mydata != null)
+                {
+                    if(districtid == null && municipalityid == null && mydata is IHasLocationInfoLinked)
+                    {
+                        if((mydata as IHasLocationInfoLinked).LocationInfo != null && (mydata as IHasLocationInfoLinked).LocationInfo.DistrictInfo != null)
+                            districtid = (mydata as IHasLocationInfoLinked).LocationInfo.DistrictInfo.Id;
+                        if ((mydata as IHasLocationInfoLinked).LocationInfo != null && (mydata as IHasLocationInfoLinked).LocationInfo.MunicipalityInfo != null)
+                            municipalityid = (mydata as IHasLocationInfoLinked).LocationInfo.MunicipalityInfo.Id;
+                    }
+
+
+                    if(!String.IsNullOrEmpty(districtid))
+                    {
+                        var districtgps = await queryFactory
+                        .Query()
+                        .Select("gen_latitude", "gen_longitude")
+                        .From("districts")
+                        .Where("id", districtid)
+                        .GetAsync<GenCoordinate>();
+
+                        if(districtgps.FirstOrDefault() != null && districtgps.FirstOrDefault().gen_latitude != null && districtgps.FirstOrDefault().gen_longitude != null)
+                        {
+                            if(mydata is IGpsInfo)
+                                mydata.ExtendGpsInfoToDistanceCalculation("district", districtgps.FirstOrDefault().gen_latitude, districtgps.FirstOrDefault().gen_longitude);
+                            if (mydata is IGPSInfoAware)
+                                mydata.ExtendGpsInfoToDistanceCalculationList("district", districtgps.FirstOrDefault().gen_latitude, districtgps.FirstOrDefault().gen_longitude);
+                        }
+                    }
+                    if (!String.IsNullOrEmpty(municipalityid))
+                    {
+                        var mungps = await queryFactory
+                        .Query()
+                        .Select("gen_latitude","gen_longitude")
+                        .From("municipalities")
+                        .Where("id", municipalityid)
+                        .GetAsync<GenCoordinate>();
+
+                        if (mungps.FirstOrDefault() != null && mungps.FirstOrDefault().gen_latitude != null && mungps.FirstOrDefault().gen_longitude != null)
+                        {
+                            if (mydata is IGpsInfo)
+                                mydata.ExtendGpsInfoToDistanceCalculation("municipality", mungps.FirstOrDefault().gen_latitude, mungps.FirstOrDefault().gen_longitude);
+                            if (mydata is IGPSInfoAware)
+                                mydata.ExtendGpsInfoToDistanceCalculationList("municipality", mungps.FirstOrDefault().gen_latitude, mungps.FirstOrDefault().gen_longitude);
+                        }
+                    }
+                }                
+            }
+            catch (Exception ex)
+            {
+                
+            }
+        }
+
         ////Sonderfall mehrere Areas
         //public static LocationInfo GetTheLocationInfoAreas(NpgsqlConnection conn, List<string> areaids, string owner)
         //{
@@ -882,5 +951,11 @@ namespace Helper.Location
         //    }
         //    return mylocinfo;
         //}
+    }
+
+    public class GenCoordinate
+    {
+        public double gen_latitude { get; set; }
+        public double gen_longitude { get; set; }
     }
 }

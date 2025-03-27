@@ -38,6 +38,7 @@ namespace OdhApiCore
         private readonly IDictionary<string, DigiWayConfig> digiwayConfig;
 
         private readonly LTSCredentials ltsCredentials;
+        private readonly LTSCredentials ltsCredentialsOpen;
 
         public Settings(IConfiguration configuration)
         {
@@ -252,6 +253,15 @@ namespace OdhApiCore
                 ltsapi.GetValue<string>("XLSClientid", ""),
                 ltsapi.GetValue<bool>("Opendata", false)
             );
+
+            var ltsapiopen = this.configuration.GetSection("LTSApiOpen");
+            this.ltsCredentialsOpen = new LTSCredentials(
+                ltsapiopen.GetValue<string>("ServiceUrl", ""),
+                ltsapiopen.GetValue<string>("Username", ""),
+                ltsapiopen.GetValue<string>("Password", ""),
+                ltsapiopen.GetValue<string>("XLSClientid", ""),
+                ltsapiopen.GetValue<bool>("Opendata", true)
+            );
         }
 
         public string PostgresConnectionString => this.connectionString.Value;
@@ -288,5 +298,7 @@ namespace OdhApiCore
         public IDictionary<string, DigiWayConfig> DigiWayConfig => this.digiwayConfig;
 
         public LTSCredentials LtsCredentials => this.ltsCredentials;
+
+        public LTSCredentials LtsCredentialsOpen => this.ltsCredentialsOpen;
     }
 }

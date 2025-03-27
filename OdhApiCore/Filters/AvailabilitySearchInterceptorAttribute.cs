@@ -11,6 +11,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using DataModel;
 using Helper;
+using LTSAPI;
+using LTSAPI.Parser;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using MSS;
@@ -205,6 +207,12 @@ namespace OdhApiCore.Filters
                         ? (string?)actionarguments!["removeduplicatesfrom"]
                         : null;
 
+                    string? ltsapiversion = actionarguments.ContainsKey(
+                        "ltsapiversion"
+                    )
+                        ? (string?)actionarguments!["ltsapiversion"]
+                        : "v1";
+
                     if (CheckArrivalAndDeparture(arrival, departure))
                     {
                         var booklist = new List<string>();
@@ -376,7 +384,7 @@ namespace OdhApiCore.Filters
                                     {
                                         context.HttpContext.Items.Add(
                                             "lcsavailablity",
-                                            await GetLCSAvailability(
+                                            await GetLTSAvailability(
                                                 language: language,
                                                 arrival: arrival,
                                                 departure: departure,
@@ -384,7 +392,8 @@ namespace OdhApiCore.Filters
                                                 roominfo: roominfo,
                                                 bookableaccoIDs: booklist,
                                                 requestsource: msssource,
-                                                lcscache: lcscache ?? usecache
+                                                lcscache: lcscache ?? usecache,
+                                                ltsapiversion
                                             )
                                         );
                                     }
@@ -734,6 +743,26 @@ namespace OdhApiCore.Filters
             };
         }
 
+        private async Task<MssResult> GetLTSAvailability(
+            string language,
+            string arrival,
+            string departure,
+            string boardfilter,
+            string roominfo,
+            List<string> bookableaccoIDs,
+            string requestsource,
+            bool lcscache = false,
+            string apiversion = "v1"
+            )
+        {
+            if(apiversion == "v2")
+            {
+                return await GetLTSApiAvailability(language, arrival, departure, boardfilter, roominfo, bookableaccoIDs, requestsource, lcscache);
+            }
+            else
+                return await GetLCSAvailability(language, arrival, departure, boardfilter, roominfo, bookableaccoIDs, requestsource, lcscache);
+        }
+
         private async Task<MssResult> GetLCSAvailability(
             string language,
             string arrival,
@@ -805,6 +834,75 @@ namespace OdhApiCore.Filters
                     response,
                     myhelper.rooms
                 );
+
+                if (myparsedresponse != null)
+                    return myparsedresponse;
+            }
+            return new MssResult()
+            {
+                bookableHotels = 0,
+                CheapestChannel = "",
+                Cheapestprice = 0,
+                ResultId = "",
+                MssResponseShort = new List<MssResponseShort>(),
+            };
+        }
+
+        private async Task<MssResult> GetLTSApiAvailability(
+            string language,
+            string arrival,
+            string departure,
+            string boardfilter,
+            string roominfo,
+            List<string> bookableaccoIDs,
+            string requestsource,
+            bool lcscache = false
+)
+        {            
+            // Edge Case No Ids Provided, load all of them
+            if ((bookableaccoIDs.Count == 0) && !lcscache)
+            {
+                using var r = new StreamReader(
+                    Path.Combine(settings.JsonConfig.Jsondir, $"AccosAll.json")
+                );
+                string json = await r.ReadToEndAsync();
+                bookableaccoIDs = JsonConvert.DeserializeObject<List<string>>(json) ?? new();
+            }
+
+            if (bookableaccoIDs.Count > 0 || lcscache)
+            {
+                LtsApi ltsapi = new LtsApi(settings.LtsCredentials.serviceurl,
+                        settings.LtsCredentials.username,
+                        settings.LtsCredentials.password,
+                        settings.LtsCredentials.ltsclientid,
+                        false);
+
+                var myroomdata = AccommodationSearchUtilities.RoomstringtoAvailabilitySearchRequestRoomoption(roominfo);
+
+
+                var accoidlist =
+                    bookableaccoIDs != null && bookableaccoIDs.Count > 0
+                        ? bookableaccoIDs.Select(x => x.ToUpper()).ToList()
+                        : bookableaccoIDs ?? new();
+
+
+                LTSAvailabilitySearchRequestBody body = new LTSAvailabilitySearchRequestBody()
+                {
+                    accommodationRids = accoidlist,
+                    //marketingGroupRids = new List<string>() { "" },
+                    startDate = arrival,
+                    endDate = departure,
+                    paging = new LTSAvailabilitySearchRequestPaging() { pageNumber = 1, pageSize = 10000 },
+                    cacheLifeTimeInSeconds = 300,
+                    onlySuedtirolInfoActive = true,
+                    //mealplans: myhelper.service,
+                    roomOptions = myroomdata
+                };
+                
+                //What about language
+
+                var ltsavailablilitysearch = await ltsapi.AccommodationAvailabilitySearchRequest(null, body);
+                var myparsedresponse = AccommodationSearchResultParser.ParseLTSAccommodation(ltsavailablilitysearch.FirstOrDefault(), 1);
 
                 if (myparsedresponse != null)
                     return myparsedresponse;

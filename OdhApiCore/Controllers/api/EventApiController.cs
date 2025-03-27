@@ -440,12 +440,14 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("events")
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    .Where("gen_id", id.ToUpper())
+                    //.WhereRaw("data#>>'\\{Id\\}' = $$", id.ToUpper()) SLOW
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)
                     )
-                    .FilterDataByAccessRoles(UserRolesToFilter);
+                    .FilterDataByAccessRoles(UserRolesToFilter)
+                    .FilterReducedDataByRoles(UserRolesToFilter);
 
                 var data = await query.FirstOrDefaultAsync<JsonRaw?>();
 

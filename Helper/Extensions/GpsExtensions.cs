@@ -51,13 +51,13 @@ namespace Helper
             double latitude,
             double longitude
         )
-            where T : IDistanceInfoAware, IGpsInfo
+            where T : IDistanceInfoAware
         {
-            if (mydata != null && mydata.Longitude > 0 && mydata.Latitude > 0)
+            if (mydata != null && (mydata as IGpsInfo) != null && (mydata as IGpsInfo).Longitude > 0 && (mydata as IGpsInfo).Latitude > 0)
             {
                 var distanceresult = DistanceCalculator.Distance(
-                    mydata.Latitude,
-                    mydata.Longitude,
+                    (mydata as IGpsInfo).Latitude,
+                    (mydata as IGpsInfo).Longitude,
                     latitude,
                     longitude,
                     'K'
@@ -87,11 +87,11 @@ namespace Helper
             double latitude,
             double longitude
         )
-            where T : IDistanceInfoAware, IGPSInfoAware
+            where T : IDistanceInfoAware
         {
-            if (mydata.GpsInfo != null)
+            if (mydata != null && (mydata as IGPSInfoAware) != null && (mydata as IGPSInfoAware).GpsInfo != null)
             {
-                var mygpsdata = mydata.GpsInfo.Where(x => x.Gpstype == "position").FirstOrDefault();
+                var mygpsdata = (mydata as IGPSInfoAware).GpsInfo.Where(x => x.Gpstype == "position").FirstOrDefault();
 
                 if (mygpsdata != null && mygpsdata.Longitude > 0 && mygpsdata.Latitude > 0)
                 {

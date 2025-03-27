@@ -15,7 +15,7 @@
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<Company>NOI AG</Company>
 	<Authors>r.thoeni</Authors>
-	<Version>1.0.7</Version>
+	<Version>1.2.7</Version>
 	<PackageTags>tourism, opendatahub, datamodel</PackageTags>
   </PropertyGroup>
 

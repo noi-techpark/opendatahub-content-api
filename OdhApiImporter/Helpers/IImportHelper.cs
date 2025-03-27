@@ -30,7 +30,19 @@ namespace OdhApiImporter.Helpers
         Task<Tuple<int, int>> DeleteOrDisableData<T>(string id, bool delete)
             where T : IActivateable;
 
+        //Task<T> LoadDataFromDB<T>(string id, bool reduced);
+
         //Task<UpdateDetail> ImportData(ImportObject importobject, CancellationToken cancellationToken);
+    }
+
+    public interface IImportHelperLTS : IImportHelper
+    {
+        Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged = null,
+            List<string>? idlist = null,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        );
     }
 
     public class ImportHelper
@@ -53,6 +65,13 @@ namespace OdhApiImporter.Helpers
             this.importerURL = importerURL;
         }
 
+        /// <summary>
+        /// Deletes or disables the data by the selected option
+        /// </summary>
+        /// <typeparam name="T">ODH Entity to deactivate (to identify the right table)</typeparam>
+        /// <param name="id">Id of the data to delete/disable</param>
+        /// <param name="delete">Delete the data true/false, if false the data is set to Active = false</param>
+        /// <returns>Tuple of ints (updated/deleted)</returns>
         public async Task<Tuple<int, int>> DeleteOrDisableData<T>(string id, bool delete)
             where T : IActivateable
         {
@@ -91,7 +110,12 @@ namespace OdhApiImporter.Helpers
             return Tuple.Create(updateresult, deleteresult);
         }
 
-        //Helper get all data from source
+        /// <summary>
+        /// Get All Data by passed Source
+        /// </summary>
+        /// <param name="syncsourcelist"></param>
+        /// <param name="syncsourceinterfacelist"></param>
+        /// <returns></returns>
         public async Task<List<string>> GetAllDataBySource(
             List<string> syncsourcelist,
             List<string>? syncsourceinterfacelist = null
@@ -125,6 +149,23 @@ namespace OdhApiImporter.Helpers
             var ids = await query.GetAsync<string>();
 
             return ids.ToList();
+        }
+
+        public async Task<T> LoadDataFromDB<T>(string id, IDStyle? idstyle = IDStyle.uppercase, bool reduced = false)
+        {
+            string reducedid = "";
+            if (reduced)
+                reducedid = "_REDUCED";
+
+            var query = QueryFactory
+               .Query(table)
+               .Select("data")
+               .When(idstyle == IDStyle.uppercase, q => q.Where("id", id.ToUpper() + reducedid))
+               .When(idstyle == IDStyle.lowercase, q => q.Where("id", id.ToLower() + reducedid.ToLower()))
+               .When(idstyle == null, q => q.Where("id", id + reducedid));
+
+
+            return await query.GetObjectSingleAsync<T>();
         }
     }
 

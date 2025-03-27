@@ -1870,6 +1870,51 @@ namespace OdhApiImporter.Helpers
 
 
         #endregion
+
+        #region ReducedIdCleanup
+
+        public async Task<int> UpdateAllReducedIdsonData(string table)
+        {
+            try
+            {
+                //Load all data from PG and resave
+                var query = QueryFactory.Query().SelectRaw("data").From(table)
+                    .WhereRaw("gen_id ILIKE $$", "%_REDUCED");
+
+                var datalist = await query.GetObjectListAsync(Helper.ODHTypeHelper.TranslateTable2Type(table));
+                int i = 0;
+
+                foreach (var data in datalist)
+                {
+                    string originalid = data.Id;
+
+                    data.Id = data.Id.Replace("_REDUCED", "");
+                    //Save tp DB
+                    //TODO CHECK IF THIS WORKS
+                    var queryresult = await QueryFactory
+                        .Query(table)
+                        .Where("id", originalid)
+                        .UpdateAsync(
+                            new JsonBData()
+                            {
+                                id = originalid,
+                                data = new JsonRaw(data),
+                            }
+                        );
+
+                    i++;
+                }
+
+                return i;
+            }
+            catch(Exception ex)
+            {
+                return 0;
+            }
+        }
+
+
+        #endregion
     }
 
     public class ODHActivityPoiOld : ODHActivityPoiLinked

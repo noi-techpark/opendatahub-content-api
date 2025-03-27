@@ -201,7 +201,8 @@ namespace Helper
             EditInfo editinfo,
             CRUDConstraints constraints,
             CompareConfig compareConfig,
-            int? rawdataid = null
+            int? rawdataid = null,
+            bool reduced = false
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
         {
@@ -232,11 +233,15 @@ namespace Helper
                     pushchannels = channelstopublish,
                 };
 
+            string reducedId = "";
+            if (reduced)
+                reducedId = "_REDUCED";
+
             //Check if data exists already
             var queryresult = await QueryFactory
                 .Query(dataconfig.Table)
                 .Select("data")
-                .Where("id", data.Id)
+                .Where("id", data.Id + reducedId)
                 .When(
                     constraints.AccessRole.Count() > 0,
                     q => q.FilterDataByAccessRoles(constraints.AccessRole)
@@ -253,7 +258,7 @@ namespace Helper
             EqualityResult equalityresult = new EqualityResult() { isequal = false, patch = null };
 
             //Setting MetaInfo
-            data._Meta = MetadataHelper.GetMetadataobject<T>(data);
+            data._Meta = MetadataHelper.GetMetadataobject<T>(data, reduced);
             //Setting Editinfo
             data._Meta.UpdateInfo = new UpdateInfo()
             {
@@ -316,13 +321,13 @@ namespace Helper
                 {
                     createresult = await QueryFactory
                         .Query(dataconfig.Table)
-                        .InsertAsync(new JsonBData() { id = data.Id, data = new JsonRaw(data) });
+                        .InsertAsync(new JsonBData() { id = data.Id + reducedId, data = new JsonRaw(data) });
                 }
                 else
                 {
                     createresult = await QueryFactory
                         .Query(dataconfig.Table)
-                        .InsertAsync(new JsonBDataRaw() { id = data.Id, data = new JsonRaw(data), rawdataid = rawdataid.Value });
+                        .InsertAsync(new JsonBDataRaw() { id = data.Id + reducedId, data = new JsonRaw(data), rawdataid = rawdataid.Value });
                 }
                 
 
@@ -425,15 +430,15 @@ namespace Helper
                 {
                     updateresult = await QueryFactory
                    .Query(dataconfig.Table)
-                   .Where("id", data.Id)
-                   .UpdateAsync(new JsonBData() { id = data.Id, data = new JsonRaw(data) });
+                   .Where("id", data.Id + reducedId)
+                   .UpdateAsync(new JsonBData() { id = data.Id + reducedId, data = new JsonRaw(data) });
                 }
                 else
                 {
                     updateresult = await QueryFactory
                    .Query(dataconfig.Table)
-                   .Where("id", data.Id)
-                   .UpdateAsync(new JsonBDataRaw() { id = data.Id, data = new JsonRaw(data), rawdataid = rawdataid.Value });
+                   .Where("id", data.Id + reducedId)
+                   .UpdateAsync(new JsonBDataRaw() { id = data.Id + reducedId, data = new JsonRaw(data), rawdataid = rawdataid.Value });
                 }
 
                 dataconfig.Operation = CRUDOperation.Update;
@@ -455,6 +460,7 @@ namespace Helper
                     objectchanged = objectchangedcount,
                     objectimagechanged = objectimagechangedcount,
                     pushchannels = channelstopublish,
+                    
                 };
 
             //If changes should be saved to DB
@@ -516,7 +522,8 @@ namespace Helper
             this QueryFactory QueryFactory,
             string id,
             DataInfo dataconfig,
-            CRUDConstraints constraints
+            CRUDConstraints constraints,
+            bool reduced = false
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData
         {
@@ -540,13 +547,17 @@ namespace Helper
                     pushchannels = channelstopublish,
                 };
 
+            string reducedId = "";
+            if (reduced)
+                reducedId = "_REDUCED";
+
             var idtodelete = Helper.IdGenerator.CheckIdFromType<T>(id);
 
             //Check if data exists
             var queryresult = await QueryFactory
                 .Query(dataconfig.Table)
                 .Select("data")
-                .Where("id", idtodelete)
+                .Where("id", idtodelete + reducedId)
                 .When(
                     constraints.AccessRole.Count() > 0,
                     q => q.FilterDataByAccessRoles(constraints.AccessRole)
@@ -605,7 +616,7 @@ namespace Helper
 
                 deleteresult = await QueryFactory
                     .Query(dataconfig.Table)
-                    .Where("id", idtodelete)
+                    .Where("id", idtodelete + reducedId)
                     .DeleteAsync();
             }
 

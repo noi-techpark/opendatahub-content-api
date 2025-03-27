@@ -47,7 +47,7 @@ namespace Helper
         LoopTecConfig LoopTecConfig { get; }
         IDictionary<string, DigiWayConfig> DigiWayConfig { get; }
         LTSCredentials LtsCredentials { get; }
-
+        LTSCredentials LtsCredentialsOpen { get; }
     }
 
     //Classes for Settings shared between Projects

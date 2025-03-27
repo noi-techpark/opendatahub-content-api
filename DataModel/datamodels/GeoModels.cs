@@ -3,17 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using NetTopologySuite.Geometries;
-using Newtonsoft.Json;
-using Npgsql;
-using NpgsqlTypes;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Dapper.SqlMapper;
 
 namespace DataModel
 {

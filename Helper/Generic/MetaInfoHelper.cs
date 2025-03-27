@@ -64,7 +64,7 @@ namespace Helper
         }
 
         //Discriminator if the function is not passed
-        public static Metadata GetMetadataobject<T>(T myobject)
+        public static Metadata GetMetadataobject<T>(T myobject, bool reduced = false)
         {
             return myobject switch
             {
@@ -73,7 +73,7 @@ namespace Helper
                 LTSActivityLinked ltsal => GetMetadataforActivity(ltsal),
                 LTSPoiLinked ltspl => GetMetadataforPoi(ltspl),
                 GastronomyLinked gl => GetMetadataforGastronomy(gl),
-                EventLinked el => GetMetadataforEvent(el),
+                EventLinked el => GetMetadataforEvent(el, reduced),
                 ODHActivityPoiLinked odhapl => GetMetadataforOdhActivityPoi(odhapl),
                 PackageLinked pl => GetMetadataforPackage(pl),
                 MeasuringpointLinked ml => GetMetadataforMeasuringpoint(ml),
@@ -183,12 +183,12 @@ namespace Helper
             return GetMetadata(data, "lts", reduced);
         }
 
-        public static Metadata GetMetadataforEvent(EventLinked data)
+        public static Metadata GetMetadataforEvent(EventLinked data, bool reduced = false)
         {
             string sourcemeta = data.Source.ToLower();
-            bool reduced = false;
-            if (data._Meta != null)
-                reduced = (bool)data._Meta.Reduced;
+            
+            //if (data._Meta != null)
+            //    reduced = (bool)data._Meta.Reduced;
 
             return GetMetadata(data, sourcemeta, reduced);
         }

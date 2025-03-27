@@ -712,20 +712,21 @@ namespace DataModel
             }
         }
 
+        [SwaggerDeprecated("Deprecated use PublishedOn")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public bool OdhActive
         {
             get { return this.SmgActive; }
         }
 
-        //Overwrites The Features
+        [SwaggerDeprecated("Deprecated use Tags of type eventcategory")]
         public new ICollection<TopicLinked>? Topics { get; set; }
 
         //Overwrites The LocationInfo
         public new LocationInfoLinked? LocationInfo { get; set; }
 
         //Overwrites LTSTags
-        public new List<LTSTagsLinked>? LTSTags { get; set; }
+        //public new List<LTSTagsLinked>? LTSTags { get; set; }
 
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 

@@ -457,10 +457,15 @@ namespace Helper
             //Day/Date, DateTo, SingleDays, Begin, End
             reduced.DateBegin = myevent.DateBegin;
             reduced.DateEnd = myevent.DateEnd;
-            reduced.NextBeginDate = myevent.NextBeginDate;
+            //reduced.NextBeginDate = myevent.NextBeginDate;
+
+            reduced.EventProperty = myevent.EventProperty;
 
             //Definition/Ticket
-            reduced.Ticket = reduced.Ticket;
+            reduced.EventProperty.RegistrationRequired = null;
+            reduced.EventProperty.IncludedInSuedtirolGuestPass = null;
+            reduced.EventProperty.EventClassificationId = null;
+            reduced.EventProperty.EventOrganizerId = null;            
 
             //BookingData/BookingUrl
             reduced.EventBooking =
@@ -1000,18 +1005,23 @@ namespace Helper
                 //eventdate.SingleDays = null;  Day/SingleDays
                 eventdate.MinPersons = null;
                 eventdate.MaxPersons = null;
-                eventdate.Ticket = null;
-                eventdate.GpsNorth = null;
-                eventdate.GpsEast = null;
+                //eventdate.Ticket = null;
+                //eventdate.GpsNorth = null;
+                //eventdate.GpsEast = null;
                 //eventdate.Begin = null;   Day/Begin
                 //eventdate.End = null;     Day/End
                 eventdate.Entrance = null;
-                eventdate.InscriptionTill = null;
+                //eventdate.InscriptionTill = null;
                 eventdate.Active = null;
                 eventdate.DayRID = null;
                 eventdate.EventDateAdditionalInfo = null;
-                eventdate.EventDateAdditionalTime = null;
-                eventdate.EventCalculatedDay = null;
+                //eventdate.EventDateAdditionalTime = null;
+                eventdate.EventCalculatedDays = null;
+                eventdate.Cancelled = null;                
+                eventdate.EventDateOpeningInfo = null;
+                eventdate.EventDateTicketInfo = null;
+                eventdate.EventVariantIDs = null;
+                eventdate.PriceFrom = null;                
             }
 
             return eventdates;

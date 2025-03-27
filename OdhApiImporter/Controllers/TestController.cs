@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using DataModel;
 using Helper;
 using Helper.Factories;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using OdhApiImporter.Helpers;
 using OdhNotifier;
 using SqlKata.Execution;
 
@@ -62,12 +64,27 @@ namespace OdhApiImporter.Controllers
             return Ok("importer alive");
         }
 
-        //[HttpGet, Route("TestMongoDB")]
-        //public async Task<IActionResult> TestMongoDB()
-        //{
-        //    var test = MongoDBFactory.GetDocumentById<BsonDocument>("TestDB", "TestDB", "63cfa30278b2fc0eda271a28");
+        [HttpGet, Route("TestSomething")]
+        public async Task<IActionResult> TestSomething()
+        {
+            //var test = MongoDBFactory.GetDocumentById<BsonDocument>("TestDB", "TestDB", "63cfa30278b2fc0eda271a28");
 
-        //    return Ok(test.ToString());
-        //}
+            //var districtgps = await QueryFactory
+            //.Query()
+            //.Select("gen_latitude","gen_longitude")
+            //.From("districts")
+            //.Where("id", "69710B855B094FAB8FD2AAED0E16E7E0")
+            //.GetAsync<Coordinate>();
+
+            var query = QueryFactory
+              .Query("events")
+              .Select("data")
+              .Where("id", "08A54F0371634DAAB43600341CDE980E");
+
+
+            var result = await query.GetObjectSingleAsync<EventLinked>();
+
+            return Ok(result);
+        }
     }
 }
