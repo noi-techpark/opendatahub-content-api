@@ -59,6 +59,7 @@ namespace OdhApiImporter.Helpers
             switch (datatype.ToLower())
             {
                 case "accommodation":
+                    bool accommodationhasnopushchannels = false;
                     var updateresultstomerge = new List<UpdateDetail>();
 
                     mydata = await GetDataFromRaven.GetRavenData<AccommodationRaven>(
@@ -101,6 +102,10 @@ namespace OdhApiImporter.Helpers
                         true
                     );
                     updateresultstomerge.Add(myupdateresultacco);
+
+                    //Check if accommodation has no push channels assigned
+                    if (myupdateresultacco.pushchannels == null || myupdateresultacco.pushchannels.Count == 0)
+                        accommodationhasnopushchannels = true;
 
                     //Check if data has to be reduced and save it
                     if (
@@ -213,16 +218,23 @@ namespace OdhApiImporter.Helpers
                         }
                     }
 
+                    //TODO Add a check where if the Accommodation Object has no Push Channels assigned the Accommodation Room Objects push channels
+                    //are cleared
+                    if(accommodationhasnopushchannels)
+                    {
+                        foreach(var updatesulttoclear in updateresultstomerge)
+                        {
+                            if(updatesulttoclear.pushchannels != null)
+                                updatesulttoclear.pushchannels.Clear();
+                        }
+                    }
+
                     //Merge with updateresult
                     myupdateresult = GenericResultsHelper.MergeUpdateDetail(updateresultstomerge);
 
                     //Remove Exception not all accommodations have rooms
                     //else
                     //    throw new Exception("No data found!");
-
-
-                    //TODO Add a check where if the Accommodation Object has no Push Channels assigned the Accommodation Room Objects push channels
-                    //are cleared
 
 
                     //Check if the Object has Changed and Push all infos to the channels
