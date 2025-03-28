@@ -220,6 +220,11 @@ namespace OdhApiImporter.Helpers
                     //else
                     //    throw new Exception("No data found!");
 
+
+                    //TODO Add a check where if the Accommodation Object has no Push Channels assigned the Accommodation Room Objects push channels
+                    //are cleared
+
+
                     //Check if the Object has Changed and Push all infos to the channels
                     myupdateresult.pushed = await CheckIfObjectChangedAndPush(
                         myupdateresult,
