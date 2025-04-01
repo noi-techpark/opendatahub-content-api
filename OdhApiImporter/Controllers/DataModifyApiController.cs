@@ -1069,7 +1069,10 @@ namespace OdhApiImporter.Controllers
                 QueryFactory
             );
 
-            objectscount = await customdataoperation.UpdateAllEventstonewDataModel(id);
+            if(id == "all")
+                objectscount = await customdataoperation.UpdateAllEventstonewDataModel(null);
+            else
+                objectscount = await customdataoperation.UpdateAllEventstonewDataModel(id);
 
             return Ok(
                 new UpdateResult
