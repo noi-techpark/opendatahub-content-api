@@ -157,11 +157,12 @@ namespace Helper
                                 && allowedsourcesMP[mydata._Meta.Type].Contains(mydata._Meta.Source)
                             )
                             {
-                                if (
-                                    (mydata as EventLinked).SmgActive
-                                    && mydata._Meta.Source == "lts"
-                                )
-                                    publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                                //not needed anymore
+                                //if (
+                                //    (mydata as EventLinked).SmgActive
+                                //    && mydata._Meta.Source == "lts"
+                                //)
+                                //    publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
 
                                 //Marketplace Events only ClassificationRID
                                 var validclassificationrids = new List<string>()

@@ -667,6 +667,7 @@ namespace OdhApiCore.Controllers
             bool usemsscache = false,
             bool uselcscache = true,
             string removeduplicatesfrom = null, //only valid for availability only?
+            string? ltsapiversion = "v1",
             CancellationToken cancellationToken = default
         )
         {
@@ -849,6 +850,7 @@ namespace OdhApiCore.Controllers
             bool usemsscache = false,
             bool uselcscache = false,
             string? removeduplicatesfrom = null,
+            string? ltsapiversion = "v1",
             CancellationToken cancellationToken = default
         )
         {
@@ -868,6 +870,7 @@ namespace OdhApiCore.Controllers
                 usemsscache,
                 uselcscache,
                 removeduplicatesfrom,
+                ltsapiversion,
                 cancellationToken
             );
         }

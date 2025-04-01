@@ -50,15 +50,13 @@ namespace Helper
                     : true
                 )
                 .Select(lang => $"Detail.{lang}.Title")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] AccoTitleFieldsToSearchFor(string? language) =>
             _languagesToSearchFor
                 .Where(lang => language != null ? lang == language : true)
                 .Select(lang => $"AccoDetail.{lang}.Name")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] AccoTitleFieldsToSearchFor(
             string? language,
@@ -72,15 +70,13 @@ namespace Helper
                     : true
                 )
                 .Select(lang => $"AccoDetail.{lang}.Name")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] AccoRoomNameFieldsToSearchFor(string? language) =>
             _languagesToSearchFor
                 .Where(lang => language != null ? lang == language : true)
                 .Select(lang => $"AccoRoomDetail.{lang}.Name")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] AccoRoomNameFieldsToSearchFor(
             string? language,
@@ -94,15 +90,13 @@ namespace Helper
                     : true
                 )
                 .Select(lang => $"AccoRoomDetail.{lang}.Name")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] EventShortTitleFieldsToSearchFor(string? language) =>
             _languagesToSearchFor
                 .Where(lang => language != null ? lang == language : true)
                 .Select(lang => $"EventTitle.{lang}")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] EventShortTitleFieldsToSearchFor(
             string? language,
@@ -116,15 +110,13 @@ namespace Helper
                     : true
                 )
                 .Select(lang => $"EventTitle.{lang}")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] TourismMetaDataTitleFieldsToSearchFor(string? language) =>
             _languagesToSearchFor
                 .Where(lang => language != null ? lang == language : true)
                 .Select(lang => $"ApiDescription.{lang}")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         //TODO TRANSFORM LANGUAGE to deu,eng,ita
         //public static string[] VenueTitleFieldsToSearchFor(string? language) =>
@@ -161,15 +153,13 @@ namespace Helper
             _languagesToSearchFor
                 .Where(lang => language != null ? lang == language : true)
                 .Select(lang => $"TypeDesc.{lang}")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] TagNameFieldsToSearchFor(string? language) =>
             _languagesToSearchFor
                 .Where(lang => language != null ? lang == language : true)
                 .Select(lang => $"TagName.{lang}")
-                .ToArray()
-                .AddToStringArray("Id");
+                .ToArray();
 
         public static string[] NameFieldsToSearchFor(string? language) =>
             _languagesToSearchFor
@@ -736,7 +726,7 @@ namespace Helper
                 .LocFilterRegionFilter(regionlist)
                 .EventPublisherRancFilter(ranclist)
                 .EventOrgFilter(orglist)
-                .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
+                .SearchFilterWithGenId(TitleFieldsToSearchFor(language, languagelist), searchfilter)
                 .When(
                     !String.IsNullOrEmpty(additionalfilter),
                     q => q.FilterAdditionalDataByCondition(additionalfilter)
