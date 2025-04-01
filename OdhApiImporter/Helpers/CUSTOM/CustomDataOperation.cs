@@ -1915,6 +1915,47 @@ namespace OdhApiImporter.Helpers
 
 
         #endregion
+
+        #region Event Datamodel change
+
+        public async Task<int> UpdateAllEventstonewDataModel()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("events");
+
+            var data = await query.GetObjectListAsync<EventLinked>();
+            int i = 0;
+
+            foreach (var myevent in data)
+            {
+                string reduced = "";
+                //If it is a reduced object
+                if (myevent._Meta.Reduced)
+                    reduced = "_REDUCED";
+
+                //Save tp DB
+                //TODO CHECK IF THIS WORKS
+                var queryresult = await QueryFactory
+                    .Query("events")
+                    .Where("id", myevent.Id)
+                    //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = myevent.Id + reduced,
+                            data = new JsonRaw(myevent),
+                        }
+                    );
+
+                i++;
+            }
+
+            return i;
+        }
+
+
+
+        #endregion
     }
 
     public class ODHActivityPoiOld : ODHActivityPoiLinked

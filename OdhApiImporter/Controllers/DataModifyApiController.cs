@@ -1051,6 +1051,39 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        #endregion
+
+        #region Event
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("CleanEventsDataModel")]
+        public async Task<IActionResult> CleanEventsDataModel(CancellationToken cancellationToken)
+        {
+            var objectscount = 0;
+
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+
+            objectscount = await customdataoperation.UpdateAllEventstonewDataModel();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify Events Datamodel",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
 
         #endregion
     }

@@ -1149,6 +1149,14 @@ namespace DataModel
         public string? EventOrganizerId { get; set; }
 
         public bool? IsBookable { get; set; }
+
+
+        //Section shopConfiguration
+        public DateTime? BookableStartDate { get; set; }
+        public DateTime? BookableEndDate { get; set; }
+
+        public IDictionary<string, string>? BookingUrl { get; set; }
+        public bool? BookingActive { get; set; }
     }
 
     //Includes variants
@@ -1159,6 +1167,13 @@ namespace DataModel
         public string? VariantId { get; set; }
         public string? VariantCategoryId { get; set; }
         public IDictionary<string,string>? Name { get; set; }
+
+        public bool? IsIgnoredInAvailability { get; set; }
+        public bool? IsStandard { get; set; }
+
+        public List<string>? CombinedSalesIds { get; set; }
+        public string? TaxRateId { get; set; }
+
     }
 
     //includes publisherSettings
@@ -1166,28 +1181,17 @@ namespace DataModel
     {
         public string? PublisherRID { get; set; }
         public int? Ranc { get; set; }
+        [SwaggerDeprecated("Old numeric representation of PublicationStatus")]
         public int? Publish { get; set; }
+
+        public string? PublicationStatus { get; set; }
     }
 
     public class EventDate : IEventDate
     {
-        //Test automatic Generation
-        //public DateTime DateBegin
-        //{
-        //    get
-        //    {
-        //        return new DateTime(From.Year, From.Month, From.Day, Begin.Value.Hours, Begin.Value.Minutes, Begin.Value.Days);
-        //    }
-        //}
+        public string? EventDateId { get; set; }
 
-        //public DateTime DateEnd
-        //{
-        //    get
-        //    {
-        //        return new DateTime(To.Year, To.Month, To.Day, End.Value.Hours, End.Value.Minutes, End.Value.Days);
-        //    }
-        //}
-
+        [SwaggerDeprecated("Deprecated use EventDateId")]
         public string? DayRID { get; set; }
 
         [SwaggerDeprecated("Deprecated use EventCalculatedDays")]
@@ -1198,10 +1202,10 @@ namespace DataModel
         }
 
         public ICollection<EventDateCalculatedDay>? EventCalculatedDays { get; set; }
-
+        
         //includes cancellationDescription, guide, description, registrationWithin
         public Dictionary<string, EventDateAdditionalInfo>? EventDateAdditionalInfo { get; set; }
-        //minAmount
+        [SwaggerSchema("refers to LTS field: minAmount")]
         public double? PriceFrom { get; set; }
         //startDate, endDate
         public DateTime From { get; set; }
@@ -1210,18 +1214,20 @@ namespace DataModel
         public TimeSpan? End { get; set; }
         public TimeSpan? Entrance { get; set; }
         public bool? Active { get; set; }
-        //isEachDayOwnEvent
+        [SwaggerSchema("refers to LTS field: isEachDayOwnEvent")]
         public bool? SingleDays { get; set; }
         public bool? IsCancelled { get; set; }
+        public bool? IsBookable { get; set; }
 
         public int? MinPersons { get; set; }
         public int? MaxPersons { get; set; }
 
+        [SwaggerSchema("refers to LTS field: ticketSale")]
         public EventDateTicketInfo? EventDateTicketInfo { get; set; }
 
         public ICollection<string>? EventVariantIDs { get; set; }
 
-        public ICollection<EventDateOpeningHour>? EventDateOpeningInfo { get; set; }
+        //public ICollection<EventDateOpeningHour>? EventDateOpeningInfo { get; set; }
 
         [SwaggerDeprecated("Deprecated")]
         public bool? Ticket { get; set; }
@@ -1231,6 +1237,8 @@ namespace DataModel
 
     public class EventDateCalculatedDay
     {
+        public string? CalculatedDayId { get; set; }
+        [SwaggerDeprecated("Deprecated use CalculatedDayId")]
         public string? CDayRID { get; set; }
         public DateTime? Day { get; set; }
         public TimeSpan? Begin { get; set; }
@@ -1244,7 +1252,7 @@ namespace DataModel
 
     public class EventDateCalculatedDayVariant
     {
-        public string VariantRID { get; set; }
+        public string VariantId { get; set; }
         public bool? AvailabilityLow { get; set; }
         public int? AvailabilityCalculatedValue { get; set; }
     }
