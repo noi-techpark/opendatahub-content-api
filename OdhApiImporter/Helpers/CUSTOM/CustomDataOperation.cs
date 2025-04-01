@@ -1923,7 +1923,7 @@ namespace OdhApiImporter.Helpers
         {
             //Load all data from PG and resave
             var query = QueryFactory.Query().SelectRaw("data").From("events")
-                .When(!String.IsNullOrEmpty(id), x => x.WhereRaw("gen_id ILIKE $$", id));
+                .When(!String.IsNullOrEmpty(id), x => x.WhereRaw("gen_id ILIKE $$", id + "%"));
 
             var data = await query.GetObjectListAsync<EventDBLinked>();
             int i = 0;
@@ -1983,10 +1983,10 @@ namespace OdhApiImporter.Helpers
 
                 if(myevent.GpsInfo == null && myevent.GpsPoints != null)
                 {
-                    myevent.GpsInfo = new List<GpsInfo>();
+                    event2.GpsInfo = new List<GpsInfo>();
                     foreach (var kvp in myevent.GpsPoints)
                     {
-                        myevent.GpsInfo.Add(new GpsInfo() { Altitude = kvp.Value.Altitude, AltitudeUnitofMeasure = kvp.Value.AltitudeUnitofMeasure, Gpstype = kvp.Value.Gpstype, Latitude = kvp.Value.Latitude, Longitude = kvp.Value.Longitude });
+                        event2.GpsInfo.Add(new GpsInfo() { Altitude = kvp.Value.Altitude, AltitudeUnitofMeasure = kvp.Value.AltitudeUnitofMeasure, Gpstype = kvp.Value.Gpstype, Latitude = kvp.Value.Latitude, Longitude = kvp.Value.Longitude });
                     }
                 }
                 else
@@ -2009,8 +2009,8 @@ namespace OdhApiImporter.Helpers
                 event2.OrganizerInfos = myevent.OrganizerInfos;
                 event2.EventProperty.EventOrganizerId = myevent.OrgRID;
                 event2.EventProperty.EventClassificationId = myevent.ClassificationRID;
-                event2.EventProperty.RegistrationRequired = myevent.SignOn == "1" ? true : false;
-                event2.EventProperty.TicketRequired = myevent.Ticket == "1" ? true : false;
+                event2.EventProperty.RegistrationRequired = myevent.SignOn != null ? myevent.SignOn == "1" ? true : false : null;
+                event2.EventProperty.TicketRequired = myevent.Ticket != null ? myevent.Ticket == "1" ? true : false : null;
 
                 event2.PublishedOn = myevent.PublishedOn;
                 event2.Shortname = myevent.Shortname;

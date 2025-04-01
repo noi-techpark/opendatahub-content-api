@@ -1061,7 +1061,7 @@ namespace DataModel
         {
             get
             {
-                return this.EventProperty != null ? this.EventProperty.TicketRequired != null ? this.EventProperty.TicketRequired.Value ? "1" : "0" : "0" : "0";
+                return this.EventProperty != null ? this.EventProperty.TicketRequired != null ? this.EventProperty.TicketRequired.Value ? "1" : "0" : null : null;
             }
         }
         [SwaggerDeprecated("Obsolete, use EventProperty.RegistrationRequired")]
@@ -1069,7 +1069,7 @@ namespace DataModel
         {
             get
             {
-                return this.EventProperty != null ? this.EventProperty.RegistrationRequired != null ? this.EventProperty.RegistrationRequired.Value ? "1" : "0" : "0" : "0";
+                return this.EventProperty != null ? this.EventProperty.RegistrationRequired != null ? this.EventProperty.RegistrationRequired.Value ? "1" : "0" : null : null;
             }
         }
         [SwaggerDeprecated("Obsolete, use EventProperty.EventOrganizerId")]
