@@ -989,7 +989,7 @@ namespace Helper
         {
             eventBooking.BookableFrom = null;
             eventBooking.BookableTo = null;
-            eventBooking.AccommodationAssignment = null;
+            //eventBooking.AccommodationAssignment = null;
 
             return eventBooking;
         }
@@ -1020,7 +1020,7 @@ namespace Helper
                 eventdate.Cancelled = null;                
                 //eventdate.EventDateOpeningInfo = null;
                 eventdate.EventDateTicketInfo = null;
-                eventdate.EventVariantIDs = null;
+                eventdate.EventVariantIds = null;
                 eventdate.PriceFrom = null;                
             }
 
