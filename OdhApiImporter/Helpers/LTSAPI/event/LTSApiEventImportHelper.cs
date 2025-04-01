@@ -152,19 +152,30 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 return result;
             }
             //If data is not accessible on LTS Side, delete or disable it
-            else if(eventlts != null && eventlts.FirstOrDefault().ContainsKey("status") && (int)eventlts.FirstOrDefault()["status"] == 403)
+            else if(eventlts != null && eventlts.FirstOrDefault().ContainsKey("status") && ((int)eventlts.FirstOrDefault()["status"] == 403 || (int)eventlts.FirstOrDefault()["status"] == 404))
             {
-                var result = await DeleteOrDisableData<EventLinked>(idlist.FirstOrDefault(), false);
-                var resultopen = await DeleteOrDisableData<EventLinked>(idlist.FirstOrDefault() + "_REDUCED", true);
+                int deleted = 0;
+                int updated = 0;
 
+                if(!opendata)
+                {
+                    var result = await DeleteOrDisableData<EventLinked>(idlist.FirstOrDefault(), false);
+                    updated = result.Item1;
+                }
+                else
+                {
+                    var result = await DeleteOrDisableData<EventLinked>(idlist.FirstOrDefault() + "_REDUCED", true);
+                    deleted = result.Item2;
+                }   
+                
                 return new UpdateDetail()
                 {
-                    updated = result.Item1,
+                    updated = updated,
                     created = 0,
-                    deleted = resultopen.Item2,
+                    deleted = deleted,
                     error = 0,
                 };
-            }
+            }          
             else
             {
                 return new UpdateDetail()
@@ -219,8 +230,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Do not delete Old Dates from Event
                     await MergeEventDates(eventparsed, eventindb, 6);
 
-                    //Add manual assigned Tags to TagIds
-                    await MergeEventTags(eventparsed, eventindb);
+                    //Add manual assigned Tags to TagIds TO check if this should be activated
+                    //await MergeEventTags(eventparsed, eventindb);
 
                     //Create Tags
                     await eventparsed.UpdateTagsExtension(QueryFactory);

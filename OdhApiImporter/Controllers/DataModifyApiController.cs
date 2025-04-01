@@ -1056,8 +1056,8 @@ namespace OdhApiImporter.Controllers
         #region Event
 
         [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("CleanEventsDataModel")]
-        public async Task<IActionResult> CleanEventsDataModel(CancellationToken cancellationToken)
+        [HttpGet, Route("CleanEventsDataModel/{id}")]
+        public async Task<IActionResult> CleanEventsDataModel(string? id, CancellationToken cancellationToken)
         {
             var objectscount = 0;
 
@@ -1066,7 +1066,7 @@ namespace OdhApiImporter.Controllers
                 QueryFactory
             );
 
-            objectscount = await customdataoperation.UpdateAllEventstonewDataModel();
+            objectscount = await customdataoperation.UpdateAllEventstonewDataModel(id);
 
             return Ok(
                 new UpdateResult

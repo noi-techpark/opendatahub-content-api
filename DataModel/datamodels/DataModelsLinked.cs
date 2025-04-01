@@ -805,6 +805,18 @@ namespace DataModel
         public ICollection<string> TagIds { get; set; }
     }
 
+    //Temporary class to remove
+    public class EventDBLinked : EventLinked
+    {
+        public new string? ClassificationRID { get; set; }
+
+        public new string? Ticket { get; set; }
+
+        public new string? SignOn { get; set; }
+
+        public new string? OrgRID { get; set; }
+    }
+
     public class VenueLinked : Venue, IMetaData, IHasLocationInfoLinked
     {
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
