@@ -1923,7 +1923,7 @@ namespace OdhApiImporter.Helpers
         {
             //Load all data from PG and resave
             var query = QueryFactory.Query().SelectRaw("data").From("events")
-                .When(!String.IsNullOrEmpty(id), x => x.Where("gen_id", id));
+                .When(!String.IsNullOrEmpty(id), x => x.WhereRaw("gen_id ILIKE $$", id));
 
             var data = await query.GetObjectListAsync<EventDBLinked>();
             int i = 0;
@@ -1980,7 +1980,19 @@ namespace OdhApiImporter.Helpers
                 event2.EventUrls = myevent.EventUrls;
                 event2.EventVariants = myevent.EventVariants;
                 event2.FirstImport  = myevent.FirstImport;
-                event2.GpsInfo = myevent.GpsInfo;
+
+                if(myevent.GpsInfo == null && myevent.GpsPoints != null)
+                {
+                    myevent.GpsInfo = new List<GpsInfo>();
+                    foreach (var kvp in myevent.GpsPoints)
+                    {
+                        myevent.GpsInfo.Add(new GpsInfo() { Altitude = kvp.Value.Altitude, AltitudeUnitofMeasure = kvp.Value.AltitudeUnitofMeasure, Gpstype = kvp.Value.Gpstype, Latitude = kvp.Value.Latitude, Longitude = kvp.Value.Longitude });
+                    }
+                }
+                else
+                    event2.GpsInfo = myevent.GpsInfo;
+
+
                 //event2.GpsPoints = myevent.GpsPoints;
                 //event2.Gpstype = myevent.Gpstype;
                 event2.HasLanguage = myevent.HasLanguage;
@@ -2023,12 +2035,27 @@ namespace OdhApiImporter.Helpers
                         event2.TagIds.Add(topic);
                 }
 
+                //Adding LTSTags to Tags
+                if(myevent.LTSTags != null)
+                {
+                    foreach(var ltstag in myevent.LTSTags)
+                    {
+                        if(!String.IsNullOrEmpty(ltstag.LTSRID))
+                            event2.TagIds.Add(ltstag.LTSRID);
+                    }
+                }
+
+
                 //Recalculate Tags                
                 await event2.UpdateTagsExtension(QueryFactory);
 
+                //If Reduced use the ID without reduced
+                if (myevent._Meta.Reduced)
+                    event2.Id = event2.Id.Replace("_REDUCED", "");
+
                 var queryresult = await QueryFactory
                     .Query("events")
-                    .Where("id", event2.Id)
+                    .Where("id", event2.Id + reduced)
                     //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
                     .UpdateAsync(
                         new JsonBData()

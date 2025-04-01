@@ -1027,6 +1027,9 @@ namespace OdhApiImporter.Controllers
         {
             var objectscount = 0;
 
+            if (table == "events")
+                throw new Exception("EventDatamodel changed, caution! use CleanEventsDataModel");
+
             CustomDataOperation customdataoperation = new CustomDataOperation(
                 settings,
                 QueryFactory

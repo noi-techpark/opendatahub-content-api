@@ -246,6 +246,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Resort the publisher
                         await ResortPublisher(eventparsed);
+
+                        //PublishedOn Logich
+                        //Add the PublishedOn Logic
+                        eventparsed.CreatePublishedOnList();
                     }                        
 
                     //Compatibility create Topic Object
@@ -424,10 +428,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
             eventNew.EventDate = eventNew.EventDate.OrderBy(x => x.From).ToList();
 
             //Set Begindate to the first possible date
-            eventNew.DateBegin = eventNew.EventDate.Select(x => x.From).Min();
+            if(eventNew.EventDate.Count > 0)
+                eventNew.DateBegin = eventNew.EventDate.Select(x => x.From).Min();
 
-            //Set Enddate to the last possible date            
-            eventNew.DateEnd = eventNew.EventDate.Select(x => x.To).Max();
+            //Set Enddate to the last possible date
+            if(eventNew.EventDate.Count > 0)
+                eventNew.DateEnd = eventNew.EventDate.Select(x => x.To).Max();
         }
 
         private async Task MergeEventTags(EventLinked eventNew, EventLinked eventOld)

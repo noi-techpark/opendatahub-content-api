@@ -461,59 +461,61 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "event":
-                    mydata = await GetDataFromRaven.GetRavenData<EventRaven>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<EventRaven, EventLinked>(
-                            (EventRaven)mydata,
-                            TransformToPGObject.GetEventPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<EventRaven>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<EventRaven, EventLinked>(
+                    //        (EventRaven)mydata,
+                    //        TransformToPGObject.GetEventPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((EventLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((EventLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<EventLinked>(
-                        (EventLinked)mypgdata,
-                        "events",
-                        true,
-                        true,
-                        true
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<EventLinked>(
+                    //    (EventLinked)mypgdata,
+                    //    "events",
+                    //    true,
+                    //    true,
+                    //    true
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype
+                    //);
 
-                    //Check if data has to be reduced and save it
-                    if (
-                        ReduceDataTransformer.ReduceDataCheck<EventLinked>((EventLinked)mypgdata)
-                        == true
-                    )
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (EventLinked)mypgdata,
-                            ReduceDataTransformer.CopyLTSEventToReducedObject
-                        );
+                    ////Check if data has to be reduced and save it
+                    //if (
+                    //    ReduceDataTransformer.ReduceDataCheck<EventLinked>((EventLinked)mypgdata)
+                    //    == true
+                    //)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (EventLinked)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSEventToReducedObject
+                    //    );
 
-                        updateresultreduced = await SaveRavenObjectToPG<EventLinked>(
-                            (EventLinkedReduced)reducedobject,
-                            "events",
-                            false,
-                            false,
-                            false
-                        );
-                    }
+                    //    updateresultreduced = await SaveRavenObjectToPG<EventLinked>(
+                    //        (EventLinkedReduced)reducedobject,
+                    //        "events",
+                    //        false,
+                    //        false,
+                    //        false
+                    //    );
+                    //}
+
+                    throw new Exception("Events Update Raven Migrated!");
 
                     break;
 

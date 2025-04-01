@@ -815,7 +815,37 @@ namespace DataModel
         public new string? SignOn { get; set; }
 
         public new string? OrgRID { get; set; }
+
+        public List<LTSTagsLinked>? LTSTags { get; set; }
+
+        public new IDictionary<string, GpsInfo> GpsPoints { get; set; }
+
+        public new IDictionary<string, EventAdditionalInfos>? EventAdditionalInfos { get; set; }
     }
+
+    //TO REMOVE
+    public class EventAdditionalInfosDB : IEventAdditionalInfos, ILanguage
+    {
+        public string? Mplace { get; set; }        
+        public string? Reg { get; set; }
+
+        public string? MeetingPoint
+        {
+            get { return this.Mplace; }
+        }
+        public string? Registration
+        {
+            get { return this.Reg; }
+        }
+        public string? Location { get; set; }
+
+        public string? ServiceDescription { get; set; }
+        public string? WhatToBring { get; set; }
+        public string? CancellationModality { get; set; }
+
+        public string? Language { get; set; }
+    }
+
 
     public class VenueLinked : Venue, IMetaData, IHasLocationInfoLinked
     {
