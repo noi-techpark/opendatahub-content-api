@@ -820,7 +820,7 @@ namespace DataModel
 
         public new IDictionary<string, GpsInfo> GpsPoints { get; set; }
 
-        public new IDictionary<string, EventAdditionalInfos>? EventAdditionalInfos { get; set; }
+        public new IDictionary<string, EventAdditionalInfosDB>? EventAdditionalInfos { get; set; }
     }
 
     //TO REMOVE
@@ -829,14 +829,6 @@ namespace DataModel
         public string? Mplace { get; set; }        
         public string? Reg { get; set; }
 
-        public string? MeetingPoint
-        {
-            get { return this.Mplace; }
-        }
-        public string? Registration
-        {
-            get { return this.Reg; }
-        }
         public string? Location { get; set; }
 
         public string? ServiceDescription { get; set; }

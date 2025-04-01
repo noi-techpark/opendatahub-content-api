@@ -1954,7 +1954,27 @@ namespace OdhApiImporter.Helpers
                 event2.DistanceInfo = myevent.DistanceInfo;
                 event2.DistrictId = myevent.DistrictId;
                 event2.DistrictIds = myevent.DistrictIds;
-                event2.EventAdditionalInfos = myevent.EventAdditionalInfos;
+
+                if(myevent.EventAdditionalInfos != null)
+                {
+                    event2.EventAdditionalInfos = new Dictionary<string,EventAdditionalInfos>();
+
+                    foreach(var kvp in myevent.EventAdditionalInfos)
+                    {
+                        event2.EventAdditionalInfos.TryAddOrUpdate(kvp.Key, new EventAdditionalInfos()
+                        {
+                            Language = kvp.Value.Language,
+                            Registration = kvp.Value.Reg,
+                            CancellationModality = kvp.Value.CancellationModality,
+                            Location = kvp.Value.Location,
+                            MeetingPoint = kvp.Value.Mplace,
+                            ServiceDescription = kvp.Value.ServiceDescription,
+                            WhatToBring = kvp.Value.WhatToBring
+                        });
+                    }
+                }
+
+                
                 event2.EventBooking = myevent.EventBooking;
                 event2.EventDate = myevent.EventDate;
                 //event2.EventDateCounter = myevent.EventDateCounter;
@@ -1979,6 +1999,13 @@ namespace OdhApiImporter.Helpers
 
                 event2.EventUrls = myevent.EventUrls;
                 event2.EventVariants = myevent.EventVariants;
+
+                if(myevent.EventVariants == null && myevent.EventPrice != null)
+                {
+                    //Transform EventPrice to Variant not needed
+                }
+
+
                 event2.FirstImport  = myevent.FirstImport;
 
                 if(myevent.GpsInfo == null && myevent.GpsPoints != null)
