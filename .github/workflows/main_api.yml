@@ -129,6 +129,11 @@ jobs:
           X_LTSAPI_IDM_USERNAME: ""
           X_LTSAPI_IDM_PASSWORD: ""
           X_LTSAPI_IDM_OPENDATA: false
+          X_LTSAPI_OPENDATA_XLTSCLIENTID: ""
+          X_LTSAPI_OPENDATA_SERVICEURL: ""
+          X_LTSAPI_OPENDATA_USERNAME: ""
+          X_LTSAPI_OPENDATA_PASSWORD: ""
+          X_LTSAPI_OPENDATA_OPENDATA: true
           X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}          
 
       - name: Setup config
@@ -262,6 +267,11 @@ jobs:
           X_LTSAPI_IDM_USERNAME: ""
           X_LTSAPI_IDM_PASSWORD: ""
           X_LTSAPI_IDM_OPENDATA: false
+          X_LTSAPI_OPENDATA_XLTSCLIENTID: ""
+          X_LTSAPI_OPENDATA_SERVICEURL: ""
+          X_LTSAPI_OPENDATA_USERNAME: ""
+          X_LTSAPI_OPENDATA_PASSWORD: ""
+          X_LTSAPI_OPENDATA_OPENDATA: true
           X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}
           
       - name: Setup config
