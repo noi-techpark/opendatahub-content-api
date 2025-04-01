@@ -1041,6 +1041,8 @@ namespace DataModel
 
         public ICollection<EventUrls>? EventUrls { get; set; }
 
+        public EventBooking? EventBooking { get; set; }   
+
 
         //[SwaggerDeprecated("Obsolete, Dates are stored into EventDates Object Array")]
         //public DateTime? NextBeginDate { get; set; }
@@ -1079,9 +1081,7 @@ namespace DataModel
         
         [SwaggerDeprecated("Obsolete, use EventVariants")]
         public IDictionary<string, EventPrice>? EventPrice { get; set; } //Stays here for compatibility reasons used in Centro Trevi Sync
-
-        [SwaggerDeprecated("Obsolete, use EventUrls type bookingUrl")]
-        public EventBooking? EventBooking { get; set; }   //Stays here for compatibility reasons IDM checks if EventBooking.Type not null = bookable
+        
 
         [SwaggerDeprecated("Obsolete, use Tags")]
         public ICollection<string>? SmgTags { get; set; }
@@ -1149,14 +1149,6 @@ namespace DataModel
         public string? EventOrganizerId { get; set; }
 
         public bool? IsBookable { get; set; }
-
-
-        //Section shopConfiguration
-        public DateTime? BookableStartDate { get; set; }
-        public DateTime? BookableEndDate { get; set; }
-
-        public IDictionary<string, string>? BookingUrl { get; set; }
-        public bool? BookingActive { get; set; }
     }
 
     //Includes variants
@@ -1225,7 +1217,7 @@ namespace DataModel
         [SwaggerSchema("refers to LTS field: ticketSale")]
         public EventDateTicketInfo? EventDateTicketInfo { get; set; }
 
-        public ICollection<string>? EventVariantIDs { get; set; }
+        public ICollection<string>? EventVariantIds { get; set; }
 
         //public ICollection<EventDateOpeningHour>? EventDateOpeningInfo { get; set; }
 
@@ -1293,8 +1285,6 @@ namespace DataModel
     }
 
     
-
-
     //DEPRECATED Classes used on the Raven Event Model
 
     public class Topic
@@ -1323,9 +1313,9 @@ namespace DataModel
 
         public DateTime? BookableFrom { get; set; }
         public DateTime? BookableTo { get; set; }
-        public int? AccommodationAssignment { get; set; }
-
         public Dictionary<string, EventBookingDetail> BookingUrl { get; set; }
+
+        public bool? BookingActive { get; set; }
     }
 
     public class EventBookingDetail
