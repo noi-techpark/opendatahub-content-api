@@ -231,7 +231,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await MergeEventDates(eventparsed, eventindb, 6);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
-                    //await MergeEventTags(eventparsed, eventindb);
+                    await MergeEventTags(eventparsed, eventindb);
 
                     //Create Tags
                     await eventparsed.UpdateTagsExtension(QueryFactory);
