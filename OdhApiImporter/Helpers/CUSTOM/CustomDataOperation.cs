@@ -2091,7 +2091,7 @@ namespace OdhApiImporter.Helpers
                 }
 
                 //LicenseInfo Fix
-                if(event2.LicenseInfo != null)
+                if (event2.LicenseInfo != null)
                 {
                     if (myevent.Source == "lts")
                     {
@@ -2108,7 +2108,7 @@ namespace OdhApiImporter.Helpers
                             event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
                         }
                     }
-
+                }
 
                 //Recalculate Tags                
                 await event2.UpdateTagsExtension(QueryFactory);
