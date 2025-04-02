@@ -1062,7 +1062,7 @@ namespace OdhApiImporter.Controllers
         [HttpGet, Route("CleanEventsDataModel/{id}")]
         public async Task<IActionResult> CleanEventsDataModel(string? id, CancellationToken cancellationToken)
         {
-            var objectscount = 0;
+            var objectscount = default(Tuple<int,string>);
 
             CustomDataOperation customdataoperation = new CustomDataOperation(
                 settings,
@@ -1080,8 +1080,8 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Events Datamodel",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done, failed ids:" + objectscount.Item2,
+                    recordsmodified = objectscount.Item1,
                     created = 0,
                     deleted = 0,
                     id = "",

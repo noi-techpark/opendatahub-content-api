@@ -15,6 +15,7 @@ using Helper;
 using Helper.Generic;
 using Helper.JsonHelpers;
 using Helper.Tagging;
+using LTSAPI;
 using LTSAPI.Parser;
 using Microsoft.FSharp.Control;
 using Newtonsoft.Json;
@@ -1919,7 +1920,7 @@ namespace OdhApiImporter.Helpers
 
         #region Event Datamodel change
 
-        public async Task<int> UpdateAllEventstonewDataModel(string? id)
+        public async Task<Tuple<int, string>> UpdateAllEventstonewDataModel(string? id)
         {
             //Load all data from PG and resave
             var query = QueryFactory.Query().SelectRaw("data").From("events")
@@ -1928,13 +1929,28 @@ namespace OdhApiImporter.Helpers
             var data = await query.GetObjectListAsync<EventDBLinked>();
             int i = 0;
 
+            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
+
             foreach (var myevent in data)
             {
-                string reduced = "";
-                //If it is a reduced object
-                if (myevent._Meta.Reduced)
-                    reduced = "_REDUCED";
+                //results.Add(await UpdateEventToNewDataModel(myevent));                 
+            }
 
+            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
+            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
+
+            return Tuple.Create(updatedcount, String.Join(",", failed));
+        }
+
+        public async Task<Tuple<int,string>> UpdateEventToNewDataModel(EventDBLinked myevent)
+        {
+            string reduced = "";
+            //If it is a reduced object
+            if (myevent._Meta.Reduced)
+                reduced = "_REDUCED";
+
+            try
+            {
                 //Save tp DB
                 //TODO Add all missing values
                 var event2 = new EventLinked();
@@ -1955,11 +1971,11 @@ namespace OdhApiImporter.Helpers
                 event2.DistrictId = myevent.DistrictId;
                 event2.DistrictIds = myevent.DistrictIds;
 
-                if(myevent.EventAdditionalInfos != null)
+                if (myevent.EventAdditionalInfos != null)
                 {
-                    event2.EventAdditionalInfos = new Dictionary<string,EventAdditionalInfos>();
+                    event2.EventAdditionalInfos = new Dictionary<string, EventAdditionalInfos>();
 
-                    foreach(var kvp in myevent.EventAdditionalInfos)
+                    foreach (var kvp in myevent.EventAdditionalInfos)
                     {
                         event2.EventAdditionalInfos.TryAddOrUpdate(kvp.Key, new EventAdditionalInfos()
                         {
@@ -1974,7 +1990,7 @@ namespace OdhApiImporter.Helpers
                     }
                 }
 
-                
+
                 event2.EventBooking = myevent.EventBooking;
                 event2.EventDate = myevent.EventDate;
                 //event2.EventDateCounter = myevent.EventDateCounter;
@@ -1984,12 +2000,12 @@ namespace OdhApiImporter.Helpers
                 event2.EventProperty = new EventProperty();
                 event2.EventPublisher = myevent.EventPublisher;
 
-                if(event2.EventPublisher != null)
+                if (event2.EventPublisher != null)
                 {
-                    foreach(var publisher in event2.EventPublisher)
+                    foreach (var publisher in event2.EventPublisher)
                     {
-                        if(publisher.Publish == 1);
-                            publisher.PublicationStatus = "suggestedForPublication";
+                        if (publisher.Publish == 1)
+                        publisher.PublicationStatus = "suggestedForPublication";
                         if (publisher.Publish == 2)
                             publisher.PublicationStatus = "approved";
                         if (publisher.Publish == 3)
@@ -2000,15 +2016,15 @@ namespace OdhApiImporter.Helpers
                 event2.EventUrls = myevent.EventUrls;
                 event2.EventVariants = myevent.EventVariants;
 
-                if(myevent.EventVariants == null && myevent.EventPrice != null)
+                if (myevent.EventVariants == null && myevent.EventPrice != null)
                 {
                     //Transform EventPrice to Variant not needed
                 }
 
 
-                event2.FirstImport  = myevent.FirstImport;
+                event2.FirstImport = myevent.FirstImport;
 
-                if(myevent.GpsInfo == null && myevent.GpsPoints != null)
+                if (myevent.GpsInfo == null && myevent.GpsPoints != null)
                 {
                     event2.GpsInfo = new List<GpsInfo>();
                     foreach (var kvp in myevent.GpsPoints)
@@ -2023,7 +2039,7 @@ namespace OdhApiImporter.Helpers
                 //event2.GpsPoints = myevent.GpsPoints;
                 //event2.Gpstype = myevent.Gpstype;
                 event2.HasLanguage = myevent.HasLanguage;
-                event2.Id   = myevent.Id;
+                event2.Id = myevent.Id;
                 event2.ImageGallery = myevent.ImageGallery;
                 event2.LastChange = myevent.LastChange;
                 //event2.Latitude = myevent.Latitude;                
@@ -2041,34 +2057,36 @@ namespace OdhApiImporter.Helpers
 
                 event2.PublishedOn = myevent.PublishedOn;
                 event2.Shortname = myevent.Shortname;
-                
+
                 event2.SmgActive = myevent.SmgActive;
                 event2.SmgTags = myevent.SmgTags;
                 event2.Source = myevent.Source;
-                
+
                 event2.Tags = myevent.Tags;
-                
+
                 event2.TopicRIDs = myevent.TopicRIDs;
                 event2.Topics = myevent.Topics;
                 event2._Meta = myevent._Meta;
 
                 //Adding EventClassification to Tags
-                if (!String.IsNullOrEmpty(myevent.ClassificationRID))
+                if (!String.IsNullOrEmpty(myevent.ClassificationRID) && !event2.TagIds.Contains(myevent.ClassificationRID))
                     event2.TagIds.Add(myevent.ClassificationRID);
                 //Adding EventTopics to TAgs
-                if(myevent.TopicRIDs != null)
+                if (myevent.TopicRIDs != null)
                 {
                     foreach (var topic in myevent.TopicRIDs)
-                        event2.TagIds.Add(topic);
+                        if(!event2.TagIds.Contains(topic))
+                                event2.TagIds.Add(topic);
                 }
 
                 //Adding LTSTags to Tags
-                if(myevent.LTSTags != null)
+                if (myevent.LTSTags != null)
                 {
-                    foreach(var ltstag in myevent.LTSTags)
+                    foreach (var ltstag in myevent.LTSTags)
                     {
-                        if(!String.IsNullOrEmpty(ltstag.LTSRID))
-                            event2.TagIds.Add(ltstag.LTSRID);
+                        if (!String.IsNullOrEmpty(ltstag.LTSRID))
+                            if (!event2.TagIds.Contains(ltstag.LTSRID))
+                                event2.TagIds.Add(ltstag.LTSRID);
                     }
                 }
 
@@ -2078,24 +2096,34 @@ namespace OdhApiImporter.Helpers
 
                 //If Reduced use the ID without reduced
                 if (myevent._Meta.Reduced)
+                {
                     event2.Id = event2.Id.Replace("_REDUCED", "");
+                    event2._Meta.Id = event2.Id.Replace("_REDUCED", "");
+                }
+
+
+                var idtoupdate = event2.Id;
+                if(!event2.Id.Contains("_REDUCED"))
+                    idtoupdate = event2.Id + reduced;
 
                 var queryresult = await QueryFactory
                     .Query("events")
-                    .Where("id", event2.Id + reduced)
+                    .Where("id", idtoupdate)
                     //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
                     .UpdateAsync(
                         new JsonBData()
                         {
-                            id = myevent.Id + reduced,
+                            id = idtoupdate,
                             data = new JsonRaw(event2),
                         }
                     );
 
-                i++;
+                return Tuple.Create<int, string>(queryresult, event2.Id + reduced);
             }
-
-            return i;
+            catch(Exception ex)
+            {
+                return Tuple.Create<int, string>(0, myevent.Id + reduced);
+            }
         }
 
 
