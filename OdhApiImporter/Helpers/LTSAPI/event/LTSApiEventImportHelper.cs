@@ -159,12 +159,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 if(!opendata)
                 {
-                    var result = await DeleteOrDisableData<EventLinked>(idlist.FirstOrDefault(), false);
-                    updated = result.Item1;
+                    //Data is pushed to marketplace with disabled status
+                    var result = await DeleteOrDisableEventData(idlist.FirstOrDefault(), false);
+                    updated = result.Item1;                    
                 }
                 else
                 {
-                    var result = await DeleteOrDisableData<EventLinked>(idlist.FirstOrDefault() + "_REDUCED", true);
+                    //Data is pushed to marketplace as deleted
+                    var result = await DeleteOrDisableEventData(idlist.FirstOrDefault() + "_REDUCED", true);
                     deleted = result.Item2;
                 }   
                 
@@ -330,10 +332,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //    }
                 //}
             }
-            else if(ltsdata == null && opendata == true)
-            {
-                //Delete the Opendata if it is no more returned
-            }
             else
                 errorimportcounter = 1;
 
@@ -401,6 +399,64 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
             );
         }
+
+        public async Task<Tuple<int, int>> DeleteOrDisableEventData(string id, bool delete)
+        {
+            var deleteresult = 0;
+            var updateresult = 0;
+
+            PGCRUDResult result = default(PGCRUDResult);
+
+            if (delete)
+            {
+                result =  await QueryFactory.DeleteData<EventLinked>(
+                    id,
+                    new DataInfo("events", CRUDOperation.Delete),
+                    new CRUDConstraints()
+                );
+
+                deleteresult = result.deleted != null ? result.deleted.Value : 0;
+            }
+            else
+            {
+                var query = QueryFactory.Query(table).Select("data").Where("id", id);
+
+                var data = await query.GetObjectSingleAsync<EventLinked>();
+
+                if (data != null)
+                {
+                    if (
+                        data.Active != false
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                    )
+                    {
+                        data.Active = false;
+                        if (data is ISmgActive)
+                            ((ISmgActive)data).SmgActive = false;
+
+                        //updateresult = await QueryFactory
+                        //    .Query(table)
+                        //    .Where("id", id)
+                        //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+
+                        result = await QueryFactory.UpsertData<EventLinked>(
+                               data,
+                               new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                               new EditInfo("lts.events.import.deactivate", importerURL),
+                               new CRUDConstraints(),
+                               new CompareConfig(true, false)
+                           );
+
+                        updateresult = result.updated != null ? result.updated.Value : 0;
+                    }
+                }
+            }
+
+            return Tuple.Create(updateresult, deleteresult);
+        }
+
+
+
 
         private async Task MergeEventDates(EventLinked eventNew, EventLinked eventOld, int monthstogoback = 12)
         {
