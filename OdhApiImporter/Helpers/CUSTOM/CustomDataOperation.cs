@@ -2090,6 +2090,25 @@ namespace OdhApiImporter.Helpers
                     }
                 }
 
+                //LicenseInfo Fix
+                if(event2.LicenseInfo != null)
+                {
+                    if (myevent.Source == "lts")
+                    {
+                        if (myevent._Meta.Reduced)
+                        {
+                            event2.LicenseInfo.License = "CC0";
+                            event2.LicenseInfo.ClosedData = false;
+                            event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
+                        }
+                        else
+                        {
+                            event2.LicenseInfo.License = "Closed";
+                            event2.LicenseInfo.ClosedData = false;
+                            event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
+                        }
+                    }
+
 
                 //Recalculate Tags                
                 await event2.UpdateTagsExtension(QueryFactory);
