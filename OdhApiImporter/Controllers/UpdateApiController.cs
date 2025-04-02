@@ -243,7 +243,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Update Raven failed",
+                    "Update LTS failed",
                     otherinfo,
                     updatedetail,
                     ex,
