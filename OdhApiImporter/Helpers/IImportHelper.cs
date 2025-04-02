@@ -103,6 +103,7 @@ namespace OdhApiImporter.Helpers
                             .Query(table)
                             .Where("id", id)
                             .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+
                     }
                 }
             }
