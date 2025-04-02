@@ -1933,7 +1933,7 @@ namespace OdhApiImporter.Helpers
 
             foreach (var myevent in data)
             {
-                //results.Add(await UpdateEventToNewDataModel(myevent));                 
+                results.Add(await UpdateEventToNewDataModel(myevent));                 
             }
 
             var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
