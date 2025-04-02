@@ -192,6 +192,70 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region UPDATE DIRECTLY FROM LTS API
+
+        [HttpGet, Route("LTS/{datatype}/Update/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateDataFromLTS(
+            string id,
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update LTS";
+            string updatetype = "single";
+            string source = "api";
+            string otherinfo = datatype;
+
+            try
+            {
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatype),
+                    OdhPushnotifier
+                );
+                var resulttuple = await ltsapiimporthelper.GetFromLTSApiTransformToPGObject(
+                    id,
+                    datatype,
+                    cancellationToken
+                );
+                updatedetail = resulttuple.Item2;
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    resulttuple.Item1,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update Raven failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        #endregion
+
         #region REPROCESS PUSH FAILURE QUEUE
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("PushFailureQueue/Retry/{publishedon}")]
@@ -329,6 +393,7 @@ namespace OdhApiImporter.Controllers
         [HttpGet, Route("EBMS/EventShort/UpdateAll")]
         [HttpGet, Route("EBMS/EventShort/Update")]
         public async Task<IActionResult> UpdateAllEBMS(
+            bool forceupdate = false,
             CancellationToken cancellationToken = default
         )
         {
@@ -345,6 +410,9 @@ namespace OdhApiImporter.Controllers
                     "eventeuracnoi",
                     UrlGeneratorStatic("EBMS/EventShort")
                 );
+
+                if (forceupdate)
+                    ebmsimporthelper.forceupdate = true;
 
                 updatedetail = await ebmsimporthelper.SaveDataToODH(null, null, cancellationToken);
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -2488,6 +2556,61 @@ namespace OdhApiImporter.Controllers
                     operation,
                     updatetype,
                     "Import LTS Venues Categories data failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        //Imports all Venues HallFeatures
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("LTS/Venue/Update/HallFeatures")]
+        public async Task<IActionResult> ImportLTSVenueHallFeatures(
+            string id = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import LTS Venues HallFeatures";
+            string updatetype = GetUpdateType(null);
+            string source = "lts";
+            string otherinfo = "venues.hallfeatures";
+
+            try
+            {
+                LTSApiVenueHallFeaturesImportHelper importhelper =
+                    new LTSApiVenueHallFeaturesImportHelper(
+                        settings,
+                        QueryFactory,
+                        "tags",
+                        UrlGeneratorStatic("LTS/Venues/HallFeatures")
+                    );
+
+                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS Venues HallFeatures succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS Venues HallFeatures data failed",
                     otherinfo,
                     updatedetail,
                     ex,

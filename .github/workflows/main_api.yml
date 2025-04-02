@@ -11,7 +11,7 @@ env:
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v2
@@ -32,7 +32,7 @@ jobs:
       run: dotnet test OdhApiCore --filter Category!=Integration
 
   deploy-test-api:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/main'
     env:
       API_URL: "https://api.tourism.testingmachine.eu/v1/"
@@ -124,11 +124,16 @@ jobs:
           X_MARKETPLACE_PUSH_PSWD: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_PASSWORD }}
           X_MARKETPLACE_PUSH_HEADER: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_HEADER }}
           X_MARKETPLACE_PUSH_TOKEN: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_TOKEN }}
-          X_LTSAPI_IDM_XLTSCLIENTID: ""
-          X_LTSAPI_IDM_SERVICEURL: ""
-          X_LTSAPI_IDM_USERNAME: ""
-          X_LTSAPI_IDM_PASSWORD: ""
+          X_LTSAPI_IDM_XLTSCLIENTID: ${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}
+          X_LTSAPI_IDM_SERVICEURL: "https://go.lts.it/api/v1"
+          X_LTSAPI_IDM_USERNAME: ${{ secrets.LTSAPI_IDM_USERNAME }}
+          X_LTSAPI_IDM_PASSWORD: ${{ secrets.LTSAPI_IDM_PASSWORD }}
           X_LTSAPI_IDM_OPENDATA: false
+          X_LTSAPI_OPENDATA_XLTSCLIENTID: ${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}
+          X_LTSAPI_OPENDATA_SERVICEURL: "https://go.lts.it/api/v1"
+          X_LTSAPI_OPENDATA_USERNAME: ${{ secrets.LTSAPI_NOI_USERNAME }}
+          X_LTSAPI_OPENDATA_PASSWORD: ${{ secrets.LTSAPI_NOI_PASSWORD }}
+          X_LTSAPI_OPENDATA_OPENDATA: true
           X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}          
 
       - name: Setup config
@@ -165,7 +170,7 @@ jobs:
           curl "${{ env.API_URL }}ODH/WeatherForecast"
 
   deploy-prod-api:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/prod'
     env:
       API_URL: "https://tourism.api.opendatahub.com/v1/"
@@ -257,11 +262,16 @@ jobs:
           X_MARKETPLACE_PUSH_PSWD: ${{ secrets.IDM_MARKETPLACE_PUSH_PROD_PASSWORD }}
           X_MARKETPLACE_PUSH_HEADER: ${{ secrets.IDM_MARKETPLACE_PUSH_PROD_HEADER }}
           X_MARKETPLACE_PUSH_TOKEN: ${{ secrets.IDM_MARKETPLACE_PUSH_PROD_TOKEN }}
-          X_LTSAPI_IDM_XLTSCLIENTID: ""
-          X_LTSAPI_IDM_SERVICEURL: ""
-          X_LTSAPI_IDM_USERNAME: ""
-          X_LTSAPI_IDM_PASSWORD: ""
+          X_LTSAPI_IDM_XLTSCLIENTID: ${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}
+          X_LTSAPI_IDM_SERVICEURL: "https://go.lts.it/api/v1"
+          X_LTSAPI_IDM_USERNAME: ${{ secrets.LTSAPI_IDM_USERNAME }}
+          X_LTSAPI_IDM_PASSWORD: ${{ secrets.LTSAPI_IDM_PASSWORD }}
           X_LTSAPI_IDM_OPENDATA: false
+          X_LTSAPI_OPENDATA_XLTSCLIENTID: ${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}
+          X_LTSAPI_OPENDATA_SERVICEURL: "https://go.lts.it/api/v1"
+          X_LTSAPI_OPENDATA_USERNAME: ${{ secrets.LTSAPI_NOI_USERNAME }}
+          X_LTSAPI_OPENDATA_PASSWORD: ${{ secrets.LTSAPI_NOI_PASSWORD }}
+          X_LTSAPI_OPENDATA_OPENDATA: true
           X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}
           
       - name: Setup config

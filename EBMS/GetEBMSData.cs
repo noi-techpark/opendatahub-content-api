@@ -159,27 +159,22 @@ namespace EBMS
                 eventtosave.WebAddress = myevent.WebAddress ?? "";
                 //Spezialfelder
 
-                //FÜR NOI ANZEIGE AKTIV (Oklären ob des no der Foll isch)
+                //Videowall Reception EURAC with default “yes” 
                 eventtosave.Display1 = myevent.Display1;
-                //Intranet Eurac (Y / N)
+                //Videowall in front of rooms EURAC with default “yes” 
                 eventtosave.Display2 = myevent.Display2;
-                //Webseite Eurac ( Y /N)
+                //NOI Videowall with default “no” 
                 eventtosave.Display3 = myevent.Display3;
-                //diese sind nicht belegt, könnten verwendet werden
-
-                //Eurac Videowall (Y / N) Wenn hier N wird ganzes Event nicht angezeigt
+                //NOI Totem in front of rooms with default “no”
                 eventtosave.Display4 = myevent.Display4;
 
-                if (String.IsNullOrEmpty(myevent.Display4))
-                    eventtosave.Display4 = "N";
-
+                //not used yet
                 eventtosave.Display5 = myevent.Display5;
                 eventtosave.Display6 = myevent.Display6;
                 eventtosave.Display7 = myevent.Display7;
                 eventtosave.Display8 = myevent.Display8;
                 eventtosave.Display9 = myevent.Display9;
-                //eventtosave.Display9 = (EventShortDisplay)Enum.Parse(typeof(EventShortDisplay), myevent.Display9);
-
+                
                 eventtosave.Active = true;
 
                 if (myevent.Company != null)
@@ -319,16 +314,10 @@ namespace EBMS
 
                     eventtosave.EventLocation = eventlocation;
 
-                    if (eventlocation == "NOI")
-                        eventtosave.Display1 = eventtosave.Display4;
-
-                    //all das interessiert nicht
-                    //eventtosave.AbstractsEN = myevent.AbstractsEN;
-                    //eventtosave.AbstractsGER = myevent.AbstractsGER;
-                    //eventtosave.AbstractsIT = myevent.AbstractsIT;
-                    ////gehört zu Abstract
-                    //eventtosave.Documents = myevent.Documents;
-
+                    //Remove this special rule not needed anymore
+                    //if (eventlocation == "NOI")
+                    //    eventtosave.Display1 = eventtosave.Display4;
+                    
                     myeventshortlist.Add(Tuple.Create(eventtosave, myevent));
                 }
             }

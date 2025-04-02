@@ -175,10 +175,12 @@ namespace NINJA.Parser
                 };
                 myevent.LicenseInfo = licenseInfo;
 
+                myevent.EventProperty = new EventProperty();
+
                 //Maybe needeed by DD Transformer
-                myevent.Ranc = 0;
-                myevent.Type = "1";
-                myevent.SignOn = "0";
+                //myevent.Ranc = 0;
+                //myevent.Type = "1";
+                myevent.EventProperty.RegistrationRequired = false;
 
                 //Take only Languages that are defined on title
                 var languages = ninjaevent.title.Keys;
@@ -205,17 +207,12 @@ namespace NINJA.Parser
                 }
 
                 bool ticket = false;
-                string ticketstr = "0";
-
-                string paymet = "0";
 
                 //Ticket and Price Info
                 if (ninjaevent.ticket == "Yes")
                 {
                     //myevent.Ticket = ninjaevent.price;
                     ticket = true;
-                    ticketstr = "1";
-                    paymet = "1";
                 }
 
                 //Try to convert price to double
@@ -265,7 +262,7 @@ namespace NINJA.Parser
                 //myevent.DateBegin = Convert.ToDateTime(begindate, myculture);
                 //myevent.DateEnd = Convert.ToDateTime(enddate, myculture);
 
-                myevent.NextBeginDate = myevent.DateBegin;
+                //myevent.NextBeginDate = myevent.DateBegin;
 
                 myevent.EventDate = new List<EventDate>()
                 {
@@ -292,8 +289,8 @@ namespace NINJA.Parser
                     },
                 };
 
-                myevent.Ticket = ticketstr;
-                myevent.PayMet = paymet;
+                myevent.EventProperty.TicketRequired = ticket;
+                //myevent.PayMet = paymet;
 
                 myevent.Shortname = myevent.Detail.FirstOrDefault().Value.Title;
                 myevent.LastChange = DateTime.Now;
@@ -395,7 +392,7 @@ namespace NINJA.Parser
                     }
                 }
 
-                myevent.OrgRID = place.sname;
+                myevent.EventProperty.EventOrganizerId = place.sname;
 
                 //Event Additional Infos
                 foreach (var language in languages)
@@ -408,7 +405,7 @@ namespace NINJA.Parser
                                 ? room.smetadata.name[language]
                                 : ""
                             : "";
-                    eventadditionalinfo.Reg = ninjaevent.link_to_ticket_info;
+                    eventadditionalinfo.Registration = ninjaevent.link_to_ticket_info;
 
                     myevent.EventAdditionalInfos.TryAddOrUpdate(language, eventadditionalinfo);
                 }

@@ -1018,5 +1018,79 @@ namespace OdhApiImporter.Controllers
         }
 
         #endregion
+
+        #region Reduced
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("CleanReducedId/{table}")]
+        public async Task<IActionResult> CleanReducedId(string table, CancellationToken cancellationToken)
+        {
+            var objectscount = 0;
+
+            if (table == "events")
+                throw new Exception("EventDatamodel changed, caution! use CleanEventsDataModel");
+
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+      
+            objectscount = await customdataoperation.UpdateAllReducedIdsonData(table);
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify Reduced " + table,
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+        #endregion
+
+        #region Event
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("CleanEventsDataModel/{id}")]
+        public async Task<IActionResult> CleanEventsDataModel(string? id, CancellationToken cancellationToken)
+        {
+            var objectscount = default(Tuple<int,string>);
+
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+
+            if(id == "all")
+                objectscount = await customdataoperation.UpdateAllEventstonewDataModel(null);
+            else
+                objectscount = await customdataoperation.UpdateAllEventstonewDataModel(id);
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify Events Datamodel",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done, failed ids:" + objectscount.Item2,
+                    recordsmodified = objectscount.Item1,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+        #endregion
     }
 }

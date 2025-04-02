@@ -117,20 +117,21 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
-        public static LicenseInfo GetLicenseforEvent(Event data)
+        public static LicenseInfo GetLicenseforEvent(Event data, bool opendata = false)
         {
             var isopendata = false;
             var licensetype = "Closed";
             var licenseholder = @"https://www.lts.it";
 
-            if (data.Active && data.ClassificationRID == "CE212B488FA14954BE91BBCFA47C0F06")
-            {
-                isopendata = true;
-                licensetype = "CC0";
-            }
+            //Is done in future by LTS
+            //if (data.Active && data.ClassificationRID == "CE212B488FA14954BE91BBCFA47C0F06")
+            //{
+            //    isopendata = true;
+            //    licensetype = "CC0";
+            //}
 
             //Source DRIN and CentroTrevi
-            if (data.Source.ToLower() != "lts")
+            if (data.Source.ToLower() != "lts" || opendata)
             {
                 isopendata = true;
                 licensetype = "CC0";

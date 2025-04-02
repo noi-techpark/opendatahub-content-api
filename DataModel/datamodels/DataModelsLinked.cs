@@ -712,20 +712,21 @@ namespace DataModel
             }
         }
 
+        [SwaggerDeprecated("Deprecated use PublishedOn")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public bool OdhActive
         {
             get { return this.SmgActive; }
         }
 
-        //Overwrites The Features
+        [SwaggerDeprecated("Deprecated use Tags of type eventcategory")]
         public new ICollection<TopicLinked>? Topics { get; set; }
 
         //Overwrites The LocationInfo
         public new LocationInfoLinked? LocationInfo { get; set; }
 
         //Overwrites LTSTags
-        public new List<LTSTagsLinked>? LTSTags { get; set; }
+        //public new List<LTSTagsLinked>? LTSTags { get; set; }
 
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
@@ -803,6 +804,40 @@ namespace DataModel
 
         public ICollection<string> TagIds { get; set; }
     }
+
+    //Temporary class to remove
+    public class EventDBLinked : EventLinked
+    {
+        public new string? ClassificationRID { get; set; }
+
+        public new string? Ticket { get; set; }
+
+        public new string? SignOn { get; set; }
+
+        public new string? OrgRID { get; set; }
+
+        public List<LTSTagsLinked>? LTSTags { get; set; }
+
+        public new IDictionary<string, GpsInfo> GpsPoints { get; set; }
+
+        public new IDictionary<string, EventAdditionalInfosDB>? EventAdditionalInfos { get; set; }
+    }
+
+    //TO REMOVE
+    public class EventAdditionalInfosDB : IEventAdditionalInfos, ILanguage
+    {
+        public string? Mplace { get; set; }        
+        public string? Reg { get; set; }
+
+        public string? Location { get; set; }
+
+        public string? ServiceDescription { get; set; }
+        public string? WhatToBring { get; set; }
+        public string? CancellationModality { get; set; }
+
+        public string? Language { get; set; }
+    }
+
 
     public class VenueLinked : Venue, IMetaData, IHasLocationInfoLinked
     {
