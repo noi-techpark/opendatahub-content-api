@@ -14,8 +14,10 @@ using Helper.Location;
 using Helper.Tagging;
 using LTSAPI;
 using LTSAPI.Parser;
+using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ServiceReferenceLCS;
 using SqlKata.Execution;
 
 
@@ -153,30 +155,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             //If data is not accessible on LTS Side, delete or disable it
             else if(eventlts != null && eventlts.FirstOrDefault().ContainsKey("status") && ((int)eventlts.FirstOrDefault()["status"] == 403 || (int)eventlts.FirstOrDefault()["status"] == 404))
-            {
-                int deleted = 0;
-                int updated = 0;
-
+            {                
                 if(!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    var result = await DeleteOrDisableEventData(idlist.FirstOrDefault(), false);
-                    updated = result.Item1;                    
+                    return await DeleteOrDisableEventData(idlist.FirstOrDefault(), false);                    
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    var result = await DeleteOrDisableEventData(idlist.FirstOrDefault() + "_REDUCED", true);
-                    deleted = result.Item2;
-                }   
-                
-                return new UpdateDetail()
-                {
-                    updated = updated,
-                    created = 0,
-                    deleted = deleted,
-                    error = 0,
-                };
+                    return await DeleteOrDisableEventData(idlist.FirstOrDefault() + "_REDUCED", true);                    
+                }
             }          
             else
             {
@@ -192,10 +181,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         private async Task<UpdateDetail> SaveEventsToPG(List<JObject> ltsdata)
         {
-            var newimportcounter = 0;
-            var updateimportcounter = 0;
-            var errorimportcounter = 0;
-            var deleteimportcounter = 0;
+            //var newimportcounter = 0;
+            //var updateimportcounter = 0;
+            //var errorimportcounter = 0;
+            //var deleteimportcounter = 0;
+
+            List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
             if (ltsdata != null)
             {
@@ -225,7 +216,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //DistanceCalculation
                     await eventparsed.UpdateDistanceCalculation(QueryFactory);
-            
+
                     //GET OLD Event
                     var eventindb = await LoadDataFromDB<EventLinked>(id);
 
@@ -237,7 +228,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //Create Tags
                     await eventparsed.UpdateTagsExtension(QueryFactory);
-                                                      
+
                     if (!opendata)
                     {
                         //GET Organizer Data and add to Event
@@ -252,7 +243,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //PublishedOn Logich
                         //Add the PublishedOn Logic
                         eventparsed.CreatePublishedOnList();
-                    }                        
+                    }
 
                     //Compatibility create Topic Object
                     await GenerateTopicObject(eventparsed);
@@ -260,9 +251,23 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var result = await InsertDataToDB(eventparsed, data.data);
 
-                    newimportcounter = newimportcounter + result.created ?? 0;
-                    updateimportcounter = updateimportcounter + result.updated ?? 0;
-                    errorimportcounter = errorimportcounter + result.error ?? 0;
+                    //newimportcounter = newimportcounter + result.created ?? 0;
+                    //updateimportcounter = updateimportcounter + result.updated ?? 0;
+                    //errorimportcounter = errorimportcounter + result.error ?? 0;
+
+                    updatedetails.Add(new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    });
 
                     idlistlts.Add(id);
 
@@ -333,15 +338,32 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //}
             }
             else
-                errorimportcounter = 1;
-
-            return new UpdateDetail()
             {
-                updated = updateimportcounter,
-                created = newimportcounter,
-                deleted = deleteimportcounter,
-                error = errorimportcounter,
-            };
+                updatedetails.Add(new UpdateDetail()
+                {
+                    created = 0,
+                    updated = 0,
+                    deleted = 0,
+                    error = 1,
+                    objectchanged = 0,
+                    objectimagechanged = 0,
+                    comparedobjects = 0,
+                    pushchannels = null,
+                    changes = null                    
+                });
+            }
+
+
+            //To check, this works only for single updates             
+            //return new UpdateDetail()
+            //{
+            //    updated = updateimportcounter,
+            //    created = newimportcounter,
+            //    deleted = deleteimportcounter,
+            //    error = errorimportcounter,
+            //};
+
+            return updatedetails.FirstOrDefault();
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
@@ -400,10 +422,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
             );
         }
 
-        public async Task<Tuple<int, int>> DeleteOrDisableEventData(string id, bool delete)
+        public async Task<UpdateDetail> DeleteOrDisableEventData(string id, bool delete)
         {
-            var deleteresult = 0;
-            var updateresult = 0;
+            UpdateDetail deletedisableresult = default(UpdateDetail);
 
             PGCRUDResult result = default(PGCRUDResult);
 
@@ -415,7 +436,18 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     new CRUDConstraints()
                 );
 
-                deleteresult = result.deleted != null ? result.deleted.Value : 0;
+                deletedisableresult = new UpdateDetail() {
+                    created = result.created,
+                    updated = result.updated,
+                    deleted = result.deleted,
+                    error = result.error,
+                    objectchanged = result.objectchanged,
+                    objectimagechanged = result.objectimagechanged,
+                    comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                    pushchannels = result.pushchannels,
+                    changes = result.changes,
+                };
             }
             else
             {
@@ -445,18 +477,27 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                new EditInfo("lts.events.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
-                           );
+                        );
 
-                        updateresult = result.updated != null ? result.updated.Value : 0;
+                        deletedisableresult = new UpdateDetail()
+                        {
+                            created = result.created,
+                            updated = result.updated,
+                            deleted = result.deleted,
+                            error = result.error,
+                            objectchanged = result.objectchanged,
+                            objectimagechanged = result.objectimagechanged,
+                            comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            pushchannels = result.pushchannels,
+                            changes = result.changes,
+                        };
                     }
                 }
             }
 
-            return Tuple.Create(updateresult, deleteresult);
+            return deletedisableresult;
         }
-
-
-
 
         private async Task MergeEventDates(EventLinked eventNew, EventLinked eventOld, int monthstogoback = 12)
         {
