@@ -673,7 +673,7 @@ namespace Helper
                 datachanges.editedby = editinfo.Editor;
                 datachanges.date = data._Meta.LastUpdate ?? DateTime.Now;
                 datachanges.datasource = data._Meta.Source;
-                datachanges.changes = equalityresult.patch != null ? new JsonRaw(equalityresult.patch.ToString()) : new JsonRaw("");
+                datachanges.changes = equalityresult.patch != null ? new JsonRaw(equalityresult.patch.ToString()) : null;
                 datachanges.sourceid = data.Id;
                 datachanges.type = data._Meta.Type;
                 datachanges.license = "unknown";
