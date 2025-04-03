@@ -368,7 +368,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 return await QueryFactory.UpsertData<EventLinked>(
                     objecttosave,
-                    new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                    new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
                     new EditInfo("lts.events.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
@@ -441,7 +441,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         result = await QueryFactory.UpsertData<EventLinked>(
                                data,
-                               new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                               new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
                                new EditInfo("lts.events.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
