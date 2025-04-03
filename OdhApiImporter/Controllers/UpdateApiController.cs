@@ -1042,10 +1042,6 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
-        #region LTS EVENT DATA SYNC
-
-        #endregion
-
         #region LTS GASTRONOMIC DATA SYNC
 
         [HttpGet, Route("LTS/GastronomicData/Update")]
@@ -2725,7 +2721,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Import LTS Events Tags succeeded",
+                    "Import Import LTS Accommodation succeeded",
                     otherinfo,
                     updatedetail,
                     true
@@ -2740,7 +2736,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Import LTS Events Tags data failed",
+                    "Import Import LTS Accommodation data failed",
                     otherinfo,
                     updatedetail,
                     ex,
