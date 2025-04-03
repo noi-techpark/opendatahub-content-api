@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime;
 using System.Text;
 using System.Threading;
 using System.Threading.Channels;
@@ -19,6 +20,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json;
 using SqlKata;
 using SqlKata.Execution;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helper
 {
@@ -468,26 +470,27 @@ namespace Helper
             {
                 if (objectchangedcount != null && objectchangedcount > 0)
                 {
-                    RawChangesStore datachanges = new RawChangesStore();
-                    datachanges.editsource = editinfo.Source ?? "";
-                    datachanges.editedby = editinfo.Editor;
-                    datachanges.date = data._Meta.LastUpdate ?? DateTime.Now;
-                    datachanges.datasource = data._Meta.Source;
-                    datachanges.changes = equalityresult.patch != null ? new JsonRaw(equalityresult.patch.ToString()) : new JsonRaw("");
-                    datachanges.sourceid = data.Id;
-                    datachanges.type = data._Meta.Type;
-                    datachanges.license = "unknown";
+                    //RawChangesStore datachanges = new RawChangesStore();
+                    //datachanges.editsource = editinfo.Source ?? "";
+                    //datachanges.editedby = editinfo.Editor;
+                    //datachanges.date = data._Meta.LastUpdate ?? DateTime.Now;
+                    //datachanges.datasource = data._Meta.Source;
+                    //datachanges.changes = equalityresult.patch != null ? new JsonRaw(equalityresult.patch.ToString()) : new JsonRaw("");
+                    //datachanges.sourceid = data.Id;
+                    //datachanges.type = data._Meta.Type;
+                    //datachanges.license = "unknown";
 
-                    if (data is ILicenseInfo)
-                    {
-                        if ((data as ILicenseInfo).LicenseInfo != null)
-                            datachanges.license = (data as ILicenseInfo).LicenseInfo.ClosedData ? "closed" : "open";
-                    }
+                    //if (data is ILicenseInfo)
+                    //{
+                    //    if ((data as ILicenseInfo).LicenseInfo != null)
+                    //        datachanges.license = (data as ILicenseInfo).LicenseInfo.ClosedData ? "closed" : "open";
+                    //}
 
-                    var resulto = await QueryFactory
-                       .Query("rawchanges")
-                       .InsertAsync(datachanges);
+                    //var resulto = await QueryFactory
+                    //   .Query("rawchanges")
+                    //   .InsertAsync(datachanges);
 
+                    await SaveChangesToRawChangesTable(QueryFactory, data, editinfo, equalityresult);
                 }
             }
 
@@ -654,6 +657,68 @@ namespace Helper
                 objectimagechanged = null,
                 pushchannels = channelstopublish,
             };
+        }
+
+        public static async Task<int> SaveChangesToRawChangesTable<T>(
+            this QueryFactory QueryFactory,
+            T data,
+              EditInfo editinfo,
+              EqualityResult equalityresult
+            ) where T : IIdentifiable, IImportDateassigneable, IMetaData, new ()
+        {
+            try
+            {
+                RawChangesStore datachanges = new RawChangesStore();
+                datachanges.editsource = editinfo.Source ?? "";
+                datachanges.editedby = editinfo.Editor;
+                datachanges.date = data._Meta.LastUpdate ?? DateTime.Now;
+                datachanges.datasource = data._Meta.Source;
+                datachanges.changes = equalityresult.patch != null ? new JsonRaw(equalityresult.patch.ToString()) : new JsonRaw("");
+                datachanges.sourceid = data.Id;
+                datachanges.type = data._Meta.Type;
+                datachanges.license = "unknown";
+
+                if (data is ILicenseInfo)
+                {
+                    if ((data as ILicenseInfo).LicenseInfo != null)
+                        datachanges.license = (data as ILicenseInfo).LicenseInfo.ClosedData ? "closed" : "open";
+                }
+
+                var resultrawchangesinsert = await QueryFactory
+                   .Query("rawchanges")
+                   .InsertAsync(datachanges);
+
+                return resultrawchangesinsert;
+            }
+            catch (Exception ex)
+            {
+                //Create a Log entry
+                GenericResultsHelper.GetErrorUpdateResult(
+                    data.Id,
+                    "api",
+                    "Insert Rawchanges",
+                    "single",
+                    "Insert Rawchanges failed, " + equalityresult.patch != null ? equalityresult.patch.ToString() : "no change",
+                    data._Meta.Type,
+                    new UpdateDetail()
+                    {
+                        updated = 0,
+                        changes = null,
+                        comparedobjects = null,
+                        created = 0,
+                        deleted = 0,
+                        error = 1,                        
+                        objectchanged = 0,
+                        objectimagechanged = 0,
+                        pushed = null,
+                        pushchannels = null,
+                    },
+                    ex,
+                    true
+                );
+
+                return 0;
+            }
         }
 
         //TODO
