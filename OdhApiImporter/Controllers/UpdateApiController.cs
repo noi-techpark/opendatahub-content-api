@@ -82,7 +82,7 @@ namespace OdhApiImporter.Controllers
             string operation = "Update Raven";
             string updatetype = "single";
             string source = "api";
-            string otherinfo = datatype;
+            string otherinfo = datatype.ToLower();
 
             try
             {
@@ -142,7 +142,7 @@ namespace OdhApiImporter.Controllers
             string operation = "Delete Raven";
             string updatetype = "single";
             string source = "api";
-            string otherinfo = datatype;
+            string otherinfo = datatype.ToLower();
 
             try
             {
@@ -206,7 +206,7 @@ namespace OdhApiImporter.Controllers
             string operation = "Update LTS";
             string updatetype = "single";
             string source = "api";
-            string otherinfo = datatype;
+            string otherinfo = datatype.ToLower();
 
             try
             {
