@@ -380,6 +380,23 @@ namespace Helper
                         if ((mydata as EventShort).Display4 == "N")
                             publishedonlist.TryRemoveOnList("noi-totem");
 
+                        //Readd publishers that were there before not assigned automatically
+                        if(mydata.PublishedOn != null &&
+                            mydata.PublishedOn.Except(
+                                new List<string> {
+                                    "eurac-videowall",
+                                    "eurac-seminarroom",
+                                    "today.noi.bz.it",
+                                    "noi-totem" }).Count() > 0)
+                        {
+                            publishedonlist.AddRange(mydata.PublishedOn.Except(
+                                new List<string> {
+                                    "eurac-videowall",
+                                    "eurac-seminarroom",
+                                    "today.noi.bz.it",
+                                    "noi-totem" }));
+                        }
+                            
                         break;
 
                     case "measuringpoint":

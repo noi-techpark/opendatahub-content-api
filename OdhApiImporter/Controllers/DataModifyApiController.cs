@@ -52,8 +52,8 @@ namespace OdhApiImporter.Controllers
 
 
         [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("ModifyEventShort")]
-        public async Task<IActionResult> ModifyEventShort(CancellationToken cancellationToken)
+        [HttpGet, Route("ModifyEventShort/{id}")]
+        public async Task<IActionResult> ModifyEventShort(string id, CancellationToken cancellationToken)
         {
             var objectscount = 0;
 
@@ -64,7 +64,7 @@ namespace OdhApiImporter.Controllers
             //objectscount = await customdataoperation.UpdateAllEventShortstActiveTodayField();
             //objectscount = await customdataoperation.UpdateAllEventShortBrokenLinks();
 
-            objectscount = await customdataoperation.UpdateAllEventShortPublisherInfo();
+            objectscount = await customdataoperation.UpdateAllEventShortPublisherInfo(id);
 
             //objectscount = await customdataoperation.UpdateAllEventShortstEventDocumentField();
 
