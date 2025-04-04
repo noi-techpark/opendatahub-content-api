@@ -27,6 +27,18 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken = default
         );
 
+        //Task<UpdateDetail> SaveSingleDataToODH(
+        //    DateTime? lastchanged = null,
+        //    string? id = null,
+        //    CancellationToken cancellationToken = default
+        //);
+
+        //Task<List<UpdateDetail>> SaveListDataToODH(
+        //    DateTime? lastchanged = null,
+        //    List<string>? idlist = null,
+        //    CancellationToken cancellationToken = default
+        //);
+
         Task<Tuple<int, int>> DeleteOrDisableData<T>(string id, bool delete)
             where T : IActivateable;
 
