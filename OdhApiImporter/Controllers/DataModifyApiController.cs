@@ -64,13 +64,13 @@ namespace OdhApiImporter.Controllers
             //objectscount = await customdataoperation.UpdateAllEventShortstActiveTodayField();
             //objectscount = await customdataoperation.UpdateAllEventShortBrokenLinks();
 
-            //objectscount = await customdataoperation.UpdateAllEventShortPublisherInfo();
+            objectscount = await customdataoperation.UpdateAllEventShortPublisherInfo();
 
             //objectscount = await customdataoperation.UpdateAllEventShortstEventDocumentField();
 
             //objectscount = await customdataoperation.UpdateAllEventShortstActiveFieldToTrue();
 
-            objectscount = await customdataoperation.UpdateAllEventShortstHasLanguage();
+            //objectscount = await customdataoperation.UpdateAllEventShortstHasLanguage();
 
             return Ok(
                 new UpdateResult
