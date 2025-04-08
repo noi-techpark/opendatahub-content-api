@@ -518,7 +518,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         private async Task MergeEventDates(EventLinked eventNew, EventLinked eventOld, int monthstogoback = 12)
         {
 
-            if (eventOld != null)
+            if (eventOld != null && eventOld.EventDate != null)
             {
                 //EventDates not delete
                 //Event Start Begindate Logic    
