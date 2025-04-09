@@ -358,20 +358,45 @@ namespace Helper
                     //EventShort
                     case "eventshort":
 
-                        if ((mydata as EventShortLinked).ActiveWeb == true)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("noi.bz.it");
-                        }
-                        if ((mydata as EventShortLinked).ActiveToday == true)
-                        {
+                        //Set Publishers in base of Displays
+                        //Eurac Videowall
+                        if ((mydata as EventShort).Display1 == "Y")
+                            publishedonlist.TryAddOrUpdateOnList("eurac-videowall");
+                        if ((mydata as EventShort).Display1 == "N")
+                            publishedonlist.TryRemoveOnList("eurac-videowall");
+                        //Eurac Videowall
+                        if ((mydata as EventShort).Display2 == "Y")
+                            publishedonlist.TryAddOrUpdateOnList("eurac-seminarroom");
+                        if ((mydata as EventShort).Display2 == "N")
+                            publishedonlist.TryRemoveOnList("eurac-seminarroom");
+                        //today.noi.bz.it
+                        if ((mydata as EventShort).Display3 == "Y")
                             publishedonlist.TryAddOrUpdateOnList("today.noi.bz.it");
-                        }
-                        if ((mydata as EventShortLinked).ActiveCommunityApp == true)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("noi-communityapp");
-                        }
-                        publishedonlist.TryAddOrUpdateOnList("today.eurac.edu");
+                        if ((mydata as EventShort).Display3 == "N")
+                            publishedonlist.TryRemoveOnList("today.noi.bz.it");
+                        //Eurac Videowall
+                        if ((mydata as EventShort).Display4 == "Y")
+                            publishedonlist.TryAddOrUpdateOnList("noi-totem");
+                        if ((mydata as EventShort).Display4 == "N")
+                            publishedonlist.TryRemoveOnList("noi-totem");
 
+                        //Readd publishers that were there before not assigned automatically
+                        if(mydata.PublishedOn != null &&
+                            mydata.PublishedOn.Except(
+                                new List<string> {
+                                    "eurac-videowall",
+                                    "eurac-seminarroom",
+                                    "today.noi.bz.it",
+                                    "noi-totem" }).Count() > 0)
+                        {
+                            publishedonlist.AddRange(mydata.PublishedOn.Except(
+                                new List<string> {
+                                    "eurac-videowall",
+                                    "eurac-seminarroom",
+                                    "today.noi.bz.it",
+                                    "noi-totem" }));
+                        }
+                            
                         break;
 
                     case "measuringpoint":

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -34,6 +35,67 @@ namespace OdhApiImporter.Helpers.LTSAPI
             string importerURL
         )
             : base(settings, queryfactory, table, importerURL) { }
+
+        //public Task<UpdateDetail> SaveSingleDataToODH(
+        //    DateTime? lastchanged = null,
+        //    string? id = null,
+        //    CancellationToken cancellationToken = default)
+        //{
+        //    return SaveDataToODH(lastchanged, id, false, cancellationToken);
+        //}
+
+        public async Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged = null,
+            List<string> idlist = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return await SaveDataToODH(lastchanged, idlist, false, cancellationToken);
+        }
+
+        public async Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged = null,
+            List<string> idlist = null,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            opendata = reduced;
+
+            //Import the List
+            var eventlts = await GetEventsFromLTSV2(idlist, lastchanged);
+
+            //Check if Data is accessible on LTS
+            if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("success") && (Boolean)eventlts.FirstOrDefault()["success"]) //&& eventlts.FirstOrDefault()["Success"] == true
+            {     //Import Single Data & Deactivate Data
+                var result = await SaveEventsToPG(eventlts);
+                return result;
+            }
+            //If data is not accessible on LTS Side, delete or disable it
+            else if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("status") && ((int)eventlts.FirstOrDefault()["status"] == 403 || (int)eventlts.FirstOrDefault()["status"] == 404))
+            {
+                if (!opendata)
+                {
+                    //Data is pushed to marketplace with disabled status
+                    return await DeleteOrDisableEventData(idlist.FirstOrDefault(), false);
+                }
+                else
+                {
+                    //Data is pushed to marketplace as deleted
+                    return await DeleteOrDisableEventData(idlist.FirstOrDefault() + "_REDUCED", true);
+                }
+            }
+            else
+            {
+                return new UpdateDetail()
+                {
+                    updated = 0,
+                    created = 0,
+                    deleted = 0,
+                    error = 1,
+                };
+            }
+        }
 
         private LtsApi GetLTSApi()
         {
@@ -131,52 +193,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 );
                 return null;
             }
-        }
-
-
-
-        public async Task<UpdateDetail> SaveDataToODH(
-            DateTime? lastchanged = null,
-            List<string>? idlist = null,
-            bool reduced = false,
-            CancellationToken cancellationToken = default
-        )
-        {
-            opendata = reduced;
-
-            //Import the List
-            var eventlts = await GetEventsFromLTSV2(idlist, lastchanged);
-
-            //Check if Data is accessible on LTS
-            if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("success") && (Boolean)eventlts.FirstOrDefault()["success"]) //&& eventlts.FirstOrDefault()["Success"] == true
-            {     //Import Single Data & Deactivate Data
-                var result = await SaveEventsToPG(eventlts);
-                return result;
-            }
-            //If data is not accessible on LTS Side, delete or disable it
-            else if(eventlts != null && eventlts.FirstOrDefault().ContainsKey("status") && ((int)eventlts.FirstOrDefault()["status"] == 403 || (int)eventlts.FirstOrDefault()["status"] == 404))
-            {                
-                if(!opendata)
-                {
-                    //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableEventData(idlist.FirstOrDefault(), false);                    
-                }
-                else
-                {
-                    //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableEventData(idlist.FirstOrDefault() + "_REDUCED", true);                    
-                }
-            }          
-            else
-            {
-                return new UpdateDetail()
-                {
-                    updated = 0,
-                    created = 0,
-                    deleted = 0,
-                    error = 1,
-                };
-            }            
         }
 
         private async Task<UpdateDetail> SaveEventsToPG(List<JObject> ltsdata)
@@ -502,7 +518,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         private async Task MergeEventDates(EventLinked eventNew, EventLinked eventOld, int monthstogoback = 12)
         {
 
-            if (eventOld != null)
+            if (eventOld != null && eventOld.EventDate != null)
             {
                 //EventDates not delete
                 //Event Start Begindate Logic    
@@ -613,11 +629,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     eventNew.OrganizerInfos = organizerinfo;
                 }
             }
-        }
-
-        public Task<UpdateDetail> SaveDataToODH(DateTime? lastchanged = null, List<string>? idlist = null, CancellationToken cancellationToken = default)
-        {
-            return SaveDataToODH(lastchanged, idlist, false, cancellationToken);
         }
     }
 }

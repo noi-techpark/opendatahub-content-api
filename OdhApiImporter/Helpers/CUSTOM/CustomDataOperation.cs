@@ -860,10 +860,10 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
-        public async Task<int> UpdateAllEventShortPublisherInfo()
+        public async Task<int> UpdateAllEventShortPublisherInfo(string id)
         {
             //Load all data from PG and resave
-            var query = QueryFactory.Query().SelectRaw("data").From("eventeuracnoi");
+            var query = QueryFactory.Query().SelectRaw("data").From("eventeuracnoi").When(id != "all", x => x.Where("id", id));
 
             var data = await query.GetObjectListAsync<EventShortLinked>();
             int i = 0;
