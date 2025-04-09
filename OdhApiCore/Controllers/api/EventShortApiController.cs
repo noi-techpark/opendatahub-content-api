@@ -736,6 +736,7 @@ namespace OdhApiCore.Controllers.api
                             myeventshortbyroom.EventWebAddress = eventshort.WebAddress;
 
                             myeventshortbyroom.Id = eventshort.Id;
+                            myeventshortbyroom.PublishedOn = eventshort.PublishedOn;
 
                             myeventshortbyroom.RoomEndDate = room.EndDate;
                             myeventshortbyroom.RoomEndDateUTC = room.EndDateUTC;
