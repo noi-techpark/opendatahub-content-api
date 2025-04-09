@@ -2572,12 +2572,12 @@ namespace DataModel
 
         [SwaggerDeprecated("Deprecated")]
         [SwaggerEnum(new[] { "Y", "N" })]
-        [SwaggerSchema("Active Today.noi.bz (Videowall)")]
+        [SwaggerSchema("Active Today.noi.bz (Totem)")]        
         public string? Display3 { get; set; }
 
         [SwaggerDeprecated("Deprecated")]
         [SwaggerEnum(new[] { "Y", "N" })]
-        [SwaggerSchema("Active Today.noi.bz (Totem)")]
+        [SwaggerSchema("Active Today.noi.bz (Videowall)")]
         public string? Display4 { get; set; }
 
         [SwaggerDeprecated("Deprecated")]

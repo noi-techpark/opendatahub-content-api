@@ -369,19 +369,21 @@ namespace Helper
                             publishedonlist.TryAddOrUpdateOnList("eurac-seminarroom");
                         if ((mydata as EventShort).Display2 == "N")
                             publishedonlist.TryRemoveOnList("eurac-seminarroom");
-                        //today.noi.bz.it
+                         //Eurac Videowall
                         if ((mydata as EventShort).Display3 == "Y")
-                            publishedonlist.TryAddOrUpdateOnList("today.noi.bz.it");
-                        if ((mydata as EventShort).Display3 == "N")
-                            publishedonlist.TryRemoveOnList("today.noi.bz.it");
-                        //Eurac Videowall
-                        if ((mydata as EventShort).Display4 == "Y")
                             publishedonlist.TryAddOrUpdateOnList("noi-totem");
-                        if ((mydata as EventShort).Display4 == "N")
+                        if ((mydata as EventShort).Display3 == "N")
                             publishedonlist.TryRemoveOnList("noi-totem");
+                        //today.noi.bz.it
+                        if ((mydata as EventShort).Display4 == "Y")
+                            publishedonlist.TryAddOrUpdateOnList("today.noi.bz.it");
+                        if ((mydata as EventShort).Display4 == "N")
+                            publishedonlist.TryRemoveOnList("today.noi.bz.it");
+
+
 
                         //Readd publishers that were there before not assigned automatically
-                        if(mydata.PublishedOn != null &&
+                        if (mydata.PublishedOn != null &&
                             mydata.PublishedOn.Except(
                                 new List<string> {
                                     "eurac-videowall",
