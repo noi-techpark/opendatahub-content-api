@@ -228,16 +228,16 @@ namespace OdhApiImporter.Helpers
                     //    publishedon.TryAddOrUpdateOnList("eurac-seminarroom");
                     //if (eventshort.Display2 == "N")
                     //    publishedon.TryRemoveOnList("eurac-seminarroom");
-                    ////today.noi.bz.it
-                    //if (eventshort.Display3 == "Y")
-                    //    publishedon.TryAddOrUpdateOnList("today.noi.bz.it");
-                    //if (eventshort.Display3 == "N")
-                    //    publishedon.TryRemoveOnList("today.noi.bz.it");
                     ////Eurac Videowall
-                    //if (eventshort.Display4 == "Y")
+                    //if (eventshort.Display3 == "Y")
                     //    publishedon.TryAddOrUpdateOnList("noi-totem");
-                    //if (eventshort.Display4 == "N")
+                    //if (eventshort.Display3 == "N")
                     //    publishedon.TryRemoveOnList("noi-totem");
+                    ////today.noi.bz.it
+                    //if (eventshort.Display4 == "Y")
+                    //    publishedon.TryAddOrUpdateOnList("today.noi.bz.it");
+                    //if (eventshort.Display4 == "N")
+                    //    publishedon.TryRemoveOnList("today.noi.bz.it");
 
                     PublishedOnHelper.CreatePublishedOnList<EventShortLinked>(eventshort);
 
