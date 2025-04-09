@@ -323,7 +323,7 @@ namespace OdhApiImporter.Helpers
 
                 return await QueryFactory.UpsertData<EventShortLinked>(
                     eventshort,
-                    new DataInfo("eventeuracnoi", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                    new DataInfo("eventeuracnoi", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
                     new EditInfo("ebms.eventshort.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
