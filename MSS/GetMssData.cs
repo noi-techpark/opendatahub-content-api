@@ -71,7 +71,7 @@ namespace MSS
                     ? MssRequest.BuildIDList(new List<string>())
                     : myidlist = MssRequest.BuildIDList(idlist);
 
-                XElement mytyp = MssRequest.BuildType("10");
+                //XElement mytyp = MssRequest.BuildType("10");
 
                 ////Add Logging
                 //if (A0Ridlist != null)
@@ -88,7 +88,8 @@ namespace MSS
                     departure,
                     offerdetails,
                     hoteldetails,
-                    mytyp,
+                    //mytyp,
+                    null,
                     service,
                     lang,
                     idsofchannel,
