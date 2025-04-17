@@ -53,6 +53,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Helpers\GTFSAPI\" />
     <Folder Include="Models\" />
     <Folder Include="json\" />
   </ItemGroup>
