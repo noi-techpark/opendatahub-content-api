@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using Helper;
 using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
@@ -90,6 +91,33 @@ namespace GTFSAPI
                 parsedobject = new ODHActivityPoiLinked();
 
             parsedobject.Id = statimetablestops.stop_id;
+            Dictionary<string, string> mapping = new Dictionary<string, string>();
+            mapping.TryAddOrUpdate("stop_id", "");
+            if (!String.IsNullOrEmpty(statimetablestops.parent_station))
+                mapping.TryAddOrUpdate("parent_station", "");
+            if(!String.IsNullOrEmpty(statimetablestops.location_type))
+                mapping.TryAddOrUpdate("location_type", "");             
+
+            parsedobject.Mapping.TryAddOrUpdate("sta", mapping);
+
+            //GPS
+            if (parsedobject.GpsInfo == null)
+                parsedobject.GpsInfo = new List<GpsInfo>();
+            parsedobject.GpsInfo.Add(new GpsInfo() { Gpstype = "position", Altitude = null, AltitudeUnitofMeasure = null, Latitude = statimetablestops.stop_lat, Longitude = statimetablestops.stop_lon });
+
+
+            parsedobject.Shortname = statimetablestops.stop_name;
+            //Detail object
+            if(parsedobject.Detail == null)
+                parsedobject.Detail = new Dictionary<string, Detail>();
+            parsedobject.Detail.TryAddOrUpdate("it", new Detail() { Language = "it", Title = statimetablestops.stop_name });
+
+            parsedobject.HasLanguage = new List<string>() { "it" };
+
+            parsedobject.Source = "sta";
+            parsedobject.Active = true;
+
+            parsedobject.PublishedOn = new List<string>() { "sta-time-tables.stops" };
 
             return parsedobject;
         }

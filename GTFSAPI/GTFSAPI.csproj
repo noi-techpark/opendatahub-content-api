@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DataModel\DataModel.csproj" />
+    <ProjectReference Include="..\Helper\Helper.csproj" />
   </ItemGroup>
 
 </Project>
