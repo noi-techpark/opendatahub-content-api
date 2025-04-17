@@ -92,11 +92,11 @@ namespace GTFSAPI
 
             parsedobject.Id = statimetablestops.stop_id;
             Dictionary<string, string> mapping = new Dictionary<string, string>();
-            mapping.TryAddOrUpdate("stop_id", "");
-            if (!String.IsNullOrEmpty(statimetablestops.parent_station))
-                mapping.TryAddOrUpdate("parent_station", "");
+            mapping.TryAddOrUpdate("stop_id", statimetablestops.stop_id);
+            if (!String.IsNullOrEmpty(statimetablestops.parent_station.Trim()))
+                mapping.TryAddOrUpdate("parent_station", statimetablestops.parent_station);
             if(!String.IsNullOrEmpty(statimetablestops.location_type))
-                mapping.TryAddOrUpdate("location_type", "");             
+                mapping.TryAddOrUpdate("location_type", statimetablestops.location_type);             
 
             parsedobject.Mapping.TryAddOrUpdate("sta", mapping);
 
@@ -119,6 +119,12 @@ namespace GTFSAPI
             parsedobject.Active = true;
 
             parsedobject.PublishedOn = new List<string>() { "sta-time-tables.stops" };
+
+            //TODO ADD Tags
+
+            //TODO Calculate LocationInfo?
+
+            //TODO Distance Calculation?
 
             return parsedobject;
         }

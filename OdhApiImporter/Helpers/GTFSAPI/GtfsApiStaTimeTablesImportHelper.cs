@@ -59,7 +59,7 @@ namespace OdhApiImporter.Helpers
         //Get Data from Source
         private async Task<List<StaTimeTableStopsCsv>> GetData(CancellationToken cancellationToken)
         {            
-            return await GetTimeTablesData.GetTimeTablesDataAsync("", "", settings.GTFSApiConfig["sta-time-tables"].ServiceUrl);
+            return await GetTimeTablesData.GetTimeTablesDataAsync("", "", settings.GTFSApiConfig["StaTimetables"].ServiceUrl);
         }
 
         //Import the Data
@@ -211,7 +211,7 @@ namespace OdhApiImporter.Helpers
                     importdate = DateTime.Now,
                     license = "open",
                     sourceinterface = "statimetablesstops",
-                    sourceurl = settings.GTFSApiConfig["sta-time-tables"].ServiceUrl,
+                    sourceurl = settings.GTFSApiConfig["StaTimetables"].ServiceUrl,
                     type = "odhactivitypoi",
                     sourceid = data.Key,
                     raw = data.Value.ToString(),
