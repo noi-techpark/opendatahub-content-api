@@ -14,11 +14,14 @@ using DIGIWAY;
 using GTFSAPI;
 using Helper;
 using Helper.Generic;
+using LTSAPI.Parser;
 using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using SqlKata;
 using SqlKata.Execution;
 using SqlKata.Extensions;
+using Helper.Tagging;
+using Helper.Location;
 
 namespace OdhApiImporter.Helpers
 {
@@ -187,7 +190,23 @@ namespace OdhApiImporter.Helpers
                 Helper.LicenseHelper.GetLicenseforOdhActivityPoi
             );
 
-            //PublishedOnInfo?
+            data.TagIds = new List<string>();
+            //search Tag and add its ID
+
+            //Create Tags
+            await data.UpdateTagsExtension(QueryFactory);
+
+            //DistanceCalculation
+            await data.UpdateDistanceCalculation(QueryFactory);
+            
+            //PublishedOn Info
+            if (data.PublishedOn == null)
+                data.PublishedOn = new List<string>() { "sta" };
+            else
+            {
+                if (!data.PublishedOn.Contains("sta"))
+                    data.PublishedOn.Add("sta");
+            }
 
             var pgcrudresult = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                 data,
@@ -247,7 +266,7 @@ namespace OdhApiImporter.Helpers
             try
             {
                 //Begin SetDataNotinListToInactive
-                var idlistdb = await GetAllDataBySource(new List<string>() { "digiway" });
+                var idlistdb = await GetAllDataBySource(new List<string>() { "sta" }, new List<string>() { "gtfsapi" });
 
                 var idstodelete = idlistdb.Where(p => !idlistfrominterface.Any(p2 => p2 == p));
 

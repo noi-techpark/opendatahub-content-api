@@ -118,7 +118,7 @@ namespace GTFSAPI
             parsedobject.SyncSourceInterface = "gtfsapi";
             parsedobject.Active = true;
 
-            parsedobject.PublishedOn = new List<string>() { "sta-time-tables.stops" };
+            
 
             //TODO ADD Tags
 
