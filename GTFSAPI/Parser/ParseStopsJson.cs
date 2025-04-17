@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace GTFSAPI
 {
-    public class ParseStopsJson
+    public class ParseGtfsApi
     {
         public static List<StaTimeTableStopsCsv> GetParsetStaTimeTableStops(Stream stream)
         {
@@ -47,19 +47,16 @@ namespace GTFSAPI
             return result;
         }
 
-        public static List<ODHActivityPoiLinked> ParseStaTimeTableStopsToODHActivityPoi(List<StaTimeTableStopsCsv> statimetablestops)
+        public static ODHActivityPoiLinked ParseStaTimeTableStopsToODHActivityPoi(ODHActivityPoiLinked? parsedobject, StaTimeTableStopsCsv statimetablestops)
         {
-            List<ODHActivityPoiLinked> odhactivitypoilist = new List<ODHActivityPoiLinked>();
 
-            foreach(var data in statimetablestops)
-            {
-                //Parse and add to list 
-                ODHActivityPoiLinked parsedobject = new ODHActivityPoiLinked();
+            //Parse and add to list 
+            if(parsedobject == null)
+                parsedobject = new ODHActivityPoiLinked();
 
-                odhactivitypoilist.Add(parsedobject);
-            }
+            parsedobject.Id = statimetablestops.stop_id;
 
-            return odhactivitypoilist;
+            return parsedobject;
         }
 
     }

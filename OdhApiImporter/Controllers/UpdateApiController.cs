@@ -2808,6 +2808,67 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region GTFSAPI
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("GTFSAPI/StaTimeTables/Stops/Update")]
+        public async Task<IActionResult> UpdateAllStaTimeTablesStops(
+        CancellationToken cancellationToken = default
+    )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import GTFSAPI StaTimeTablesStops";
+            string updatetype = GetUpdateType(null);
+            string source = "gtfsapi";
+            string otherinfo = "";
+
+            try
+            {
+                GtfsApiStaTimeTablesImportHelper gtfsapiimporthelper = new GtfsApiStaTimeTablesImportHelper(
+                    settings,
+                    QueryFactory,
+                    "smgpois",
+                    UrlGeneratorStatic("GTFSAPI/StaTimeTablesStops")
+                );
+
+                updatedetail = await gtfsapiimporthelper.SaveDataToODH(
+                    null,
+                    null,
+                    cancellationToken
+                );
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import GTFSAPI StaTimeTablesStops succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import GTFSAPI StaTimeTablesStops failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        #endregion
+
+
         protected Func<string, string> UrlGeneratorStatic
         {
             get

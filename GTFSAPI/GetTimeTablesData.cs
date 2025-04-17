@@ -44,7 +44,7 @@ namespace GTFSAPI
                     {
                         var stopsstream = entry.Open();
 
-                        result = ParseStopsJson.GetParsetStaTimeTableStops(stopsstream);
+                        result = ParseGtfsApi.GetParsetStaTimeTableStops(stopsstream);
                     }
                     
                 }

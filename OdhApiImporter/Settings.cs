@@ -41,6 +41,7 @@ namespace OdhApiImporter
         private readonly LTSCredentials ltsCredentials;
         private readonly LTSCredentials ltsCredentialsOpen;
         private readonly IDictionary<string, DigiWayConfig> digiwayConfig;
+        private readonly IDictionary<string, GTFSApiConfig> gtfsapiConfig;
 
         public Settings(IConfiguration configuration)
         {
@@ -217,6 +218,25 @@ namespace OdhApiImporter
                 }
             }
 
+            this.gtfsapiConfig = new Dictionary<string, GTFSApiConfig>();
+
+            var gtfsapiConfigdict = this.configuration.GetSection("GTFSApiConfig").GetChildren();
+            if (gtfsapiConfigdict != null)
+            {
+                foreach (var gtfsapicfg in gtfsapiConfigdict)
+                {
+                    this.gtfsapiConfig.TryAddOrUpdate(
+                        gtfsapicfg.Key,
+                        new GTFSApiConfig(
+                            gtfsapicfg.GetValue<string>("ServiceUrl", ""),
+                            gtfsapicfg.GetValue<string>("Username", ""),
+                            gtfsapicfg.GetValue<string>("Password", ""),
+                            gtfsapicfg.Key
+                        )
+                    );
+                }
+            }
+
             var ltsapi = this.configuration.GetSection("LTSApiIDM");
             this.ltsCredentials = new LTSCredentials(
                 ltsapi.GetValue<string>("ServiceUrl", ""),
@@ -272,5 +292,6 @@ namespace OdhApiImporter
         public LTSCredentials LtsCredentials => this.ltsCredentials;
         public LTSCredentials LtsCredentialsOpen => this.ltsCredentialsOpen;
         public IDictionary<string, DigiWayConfig> DigiWayConfig => this.digiwayConfig;
+        public IDictionary<string, GTFSApiConfig> GTFSApiConfig => this.gtfsapiConfig;
     }
 }
