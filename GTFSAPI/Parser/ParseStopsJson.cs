@@ -3,11 +3,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace GTFSAPI
 {
@@ -16,33 +20,64 @@ namespace GTFSAPI
         public static List<StaTimeTableStopsCsv> GetParsetStaTimeTableStops(Stream stream)
         {
             List<StaTimeTableStopsCsv> result = new List<StaTimeTableStopsCsv>();
-
-            StreamReader sr = new StreamReader(stream);
-            char[] separator = { ',' };
+            CultureInfo enculture = new CultureInfo("en");
             string[] read;
 
-            if (sr != null)
+            using (TextFieldParser textfieldparser = new TextFieldParser(stream))
             {
-                string data = sr.ReadLine();
-                //Read first line
-                string headerLine = sr.ReadLine();
+                textfieldparser.HasFieldsEnclosedInQuotes = true;
+                textfieldparser.SetDelimiters(",");
 
-                while ((data = sr.ReadLine()) != null)
-                {                    
-                    read = data.Split(separator, StringSplitOptions.None);
+                var headline = textfieldparser.ReadFields();
 
-                    StaTimeTableStopsCsv parsedstop = new StaTimeTableStopsCsv();
+                while (!textfieldparser.EndOfData)
+                {
+                    read = textfieldparser.ReadFields();
 
-                    parsedstop.stop_id = read[0];
-                    parsedstop.stop_name = read[1];
-                    parsedstop.stop_lat = float.Parse(read[2]);
-                    parsedstop.stop_lon = float.Parse(read[3]);
-                    parsedstop.location_type = read[4];
-                    parsedstop.parent_station = read[5];
+                    if (read != null)
+                    {
+                        StaTimeTableStopsCsv parsedstop = new StaTimeTableStopsCsv();
 
-                    result.Add(parsedstop);                    
+                        parsedstop.stop_id = read[0];
+                        parsedstop.stop_name = read[1];
+                        parsedstop.stop_lat = float.Parse(read[2], enculture);
+                        parsedstop.stop_lon = float.Parse(read[3], enculture);
+                        parsedstop.location_type = read[4];
+                        parsedstop.parent_station = read[5];
+
+                        result.Add(parsedstop);
+                    }
                 }
             }
+
+            //StreamReader sr = new StreamReader(stream);
+            //char[] separator = { ',' };
+            //Regex csvParserRegex = new Regex(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+
+
+            //if (sr != null)
+            //{                
+            //    //Read first line
+            //    string data = sr.ReadLine();
+
+            //    while ((data = sr.ReadLine()) != null)
+            //    {
+            //        read = csvParserRegex.Split(data);
+
+            //        //read = data.Split(separator, StringSplitOptions.None);
+
+            //        StaTimeTableStopsCsv parsedstop = new StaTimeTableStopsCsv();
+
+            //        parsedstop.stop_id = read[0];
+            //        parsedstop.stop_name = read[1];
+            //        parsedstop.stop_lat = float.Parse(read[2]);
+            //        parsedstop.stop_lon = float.Parse(read[3]);
+            //        parsedstop.location_type = read[4];
+            //        parsedstop.parent_station = read[5];
+
+            //        result.Add(parsedstop);                    
+            //    }
+            //}
 
             return result;
         }
