@@ -115,6 +115,7 @@ namespace GTFSAPI
             parsedobject.HasLanguage = new List<string>() { "it" };
 
             parsedobject.Source = "sta";
+            parsedobject.SyncSourceInterface = "gtfsapi";
             parsedobject.Active = true;
 
             parsedobject.PublishedOn = new List<string>() { "sta-time-tables.stops" };
