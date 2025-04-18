@@ -18,6 +18,9 @@ namespace Helper.Tagging
 {
     public static class FillTagsObject
     {
+
+        #region Update Tag Object
+
         /// <summary>
         /// Extension Method to update the Tags
         /// </summary>
@@ -60,6 +63,89 @@ namespace Helper.Tagging
 
             return tags;
         }
+
+        #endregion
+
+        #region Add Tag by Name
+
+        /// <summary>
+        /// Extension Method to add to Tags by knowing Tag Name
+        /// </summary>
+        /// <param name="queryFactory"></param>
+        /// <returns></returns>
+        public static async Task AddTagsByNameExtension<T>(this T data, 
+            string tagnametocheck,
+            List<string>? typelist,
+            List<string>? sourcelist,
+            QueryFactory queryFactory)
+            where T : IHasTagInfo
+        {
+            var tags = await CheckTagsByName(tagnametocheck, typelist, sourcelist, queryFactory);
+
+            if (data.Tags == null)
+                data.Tags = new List<Tags>();
+            if (data.TagIds == null)
+                data.TagIds = new List<string>();
+
+            foreach(var tag in tags)
+            {
+                data.Tags.Add(tag);
+                data.TagIds.Add(tag.Id);
+            }            
+        }
+
+        private static async Task<ICollection<Tags>> CheckTagsByName(
+            string tagNameToCheck,
+            List<string>? typelist,
+            List<string>? sourcelist,
+            QueryFactory queryFactory
+        )
+        {
+            ICollection<Tags> tags = new HashSet<Tags>();
+
+            if (!String.IsNullOrEmpty(tagNameToCheck))
+            {
+                //Load Tags from DB
+                var query = queryFactory.Query("tags").Select("data")
+                    .TagWhereExpression(
+                        languagelist: new List<string>(),
+                        typelist: typelist,
+                        validforentitylist: null,
+                        sourcelist: sourcelist,
+                        publishedonlist: null,
+                        displayascategory: null,
+                        searchfilter: tagNameToCheck,
+                        language: null,
+                        additionalfilter: null,
+                        userroles: null
+                    );
+
+                var foundtags = await query.GetObjectListAsync<TagLinked>();
+
+                if(foundtags != null )
+                {
+                    //Create Tags object
+                    foreach (var tag in foundtags)
+                    {
+                        tags.Add(
+                            new Tags()
+                            {
+                                Id = tag.Id,
+                                Source = tag.Source,
+                                Type = GetTypeFromTagTypes(tag.Types),
+                                Name = GetTagName(tag.TagName),
+                            }
+                        );
+                    }
+                }                
+            }
+
+            return tags;
+        }
+
+        #endregion
+
+
 
         //TODO REFINE
         public static string? GetTypeFromTagTypes(ICollection<string> tagtypes)
