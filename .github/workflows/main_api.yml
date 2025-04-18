@@ -134,7 +134,8 @@ jobs:
           X_LTSAPI_OPENDATA_USERNAME: ${{ secrets.LTSAPI_NOI_USERNAME }}
           X_LTSAPI_OPENDATA_PASSWORD: ${{ secrets.LTSAPI_NOI_PASSWORD }}
           X_LTSAPI_OPENDATA_OPENDATA: true
-          X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}          
+          X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}
+          X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
 
       - name: Setup config
         run: |
@@ -273,6 +274,7 @@ jobs:
           X_LTSAPI_OPENDATA_PASSWORD: ${{ secrets.LTSAPI_NOI_PASSWORD }}
           X_LTSAPI_OPENDATA_OPENDATA: true
           X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}
+          X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
           
       - name: Setup config
         run: |

@@ -152,8 +152,15 @@ namespace OdhApiImporter.Helpers
                                 //Save to Rawdatatable
                                 var rawdataid = await InsertInRawDataDB(vendingpoint);
 
-                                //PublishedOn Info??
-
+                                //PublishedOn Info
+                                if (odhactivitypoi.PublishedOn == null)
+                                    odhactivitypoi.PublishedOn = new List<string>() { "sta" };
+                                else
+                                {
+                                    if (!odhactivitypoi.PublishedOn.Contains("sta")) 
+                                        odhactivitypoi.PublishedOn.Add("sta");
+                                }
+                                    
                                 //Save to PG
                                 //Check if data exists
                                 var result = await QueryFactory.UpsertData(
