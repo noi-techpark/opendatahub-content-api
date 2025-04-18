@@ -109,15 +109,15 @@ namespace Helper.Tagging
                 var query = queryFactory.Query("tags").Select("data")
                     .TagWhereExpression(
                         languagelist: new List<string>(),
-                        typelist: typelist,
-                        validforentitylist: null,
-                        sourcelist: sourcelist,
-                        publishedonlist: null,
+                        typelist: typelist == null ? new List<string>() : typelist,
+                        validforentitylist: new List<string>(),
+                        sourcelist: sourcelist == null ? new List<string>() : sourcelist,
+                        publishedonlist: new List<string>(),
                         displayascategory: null,
                         searchfilter: tagNameToCheck,
                         language: null,
                         additionalfilter: null,
-                        userroles: null
+                        userroles: new List<string>()
                     );
 
                 var foundtags = await query.GetObjectListAsync<TagLinked>();
