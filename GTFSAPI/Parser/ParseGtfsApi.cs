@@ -103,8 +103,10 @@ namespace GTFSAPI
             //GPS
             if (parsedobject.GpsInfo == null)
                 parsedobject.GpsInfo = new List<GpsInfo>();
-            parsedobject.GpsInfo.Add(new GpsInfo() { Gpstype = "position", Altitude = null, AltitudeUnitofMeasure = null, Latitude = statimetablestops.stop_lat, Longitude = statimetablestops.stop_lon });
 
+            parsedobject.GpsInfo.Clear();
+
+            parsedobject.GpsInfo.Add(new GpsInfo() { Gpstype = "position", Altitude = null, AltitudeUnitofMeasure = null, Latitude = statimetablestops.stop_lat, Longitude = statimetablestops.stop_lon });
 
             parsedobject.Shortname = statimetablestops.stop_name;
             //Detail object
@@ -117,14 +119,6 @@ namespace GTFSAPI
             parsedobject.Source = "sta";
             parsedobject.SyncSourceInterface = "gtfsapi";
             parsedobject.Active = true;
-
-            
-
-            //TODO ADD Tags
-
-            //TODO Calculate LocationInfo?
-
-            //TODO Distance Calculation?
 
             return parsedobject;
         }

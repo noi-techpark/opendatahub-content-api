@@ -69,7 +69,7 @@ namespace Helper.Tagging
         #region Add Tag by Name
 
         /// <summary>
-        /// Extension Method to add to Tags by knowing Tag Name
+        /// Extension Method to add to Tags by knowing Tag Name, adds it only if its not assigned
         /// </summary>
         /// <param name="queryFactory"></param>
         /// <returns></returns>
@@ -89,8 +89,11 @@ namespace Helper.Tagging
 
             foreach(var tag in tags)
             {
-                data.Tags.Add(tag);
-                data.TagIds.Add(tag.Id);
+                if(!data.TagIds.Contains(tag.Id))
+                {
+                    data.Tags.Add(tag);
+                    data.TagIds.Add(tag.Id);
+                }                
             }            
         }
 

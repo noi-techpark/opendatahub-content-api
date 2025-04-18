@@ -115,7 +115,7 @@ namespace OdhApiImporter.Helpers
 
             try
             {
-                returnid = data.stop_id;
+                returnid = data.stop_id.ToLower();
 
                 idlistfrominterface.Add(returnid);
 
@@ -191,6 +191,7 @@ namespace OdhApiImporter.Helpers
             );
 
             data.TagIds = new List<string>();
+            data.Tags = new List<Tags>();
 
             //search Tag and add its ID
             await data.AddTagsByNameExtension("Public Tansport Stops", 
@@ -204,14 +205,8 @@ namespace OdhApiImporter.Helpers
             //DistanceCalculation
             await data.UpdateDistanceCalculation(QueryFactory);
             
-            //PublishedOn Info
-            if (data.PublishedOn == null)
-                data.PublishedOn = new List<string>() { "sta" };
-            else
-            {
-                if (!data.PublishedOn.Contains("sta"))
-                    data.PublishedOn.Add("sta");
-            }
+            //PublishedOn Info set to sta
+            data.PublishedOn = new List<string>() { "sta" };
 
             var pgcrudresult = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                 data,
