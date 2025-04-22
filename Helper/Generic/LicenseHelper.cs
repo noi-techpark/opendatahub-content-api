@@ -264,7 +264,8 @@ namespace Helper
                 "vek",
                 "pension erlacher",
                 "officina elettrica san vigilio di marebbe spa",
-                "geoservices1.civis.bz.it"
+                "geoservices1.civis.bz.it",
+                "gtfsapi"
             };
 
             if (data.Active)
