@@ -10,12 +10,23 @@ using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
-    public class GeoserverCivisResult
+    public interface IGeoserverCivisResult
+    {
+        string type { get; set; }
+        
+        //optional
+        int? totalFeatures { get; set; }
+        int? numberMatched { get; set; }
+        int? numberReturned { get; set; }
+        DateTime? timeStamp { get; set; }
+        GeoserverCrs? crs { get; set; }
+        float[]? bbox { get; set; }
+    }
+
+    public class GeoserverCivisResult : IGeoserverCivisResult
     {
         public string type { get; set; }
-
-	    public ICollection<GeoserverCivisData> features { get; set; }
-
+        
         //optional
         public int? totalFeatures { get; set; }
         public int? numberMatched { get; set; }
@@ -24,6 +35,27 @@ namespace DIGIWAY
         public GeoserverCrs? crs { get; set; }
         public float[]? bbox { get; set; }
     }
+
+    public class GeoserverCivisResultCycleWay : GeoserverCivisResult
+    {     
+        public ICollection<GeoserverCivisDataCycleWay>? features { get; set; }
+    }
+
+    public class GeoserverCivisResultHikingTrail : GeoserverCivisResult
+    {
+        public ICollection<GeoserverCivisDataHikingTrail>? features { get; set; }
+    }
+
+    public class GeoserverCivisResultMountainbike : GeoserverCivisResult
+    {
+        public ICollection<GeoserverCivisDataMountainBike>? features { get; set; }
+    }
+
+    public class GeoserverCivisResultIntermunicipalPaths : GeoserverCivisResult
+    {
+        public ICollection<GeoserverCivisDataIntermunicipalPaths>? features { get; set; }
+    }
+
 
     public class GeoserverCrs
     {
@@ -35,29 +67,52 @@ namespace DIGIWAY
     {
         public string name { get; set; }
     }
-
-    public class GeoserverCivisData
-    {
-        public string type { get; set; }
-        public string id { get; set; }
-        public GeoserverCivisGeometry geometry { get; set; }
-        public string geometry_name { get; set; }
-        public GeoserverCivisProperties properties { get; set; }
-        public float[] bbox { get; set; }
-    }
-
+    
     public class GeoserverCivisGeometry
     {
         public string type { get; set; }
         public float[][][] coordinates { get; set; }
     }
 
-    public class GeoserverCivisProperties
+    public interface IGeoServerCivisData
     {
-        
+        string type { get; set; }
+        string id { get; set; }
+        GeoserverCivisGeometry geometry { get; set; }
+        string geometry_name { get; set; }        
+        float[] bbox { get; set; }
     }
 
-    public class GeoserverCivisPropertiesCycleWay : GeoserverCivisProperties
+    public class GeoserverCivisData : IGeoServerCivisData
+    {
+        public string type { get; set; }
+        public string id { get; set; }
+        public GeoserverCivisGeometry geometry { get; set; }
+        public string geometry_name { get; set; }        
+        public float[] bbox { get; set; }
+    }
+
+    public class GeoserverCivisDataCycleWay : GeoserverCivisData
+    {
+        public GeoserverCivisPropertiesCycleWay properties { get; set; }
+    }
+
+    public class GeoserverCivisDataMountainBike : GeoserverCivisData
+    {
+        public GeoserverCivisPropertiesMountainBike properties { get; set; }
+    }
+
+    public class GeoserverCivisDataHikingTrail : GeoserverCivisData
+    {
+        public GeoserverCivisPropertiesHikingTrail properties { get; set; }
+    }
+
+    public class GeoserverCivisDataIntermunicipalPaths : GeoserverCivisData
+    {        
+        public GeoserverCivisPropertiesCyclewaysIntermunicipalPaths properties { get; set; }        
+    }
+
+    public class GeoserverCivisPropertiesCycleWay
     {
         public int ID { get; set; }
         public string OBJECT { get; set; }
@@ -82,7 +137,7 @@ namespace DIGIWAY
         public string UPDATE_DATE { get; set; }
     }
   
-    public class GeoserverCivisPropertiesMountainBike : GeoserverCivisProperties
+    public class GeoserverCivisPropertiesMountainBike
     {
         public int MTB_ID { get; set; }
         public string MTB_CODE { get; set; }
@@ -101,7 +156,7 @@ namespace DIGIWAY
         public int LENGTH_GEOM { get; set; }
     }
 
-    public class GeoserverCivisPropertiesHikingTrail : GeoserverCivisProperties
+    public class GeoserverCivisPropertiesHikingTrail
     {
         public int ID { get; set; }
         public string CODE { get; set; }
@@ -110,7 +165,7 @@ namespace DIGIWAY
         public int LENGTH_GEOM { get; set; }
     }
 
-    public class GeoserverCivisPropertiesCyclewaysIntermunicipalPaths : GeoserverCivisProperties
+    public class GeoserverCivisPropertiesCyclewaysIntermunicipalPaths
     {
         public int ID { get; set; }
         public string CODE { get; set; }

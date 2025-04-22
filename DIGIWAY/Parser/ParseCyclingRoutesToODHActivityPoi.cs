@@ -26,14 +26,14 @@ namespace DIGIWAY
     {
         public static (ODHActivityPoiLinked, GeoShapeJson) ParseToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
-            GeoserverCivisData digiwaydata,
+            IGeoServerCivisData digiwaydata,
             string type
         )
         {
             var result = type switch
             {
-                "cyclewaystyrol" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata),
-                "mountainbikeroutes" => ParseMTBRoutesToODHActivityPoi(odhactivitypoi, digiwaydata),
+                "cyclewaystyrol" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as GeoserverCivisDataCycleWay),
+                "mountainbikeroutes" => ParseMTBRoutesToODHActivityPoi(odhactivitypoi, digiwaydata as GeoserverCivisDataMountainBike),
                 "hikingtrails" => (null, null),
                 "intermunicipalcyclingroutes" => (null, null),
                 "_" => (null,null)
@@ -42,11 +42,11 @@ namespace DIGIWAY
             return result;
         }
 
-        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(GeoserverCivisData digiwaydata, string type)
+        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IGeoServerCivisData digiwaydata, string name, string type, int? altitude)
         {
             GeoShapeJson geoshape = new GeoShapeJson();
             geoshape.Id = digiwaydata.id.ToLower();
-            geoshape.Name = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_NAME;
+            geoshape.Name = name;
             geoshape.Type = type;
             geoshape.Source = "civis.geoserver";
 
@@ -69,7 +69,7 @@ namespace DIGIWAY
 
             var gpsinfo = new GpsInfo()
             {
-                Altitude = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).START_HEIGHT,
+                Altitude = altitude,
                 AltitudeUnitofMeasure = "m",
                 Gpstype = "position",
                 //Use only first digits otherwise point and track will differ
@@ -82,7 +82,7 @@ namespace DIGIWAY
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseCyclingRoutesTyrolToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
-            GeoserverCivisData digiwaydata
+            GeoserverCivisDataCycleWay digiwaydata
         )
         {
             if(odhactivitypoi == null)
@@ -90,33 +90,33 @@ namespace DIGIWAY
 
             odhactivitypoi.Id = digiwaydata.id.ToLower();
             odhactivitypoi.Active = true;
-            odhactivitypoi.FirstImport = Convert.ToDateTime(((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).CREATE_DATE);
-            odhactivitypoi.LastChange = Convert.ToDateTime(((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).UPDATE_DATE);
+            odhactivitypoi.FirstImport = Convert.ToDateTime(digiwaydata.properties.CREATE_DATE);
+            odhactivitypoi.LastChange = Convert.ToDateTime(digiwaydata.properties.UPDATE_DATE);
             odhactivitypoi.HasLanguage = new List<string>() { "de" };
-            odhactivitypoi.Shortname = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_NAME;
+            odhactivitypoi.Shortname = digiwaydata.properties.ROUTE_NAME;
             odhactivitypoi.Detail = new Dictionary<string, Detail>();
             odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("de", new Detail()
             {
-                Title = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_NAME,
-                BaseText = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_DESC,
-                Header = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_TYPE,
-                AdditionalText = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_NUMBER,
+                Title = digiwaydata.properties.ROUTE_NAME,
+                BaseText = digiwaydata.properties.ROUTE_DESC,
+                Header = digiwaydata.properties.ROUTE_TYPE,
+                AdditionalText = digiwaydata.properties.ROUTE_NUMBER,
                 Language = "de"
             });
             odhactivitypoi.ContactInfos = new Dictionary<string, ContactInfos>();
             odhactivitypoi.ContactInfos.TryAddOrUpdate<string, ContactInfos>("de", new ContactInfos()
             {
-                City = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).MUNICIPALITY,
-                Region = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).REGION,
+                City = digiwaydata.properties.MUNICIPALITY,
+                Region = digiwaydata.properties.REGION,
                 Language = "de"
             });
-            odhactivitypoi.DistanceLength = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).LENGTH;
-            odhactivitypoi.Difficulty = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).DIFFICULTY;
-            odhactivitypoi.AltitudeSumDown = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).DOWNHILL_METERS;
-            odhactivitypoi.AltitudeSumUp = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).UPHILL_METERS;
+            odhactivitypoi.DistanceLength = digiwaydata.properties.LENGTH;
+            odhactivitypoi.Difficulty = digiwaydata.properties.DIFFICULTY;
+            odhactivitypoi.AltitudeSumDown = digiwaydata.properties.DOWNHILL_METERS;
+            odhactivitypoi.AltitudeSumUp = digiwaydata.properties.UPHILL_METERS;
             odhactivitypoi.Source = "civis.geoserver";
             odhactivitypoi.SyncSourceInterface = "geoservices1.civis.bz.it";
-            odhactivitypoi.DistanceDuration = TransformDuration(((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).RUNNING_TIME);
+            odhactivitypoi.DistanceDuration = TransformDuration(digiwaydata.properties.RUNNING_TIME);
 
             //Add Tags
             odhactivitypoi.TagIds = new List<string>();
@@ -125,16 +125,21 @@ namespace DIGIWAY
             odhactivitypoi.TagIds.Add("biking biking tours");
            
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
-            additionalvalues.Add("object", ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).OBJECT);
-            additionalvalues.Add("route_number", ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_NUMBER);
-            additionalvalues.Add("id", ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ID.ToString());
-            additionalvalues.Add("route_type", ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_TYPE);
+            additionalvalues.Add("object", digiwaydata.properties.OBJECT);
+            additionalvalues.Add("route_number", digiwaydata.properties.ROUTE_NUMBER);
+            additionalvalues.Add("id", digiwaydata.properties.ID.ToString());
+            additionalvalues.Add("route_type", digiwaydata.properties.ROUTE_TYPE);
             var bboxformatted = digiwaydata.bbox.Select(d => d.ToString(CultureInfo.InvariantCulture)).ToList();
 
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
 
 
-            var georesult = ParseGeoServerGeodataToGeoShapeJson(digiwaydata, "cycleway");
+            var georesult = ParseGeoServerGeodataToGeoShapeJson(
+                digiwaydata, 
+                "cycleway", 
+                digiwaydata.properties.ROUTE_NAME,
+                digiwaydata.properties.START_HEIGHT
+                );
 
             var geoshape = georesult.Item1;
             geoshape.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);          
@@ -149,7 +154,7 @@ namespace DIGIWAY
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseMTBRoutesToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
-            GeoserverCivisData digiwaydata
+            GeoserverCivisDataMountainBike digiwaydata
         )
         {
             if (odhactivitypoi == null)
@@ -160,24 +165,24 @@ namespace DIGIWAY
             odhactivitypoi.FirstImport = odhactivitypoi != null ? odhactivitypoi.FirstImport : DateTime.Now;
             odhactivitypoi.LastChange = DateTime.Now;
             odhactivitypoi.HasLanguage = new List<string>() { "de","it" };
-            odhactivitypoi.Shortname = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_NAME_DE;
-            odhactivitypoi.Number = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE;
+            odhactivitypoi.Shortname = digiwaydata.properties.MTB_NAME_DE;
+            odhactivitypoi.Number = digiwaydata.properties.MTB_CODE;
             //odhactivitypoi.WayNumber = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE;
             odhactivitypoi.Detail = new Dictionary<string, Detail>();
             odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("de", new Detail()
             {
-                Title = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_NAME_DE,
-                BaseText = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_TEXT_DE,                
-                AdditionalText = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_LINK_DE,
-                SafetyInfo = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_DIFF_DE,
+                Title = digiwaydata.properties.MTB_NAME_DE,
+                BaseText = digiwaydata.properties.MTB_TEXT_DE,                
+                AdditionalText = digiwaydata.properties.MTB_LINK_DE,
+                SafetyInfo = digiwaydata.properties.MTB_DIFF_DE,
                 Language = "de"
             });
             odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
             {
-                Title = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_NAME_IT,
-                BaseText = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_TEXT_IT,
-                AdditionalText = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_LINK_IT,
-                SafetyInfo = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_DIFF_IT,
+                Title = digiwaydata.properties.MTB_NAME_IT,
+                BaseText = digiwaydata.properties.MTB_TEXT_IT,
+                AdditionalText = digiwaydata.properties.MTB_LINK_IT,
+                SafetyInfo = digiwaydata.properties.MTB_DIFF_IT,
                 Language = "it"
             });
             
@@ -196,7 +201,7 @@ namespace DIGIWAY
 
 
 
-            odhactivitypoi.Difficulty = TransformMTBDifficulty(((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_DIFF);
+            odhactivitypoi.Difficulty = TransformMTBDifficulty(digiwaydata.properties.MTB_DIFF);
             odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
 
             odhactivitypoi.Source = "civis.geoserver";
@@ -211,29 +216,34 @@ namespace DIGIWAY
             odhactivitypoi.TagIds.Add("mountain bikes");
 
             //Add Related Content if there is a LTS ID
-            if (!String.IsNullOrEmpty(((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_LTS_RID))
+            if (!String.IsNullOrEmpty(digiwaydata.properties.MTB_LTS_RID))
             {
                 odhactivitypoi.RelatedContent = new List<RelatedContent>();
                 RelatedContent relatedContent = new RelatedContent();
-                relatedContent.Id = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_LTS_RID;
+                relatedContent.Id = digiwaydata.properties.MTB_LTS_RID;
                 relatedContent.Type = "odhactivitypoi";
                 odhactivitypoi.RelatedContent.Add(relatedContent);
             }
 
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
-            additionalvalues.Add("code", ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE);
-            additionalvalues.Add("diff", ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_DIFF);
-            additionalvalues.Add("id", ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_ID.ToString());
-            additionalvalues.Add("lts_rid", ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_LTS_RID);            
-            additionalvalues.Add("length_geom", ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).LENGTH_GEOM.ToString());
-            additionalvalues.Add("single", ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_SINGLE_DE.ToString() == "JA" ? "true" : "false" );
+            additionalvalues.Add("code", digiwaydata.properties.MTB_CODE);
+            additionalvalues.Add("diff", digiwaydata.properties.MTB_DIFF);
+            additionalvalues.Add("id", digiwaydata.properties.MTB_ID.ToString());
+            additionalvalues.Add("lts_rid", digiwaydata.properties.MTB_LTS_RID);            
+            additionalvalues.Add("length_geom", digiwaydata.properties.LENGTH_GEOM.ToString());
+            additionalvalues.Add("single", digiwaydata.properties.MTB_SINGLE_DE.ToString() == "JA" ? "true" : "false" );
             var bboxformatted = digiwaydata.bbox.Select(d => d.ToString(CultureInfo.InvariantCulture)).ToList();
 
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
 
            
 
-            var georesult = ParseGeoServerGeodataToGeoShapeJson(digiwaydata, "mountainbikeroute");
+            var georesult = ParseGeoServerGeodataToGeoShapeJson(
+                digiwaydata, 
+                "mountainbikeroute", 
+                ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_NAME_DE,
+                null
+                );
 
             var geoshape = georesult.Item1;
             geoshape.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);

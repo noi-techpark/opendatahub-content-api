@@ -60,14 +60,14 @@ namespace OdhApiImporter.Helpers
         }
 
         //Get Data from Source
-        private async Task<GeoserverCivisResult> GetData(CancellationToken cancellationToken)
+        private async Task<IGeoserverCivisResult> GetData(CancellationToken cancellationToken)
         {
-            return await GetDigiwayData.GetDigiWayRouteDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl);
+            return await GetDigiwayData.GetDigiWayCycleRouteTyrolDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
         }
 
         //Import the Data
         public async Task<UpdateDetail> ImportData(
-            GeoserverCivisResult digiwaydatalist,
+            IGeoserverCivisResult digiwaydatalist,
             CancellationToken cancellationToken
         )
         {
@@ -76,23 +76,68 @@ namespace OdhApiImporter.Helpers
             int deletecounter = 0;
             int errorcounter = 0;
 
-            if (
-                digiwaydatalist != null
-                && digiwaydatalist.features != null
-            )
+            if (digiwaydatalist != null)
             {
-                //loop trough items
-                foreach (
-                    var digiwaydata in digiwaydatalist.features
-                )
-                {                    
-                        var importresult = await ImportDataSingle(digiwaydata);
+                //To check how to implement better
 
-                        newcounter = newcounter + importresult.created ?? newcounter;
-                        updatecounter = updatecounter + importresult.updated ?? updatecounter;
-                        errorcounter = errorcounter + importresult.error ?? errorcounter;                    
+                if (identifier == "cyclewaystyrol")
+                {
+                    if ((digiwaydatalist as GeoserverCivisResultCycleWay).features != null)
+                    {
+                        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultCycleWay).features)
+                        {
+                            var importresult = await ImportDataSingle(digiwaydata);
+
+                            newcounter = newcounter + importresult.created ?? newcounter;
+                            updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                            errorcounter = errorcounter + importresult.error ?? errorcounter;
+                        }
+                    }
+                }
+                else if (identifier == "mountainbikeroutes")
+                {
+                    if ((digiwaydatalist as GeoserverCivisResultMountainbike).features != null)
+                    {
+                        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultMountainbike).features)
+                        {
+                            var importresult = await ImportDataSingle(digiwaydata);
+
+                            newcounter = newcounter + importresult.created ?? newcounter;
+                            updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                            errorcounter = errorcounter + importresult.error ?? errorcounter;
+                        }
+                    }
+                }
+                else if (identifier == "hikingtrails")
+                {
+                    if ((digiwaydatalist as GeoserverCivisResultHikingTrail).features != null)
+                    {
+                        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultHikingTrail).features)
+                        {
+                            var importresult = await ImportDataSingle(digiwaydata);
+
+                            newcounter = newcounter + importresult.created ?? newcounter;
+                            updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                            errorcounter = errorcounter + importresult.error ?? errorcounter;
+                        }
+                    }
+                }
+                else if (identifier == "intermunicipalcyclingroutes")
+                {
+                    if ((digiwaydatalist as GeoserverCivisResultIntermunicipalPaths).features != null)
+                    {
+                        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultIntermunicipalPaths).features)
+                        {
+                            var importresult = await ImportDataSingle(digiwaydata);
+
+                            newcounter = newcounter + importresult.created ?? newcounter;
+                            updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                            errorcounter = errorcounter + importresult.error ?? errorcounter;
+                        }
+                    }
                 }
             }
+
 
             return new UpdateDetail()
             {
@@ -104,7 +149,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parsing the Data
-        public async Task<UpdateDetail> ImportDataSingle(GeoserverCivisData digiwaydata)
+        public async Task<UpdateDetail> ImportDataSingle(IGeoServerCivisData digiwaydata)
         {
             int updatecounter = 0;
             int newcounter = 0;
@@ -148,7 +193,7 @@ namespace OdhApiImporter.Helpers
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
                     parsedobject.Item1,
-                    new KeyValuePair<string, GeoserverCivisData>(returnid, digiwaydata)
+                    new KeyValuePair<string, IGeoServerCivisData>(returnid, digiwaydata)
                 );
 
                 newcounter = newcounter + pgcrudresult.created ?? 0;
@@ -197,7 +242,7 @@ namespace OdhApiImporter.Helpers
         //Inserting into DB
         private async Task<PGCRUDResult> InsertDataToDB(
             ODHActivityPoiLinked data,
-            KeyValuePair<string, GeoserverCivisData> digiwaydata
+            KeyValuePair<string, IGeoServerCivisData> digiwaydata
         )
         {
             var rawdataid = await InsertInRawDataDB(digiwaydata);
@@ -326,7 +371,7 @@ namespace OdhApiImporter.Helpers
             }
         }
 
-        private async Task<int> InsertInRawDataDB(KeyValuePair<string, GeoserverCivisData> data)
+        private async Task<int> InsertInRawDataDB(KeyValuePair<string, IGeoServerCivisData> data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
@@ -347,7 +392,7 @@ namespace OdhApiImporter.Helpers
         //Parse the interface content
         public async Task<(ODHActivityPoiLinked?, GeoShapeJson?)> ParseDigiWayDataToODHActivityPoi(
             string odhid,
-            GeoserverCivisData input
+             IGeoServerCivisData input
         )
         {
             //Get the ODH Item

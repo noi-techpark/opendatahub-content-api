@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DataModel;
+using DIGIWAY;
 using EBMS;
 using Helper;
 using Helper.Generic;
@@ -2758,10 +2759,10 @@ namespace OdhApiImporter.Controllers
     )
         {
             UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Import DIGIWAY CyclingRoutes";
+            string operation = "Import DIGIWAY " + identifier;
             string updatetype = GetUpdateType(null);
             string source = "digiway";
-            string otherinfo = "";
+            string otherinfo = identifier;
 
             try
             {
@@ -2769,22 +2770,22 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "smgpois",
-                    UrlGeneratorStatic("DIGIWAY/CyclingRoutes")
+                    UrlGeneratorStatic("DIGIWAY/" + identifier)
                 );
 
                 digiwayimporthelper.identifier = identifier;
 
                 updatedetail = await digiwayimporthelper.SaveDataToODH(
-                    null,
-                    null,
-                    cancellationToken
-                );
+                                        null,
+                                        null,
+                                        cancellationToken);
+                 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
-                    "Import DIGIWAY CyclingRoutes succeeded",
+                    "Import DIGIWAY " + identifier + " succeeded",
                     otherinfo,
                     updatedetail,
                     true
@@ -2799,7 +2800,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Import DIGIWAY CyclingRoutes failed",
+                    "Import DIGIWAY " + identifier + " failed",
                     otherinfo,
                     updatedetail,
                     ex,
