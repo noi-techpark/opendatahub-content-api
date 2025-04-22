@@ -22,7 +22,7 @@ namespace DIGIWAY
             }
         }
 
-        public static async Task<DigiWayRoutesCycleWaysResult?> GetDigiWayCyclingRouteDataAsync(
+        public static async Task<GeoserverCivisResult?> GetDigiWayRouteDataAsync(
             string user,
             string pass,
             string serviceurl
@@ -32,7 +32,7 @@ namespace DIGIWAY
             HttpResponseMessage response = await GetDigiwayDataFromService(user, pass, serviceurl);
             //Parse JSON Response to
             var responsetask = await response.Content.ReadAsStringAsync();
-            DigiWayRoutesCycleWaysResult? responseobject = JsonConvert.DeserializeObject<DigiWayRoutesCycleWaysResult>(responsetask);
+            GeoserverCivisResult? responseobject = JsonConvert.DeserializeObject<GeoserverCivisResult>(responsetask);
 
             return responseobject;
         }

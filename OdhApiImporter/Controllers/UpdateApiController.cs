@@ -2751,9 +2751,10 @@ namespace OdhApiImporter.Controllers
         #region DIGIWAY
 
         [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("DIGIWAY/CyclingRoutes/Update")]
+        [HttpGet, Route("DIGIWAY/{identifier}/Update")]
         public async Task<IActionResult> UpdateAllDigiwayCyclingRoutes(
-        CancellationToken cancellationToken = default
+            string identifier,
+            CancellationToken cancellationToken = default
     )
         {
             UpdateDetail updatedetail = default(UpdateDetail);
@@ -2764,12 +2765,14 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-                DigiWayCyclingRoutesImportHelper digiwayimporthelper = new DigiWayCyclingRoutesImportHelper(
+                DigiWayImportHelper digiwayimporthelper = new DigiWayImportHelper(
                     settings,
                     QueryFactory,
                     "smgpois",
                     UrlGeneratorStatic("DIGIWAY/CyclingRoutes")
                 );
+
+                digiwayimporthelper.identifier = identifier;
 
                 updatedetail = await digiwayimporthelper.SaveDataToODH(
                     null,

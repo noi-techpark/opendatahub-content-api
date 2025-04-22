@@ -21,11 +21,12 @@ using SqlKata.Extensions;
 
 namespace OdhApiImporter.Helpers
 {
-    public class DigiWayCyclingRoutesImportHelper : ImportHelper, IImportHelper
+    public class DigiWayImportHelper : ImportHelper, IImportHelper
     {
         public List<string> idlistinterface { get; set; }
+        public string? identifier { get; set; }
 
-        public DigiWayCyclingRoutesImportHelper(
+        public DigiWayImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -42,6 +43,9 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken = default
         )
         {
+            if (identifier == null)
+                throw new Exception("no identifier defined");
+
             var data = await GetData(cancellationToken);
 
             ////UPDATE all data
@@ -56,14 +60,14 @@ namespace OdhApiImporter.Helpers
         }
 
         //Get Data from Source
-        private async Task<DigiWayRoutesCycleWaysResult> GetData(CancellationToken cancellationToken)
+        private async Task<GeoserverCivisResult> GetData(CancellationToken cancellationToken)
         {
-            return await GetDigiwayData.GetDigiWayCyclingRouteDataAsync("", "", settings.DigiWayConfig["CyclingRoutes"].ServiceUrl);
+            return await GetDigiwayData.GetDigiWayRouteDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl);
         }
 
         //Import the Data
         public async Task<UpdateDetail> ImportData(
-            DigiWayRoutesCycleWaysResult digiwaydatalist,
+            GeoserverCivisResult digiwaydatalist,
             CancellationToken cancellationToken
         )
         {
@@ -100,7 +104,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parsing the Data
-        public async Task<UpdateDetail> ImportDataSingle(DigiWayRoutesCycleWays digiwaydata)
+        public async Task<UpdateDetail> ImportDataSingle(GeoserverCivisData digiwaydata)
         {
             int updatecounter = 0;
             int newcounter = 0;
@@ -144,7 +148,7 @@ namespace OdhApiImporter.Helpers
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
                     parsedobject.Item1,
-                    new KeyValuePair<string, DigiWayRoutesCycleWays>(returnid, digiwaydata)
+                    new KeyValuePair<string, GeoserverCivisData>(returnid, digiwaydata)
                 );
 
                 newcounter = newcounter + pgcrudresult.created ?? 0;
@@ -193,7 +197,7 @@ namespace OdhApiImporter.Helpers
         //Inserting into DB
         private async Task<PGCRUDResult> InsertDataToDB(
             ODHActivityPoiLinked data,
-            KeyValuePair<string, DigiWayRoutesCycleWays> digiwaydata
+            KeyValuePair<string, GeoserverCivisData> digiwaydata
         )
         {
             var rawdataid = await InsertInRawDataDB(digiwaydata);
@@ -211,7 +215,7 @@ namespace OdhApiImporter.Helpers
             var pgcrudresult = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                 data,
                 new DataInfo(table, Helper.Generic.CRUDOperation.CreateAndUpdate),
-                new EditInfo("digiway.cyclingroutes.import", importerURL),
+                new EditInfo("digiway." + identifier + ".import", importerURL),
                 new CRUDConstraints(),
                 new CompareConfig(true, false),
                 rawdataid
@@ -322,7 +326,7 @@ namespace OdhApiImporter.Helpers
             }
         }
 
-        private async Task<int> InsertInRawDataDB(KeyValuePair<string, DigiWayRoutesCycleWays> data)
+        private async Task<int> InsertInRawDataDB(KeyValuePair<string, GeoserverCivisData> data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
@@ -331,8 +335,8 @@ namespace OdhApiImporter.Helpers
                     rawformat = "xml",
                     importdate = DateTime.Now,
                     license = "open",
-                    sourceinterface = "cyclingroutes",
-                    sourceurl = settings.DigiWayConfig["CyclingRoutes"].ServiceUrl,
+                    sourceinterface = identifier,
+                    sourceurl = settings.DigiWayConfig[identifier].ServiceUrl,
                     type = "odhactivitypoi",
                     sourceid = data.Key,
                     raw = data.Value.ToString(),
@@ -343,7 +347,7 @@ namespace OdhApiImporter.Helpers
         //Parse the interface content
         public async Task<(ODHActivityPoiLinked?, GeoShapeJsonTest?)> ParseDigiWayDataToODHActivityPoi(
             string odhid,
-            DigiWayRoutesCycleWays input
+            GeoserverCivisData input
         )
         {
             //Get the ODH Item
