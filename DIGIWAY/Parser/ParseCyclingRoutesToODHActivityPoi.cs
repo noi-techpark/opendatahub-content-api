@@ -34,8 +34,8 @@ namespace DIGIWAY
             {
                 "cyclewaystyrol" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as GeoserverCivisDataCycleWay),
                 "mountainbikeroutes" => ParseMTBRoutesToODHActivityPoi(odhactivitypoi, digiwaydata as GeoserverCivisDataMountainBike),
-                "hikingtrails" => (null, null),
-                "intermunicipalcyclingroutes" => (null, null),
+                "hikingtrails" => ParseHikingTrailsToODHActivityPoi(odhactivitypoi, digiwaydata as GeoserverCivisDataHikingTrail),
+                "intermunicipalcyclingroutes" => ParseInterMunicipalCyclingRoutesToODHActivityPoi(odhactivitypoi, digiwaydata as GeoserverCivisDataIntermunicipalPaths),
                 "_" => (null,null)
             };
 
@@ -136,7 +136,7 @@ namespace DIGIWAY
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata, 
-                "cycleway", 
+                "cyclewaytyrol", 
                 digiwaydata.properties.ROUTE_NAME,
                 digiwaydata.properties.START_HEIGHT
                 );
@@ -239,9 +239,171 @@ namespace DIGIWAY
            
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata, 
+                digiwaydata,
                 "mountainbikeroute", 
                 ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_NAME_DE,
+                null
+                );
+
+            var geoshape = georesult.Item1;
+            geoshape.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+
+            //Add Starting GPS Coordinate as GPS Point 
+            odhactivitypoi.GpsInfo = new List<GpsInfo>();
+            odhactivitypoi.GpsInfo.Add(georesult.Item2);
+
+            return (odhactivitypoi, geoshape);
+        }
+
+        private static (ODHActivityPoiLinked, GeoShapeJson) ParseHikingTrailsToODHActivityPoi(
+            ODHActivityPoiLinked? odhactivitypoi,
+            GeoserverCivisDataHikingTrail digiwaydata
+        )
+        {
+            if (odhactivitypoi == null)
+                odhactivitypoi = new ODHActivityPoiLinked();
+
+            odhactivitypoi.Id = digiwaydata.id.ToLower();
+            odhactivitypoi.Active = true;
+            odhactivitypoi.FirstImport = odhactivitypoi != null ? odhactivitypoi.FirstImport : DateTime.Now;
+            odhactivitypoi.LastChange = DateTime.Now;
+            odhactivitypoi.HasLanguage = new List<string>() { "de" };
+            odhactivitypoi.Shortname = digiwaydata.properties.NAME;
+            odhactivitypoi.Number = digiwaydata.properties.CODE;
+            //odhactivitypoi.WayNumber = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE;
+            odhactivitypoi.Detail = new Dictionary<string, Detail>();
+            odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("de", new Detail()
+            {
+                Title = digiwaydata.properties.NAME,                
+                AdditionalText = digiwaydata.properties.CODE_NAME,
+                Language = "de"
+            });
+           
+
+
+            //odhactivitypoi.ContactInfos = new Dictionary<string, ContactInfos>();
+            //odhactivitypoi.ContactInfos.TryAddOrUpdate<string, ContactInfos>("de", new ContactInfos()
+            //{
+            //    City = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MUNICIPALITY,
+            //    Region = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).REGION
+            //});
+            odhactivitypoi.DistanceLength = digiwaydata.properties.LENGTH_GEOM;
+            //odhactivitypoi.Difficulty = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).DIFFICULTY;
+            //odhactivitypoi.AltitudeSumDown = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).DOWNHILL_METERS;
+            //odhactivitypoi.AltitudeSumUp = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).UPHILL_METERS;
+            //odhactivitypoi.DistanceDuration = TransformDuration(((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).RUNNING_TIME);
+            
+            odhactivitypoi.Source = "civis.geoserver";
+            odhactivitypoi.SyncSourceInterface = "hikingtrails";
+
+
+            //Add Tags
+            odhactivitypoi.TagIds = new List<string>();
+            odhactivitypoi.TagIds.Add("978F89296ACB4DB4B6BD1C269341802F"); //LTS Hiking Tag
+            odhactivitypoi.TagIds.Add("hiking");
+            odhactivitypoi.TagIds.Add("B702CF3773CF4A47AFEBC291618A7B7E"); //LTS Other hikes Tag
+            odhactivitypoi.TagIds.Add("other hikes");
+            
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            additionalvalues.Add("code", digiwaydata.properties.CODE);
+            additionalvalues.Add("code_name", digiwaydata.properties.CODE_NAME);
+            additionalvalues.Add("id", digiwaydata.properties.ID.ToString());
+            additionalvalues.Add("length_geom", digiwaydata.properties.LENGTH_GEOM.ToString());
+            var bboxformatted = digiwaydata.bbox.Select(d => d.ToString(CultureInfo.InvariantCulture)).ToList();
+
+            additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
+
+            var georesult = ParseGeoServerGeodataToGeoShapeJson(
+                digiwaydata,
+                "hikingtrail",
+                digiwaydata.properties.NAME,
+                null
+                );
+
+            var geoshape = georesult.Item1;
+            geoshape.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+
+            //Add Starting GPS Coordinate as GPS Point 
+            odhactivitypoi.GpsInfo = new List<GpsInfo>();
+            odhactivitypoi.GpsInfo.Add(georesult.Item2);
+
+            return (odhactivitypoi, geoshape);
+        }
+
+        private static (ODHActivityPoiLinked, GeoShapeJson) ParseInterMunicipalCyclingRoutesToODHActivityPoi(
+        ODHActivityPoiLinked? odhactivitypoi,
+        GeoserverCivisDataIntermunicipalPaths digiwaydata
+    )
+        {
+            if (odhactivitypoi == null)
+                odhactivitypoi = new ODHActivityPoiLinked();
+
+            odhactivitypoi.Id = digiwaydata.id.ToLower();
+            odhactivitypoi.Active = true;
+            odhactivitypoi.FirstImport = odhactivitypoi != null ? odhactivitypoi.FirstImport : DateTime.Now;
+            odhactivitypoi.LastChange = DateTime.Now;
+            odhactivitypoi.HasLanguage = new List<string>() { "de", "it" };
+            odhactivitypoi.Shortname = digiwaydata.properties.NAME_DE;
+            odhactivitypoi.Number = digiwaydata.properties.CODE;
+            //odhactivitypoi.WayNumber = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE;
+            odhactivitypoi.Detail = new Dictionary<string, Detail>();
+            odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("de", new Detail()
+            {
+                Title = digiwaydata.properties.NAME_DE,                
+                AdditionalText = digiwaydata.properties.DISTRICT_DE,                
+                Language = "de"
+            });
+            odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
+            {
+                Title = digiwaydata.properties.NAME_IT,                
+                AdditionalText = digiwaydata.properties.DISTRICT_IT,                
+                Language = "it"
+            });
+
+
+            //odhactivitypoi.ContactInfos = new Dictionary<string, ContactInfos>();
+            //odhactivitypoi.ContactInfos.TryAddOrUpdate<string, ContactInfos>("de", new ContactInfos()
+            //{
+            //    City = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MUNICIPALITY,
+            //    Region = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).REGION
+            //});
+            //odhactivitypoi.DistanceLength = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).LENGTH;
+            //odhactivitypoi.Difficulty = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).DIFFICULTY;
+            //odhactivitypoi.AltitudeSumDown = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).DOWNHILL_METERS;
+            //odhactivitypoi.AltitudeSumUp = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).UPHILL_METERS;
+            //odhactivitypoi.DistanceDuration = TransformDuration(((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).RUNNING_TIME);
+
+
+
+            //odhactivitypoi.Difficulty = TransformMTBDifficulty(digiwaydata.properties.MTB_DIFF);
+            //odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
+
+            odhactivitypoi.Source = "civis.geoserver";
+            odhactivitypoi.SyncSourceInterface = "intermunicipalcyclingroutes";
+
+
+            //Add Tags
+            odhactivitypoi.TagIds = new List<string>();
+            odhactivitypoi.TagIds.Add("9DE2F99EA67E4278A558755E093DB0ED"); //LTS Others bike Tag
+            odhactivitypoi.TagIds.Add("cycling");
+            odhactivitypoi.TagIds.Add("others bike");
+            odhactivitypoi.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");        //LTS RAdtouren Tag     
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            additionalvalues.Add("code", digiwaydata.properties.CODE);            
+            additionalvalues.Add("id", digiwaydata.properties.ID.ToString());            
+            additionalvalues.Add("length_geom", digiwaydata.properties.LENGTH_GEOM.ToString());
+            var bboxformatted = digiwaydata.bbox.Select(d => d.ToString(CultureInfo.InvariantCulture)).ToList();
+
+            additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
+
+
+
+            var georesult = ParseGeoServerGeodataToGeoShapeJson(
+                digiwaydata,
+                "intermunicipalcyclingroute",
+                digiwaydata.properties.NAME_DE,
                 null
                 );
 
