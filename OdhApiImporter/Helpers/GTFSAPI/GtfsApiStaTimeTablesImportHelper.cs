@@ -202,8 +202,9 @@ namespace OdhApiImporter.Helpers
             //Create Tags not needed
             //await data.UpdateTagsExtension(QueryFactory);
 
-            //DistanceCalculation
-            await data.UpdateDistanceCalculation(QueryFactory);
+            //DistanceCalculation only if not present
+            if(data.DistanceInfo == null)
+                await data.UpdateDistanceCalculation(QueryFactory);
             
             //PublishedOn Info set to sta
             data.PublishedOn = new List<string>() { "sta" };
