@@ -161,7 +161,7 @@ namespace OdhApiImporter.Helpers
                     new ImportLog()
                     {
                         sourceid = returnid,
-                        sourceinterface = "digiway.cyclingroutes",
+                        sourceinterface = "digiway." + identifier,
                         success = true,
                         error = "",
                     }
@@ -176,9 +176,9 @@ namespace OdhApiImporter.Helpers
                     new ImportLog()
                     {
                         sourceid = returnid,
-                        sourceinterface = "digiway.cyclingroutes",
+                        sourceinterface = "digiway." + identifier,
                         success = false,
-                        error = "digiway cyclingroute could not be parsed",
+                        error = "digiway " + identifier + " could not be parsed",
                     }
                 );
 
@@ -225,19 +225,19 @@ namespace OdhApiImporter.Helpers
         }
 
         private async Task<PGCRUDResult> InsertDataInShapesDB(
-          GeoShapeJsonTest data
+          GeoShapeJson data
       )
         {
             try
             {                
                 //Set LicenseInfo
-                data.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<GeoShapeJsonTest>(
+                data.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<GeoShapeJson>(
                     data,
                     Helper.LicenseHelper.GetLicenseforGeoShape
                 );
 
                 //Set Meta
-                data._Meta = MetadataHelper.GetMetadataobject<GeoShapeJsonTest>(data);
+                data._Meta = MetadataHelper.GetMetadataobject<GeoShapeJson>(data);
 
                 //Check if data is there by Name
                 var shapeid = await QueryFactory.Query("geoshapes").Select("id").Where("id", data.Id.ToLower()).FirstOrDefaultAsync<string>();
@@ -250,7 +250,7 @@ namespace OdhApiImporter.Helpers
                 {                                                            
                     insert = await QueryFactory
                    .Query("geoshapes")
-                   .InsertAsync(new GeoShapeDBTest<UnsafeLiteral>()
+                   .InsertAsync(new GeoShapeDB<UnsafeLiteral>()
                    {
                        id = data.Id.ToLower(),
                        licenseinfo = new JsonRaw(data.LicenseInfo),
@@ -271,7 +271,7 @@ namespace OdhApiImporter.Helpers
                     update = await QueryFactory
                    .Query("geoshapes")
                    .Where("id", data.Id.ToLower())
-                   .UpdateAsync(new GeoShapeDBTest<UnsafeLiteral>()
+                   .UpdateAsync(new GeoShapeDB<UnsafeLiteral>()
                    {
                        id = data.Id.ToLower(),
                        licenseinfo = new JsonRaw(data.LicenseInfo),
@@ -345,7 +345,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parse the interface content
-        public async Task<(ODHActivityPoiLinked?, GeoShapeJsonTest?)> ParseDigiWayDataToODHActivityPoi(
+        public async Task<(ODHActivityPoiLinked?, GeoShapeJson?)> ParseDigiWayDataToODHActivityPoi(
             string odhid,
             GeoserverCivisData input
         )
@@ -393,7 +393,7 @@ namespace OdhApiImporter.Helpers
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "digiway.cyclingroutes",
+                        sourceinterface = "digiway." + identifier,
                         success = false,
                         error = ex.Message,
                     }

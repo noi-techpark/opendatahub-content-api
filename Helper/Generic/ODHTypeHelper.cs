@@ -105,7 +105,7 @@ namespace Helper
                 SnowReportBaseData => "snowreport",
                 VenueV2 => "venue",
                 EventV2 => "event",
-                GeoShapeJson or GeoShapeJsonTest => "geoshape",
+                GeoShapeJson => "geoshape",
                 _ => throw new Exception("not known odh type"),
             };
         }

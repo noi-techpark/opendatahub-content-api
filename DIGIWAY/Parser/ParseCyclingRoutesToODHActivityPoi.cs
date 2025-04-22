@@ -25,7 +25,7 @@ namespace DIGIWAY
     public class ParseCyclingRoutesToODHActivityPoi
     {
 
-        public static (ODHActivityPoiLinked, GeoShapeJsonTest) ParseDigiWayCyclingRoutesToODHActivityPoi(
+        public static (ODHActivityPoiLinked, GeoShapeJson) ParseDigiWayCyclingRoutesToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
             GeoserverCivisData digiwaydata
         )
@@ -67,7 +67,7 @@ namespace DIGIWAY
             odhactivitypoi.TagIds.Add("cycling");
             odhactivitypoi.TagIds.Add("biking biking tours");
            
-            GeoShapeJsonTest geoshape = new GeoShapeJsonTest();            
+            GeoShapeJson geoshape = new GeoShapeJson();            
             geoshape.Id = digiwaydata.id.ToLower();
             geoshape.Name = ((GeoserverCivisPropertiesCycleWay)digiwaydata.properties).ROUTE_NAME;
             geoshape.Type = "cycleway";

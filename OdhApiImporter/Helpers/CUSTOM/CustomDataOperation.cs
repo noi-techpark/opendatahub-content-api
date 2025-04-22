@@ -1779,64 +1779,7 @@ namespace OdhApiImporter.Helpers
         #endregion
 
         #region GeoShape
-
-        
-        public async Task<int> UpdateGeoshapeCreateMapping()
-        {
-            //Load all data from PG and resave
-            var query = QueryFactory                
-                .Query()            
-                .SelectRaw("id,country,code_rip,code_reg,code_prov,code_cm,code_uts,istatnumber,abbrev,type_uts,name,name_alternative,shape_leng,shape_area,type,licenseinfo,meta,source,data,mapping,idstring")
-                .From("shapes");
-
-            //ST_AsText(geometry) as geometry,
-            var shapes = await query.GetAsync<GeoShapeDB>();
-
-            int i = 0;
-
-            foreach (var shape in shapes)
-            {
-                Dictionary<string, Dictionary<string, string>> Mapping = new Dictionary<string, Dictionary<string, string>>();
-                Dictionary<string, string> astatdict = new Dictionary<string, string>();
-                astatdict.Add("id", shape.id.ToString());
-                if (shape.code_rip != null)
-                    astatdict.Add("code_rip", shape.code_rip.ToString());
-                if (shape.code_reg != null)
-                    astatdict.Add("code_reg", shape.code_reg.ToString());
-                if (shape.code_cm != null)
-                    astatdict.Add("code_cm", shape.code_cm.ToString());
-                if (shape.code_prov != null)
-                    astatdict.Add("code_prov", shape.code_prov.ToString());
-                if (shape.type_uts != null)
-                    astatdict.Add("type_uts", shape.type_uts);
-                if (shape.istatnumber != null)
-                    astatdict.Add("istatnumber", shape.istatnumber);
-                if (shape.abbrev != null)
-                    astatdict.Add("abbrev", shape.abbrev);
-                if (shape.name_alternative != null && shape.name_alternative != "0")
-                    astatdict.Add("name_alternative", shape.name_alternative);
-                if (shape.shape_leng != null)
-                    astatdict.Add("shape_leng", shape.shape_leng.ToString());
-                if (shape.shape_area != null)
-                    astatdict.Add("shape_area", shape.shape_area.ToString());
- 
-
-                Mapping.Add("istat", astatdict);
-
-                shape.mapping = new JsonRaw(Mapping);
-                shape.srid = "32632";
-                shape.idstring = shape.id + "_istat";
-
-                //Save tp DB
-                var queryresult = await QueryFactory.Query("shapes").Where("id", shape.id)
-                     .UpdateAsync(shape);
-
-                i++;
-            }
-
-            return i;
-        }
-
+            
         public async Task<int> UpdateGeoshapeMetaInfo()
         {
             //Load all data from PG and resave
@@ -1846,13 +1789,13 @@ namespace OdhApiImporter.Helpers
                 .From("geoshapes");
 
             //ST_AsText(geometry) as geometry,
-            var shapes = await query.GetAsync<GeoShapeDBTest>();
+            var shapes = await query.GetAsync<GeoShapeDB>();
 
             int i = 0;
 
             foreach (var shape in shapes)
             {
-                var metainfo = MetadataHelper.GetMetadataobject<GeoShapeJsonTest>(new GeoShapeJsonTest()
+                var metainfo = MetadataHelper.GetMetadataobject<GeoShapeJson>(new GeoShapeJson()
                 {
                     Source = shape.source,
                     Id = shape.id
@@ -2154,4 +2097,65 @@ namespace OdhApiImporter.Helpers
     {
         public new IDictionary<string, List<Tags>> Tags { get; set; }
     }
+
+    #region obsolete
+
+    //public async Task<int> UpdateGeoshapeCreateMapping()
+    //{
+    //    //Load all data from PG and resave
+    //    var query = QueryFactory
+    //        .Query()
+    //        .SelectRaw("id,country,code_rip,code_reg,code_prov,code_cm,code_uts,istatnumber,abbrev,type_uts,name,name_alternative,shape_leng,shape_area,type,licenseinfo,meta,source,data,mapping,idstring")
+    //        .From("shapes");
+
+    //    //ST_AsText(geometry) as geometry,
+    //    var shapes = await query.GetAsync<GeoShapeDB>();
+
+    //    int i = 0;
+
+    //    foreach (var shape in shapes)
+    //    {
+    //        Dictionary<string, Dictionary<string, string>> Mapping = new Dictionary<string, Dictionary<string, string>>();
+    //        Dictionary<string, string> astatdict = new Dictionary<string, string>();
+    //        astatdict.Add("id", shape.id.ToString());
+    //        if (shape.code_rip != null)
+    //            astatdict.Add("code_rip", shape.code_rip.ToString());
+    //        if (shape.code_reg != null)
+    //            astatdict.Add("code_reg", shape.code_reg.ToString());
+    //        if (shape.code_cm != null)
+    //            astatdict.Add("code_cm", shape.code_cm.ToString());
+    //        if (shape.code_prov != null)
+    //            astatdict.Add("code_prov", shape.code_prov.ToString());
+    //        if (shape.type_uts != null)
+    //            astatdict.Add("type_uts", shape.type_uts);
+    //        if (shape.istatnumber != null)
+    //            astatdict.Add("istatnumber", shape.istatnumber);
+    //        if (shape.abbrev != null)
+    //            astatdict.Add("abbrev", shape.abbrev);
+    //        if (shape.name_alternative != null && shape.name_alternative != "0")
+    //            astatdict.Add("name_alternative", shape.name_alternative);
+    //        if (shape.shape_leng != null)
+    //            astatdict.Add("shape_leng", shape.shape_leng.ToString());
+    //        if (shape.shape_area != null)
+    //            astatdict.Add("shape_area", shape.shape_area.ToString());
+
+
+    //        Mapping.Add("istat", astatdict);
+
+    //        shape.mapping = new JsonRaw(Mapping);
+    //        shape.srid = "32632";
+    //        shape.idstring = shape.id + "_istat";
+
+    //        //Save tp DB
+    //        var queryresult = await QueryFactory.Query("shapes").Where("id", shape.id)
+    //             .UpdateAsync(shape);
+
+    //        i++;
+    //    }
+
+    //    return i;
+    //}
+
+
+    #endregion
 }
