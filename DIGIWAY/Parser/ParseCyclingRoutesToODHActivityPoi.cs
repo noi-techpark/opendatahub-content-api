@@ -115,7 +115,7 @@ namespace DIGIWAY
             odhactivitypoi.AltitudeSumDown = digiwaydata.properties.DOWNHILL_METERS;
             odhactivitypoi.AltitudeSumUp = digiwaydata.properties.UPHILL_METERS;
             odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "geoservices1.civis.bz.it";
+            odhactivitypoi.SyncSourceInterface = "cyclewaystyrol";
             odhactivitypoi.DistanceDuration = TransformDuration(digiwaydata.properties.RUNNING_TIME);
 
             //Add Tags
@@ -205,7 +205,7 @@ namespace DIGIWAY
             odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
 
             odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "geoservices1.civis.bz.it";
+            odhactivitypoi.SyncSourceInterface = "mountainbikeroutes";
             
 
             //Add Tags

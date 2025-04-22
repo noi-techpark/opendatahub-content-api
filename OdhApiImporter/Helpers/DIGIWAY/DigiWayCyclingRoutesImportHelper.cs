@@ -417,7 +417,7 @@ namespace OdhApiImporter.Helpers
             try
             {
                 //Begin SetDataNotinListToInactive
-                var idlistdb = await GetAllDataBySource(new List<string>() { "digiway" });
+                var idlistdb = await GetAllDataBySource(new List<string>() { "digiway", "" });
 
                 var idstodelete = idlistdb.Where(p => !idlistinterface.Any(p2 => p2 == p));
 
