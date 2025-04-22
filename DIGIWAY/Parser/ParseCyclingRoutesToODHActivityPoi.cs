@@ -210,6 +210,16 @@ namespace DIGIWAY
             odhactivitypoi.TagIds.Add("mountain bike"); 
             odhactivitypoi.TagIds.Add("mountain bikes");
 
+            //Add Related Content if there is a LTS ID
+            if (!String.IsNullOrEmpty(((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_LTS_RID))
+            {
+                odhactivitypoi.RelatedContent = new List<RelatedContent>();
+                RelatedContent relatedContent = new RelatedContent();
+                relatedContent.Id = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_LTS_RID;
+                relatedContent.Type = "odhactivitypoi";
+                odhactivitypoi.RelatedContent.Add(relatedContent);
+            }
+
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             additionalvalues.Add("code", ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE);
             additionalvalues.Add("diff", ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_DIFF);
@@ -221,8 +231,7 @@ namespace DIGIWAY
 
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
 
-            //Add Related Content if there is a LTS ID
-
+           
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(digiwaydata, "mountainbikeroute");
 
