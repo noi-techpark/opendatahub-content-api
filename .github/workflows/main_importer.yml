@@ -160,6 +160,7 @@ jobs:
           X_LTSAPI_OPENDATA_OPENDATA: true
 
           X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}
+          X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
 
       - name: Build and push 
         uses: noi-techpark/github-actions/docker-build-and-push@v2
@@ -297,6 +298,7 @@ jobs:
           X_LTSAPI_OPENDATA_OPENDATA: true
 
           X_DIGIWAY_CYCLINGROUTES_URL: ${{ secrets.DIGIWAY_CYCLINGROUTES_URL }}
+          X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
 
       - name: Build and push 
         uses: noi-techpark/github-actions/docker-build-and-push@v2

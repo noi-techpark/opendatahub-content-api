@@ -46,6 +46,7 @@ namespace Helper
         SuedtirolWeinConfig SuedtirolWeinConfig { get; }
         LoopTecConfig LoopTecConfig { get; }
         IDictionary<string, DigiWayConfig> DigiWayConfig { get; }
+        IDictionary<string, GTFSApiConfig> GTFSApiConfig { get; }
         LTSCredentials LtsCredentials { get; }
         LTSCredentials LtsCredentialsOpen { get; }
     }
@@ -506,6 +507,27 @@ namespace Helper
         public string Identifier { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }        
+    }
+
+    public class GTFSApiConfig
+    {
+        public GTFSApiConfig(
+            string serviceurl,
+            string username,
+            string password,
+            string identifier
+        )
+        {
+            this.ServiceUrl = serviceurl;
+            this.Identifier = identifier;
+            this.Username = username;
+            this.Password = password;
+        }
+
+        public string ServiceUrl { get; set; }
+        public string Identifier { get; set; }
+        public string Username { get; set; }
+        public string Password { get; set; }
     }
 
 
