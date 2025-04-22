@@ -355,7 +355,7 @@ namespace OdhApiImporter.Helpers
 
             var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
-            var result = ParseCyclingRoutesToODHActivityPoi.ParseDigiWayCyclingRoutesToODHActivityPoi(dataindb, input);
+            var result = ParseGeoServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier);
 
             return result;
         }
