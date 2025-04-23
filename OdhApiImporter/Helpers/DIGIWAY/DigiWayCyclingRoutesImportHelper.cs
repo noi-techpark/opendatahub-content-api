@@ -13,7 +13,6 @@ using DataModel;
 using DIGIWAY;
 using Helper;
 using Helper.Generic;
-using NetTopologySuite.Geometries;
 using Newtonsoft.Json;
 using SqlKata;
 using SqlKata.Execution;
@@ -62,7 +61,7 @@ namespace OdhApiImporter.Helpers
         //Get Data from Source
         private async Task<IGeoserverCivisResult> GetData(CancellationToken cancellationToken)
         {
-            return await GetDigiwayData.GetDigiWayCycleRouteTyrolDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
+            return await GetDigiwayData.GetDigiWayDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
         }
 
         //Import the Data
@@ -76,66 +75,74 @@ namespace OdhApiImporter.Helpers
             int deletecounter = 0;
             int errorcounter = 0;
 
-            if (digiwaydatalist != null)
-            {
-                //To check how to implement better
-
-                if (identifier == "cyclewaystyrol")
+            if (digiwaydatalist != null && digiwaydatalist.features != null)
+            {                
+                foreach (var digiwaydata in digiwaydatalist.features)
                 {
-                    if ((digiwaydatalist as GeoserverCivisResultCycleWay).features != null)
-                    {
-                        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultCycleWay).features)
-                        {
-                            var importresult = await ImportDataSingle(digiwaydata);
+                    var importresult = await ImportDataSingle(digiwaydata);
 
-                            newcounter = newcounter + importresult.created ?? newcounter;
-                            updatecounter = updatecounter + importresult.updated ?? updatecounter;
-                            errorcounter = errorcounter + importresult.error ?? errorcounter;
-                        }
-                    }
+                    newcounter = newcounter + importresult.created ?? newcounter;
+                    updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                    errorcounter = errorcounter + importresult.error ?? errorcounter;
                 }
-                else if (identifier == "mountainbikeroutes")
-                {
-                    if ((digiwaydatalist as GeoserverCivisResultMountainbike).features != null)
-                    {
-                        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultMountainbike).features)
-                        {
-                            var importresult = await ImportDataSingle(digiwaydata);
+                
 
-                            newcounter = newcounter + importresult.created ?? newcounter;
-                            updatecounter = updatecounter + importresult.updated ?? updatecounter;
-                            errorcounter = errorcounter + importresult.error ?? errorcounter;
-                        }
-                    }
-                }
-                else if (identifier == "hikingtrails")
-                {
-                    if ((digiwaydatalist as GeoserverCivisResultHikingTrail).features != null)
-                    {
-                        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultHikingTrail).features)
-                        {
-                            var importresult = await ImportDataSingle(digiwaydata);
+                //if (identifier == "cyclewaystyrol")
+                //{
+                //    if ((digiwaydatalist as GeoserverCivisResultCycleWay).features != null)
+                //    {
+                //        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultCycleWay).features)
+                //        {
+                //            var importresult = await ImportDataSingle(digiwaydata);
 
-                            newcounter = newcounter + importresult.created ?? newcounter;
-                            updatecounter = updatecounter + importresult.updated ?? updatecounter;
-                            errorcounter = errorcounter + importresult.error ?? errorcounter;
-                        }
-                    }
-                }
-                else if (identifier == "intermunicipalcyclingroutes")
-                {
-                    if ((digiwaydatalist as GeoserverCivisResultIntermunicipalPaths).features != null)
-                    {
-                        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultIntermunicipalPaths).features)
-                        {
-                            var importresult = await ImportDataSingle(digiwaydata);
+                //            newcounter = newcounter + importresult.created ?? newcounter;
+                //            updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                //            errorcounter = errorcounter + importresult.error ?? errorcounter;
+                //        }
+                //    }
+                //}
+                //else if (identifier == "mountainbikeroutes")
+                //{
+                //    if ((digiwaydatalist as GeoserverCivisResultMountainbike).features != null)
+                //    {
+                //        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultMountainbike).features)
+                //        {
+                //            var importresult = await ImportDataSingle(digiwaydata);
 
-                            newcounter = newcounter + importresult.created ?? newcounter;
-                            updatecounter = updatecounter + importresult.updated ?? updatecounter;
-                            errorcounter = errorcounter + importresult.error ?? errorcounter;
-                        }
-                    }
-                }
+                //            newcounter = newcounter + importresult.created ?? newcounter;
+                //            updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                //            errorcounter = errorcounter + importresult.error ?? errorcounter;
+                //        }
+                //    }
+                //}
+                //else if (identifier == "hikingtrails")
+                //{
+                //if ((digiwaydatalist as GeoserverCivisResultHikingTrail).features != null)
+                //{
+                //    foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultHikingTrail).features)
+                //    {
+                //        var importresult = await ImportDataSingle(digiwaydata);
+
+                //        newcounter = newcounter + importresult.created ?? newcounter;
+                //        updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                //        errorcounter = errorcounter + importresult.error ?? errorcounter;
+                //    }
+                //}
+                //}
+                //else if (identifier == "intermunicipalcyclingroutes")
+                //{
+                //    if ((digiwaydatalist as GeoserverCivisResultIntermunicipalPaths).features != null)
+                //    {
+                //        foreach (var digiwaydata in (digiwaydatalist as GeoserverCivisResultIntermunicipalPaths).features)
+                //        {
+                //            var importresult = await ImportDataSingle(digiwaydata);
+
+                //            newcounter = newcounter + importresult.created ?? newcounter;
+                //            updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                //            errorcounter = errorcounter + importresult.error ?? errorcounter;
+                //        }
+                //    }
+                //}
             }
 
 

@@ -2758,6 +2758,11 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
     )
         {
+            //cyclewaystyrol
+            //mountainbikeroutes
+            //hikingtrails
+            //intermunicipalcyclingroutes
+
             UpdateDetail updatedetail = default(UpdateDetail);
             string operation = "Import DIGIWAY " + identifier;
             string updatetype = GetUpdateType(null);

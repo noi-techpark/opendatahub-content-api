@@ -23,7 +23,7 @@ namespace DIGIWAY
             }
         }
         
-        public static async Task<IGeoserverCivisResult> GetDigiWayCycleRouteTyrolDataAsync(
+        public static async Task<IGeoserverCivisResult> GetDigiWayDataAsync(
             string user,
             string pass,
             string serviceurl,
@@ -37,16 +37,16 @@ namespace DIGIWAY
 
             if (responsetask != null && !String.IsNullOrEmpty(identifier))
             {
-                IGeoserverCivisResult result = identifier switch
-                {
-                    "cyclewaystyrol" => JsonConvert.DeserializeObject<GeoserverCivisResultCycleWay>(responsetask),
-                    "mountainbikeroutes" => JsonConvert.DeserializeObject<GeoserverCivisResultMountainbike>(responsetask),
-                    "hikingtrails" => JsonConvert.DeserializeObject<GeoserverCivisResultHikingTrail>(responsetask),
-                    "intermunicipalcyclingroutes" => JsonConvert.DeserializeObject<GeoserverCivisResultIntermunicipalPaths>(responsetask),
-                    _ => null
-                };
+                //IGeoserverCivisResult result = identifier switch
+                //{
+                //    "cyclewaystyrol" => JsonConvert.DeserializeObject<GeoserverCivisResultCycleWay>(responsetask),
+                //    "mountainbikeroutes" => JsonConvert.DeserializeObject<GeoserverCivisResultMountainbike>(responsetask),
+                //    "hikingtrails" => JsonConvert.DeserializeObject<GeoserverCivisResultHikingTrail>(responsetask),
+                //    "intermunicipalcyclingroutes" => JsonConvert.DeserializeObject<GeoserverCivisResultIntermunicipalPaths>(responsetask),
+                //    _ => null
+                //};
 
-                return result;
+                return JsonConvert.DeserializeObject<GeoserverCivisResult>(responsetask);
             }
             else
                 return null;
