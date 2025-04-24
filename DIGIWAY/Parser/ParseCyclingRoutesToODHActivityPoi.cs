@@ -222,13 +222,12 @@ namespace DIGIWAY
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
                 );
 
-            var geoshape = georesult.Item1;
-            geoshape.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+            odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
 
             //Add Starting GPS Coordinate as GPS Point 
             odhactivitypoi.GpsInfo = new List<GpsInfo>() { georesult.Item2 };
 
-            return (odhactivitypoi, geoshape);
+            return (odhactivitypoi, georesult.Item1);
         }
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseMTBRoutesToODHActivityPoi(
@@ -329,14 +328,13 @@ namespace DIGIWAY
                 null
                 );
 
-            var geoshape = georesult.Item1;
-            geoshape.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+            odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
 
             //Add Starting GPS Coordinate as GPS Point 
             odhactivitypoi.GpsInfo = new List<GpsInfo>();
             odhactivitypoi.GpsInfo.Add(georesult.Item2);
 
-            return (odhactivitypoi, geoshape);
+            return (odhactivitypoi, georesult.Item1);
         }
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseHikingTrailsToODHActivityPoi(
@@ -412,13 +410,12 @@ namespace DIGIWAY
                 null
                 );
 
-            var geoshape = georesult.Item1;
-            geoshape.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+            odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
 
             //Add Starting GPS Coordinate as GPS Point 
             odhactivitypoi.GpsInfo = new List<GpsInfo>() { georesult.Item2 };            
 
-            return (odhactivitypoi, geoshape);
+            return (odhactivitypoi, georesult.Item1);
         }
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseInterMunicipalCyclingRoutesToODHActivityPoi(
@@ -501,14 +498,13 @@ namespace DIGIWAY
                 null
                 );
 
-            var geoshape = georesult.Item1;
-            geoshape.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+            odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
 
             //Add Starting GPS Coordinate as GPS Point 
             odhactivitypoi.GpsInfo = new List<GpsInfo>();
             odhactivitypoi.GpsInfo.Add(georesult.Item2);
 
-            return (odhactivitypoi, geoshape);
+            return (odhactivitypoi, georesult.Item1);
         }
 
 
