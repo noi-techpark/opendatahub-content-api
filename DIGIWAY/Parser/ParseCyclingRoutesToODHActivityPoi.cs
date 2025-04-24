@@ -17,6 +17,7 @@ using NetTopologySuite.IO;
 using NetTopologySuite.Algorithm;
 using Newtonsoft.Json;
 using CoordinateSharp;
+using MongoDB.Bson.Serialization.IdGenerators;
 //using ProjNet.CoordinateSystems;
 //using NetTopologySuite.CoordinateSystems.Transformations
 
@@ -428,6 +429,8 @@ namespace DIGIWAY
             if (odhactivitypoi == null)
                 odhactivitypoi = new ODHActivityPoiLinked();
 
+            string name = digiwaydata.properties.NAME_DE != null ? digiwaydata.properties.NAME_DE : digiwaydata.properties.CODE != null ? digiwaydata.properties.CODE : "";
+
             odhactivitypoi.Id = digiwaydata.id.ToLower();
             odhactivitypoi.Active = true;
             odhactivitypoi.FirstImport = odhactivitypoi != null ? odhactivitypoi.FirstImport : DateTime.Now;
@@ -494,7 +497,7 @@ namespace DIGIWAY
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata,
                 "intermunicipalcyclingroute",
-                digiwaydata.properties.NAME_DE,
+                name,
                 null
                 );
 
