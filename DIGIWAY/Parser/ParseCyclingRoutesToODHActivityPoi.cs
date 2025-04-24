@@ -245,7 +245,7 @@ namespace DIGIWAY
             odhactivitypoi.FirstImport = odhactivitypoi != null ? odhactivitypoi.FirstImport : DateTime.Now;
             odhactivitypoi.LastChange = DateTime.Now;
             odhactivitypoi.HasLanguage = new List<string>() { "de","it" };
-            odhactivitypoi.Shortname = name
+            odhactivitypoi.Shortname = name;
             odhactivitypoi.Number = digiwaydata.properties.MTB_CODE != null ? Convert.ToString(digiwaydata.properties.MTB_CODE) : null;
             //odhactivitypoi.WayNumber = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE;
             odhactivitypoi.Detail = new Dictionary<string, Detail>();
