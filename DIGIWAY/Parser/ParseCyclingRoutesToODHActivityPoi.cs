@@ -238,12 +238,14 @@ namespace DIGIWAY
             if (odhactivitypoi == null)
                 odhactivitypoi = new ODHActivityPoiLinked();
 
+            string name = digiwaydata.properties.MTB_NAME_DE != null ? Convert.ToString(digiwaydata.properties.MTB_NAME_DE) : digiwaydata.properties.MTB_CODE != null ? Convert.ToString(digiwaydata.properties.MTB_CODE) : "";
+
             odhactivitypoi.Id = digiwaydata.id.ToLower();
             odhactivitypoi.Active = true;
             odhactivitypoi.FirstImport = odhactivitypoi != null ? odhactivitypoi.FirstImport : DateTime.Now;
             odhactivitypoi.LastChange = DateTime.Now;
             odhactivitypoi.HasLanguage = new List<string>() { "de","it" };
-            odhactivitypoi.Shortname = digiwaydata.properties.MTB_NAME_DE != null ? Convert.ToString(digiwaydata.properties.MTB_NAME_DE) : null;
+            odhactivitypoi.Shortname = name
             odhactivitypoi.Number = digiwaydata.properties.MTB_CODE != null ? Convert.ToString(digiwaydata.properties.MTB_CODE) : null;
             //odhactivitypoi.WayNumber = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE;
             odhactivitypoi.Detail = new Dictionary<string, Detail>();
@@ -294,7 +296,7 @@ namespace DIGIWAY
             odhactivitypoi.TagIds.Add("mountain bikes");
 
             //Add Related Content if there is a LTS ID
-            if (digiwaydata.properties.MTB_LTS_RID != null && !String.IsNullOrEmpty(digiwaydata.properties.MTB_LTS_RID))
+            if (digiwaydata.properties.MTB_LTS_RID != null && !String.IsNullOrEmpty(Convert.ToString(digiwaydata.properties.MTB_LTS_RID)))
             {
                 odhactivitypoi.RelatedContent = new List<RelatedContent>();
                 RelatedContent relatedContent = new RelatedContent();
@@ -305,17 +307,17 @@ namespace DIGIWAY
 
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             if(digiwaydata.properties.MTB_CODE != null)
-                additionalvalues.Add("code", digiwaydata.properties.MTB_CODE);
+                additionalvalues.Add("code", Convert.ToString(digiwaydata.properties.MTB_CODE));
             if (digiwaydata.properties.MTB_DIFF != null)
-                additionalvalues.Add("diff", digiwaydata.properties.MTB_DIFF);
+                additionalvalues.Add("diff", Convert.ToString(digiwaydata.properties.MTB_DIFF));
             if (digiwaydata.properties.MTB_ID != null)
-                additionalvalues.Add("id", digiwaydata.properties.MTB_ID.ToString());
+                additionalvalues.Add("id", Convert.ToString(digiwaydata.properties.MTB_ID));
             if (digiwaydata.properties.MTB_LTS_RID != null)
-                additionalvalues.Add("lts_rid", digiwaydata.properties.MTB_LTS_RID);
+                additionalvalues.Add("lts_rid", Convert.ToString(digiwaydata.properties.MTB_LTS_RID));
             if (digiwaydata.properties.LENGTH_GEOM != null)
-                additionalvalues.Add("length_geom", digiwaydata.properties.LENGTH_GEOM.ToString());
+                additionalvalues.Add("length_geom", Convert.ToString(digiwaydata.properties.LENGTH_GEOM));
             if (digiwaydata.properties.MTB_SINGLE_DE != null)
-                additionalvalues.Add("single", digiwaydata.properties.MTB_SINGLE_DE.ToString() == "JA" ? "true" : "false" );
+                additionalvalues.Add("single", Convert.ToString(digiwaydata.properties.MTB_SINGLE_DE) == "JA" ? "true" : "false" );
             
             var bboxformatted = digiwaydata.bbox.Select(d => d.ToString(CultureInfo.InvariantCulture)).ToList();
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
@@ -324,7 +326,7 @@ namespace DIGIWAY
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata,
                 "mountainbikeroute",
-                digiwaydata.properties.MTB_NAME_DE != null ? digiwaydata.properties.MTB_NAME_DE : null,
+                name,
                 null
                 );
 
@@ -359,7 +361,7 @@ namespace DIGIWAY
             odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("de", new Detail()
             {
                 Title = name,                
-                AdditionalText = digiwaydata.properties.CODE_NAME,
+                AdditionalText = Convert.ToString(digiwaydata.properties.CODE_NAME),
                 Language = "de"
             });
            
@@ -371,7 +373,7 @@ namespace DIGIWAY
             //    City = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MUNICIPALITY,
             //    Region = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).REGION
             //});
-            odhactivitypoi.DistanceLength = digiwaydata.properties.LENGTH_GEOM;
+            odhactivitypoi.DistanceLength = Convert.ToDouble(digiwaydata.properties.LENGTH_GEOM);
             //odhactivitypoi.Difficulty = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).DIFFICULTY;
             //odhactivitypoi.AltitudeSumDown = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).DOWNHILL_METERS;
             //odhactivitypoi.AltitudeSumUp = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).UPHILL_METERS;
@@ -426,27 +428,27 @@ namespace DIGIWAY
             if (odhactivitypoi == null)
                 odhactivitypoi = new ODHActivityPoiLinked();
 
-            string name = digiwaydata.properties.NAME_DE != null ? digiwaydata.properties.NAME_DE : digiwaydata.properties.CODE != null ? digiwaydata.properties.CODE : "";
+            string name = digiwaydata.properties.NAME_DE != null ? Convert.ToString(digiwaydata.properties.NAME_DE) : digiwaydata.properties.CODE != null ? Convert.ToString(digiwaydata.properties.CODE) : "";
 
             odhactivitypoi.Id = digiwaydata.id.ToLower();
             odhactivitypoi.Active = true;
             odhactivitypoi.FirstImport = odhactivitypoi != null ? odhactivitypoi.FirstImport : DateTime.Now;
             odhactivitypoi.LastChange = DateTime.Now;
             odhactivitypoi.HasLanguage = new List<string>() { "de", "it" };
-            odhactivitypoi.Shortname = digiwaydata.properties.NAME_DE != null ? digiwaydata.properties.NAME_DE : null;
-            odhactivitypoi.Number = digiwaydata.properties.CODE !=null ? digiwaydata.properties.CODE : null;
+            odhactivitypoi.Shortname = digiwaydata.properties.NAME_DE != null ? Convert.ToString(digiwaydata.properties.NAME_DE) : null;
+            odhactivitypoi.Number = digiwaydata.properties.CODE !=null ? Convert.ToString(digiwaydata.properties.CODE) : null;
             //odhactivitypoi.WayNumber = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).MTB_CODE;
             odhactivitypoi.Detail = new Dictionary<string, Detail>();
             odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("de", new Detail()
             {
-                Title = digiwaydata.properties.NAME_DE != null ? digiwaydata.properties.NAME_DE : null,                
-                AdditionalText = digiwaydata.properties.DISTRICT_DE != null ? digiwaydata.properties.DISTRICT_DE : null,                
+                Title = digiwaydata.properties.NAME_DE != null ? Convert.ToString(digiwaydata.properties.NAME_DE) : null,                
+                AdditionalText = digiwaydata.properties.DISTRICT_DE != null ? Convert.ToString(digiwaydata.properties.DISTRICT_DE) : null,                
                 Language = "de"
             });
             odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
             {
-                Title = digiwaydata.properties.NAME_IT != null ? digiwaydata.properties.NAME_IT : null,                
-                AdditionalText = digiwaydata.properties.DISTRICT_IT != null ? digiwaydata.properties.DISTRICT_IT : null,                
+                Title = digiwaydata.properties.NAME_IT != null ? Convert.ToString(digiwaydata.properties.NAME_IT) : null,                
+                AdditionalText = digiwaydata.properties.DISTRICT_IT != null ? Convert.ToString(digiwaydata.properties.DISTRICT_IT) : null,                
                 Language = "it"
             });
 
@@ -481,11 +483,11 @@ namespace DIGIWAY
 
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             if(digiwaydata.properties.CODE != null)
-                additionalvalues.Add("code", digiwaydata.properties.CODE);
+                additionalvalues.Add("code", Convert.ToString(digiwaydata.properties.CODE));
             if (digiwaydata.properties.ID != null)
-                additionalvalues.Add("id", digiwaydata.properties.ID.ToString());
+                additionalvalues.Add("id", Convert.ToString(digiwaydata.properties.ID));
             if (digiwaydata.properties.LENGTH_GEOM != null)
-                additionalvalues.Add("length_geom", digiwaydata.properties.LENGTH_GEOM.ToString());
+                additionalvalues.Add("length_geom", Convert.ToString(digiwaydata.properties.LENGTH_GEOM));
 
             var bboxformatted = digiwaydata.bbox.Select(d => d.ToString(CultureInfo.InvariantCulture)).ToList();
 
