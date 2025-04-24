@@ -279,7 +279,7 @@ namespace DIGIWAY
 
 
 
-            odhactivitypoi.Difficulty = digiwaydata.properties.MTB_NAME_DE != null ? Convert.ToString(TransformMTBDifficulty(digiwaydata.properties.MTB_DIFF)) : null;
+            odhactivitypoi.Difficulty = digiwaydata.properties.MTB_NAME_DE != null ? TransformMTBDifficulty(Convert.ToString(digiwaydata.properties.MTB_DIFF)) : null;
             odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
 
             odhactivitypoi.Source = "civis.geoserver";
