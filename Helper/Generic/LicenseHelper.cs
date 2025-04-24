@@ -237,7 +237,7 @@ namespace Helper
             if (data.Source.ToLower() == "civis.bz.it")
                 licenseholder = @"https://geoservices1.civis.bz.it";
 
-            List<string?> allowedsources = new List<string?>()
+            List<string?> allowedsyncsourceinterfaces = new List<string?>()
             {
                 "magnolia",
                 "none",
@@ -265,12 +265,13 @@ namespace Helper
                 "pension erlacher",
                 "officina elettrica san vigilio di marebbe spa",
                 "geoservices1.civis.bz.it",
-                "gtfsapi"
+                "gtfsapi",
+                "civis.geoserver."
             };
 
             if (data.Active)
             {
-                if (allowedsources.Contains(data.SyncSourceInterface?.ToLower()))
+                if (data.SyncSourceInterface != null && allowedsyncsourceinterfaces.Where(x => x.StartsWith(data.SyncSourceInterface?.ToLower())).Count() > 0)
                 {
                     isopendata = true;
                     licensetype = "CC0";

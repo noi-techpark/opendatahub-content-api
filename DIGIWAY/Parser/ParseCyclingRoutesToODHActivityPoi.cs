@@ -191,7 +191,7 @@ namespace DIGIWAY
             odhactivitypoi.AltitudeSumDown = digiwaydata.properties.DOWNHILL_METERS != null ? Convert.ToDouble(digiwaydata.properties.DOWNHILL_METERS) : null;
             odhactivitypoi.AltitudeSumUp = digiwaydata.properties.UPHILL_METERS != null ? Convert.ToDouble(digiwaydata.properties.UPHILL_METERS) : null;
             odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "cyclewaystyrol";
+            odhactivitypoi.SyncSourceInterface = "civis.geoserver.cyclewaystyrol";
             odhactivitypoi.DistanceDuration = digiwaydata.properties.RUNNING_TIME != null ? Convert.ToDouble(TransformDuration(digiwaydata.properties.RUNNING_TIME)) : null;
 
             //Add Tags
@@ -284,7 +284,7 @@ namespace DIGIWAY
             odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
 
             odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "mountainbikeroutes";
+            odhactivitypoi.SyncSourceInterface = "civis.geoserver.mountainbikeroutes";
             
 
             //Add Tags
@@ -380,7 +380,7 @@ namespace DIGIWAY
             //odhactivitypoi.DistanceDuration = TransformDuration(((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).RUNNING_TIME);
             
             odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "hikingtrails";
+            odhactivitypoi.SyncSourceInterface = "civis.geoserver.hikingtrails";
 
 
             //Add Tags
@@ -472,7 +472,7 @@ namespace DIGIWAY
             //odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
 
             odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "intermunicipalcyclingroutes";
+            odhactivitypoi.SyncSourceInterface = "civis.geoserver.intermunicipalcyclingroutes";
 
 
             //Add Tags
