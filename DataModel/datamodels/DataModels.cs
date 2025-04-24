@@ -3887,9 +3887,9 @@ namespace DataModel
         public int? Height { get; set; }
         public string? ImageSource { get; set; }
 
-        public IDictionary<string, string> ImageTitle { get; set; }
-        public IDictionary<string, string> ImageDesc { get; set; }
-        public IDictionary<string, string> ImageAltText { get; set; }
+        public IDictionary<string, string>? ImageTitle { get; set; }
+        public IDictionary<string, string>? ImageDesc { get; set; }
+        public IDictionary<string, string>? ImageAltText { get; set; }
 
         public bool? IsInGallery { get; set; }
         public int? ListPosition { get; set; }
