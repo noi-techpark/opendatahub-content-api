@@ -192,7 +192,7 @@ namespace DIGIWAY
             odhactivitypoi.AltitudeSumUp = digiwaydata.properties.UPHILL_METERS != null ? Convert.ToDouble(digiwaydata.properties.UPHILL_METERS) : null;
             odhactivitypoi.Source = "civis.geoserver";
             odhactivitypoi.SyncSourceInterface = "civis.geoserver.cyclewaystyrol";
-            odhactivitypoi.DistanceDuration = digiwaydata.properties.RUNNING_TIME != null ? Convert.ToDouble(TransformDuration(digiwaydata.properties.RUNNING_TIME)) : null;
+            odhactivitypoi.DistanceDuration = digiwaydata.properties.RUNNING_TIME != null ? Convert.ToString(TransformDuration(digiwaydata.properties.RUNNING_TIME)) : null;
 
             //Add Tags
             odhactivitypoi.TagIds = new List<string>();
