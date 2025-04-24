@@ -1083,7 +1083,7 @@ namespace DataModel
         public IDictionary<string, EventPrice>? EventPrice { get; set; } //Stays here for compatibility reasons used in Centro Trevi Sync
         
 
-        [SwaggerDeprecated("Obsolete, use Tags")]
+        //[SwaggerDeprecated("Obsolete, use Tags")] Temporary remove to show it in databrowser
         public ICollection<string>? SmgTags { get; set; }
         
         [SwaggerDeprecated("Obsolete, use PublishedOn")]
@@ -1517,7 +1517,7 @@ namespace DataModel
         //NEW Link Info
         public IDictionary<string, ArticleLinkInfo> ArticleLinkInfo { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Tags")]
+        //[SwaggerDeprecated("Deprecated, use Tags")]
         public ICollection<string>? SmgTags { get; set; }
 
         public ICollection<string>? HasLanguage { get; set; }

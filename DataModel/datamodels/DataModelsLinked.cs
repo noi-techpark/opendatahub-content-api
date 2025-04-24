@@ -657,7 +657,7 @@ namespace DataModel
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         [SwaggerDeprecated("Obsolete")]
-        public List<DateTime> EventDatesBegin
+        public List<DateTime>? EventDatesBegin
         {
             get
             {
@@ -667,7 +667,7 @@ namespace DataModel
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         [SwaggerDeprecated("Obsolete")]
-        public List<DateTime> EventDatesEnd
+        public List<DateTime>? EventDatesEnd
         {
             get
             {
@@ -677,13 +677,13 @@ namespace DataModel
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         [SwaggerDeprecated("Obsolete")]
-        public int EventDateCounter
+        public int? EventDateCounter
         {
             get { return this.EventDate != null ? this.EventDate.Count : 0; }
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<DistrictLink> Districts
+        public ICollection<DistrictLink>? Districts
         {
             get
             {
@@ -700,7 +700,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<ODHTags> ODHTags
+        public ICollection<ODHTags>? ODHTags
         {
             get
             {
@@ -714,7 +714,7 @@ namespace DataModel
 
         [SwaggerDeprecated("Deprecated use PublishedOn")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public bool OdhActive
+        public bool? OdhActive
         {
             get { return this.SmgActive; }
         }
@@ -770,7 +770,7 @@ namespace DataModel
 
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public new Nullable<double> Altitude
+        public new double? Altitude
         {
             get
             {
@@ -800,9 +800,9 @@ namespace DataModel
         }
 
         //New Tags
-        public ICollection<Tags> Tags { get; set; }
+        public ICollection<Tags>? Tags { get; set; }
 
-        public ICollection<string> TagIds { get; set; }
+        public ICollection<string>? TagIds { get; set; }
     }
 
     //Temporary class to remove

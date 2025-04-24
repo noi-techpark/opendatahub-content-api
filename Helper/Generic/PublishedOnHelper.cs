@@ -151,18 +151,22 @@ namespace Helper
 
                         if (mydata is EventLinked)
                         {
+                            bool validranc = true;
+                            bool validclassification = false;
+
                             //EVENTS LTS
                             if (
                                 (mydata as EventLinked).Active
                                 && allowedsourcesMP[mydata._Meta.Type].Contains(mydata._Meta.Source)
                             )
                             {
-                                //not needed anymore
-                                //if (
-                                //    (mydata as EventLinked).SmgActive
-                                //    && mydata._Meta.Source == "lts"
-                                //)
-                                //    publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                                //Publisher Rule if C9475CF585664B2887DE543481182A2D with Ranc 1 is there do not publish
+                                if((mydata as EventLinked).EventPublisher != null &&
+                                    (mydata as EventLinked).EventPublisher.Where(x => x.PublisherRID == "C9475CF585664B2887DE543481182A2D").Count() > 0)
+                                {
+                                    if ((mydata as EventLinked).EventPublisher.Where(x => x.PublisherRID == "C9475CF585664B2887DE543481182A2D").FirstOrDefault().Ranc == 1)
+                                        validranc = false;
+                                }
 
                                 //Marketplace Events only ClassificationRID
                                 var validclassificationrids = new List<string>()
@@ -175,6 +179,11 @@ namespace Helper
                                     )
                                     && mydata._Meta.Source == "lts"
                                 )
+                                    validclassification = true;
+
+
+
+                                if(validclassification && validranc)
                                     publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
 
                                 //Events DRIN CENTROTREVI
@@ -202,37 +211,41 @@ namespace Helper
                         }
                         else if (mydata is EventV2)
                         {
+                            bool validranc = true;
+                            bool validclassification = false;
+
                             //EVENTS LTS
                             if (
                                 (mydata as EventV2).Active
                                 && allowedsourcesMP[mydata._Meta.Type].Contains(mydata._Meta.Source)
                             )
                             {
-                                //Marketplace Events only ClassificationRID
+                                //Marketplace Events only ClassificationRID CE212B488FA14954BE91BBCFA47C0F06
                                 var validclassificationrids = new List<string>()
                                 {
                                     "CE212B488FA14954BE91BBCFA47C0F06",
                                 };
 
-                                if ((mydata as EventV2).Mapping.ContainsKey("lts"))
+                                if (mydata._Meta.Source == "lts" && 
+                                    (mydata as EventV2).Mapping.ContainsKey("lts") && 
+                                    (mydata as EventV2).Mapping["lts"].ContainsKey("ClassificationRID") &&
+                                    validclassificationrids.Contains((mydata as EventV2).Mapping["lts"]["ClassificationRID"]))
                                 {
-                                    if (
-                                        (mydata as EventV2)
-                                            .Mapping["lts"]
-                                            .ContainsKey("ClassificationRID")
-                                    )
-                                    {
-                                        if (
-                                            validclassificationrids.Contains(
-                                                (mydata as EventV2).Mapping["lts"][
-                                                    "ClassificationRID"
-                                                ]
-                                            )
-                                            && mydata._Meta.Source == "lts"
-                                        )
-                                            publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
-                                    }
+                                    validclassification = true;                                            
                                 }
+
+                                //Publisher Rule if C9475CF585664B2887DE543481182A2D with Ranc 1 is there do not publish
+                                //if (mydata._Meta.Source == "lts" &&
+                                //    (mydata as EventV2)..ContainsKey("lts") &&
+                                //    (mydata as EventV2).Mapping["lts"].ContainsKey("ClassificationRID") &&
+                                //    validclassificationrids.Contains((mydata as EventV2).Mapping["lts"]["ClassificationRID"]))
+                                //{
+                                //    validranc = false;
+                                //}
+
+                                if (validranc && validclassification)
+                                    publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+
 
                                 //Events DRIN CENTROTREVI
                                 if (

@@ -83,6 +83,7 @@ services:
       ASPNETCORE_LTSApiOpen__XLSClientid: ${LTSAPI_OPENDATA_XLTSCLIENTID}
       ASPNETCORE_LTSApiOpen__Opendata: ${LTSAPI_OPENDATA_OPENDATA}
       ASPNETCORE_DigiWayConfig__CyclingRoutes__ServiceUrl: ${DIGIWAY_CYCLINGROUTES_URL}
+      ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl: ${GTFSAPI_STATIMETABLES_URL}
     restart: unless-stopped
     ports:
       - "${SERVER_PORT}:80"
