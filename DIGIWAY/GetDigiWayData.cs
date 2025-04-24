@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
 using Newtonsoft.Json;
 
 namespace DIGIWAY
@@ -21,20 +22,37 @@ namespace DIGIWAY
                 return myresponse;
             }
         }
-
-        public static async Task<DigiWayRoutesCycleWaysResult?> GetDigiWayCyclingRouteDataAsync(
+        
+        public static async Task<IGeoserverCivisResult> GetDigiWayDataAsync(
             string user,
             string pass,
-            string serviceurl
-        )
+            string serviceurl,
+            string identifier
+        )  
         {
             //Request
             HttpResponseMessage response = await GetDigiwayDataFromService(user, pass, serviceurl);
             //Parse JSON Response to
             var responsetask = await response.Content.ReadAsStringAsync();
-            DigiWayRoutesCycleWaysResult? responseobject = JsonConvert.DeserializeObject<DigiWayRoutesCycleWaysResult>(responsetask);
 
-            return responseobject;
+            if (responsetask != null && !String.IsNullOrEmpty(identifier))
+            {
+                //IGeoserverCivisResult result = identifier switch
+                //{
+                //    "cyclewaystyrol" => JsonConvert.DeserializeObject<GeoserverCivisResultCycleWay>(responsetask),
+                //    "mountainbikeroutes" => JsonConvert.DeserializeObject<GeoserverCivisResultMountainbike>(responsetask),
+                //    "hikingtrails" => JsonConvert.DeserializeObject<GeoserverCivisResultHikingTrail>(responsetask),
+                //    "intermunicipalcyclingroutes" => JsonConvert.DeserializeObject<GeoserverCivisResultIntermunicipalPaths>(responsetask),
+                //    _ => null
+                //};
+
+                return JsonConvert.DeserializeObject<GeoserverCivisResult>(responsetask);
+            }
+            else
+                return null;
+            
         }
+
+    
     }
 }
