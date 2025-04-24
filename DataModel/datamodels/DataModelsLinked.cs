@@ -746,7 +746,7 @@ namespace DataModel
 
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public new double? Latitude
+        public new double Latitude
         {
             get
             {
@@ -758,7 +758,7 @@ namespace DataModel
 
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public new double? Longitude
+        public new double Longitude
         {
             get
             {
