@@ -2464,7 +2464,8 @@ namespace DataModel
             IGPSPointsAware,
             IImageGalleryAware,
             IVideoItemsAware,
-            IHasLanguage
+            IHasLanguage,
+            IDetailInfosAware
     {
         public EventShort()
         {
@@ -2473,6 +2474,7 @@ namespace DataModel
             EventTitle = new Dictionary<string, string>();
             Documents = new Dictionary<string, List<Document>?>();
             VideoItems = new Dictionary<string, ICollection<VideoItems>>();
+            Detail = new Dictionary<string, Detail>();
         }
 
         public LicenseInfo? LicenseInfo { get; set; }
@@ -2480,27 +2482,31 @@ namespace DataModel
         public string? Id { get; set; }
         public string Source { get; set; }
 
+        public IDictionary<string,Detail> Detail { get; set; }
+
         [SwaggerEnum(new[] { "NOI", "EC" })]
         public string EventLocation { get; set; }
         public int? EventId { get; set; }
 
-        //Dictionary with EventTextDE + EventDescriptionDE infos
+        [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public IDictionary<string, string> EventText { get; set; }
+
+        [SwaggerDeprecated("Deprecated, use Detail Title")]
         public IDictionary<string, string> EventTitle { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use EventText")]
+        [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public string? EventTextDE
         {
             get { return EventText.ContainsKey("de") ? EventText["de"] : null; }
         }
 
-        [SwaggerDeprecated("Deprecated, use EventText")]
+        [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public string? EventTextIT
         {
             get { return EventText.ContainsKey("it") ? EventText["it"] : null; }
         }
 
-        [SwaggerDeprecated("Deprecated, use EventText")]
+        [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public string? EventTextEN
         {
             get { return EventText.ContainsKey("en") ? EventText["en"] : null; }
