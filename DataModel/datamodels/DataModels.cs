@@ -2470,8 +2470,8 @@ namespace DataModel
         public EventShort()
         {
             Mapping = new Dictionary<string, IDictionary<string, string>>();
-            EventText = new Dictionary<string, string>();
-            EventTitle = new Dictionary<string, string>();
+            //EventText = new Dictionary<string, string>();
+            //EventTitle = new Dictionary<string, string>();
             Documents = new Dictionary<string, List<Document>?>();
             VideoItems = new Dictionary<string, ICollection<VideoItems>>();
             Detail = new Dictionary<string, Detail>();
@@ -2491,8 +2491,18 @@ namespace DataModel
         [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public IDictionary<string, string> EventText { get; set; }
 
+        //public IDictionary<string, string> EventText
+        //{
+        //    get { return this.Detail != null ? this.Detail.ToDictionary(x => x.Key, x => x.Value.BaseText) : null; }
+        //}
+
         [SwaggerDeprecated("Deprecated, use Detail Title")]
         public IDictionary<string, string> EventTitle { get; set; }
+        
+        //public IDictionary<string, string> EventTitle
+        //{
+        //    get { return this.Detail != null ? this.Detail.ToDictionary(x => x.Key, x => x.Value.Title) : null; }
+        //}
 
         [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public string? EventTextDE

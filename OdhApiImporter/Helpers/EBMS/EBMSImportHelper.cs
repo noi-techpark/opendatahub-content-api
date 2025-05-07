@@ -145,11 +145,12 @@ namespace OdhApiImporter.Helpers
                     changedonDB = eventindb.ChangedOn;
                     imagegallery =
                         eventindb.ImageGallery != null ? eventindb.ImageGallery.ToList() : null;
+                    
                     eventTextDE = eventindb.EventTextDE;
                     eventTextIT = eventindb.EventTextIT;
                     eventTextEN = eventindb.EventTextEN;
 
-                    eventText = eventindb.EventText;
+                    eventText = eventindb.EventText;                    
 
                     activeweb = eventindb.ActiveWeb;
                     activecommunity = eventindb.ActiveCommunityApp;
@@ -177,7 +178,15 @@ namespace OdhApiImporter.Helpers
                     //eventshort.EventTextIT = eventTextIT;
                     //eventshort.EventTextEN = eventTextEN;
 
-                    eventshort.EventText = eventText;
+                    //eventshort.EventText = eventText;
+
+                    //Preserve Event Text
+                    //foreach(var eventtext in eventText)
+                    //{
+                    //    eventshort.Detail[eventtext.Key].BaseText = eventtext.Value;
+                    //}
+                    
+
 
                     //eventshort.ActiveWeb = activeweb;
                     //eventshort.ActiveCommunityApp = activecommunity;
