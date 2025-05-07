@@ -1279,6 +1279,60 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        public async Task<int> UpdateAllEventShortsDetailDataModel()
+        {
+            //Load all data from PG and resave with Detail Object
+            var query = QueryFactory.Query().SelectRaw("data").From("eventeuracnoi");
+
+            var data = await query.GetObjectListAsync<EventShortLinked>();
+            int i = 0;
+
+            foreach (var eventshort in data)
+            {
+
+                eventshort.Detail = new Dictionary<string, Detail>();
+
+                foreach(var eventtitle in eventshort.EventTitle)
+                {
+                    Detail detail = new Detail();
+                    detail.Language = eventtitle.Key;
+                    detail.Title = eventtitle.Value;
+                    eventshort.Detail.TryAddOrUpdate(eventtitle.Key, detail);
+                }
+
+                foreach (var eventtext in eventshort.EventText)
+                {
+                    Detail detail = new Detail();
+                    if (eventshort.Detail.ContainsKey(eventtext.Key))
+                        detail = eventshort.Detail[eventtext.Key];
+                    
+                    detail.Language = eventtext.Key;
+                    detail.BaseText = eventtext.Value;
+                    eventshort.Detail.TryAddOrUpdate(eventtext.Key, detail);
+                }
+
+
+                //Save tp DB
+                //TODO CHECK IF THIS WORKS
+                var queryresult = await QueryFactory
+                    .Query("eventeuracnoi")
+                    .Where("id", eventshort.Id)
+                    //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = eventshort.Id?.ToLower() ?? "",
+                            data = new JsonRaw(eventshort),
+                        }
+                    );
+
+                i++;
+            }
+
+            return i;
+        }
+
+
         #endregion
 
         #region Wine
