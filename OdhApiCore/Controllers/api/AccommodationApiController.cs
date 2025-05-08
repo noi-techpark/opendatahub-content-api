@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -12,6 +13,7 @@ using System.Xml.Linq;
 using AspNetCore.CacheOutput;
 using CDB;
 using DataModel;
+using Geo.Measure;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
@@ -544,14 +546,20 @@ namespace OdhApiCore.Controllers
         //[Authorize(Roles = "DataReader,AccoReader")]
         [HttpGet, Route("AccommodationRoom", Name = "AccommodationRoomList")]
         public async Task<IActionResult> GetAccoRoomInfos(
-            string accoid,
+
+            string? accoid,
             string? idsource = "lts",
             string? source = null,
+            uint pagenumber = 1,
+            PageSize pagesize = null!,
+            string? idlist = null,
             bool getall = false,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? language = null,
             string? langfilter = null,
             string? updatefrom = null,
+            string? seed = null,
+            string? publishedon = null,
             string? searchfilter = null,
             string? rawfilter = null,
             string? rawsort = null,
@@ -559,13 +567,13 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            string idtocheck = accoid;
+            string? idtocheck = accoid;
 
-            if (idsource == "hgv")
+            if (idsource == "hgv" && accoid != null)
             {
                 idtocheck = await GetAccoIdByHgvId(accoid, cancellationToken);
             }
-            else if (idsource == "a0r_id")
+            else if (idsource == "a0r_id" && accoid != null)
             {
                 idtocheck = await GetAccoIdByHgvId(accoid, cancellationToken);
             }
@@ -574,9 +582,14 @@ namespace OdhApiCore.Controllers
                 idtocheck,
                 fields: fields ?? Array.Empty<string>(),
                 language,
+                pagenumber,
+                pagesize,
+                idlist,
+                seed,
                 getall,
                 source,
                 updatefrom,
+                publishedon,
                 langfilter,
                 searchfilter,
                 rawfilter,
@@ -1214,12 +1227,17 @@ namespace OdhApiCore.Controllers
 
 
         private Task<IActionResult> GetAccommodationRooms(
-            string id,
+            string? id,
             string[] fields,
             string? language,
+            uint pagenumber,
+            int? pagesize,
+            string? idfilter,
+            string? seed,
             bool all,
             string? sourcefilter,
             string? updatefrom,
+            string? publishedon,
             string? langfilter,
             string? searchfilter,
             string? rawfilter,
@@ -1240,7 +1258,12 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("accommodationrooms")
                     .Select("data")
-                    .Where("gen_a0rid", "ILIKE", id)
+                    .When(idfilter != null, q => q.IdUpperFilter(CommonListCreator.CreateIdList(idfilter?.ToUpper()))) 
+                    .When(publishedon != null, q => q.PublishedOnFilter_GeneratedColumn(CommonListCreator.CreateIdList(publishedon?.ToLower())))
+                    .When(
+                        id != null, 
+                        q => q.Where("gen_a0rid", "ILIKE", id)
+                        )
                     .When(
                         languagelist.Count > 0,
                         q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
@@ -1263,17 +1286,50 @@ namespace OdhApiCore.Controllers
                     .FilterDataByAccessRoles(userroles)
                     .FilterReducedDataByRoles(userroles);
 
-                var data = await query.GetAsync<JsonRaw?>(cancellationToken: cancellationToken);
+                if(id == null)
+                {
+                    // Get paginated data
+                    var data = await query.PaginateAsync<JsonRaw>(
+                        page: (int)pagenumber,
+                        perPage: pagesize ?? 25
+                    );
 
-                return data.Select(raw =>
-                    raw?.TransformRawData(
-                        language,
-                        fields,
-                        filteroutNullValues: removenullvalues,
-                        urlGenerator: UrlGenerator,
-                        fieldstohide: null
-                    )
-                );
+                    var dataTransformed = data.List.Select(raw =>
+                        raw.TransformRawData(
+                            language,
+                            fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+
+                    uint totalpages = (uint)data.TotalPages;
+                    uint totalcount = (uint)data.Count;
+
+                    return ResponseHelpers.GetResult(
+                        pagenumber,
+                        totalpages,
+                        totalcount,
+                        seed,
+                        dataTransformed,
+                        Url
+                    );
+                }
+                else
+                {
+                    var data = await query.GetAsync<JsonRaw?>(cancellationToken: cancellationToken);
+
+                    return data.Select(raw =>
+                        raw?.TransformRawData(
+                            language,
+                            fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+                }                
             });
         }
 
