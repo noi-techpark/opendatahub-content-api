@@ -384,6 +384,10 @@ namespace OdhApiCore.Controllers
         [HttpGet, Route("AccommodationTypes")]
         public async Task<IActionResult> GetAllAccommodationTypesList(
             string? language,
+            uint? pagenumber = null,
+            PageSize pagesize = null!,
+            string? idlist = null,
+            string? seed = null,
             string? type = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? searchfilter = null,
@@ -394,6 +398,10 @@ namespace OdhApiCore.Controllers
         )
         {
             return await GetAccoTypeList(
+                pagenumber, 
+                pagesize,
+                idlist,
+                seed,
                 language,
                 type,
                 fields: fields ?? Array.Empty<string>(),
@@ -461,6 +469,10 @@ namespace OdhApiCore.Controllers
         [HttpGet, Route("AccommodationFeatures")]
         public async Task<IActionResult> GetAllAccommodationFeaturesList(
             string? language,
+            uint? pagenumber = null,
+            PageSize pagesize = null!,
+            string? idlist = null,
+            string? seed = null, 
             string? ltst0idfilter = null,
             string? source = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
@@ -475,6 +487,10 @@ namespace OdhApiCore.Controllers
                 return GetFeatureListXML(cancellationToken);
             else
                 return await GetAccoFeatureList(
+                    pagenumber,
+                    pagesize,
+                    idlist,
+                    seed, 
                     language,
                     ltst0idfilter,
                     fields: fields ?? Array.Empty<string>(),
@@ -550,7 +566,7 @@ namespace OdhApiCore.Controllers
             string? accoid,
             string? idsource = "lts",
             string? source = null,
-            uint pagenumber = 1,
+            uint? pagenumber = null,
             PageSize pagesize = null!,
             string? idlist = null,
             bool getall = false,
@@ -1230,7 +1246,7 @@ namespace OdhApiCore.Controllers
             string? id,
             string[] fields,
             string? language,
-            uint pagenumber,
+            uint? pagenumber,
             int? pagesize,
             string? idfilter,
             string? seed,
@@ -1286,7 +1302,7 @@ namespace OdhApiCore.Controllers
                     .FilterDataByAccessRoles(userroles)
                     .FilterReducedDataByRoles(userroles);
 
-                if(id == null)
+                if(id == null && pagenumber != null)
                 {
                     // Get paginated data
                     var data = await query.PaginateAsync<JsonRaw>(
@@ -1308,7 +1324,7 @@ namespace OdhApiCore.Controllers
                     uint totalcount = (uint)data.Count;
 
                     return ResponseHelpers.GetResult(
-                        pagenumber,
+                        pagenumber.Value,
                         totalpages,
                         totalcount,
                         seed,
@@ -1386,6 +1402,10 @@ namespace OdhApiCore.Controllers
         #region CATEGORIES
 
         private Task<IActionResult> GetAccoTypeList(
+            uint? pagenumber,
+            int? pagesize,
+            string? idfilter,
+            string? seed,
             string? language,
             string? typefilter,
             string[] fields,
@@ -1401,6 +1421,7 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("accommodationtypes")
                     .SelectRaw("data")
+                    .When(idfilter != null, q => q.IdLowerFilter(CommonListCreator.CreateIdList(idfilter?.ToLower())))
                     .When(
                         !String.IsNullOrEmpty(typefilter),
                         q => q.WhereRaw("data->>'Type' ILIKE $$", typefilter)
@@ -1412,17 +1433,50 @@ namespace OdhApiCore.Controllers
                     .ApplyRawFilter(rawfilter)
                     .OrderOnlyByRawSortIfNotNull(rawsort);
 
-                var data = await query.GetAsync<JsonRaw?>();
+                if (pagenumber.HasValue)
+                {
+                    // Get paginated data
+                    var data = await query.PaginateAsync<JsonRaw>(
+                        page: (int)pagenumber,
+                        perPage: pagesize ?? 25
+                    );
 
-                return data.Select(raw =>
-                    raw?.TransformRawData(
-                        language,
-                        fields,
-                        filteroutNullValues: removenullvalues,
-                        urlGenerator: UrlGenerator,
-                        fieldstohide: null
-                    )
-                );
+                    var dataTransformed = data.List.Select(raw =>
+                        raw.TransformRawData(
+                            language,
+                            fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+
+                    uint totalpages = (uint)data.TotalPages;
+                    uint totalcount = (uint)data.Count;
+
+                    return ResponseHelpers.GetResult(
+                        pagenumber.Value,
+                        totalpages,
+                        totalcount,
+                        seed,
+                        dataTransformed,
+                        Url
+                    );
+                }
+                else
+                {
+                    var data = await query.GetAsync<JsonRaw?>();
+
+                    return data.Select(raw =>
+                        raw?.TransformRawData(
+                            language,
+                            fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+                }                
             });
         }
 
@@ -1454,6 +1508,10 @@ namespace OdhApiCore.Controllers
         }
 
         private Task<IActionResult> GetAccoFeatureList(
+            uint? pagenumber,
+            int? pagesize,
+            string? idfilter,
+            string? seed,
             string? language,
             string? ltst0filter,
             string[] fields,
@@ -1469,6 +1527,7 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("accommodationfeatures")
                     .SelectRaw("data")
+                    .When(idfilter != null, q => q.IdUpperFilter(CommonListCreator.CreateIdList(idfilter?.ToUpper())))
                     .When(
                         !String.IsNullOrEmpty(ltst0filter),
                         q => q.WhereJsonb("CustomId", "like", ltst0filter + "%")
@@ -1480,17 +1539,50 @@ namespace OdhApiCore.Controllers
                     .ApplyRawFilter(rawfilter)
                     .OrderOnlyByRawSortIfNotNull(rawsort);
 
-                var data = await query.GetAsync<JsonRaw?>();
+                if (pagenumber.HasValue)
+                {
+                    // Get paginated data
+                    var data = await query.PaginateAsync<JsonRaw>(
+                        page: (int)pagenumber,
+                        perPage: pagesize ?? 25
+                    );
 
-                return data.Select(raw =>
-                    raw?.TransformRawData(
-                        language,
-                        fields,
-                        filteroutNullValues: removenullvalues,
-                        urlGenerator: UrlGenerator,
-                        fieldstohide: null
-                    )
-                );
+                    var dataTransformed = data.List.Select(raw =>
+                        raw.TransformRawData(
+                            language,
+                            fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+
+                    uint totalpages = (uint)data.TotalPages;
+                    uint totalcount = (uint)data.Count;
+
+                    return ResponseHelpers.GetResult(
+                        pagenumber.Value,
+                        totalpages,
+                        totalcount,
+                        seed,
+                        dataTransformed,
+                        Url
+                    );
+                }
+                else
+                {
+                    var data = await query.GetAsync<JsonRaw?>();
+
+                    return data.Select(raw =>
+                        raw?.TransformRawData(
+                            language,
+                            fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+                }
             });
         }
 
