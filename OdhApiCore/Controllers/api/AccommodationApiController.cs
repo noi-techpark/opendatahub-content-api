@@ -594,6 +594,10 @@ namespace OdhApiCore.Controllers
                 idtocheck = await GetAccoIdByHgvId(accoid, cancellationToken);
             }
 
+            //If no pagenumber is used force user to add Accommodation Id
+            if (pagenumber == null && idtocheck == null)
+                throw new Exception("Please add accommodation id or pagenumber 1");
+
             return await GetAccommodationRooms(
                 idtocheck,
                 fields: fields ?? Array.Empty<string>(),
