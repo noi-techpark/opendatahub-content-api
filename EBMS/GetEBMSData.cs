@@ -81,31 +81,33 @@ namespace EBMS
 
                 //Hauptbeschreibung
                 eventtosave.EventDescription = myevent.EventDescription ?? "";
+
+                Dictionary<string, string> eventtitle = new Dictionary<string, string>();
                 //Beschreibung DE
                 if (!String.IsNullOrEmpty(myevent.EventDescriptionAlt1))
-                    eventtosave.EventTitle.TryAddOrUpdate("de", myevent.EventDescriptionAlt1);
+                    eventtitle.TryAddOrUpdate("de", myevent.EventDescriptionAlt1);
                 //Beschreibung IT
                 if (!String.IsNullOrEmpty(myevent.EventDescriptionAlt2))
-                    eventtosave.EventTitle.TryAddOrUpdate("it", myevent.EventDescriptionAlt2);
+                    eventtitle.TryAddOrUpdate("it", myevent.EventDescriptionAlt2);
                 //Beschreibung EN
                 if (!String.IsNullOrEmpty(myevent.EventDescriptionAlt3))
-                    eventtosave.EventTitle.TryAddOrUpdate("en", myevent.EventDescriptionAlt3);
+                    eventtitle.TryAddOrUpdate("en", myevent.EventDescriptionAlt3);
 
                 //Sonderfall
                 if (
                     !String.IsNullOrEmpty(myevent.EventDescription)
-                    && !eventtosave.EventTitle.ContainsKey("de")
+                    && !eventtitle.ContainsKey("de")
                 )
                 {
-                    eventtosave.EventTitle.TryAddOrUpdate("de", myevent.EventDescription);
+                    eventtitle.TryAddOrUpdate("de", myevent.EventDescription);
                 }
                 //Sonderfall
                 if (
                     !String.IsNullOrEmpty(myevent.EventDescription)
-                    && !eventtosave.EventTitle.ContainsKey("en")
+                    && !eventtitle.ContainsKey("en")
                 )
                 {
-                    eventtosave.EventTitle.TryAddOrUpdate("en", myevent.EventDescription);
+                    eventtitle.TryAddOrUpdate("en", myevent.EventDescription);
                 }
 
                 ////Beschreibung DE
@@ -119,14 +121,13 @@ namespace EBMS
                     eventtosave.Detail = new Dictionary<string, Detail>();
 
                 //Fill new Detail object
-                foreach (var eventtitle in eventtosave.EventTitle)
+                foreach (var eventtitlekvp in eventtitle)
                 {                   
                     Detail detail = new Detail();
-                    detail.Language = eventtitle.Key;
-                    detail.Title = eventtitle.Value;
-                    eventtosave.Detail.TryAddOrUpdate(eventtitle.Key, detail);
+                    detail.Language = eventtitlekvp.Key;
+                    detail.Title = eventtitlekvp.Value;
+                    eventtosave.Detail.TryAddOrUpdate(eventtitlekvp.Key, detail);
                 }
-
 
                 eventtosave.Shortname = eventtosave.EventDescription;
 

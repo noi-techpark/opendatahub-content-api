@@ -802,6 +802,26 @@ namespace OdhApiCore.Controllers.api
                                 eventshort.EventTextEN != null ? eventshort.EventTextEN.Trim() : ""
                             );
 
+                            //Fill Detail object Title
+                            foreach (var eventtitle in eventshort.EventTitle)
+                            {
+                                Detail detail = new Detail();
+                                detail.Language = eventtitle.Key;
+                                detail.Title = eventtitle.Value;
+                                myeventshortbyroom.Detail.TryAddOrUpdate(eventtitle.Key, detail);
+                            }
+                            //Fill Detail object Basetext
+                            foreach (var eventtext in eventshort.EventText)
+                            {
+                                Detail detail = new Detail();
+                                if (eventshort.Detail.ContainsKey(eventtext.Key))
+                                    detail = eventshort.Detail[eventtext.Key];
+
+                                detail.Language = eventtext.Key;
+                                detail.BaseText = eventtext.Value;
+                                myeventshortbyroom.Detail.TryAddOrUpdate(eventtext.Key, detail);
+                            }
+
                             myeventshortbyroom.TechnologyFields =
                                 eventshort.TechnologyFields != null
                                     ? eventshort.TechnologyFields
@@ -1193,15 +1213,38 @@ namespace OdhApiCore.Controllers.api
                         }
                     }
 
-                    //Event Title IT EN
+                    //Event Title IT EN with german 
                     if (string.IsNullOrEmpty(eventshort.EventDescriptionIT))
-                        eventshort.EventTitle.TryAddOrUpdate("it", eventshort.EventDescriptionDE);
+                    {
+                        string? eventtitlede = eventshort.Detail != null && eventshort.Detail.ContainsKey("de") ? eventshort.Detail["de"].Title : null;
+                        
+                        if (eventshort.Detail.ContainsKey("it"))
+                        {
+                            if (String.IsNullOrEmpty(eventshort.Detail["it"].Title))
+                            {
+                                eventshort.Detail["it"].Title = eventtitlede;
+                            }
+                        }
+                        else
+                            eventshort.Detail.TryAddOrUpdate("it", new Detail() { Language = "it", Title = eventtitlede });
+                    }
 
-                    if (string.IsNullOrEmpty(eventshort.EventDescriptionEN))
-                        eventshort.EventTitle.TryAddOrUpdate("en", eventshort.EventDescriptionDE);
+                    //Event Title IT EN with german 
+                    if (string.IsNullOrEmpty(eventshort.EventDescriptionIT))
+                    {
+                        string? eventtitlede = eventshort.Detail != null && eventshort.Detail.ContainsKey("de") ? eventshort.Detail["de"].Title : null;
 
-                    //TraceSource tracesource = new TraceSource("CustomData");
-                    //tracesource.TraceEvent(TraceEventType.Information, 0, "Event Start Date:" + String.Format("{0:dd/MM/yyyy hh:mm}", eventshort.StartDate));
+                        if (eventshort.Detail.ContainsKey("en"))
+                        {
+                            if (String.IsNullOrEmpty(eventshort.Detail["en"].Title))
+                            {
+                                eventshort.Detail["en"].Title = eventtitlede;
+                            }
+                        }
+                        else
+                            eventshort.Detail.TryAddOrUpdate("en", new Detail() { Language = "en", Title = eventtitlede });
+                    }
+
 
                     string author = "unknown";
                     if (User.Identity != null && User.Identity.Name != null)
@@ -1351,12 +1394,37 @@ namespace OdhApiCore.Controllers.api
                     }
 
                     //Event Title IT EN
+                    //Event Title IT EN with german 
                     if (string.IsNullOrEmpty(eventshort.EventDescriptionIT))
-                        eventshort.EventTitle.TryAddOrUpdate("it", eventshort.EventDescriptionDE);
+                    {
+                        string? eventtitlede = eventshort.Detail != null && eventshort.Detail.ContainsKey("de") ? eventshort.Detail["de"].Title : null;
 
-                    if (string.IsNullOrEmpty(eventshort.EventDescriptionEN))
-                        eventshort.EventTitle.TryAddOrUpdate("en", eventshort.EventDescriptionDE);
+                        if (eventshort.Detail.ContainsKey("it"))
+                        {
+                            if (String.IsNullOrEmpty(eventshort.Detail["it"].Title))
+                            {
+                                eventshort.Detail["it"].Title = eventtitlede;
+                            }
+                        }
+                        else
+                            eventshort.Detail.TryAddOrUpdate("it", new Detail() { Language = "it", Title = eventtitlede });
+                    }
 
+                    //Event Title IT EN with german 
+                    if (string.IsNullOrEmpty(eventshort.EventDescriptionIT))
+                    {
+                        string? eventtitlede = eventshort.Detail != null && eventshort.Detail.ContainsKey("de") ? eventshort.Detail["de"].Title : null;
+
+                        if (eventshort.Detail.ContainsKey("en"))
+                        {
+                            if (String.IsNullOrEmpty(eventshort.Detail["en"].Title))
+                            {
+                                eventshort.Detail["en"].Title = eventtitlede;
+                            }
+                        }
+                        else
+                            eventshort.Detail.TryAddOrUpdate("en", new Detail() { Language = "en", Title = eventtitlede });
+                    }
                     //TODO CHECK IF THIS WORKS
                     //var updatequery = await QueryFactory.Query("eventeuracnoi").Where("id", id)
                     //    .UpdateAsync(new JsonBData() { id = eventshort.Id ?? "", data = eventshort != null ? new JsonRaw(eventshort) : null });
