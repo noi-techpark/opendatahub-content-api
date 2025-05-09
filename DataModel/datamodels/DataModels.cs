@@ -2489,37 +2489,36 @@ namespace DataModel
         public int? EventId { get; set; }
 
         [SwaggerDeprecated("Deprecated, use Detail BaseText")]
-        public IDictionary<string, string> EventText { get; set; }
-
-        //public IDictionary<string, string> EventText
-        //{
-        //    get { return this.Detail != null ? this.Detail.ToDictionary(x => x.Key, x => x.Value.BaseText) : null; }
-        //}
+        public IDictionary<string, string> EventText
+        {
+            get { return this.Detail != null ? this.Detail.ToDictionary(x => x.Key, x => x.Value.BaseText) : null; }
+        }
+        //public IDictionary<string, string> EventText { get; set; }
 
         [SwaggerDeprecated("Deprecated, use Detail Title")]
-        public IDictionary<string, string> EventTitle { get; set; }
-        
-        //public IDictionary<string, string> EventTitle
-        //{
-        //    get { return this.Detail != null ? this.Detail.ToDictionary(x => x.Key, x => x.Value.Title) : null; }
-        //}
+        public IDictionary<string, string> EventTitle
+        {
+            get { return this.Detail != null ? this.Detail.ToDictionary(x => x.Key, x => x.Value.Title) : null; }
+        }
+        //public IDictionary<string, string> EventTitle { get; set; }
+
 
         [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public string? EventTextDE
         {
-            get { return EventText.ContainsKey("de") ? EventText["de"] : null; }
+            get { return Detail != null && Detail.ContainsKey("de") ? Detail["de"].BaseText : null; }
         }
 
         [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public string? EventTextIT
         {
-            get { return EventText.ContainsKey("it") ? EventText["it"] : null; }
+            get { return Detail != null && Detail.ContainsKey("it") ? Detail["it"].BaseText : null; }
         }
 
         [SwaggerDeprecated("Deprecated, use Detail BaseText")]
         public string? EventTextEN
         {
-            get { return EventText.ContainsKey("en") ? EventText["en"] : null; }
+            get { return Detail != null && Detail.ContainsKey("en") ? Detail["en"].BaseText : null; }
         }
 
         //Hauptbeschreibung
@@ -2530,21 +2529,21 @@ namespace DataModel
         [SwaggerDeprecated("Deprecated, use EventTitle")]
         public string? EventDescriptionDE
         {
-            get { return EventTitle.ContainsKey("de") ? EventTitle["de"] : ""; }
+            get { return Detail != null && Detail.ContainsKey("de") ? Detail["de"].Title : ""; }
         }
 
         //Beschreibung IT
         [SwaggerDeprecated("Deprecated, use EventTitle")]
         public string? EventDescriptionIT
         {
-            get { return EventTitle.ContainsKey("it") ? EventTitle["it"] : ""; }
+            get { return Detail != null && Detail.ContainsKey("it") ? Detail["it"].Title : ""; }
         }
 
         //Beschreibung EN
         [SwaggerDeprecated("Deprecated, use EventTitle")]
         public string? EventDescriptionEN
         {
-            get { return EventTitle.ContainsKey("en") ? EventTitle["en"] : ""; }
+            get { return Detail != null && Detail.ContainsKey("en") ? Detail["en"].Title : ""; }
         }
 
         //Hauptsaal/ort
@@ -2840,6 +2839,7 @@ namespace DataModel
             EventText = new Dictionary<string, string>();
             EventDescription = new Dictionary<string, string>();
             EventDocument = new Dictionary<string, string>();
+            Detail = new Dictionary<string, Detail>();
         }
 
         //Room Infos
@@ -2860,20 +2860,24 @@ namespace DataModel
 
         public int? EventId { get; set; }
 
+        public IDictionary<string, Detail> Detail { get; set; }
+
+        [SwaggerDeprecated("Deprecated, use Detail.Title")]
         public Dictionary<string, string> EventTitle { get; set; }
 
+        [SwaggerDeprecated("Deprecated, use Detail.BaseText")]
         public Dictionary<string, string> EventText { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use EventTitle")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title")]
         public Dictionary<string, string> EventDescription { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use EventTitle")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title")]
         public string? EventDescriptionDE { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use EventTitle")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title")]
         public string? EventDescriptionIT { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use EventTitle")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title")]
         public string? EventDescriptionEN { get; set; }
 
         public string? EventAnchorVenue { get; set; }
