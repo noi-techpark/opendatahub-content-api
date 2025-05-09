@@ -75,6 +75,10 @@ namespace EBMS
                 //Interface Props
 
                 eventtosave.EventId = myevent.EventId;
+
+                
+
+
                 //Hauptbeschreibung
                 eventtosave.EventDescription = myevent.EventDescription ?? "";
                 //Beschreibung DE
@@ -110,6 +114,18 @@ namespace EBMS
                 //eventtosave.EventDescriptionIT = myevent.EventDescriptionAlt2 ?? "";
                 ////Beschreibung EN
                 //eventtosave.EventDescriptionEN = myevent.EventDescriptionAlt3 ?? "";
+
+                if (eventtosave.Detail == null)
+                    eventtosave.Detail = new Dictionary<string, Detail>();
+
+                //Fill new Detail object
+                foreach (var eventtitle in eventtosave.EventTitle)
+                {                   
+                    Detail detail = new Detail();
+                    detail.Language = eventtitle.Key;
+                    detail.Title = eventtitle.Value;
+                    eventtosave.Detail.TryAddOrUpdate(eventtitle.Key, detail);
+                }
 
 
                 eventtosave.Shortname = eventtosave.EventDescription;

@@ -18,7 +18,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OdhApiCore.Filters;
+using OdhApiCore.Responses;
 using OdhNotifier;
+using Schema.NET;
+using SqlKata;
 using SqlKata.Execution;
 
 namespace OdhApiCore.Controllers.api
@@ -71,6 +74,7 @@ namespace OdhApiCore.Controllers.api
         [HttpGet, Route("Location")]
         public async Task<IActionResult> GetTheLocationList(
             string? language,
+            uint? pagenumber = null,
             [SwaggerEnum(new[] { "mta", "reg", "tvs", "mun", "fra" })] string? type = "null",
             bool showall = true,
             string? locfilter = null,
@@ -78,6 +82,7 @@ namespace OdhApiCore.Controllers.api
         )
         {
             return await GetLocationInfoFiltered(
+                pagenumber,
                 language,
                 locfilter,
                 showall,
@@ -99,11 +104,16 @@ namespace OdhApiCore.Controllers.api
         [HttpGet, Route("Location/Skiarea")]
         public async Task<IActionResult> GetTheSkiareaList(
             string? language,
+            uint? pagenumber = null,
             string? locfilter = null,
             CancellationToken cancellationToken = default
         )
         {
-            return await GetSkiAreaInfoFiltered(language, locfilter, cancellationToken);
+            return await GetSkiAreaInfoFiltered(
+                pagenumber,
+                language, 
+                locfilter, 
+                cancellationToken);
         }
 
         #endregion
@@ -117,6 +127,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="locfilter">Location Filter</param>
         /// <returns>Collection of Reduced Location Objects</returns>
         private async Task<IActionResult> GetLocationInfoFiltered(
+            uint? pagenumber,
             string? lang,
             string? locfilter,
             bool allactivedata,
@@ -506,6 +517,23 @@ namespace OdhApiCore.Controllers.api
 
             //Transform to JsonRAW List
             var jsonrawlist = mylocationlist.Select(x => new JsonRaw(x)).ToList();
+
+            //Hack Databrowser Display
+            if (pagenumber.HasValue)
+            {
+                uint totalpages = 1;
+                uint totalcount = (uint)jsonrawlist.Count;
+
+                return Ok(ResponseHelpers.GetResult(
+                    pagenumber.Value,
+                    totalpages,
+                    totalcount,
+                    null,
+                    jsonrawlist,
+                    Url
+                ));
+            }
+
             return Ok(jsonrawlist);
         }
 
@@ -517,6 +545,7 @@ namespace OdhApiCore.Controllers.api
         /// <returns>Collection of Reduced Location Objects</returns>
         [ApiExplorerSettings(IgnoreApi = true)]
         private async Task<IActionResult> GetSkiAreaInfoFiltered(
+            uint? pagenumber,
             string? lang,
             string? locfilter,
             CancellationToken cancellationToken
@@ -644,6 +673,23 @@ namespace OdhApiCore.Controllers.api
             List<JsonRaw> mylocationlistraw = mylocationlist
                 .Select(x => new JsonRaw(JsonConvert.SerializeObject(x)))
                 .ToList();
+
+            //Hack Databrowser Display
+            if (pagenumber.HasValue)
+            {
+                var jsonrawlist = mylocationlist.Select(x => new JsonRaw(x)).ToList();
+                uint totalpages = 1;
+                uint totalcount = (uint)jsonrawlist.Count;
+
+                return Ok(ResponseHelpers.GetResult(
+                    pagenumber.Value,
+                    totalpages,
+                    totalcount,
+                    null,
+                    jsonrawlist,
+                    Url
+                ));
+            }
 
             //Transform to JsonRAW List
             return Ok(mylocationlist.Select(x => new JsonRaw(x)).ToList());

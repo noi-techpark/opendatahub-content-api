@@ -64,13 +64,15 @@ namespace OdhApiImporter.Controllers
             //objectscount = await customdataoperation.UpdateAllEventShortstActiveTodayField();
             //objectscount = await customdataoperation.UpdateAllEventShortBrokenLinks();
 
-            objectscount = await customdataoperation.UpdateAllEventShortPublisherInfo(id);
+            //objectscount = await customdataoperation.UpdateAllEventShortPublisherInfo(id);
 
             //objectscount = await customdataoperation.UpdateAllEventShortstEventDocumentField();
 
             //objectscount = await customdataoperation.UpdateAllEventShortstActiveFieldToTrue();
 
             //objectscount = await customdataoperation.UpdateAllEventShortstHasLanguage();
+
+            objectscount = await customdataoperation.UpdateAllEventShortsDetailDataModel();
 
             return Ok(
                 new UpdateResult
@@ -951,28 +953,20 @@ namespace OdhApiImporter.Controllers
             );
         }
 
-        #endregion
-
-        #region Shape
-
         [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("ModifyGeoShapes")]
-        public async Task<IActionResult> ModifyGeoShapes(          
-          CancellationToken cancellationToken
-      )
+        [HttpGet, Route("TagParentIdFix")]
+        public async Task<IActionResult> TagParentIdFix(CancellationToken cancellationToken)
         {
             CustomDataOperation customdataoperation = new CustomDataOperation(
                 settings,
                 QueryFactory
             );
-            var objectscount = await customdataoperation.UpdateGeoshapeCreateMapping(               
-            );
-            
+            var objectscount = await customdataoperation.TagParentIdFix();
 
             return Ok(
                 new UpdateResult
                 {
-                    operation = "Modify GeoShape",
+                    operation = "TagParentIdFix",
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
@@ -985,6 +979,42 @@ namespace OdhApiImporter.Controllers
                 }
             );
         }
+
+
+        #endregion
+
+        #region Shape
+
+        //  [Authorize(Roles = "DataPush")]
+        //  [HttpGet, Route("ModifyGeoShapes")]
+        //  public async Task<IActionResult> ModifyGeoShapes(          
+        //    CancellationToken cancellationToken
+        //)
+        //  {
+        //      CustomDataOperation customdataoperation = new CustomDataOperation(
+        //          settings,
+        //          QueryFactory
+        //      );
+        //      var objectscount = await customdataoperation.UpdateGeoshapeCreateMapping(               
+        //      );
+
+
+        //      return Ok(
+        //          new UpdateResult
+        //          {
+        //              operation = "Modify GeoShape",
+        //              updatetype = "custom",
+        //              otherinfo = "",
+        //              message = "Done",
+        //              recordsmodified = objectscount,
+        //              created = 0,
+        //              deleted = 0,
+        //              id = "",
+        //              updated = 0,
+        //              success = true,
+        //          }
+        //      );
+        //  }
 
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("ModifyGeoShapesTestMetaInfo")]

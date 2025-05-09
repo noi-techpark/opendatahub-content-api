@@ -203,6 +203,10 @@ namespace OdhApiCore.Controllers.api
         [HttpGet, Route("PoiTypes")]
         public async Task<IActionResult> GetAllPoiTypesList(
             string? language,
+            uint? pagenumber = null,
+            PageSize pagesize = null!,
+            string? idlist = null,
+            string? seed = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? searchfilter = null,
             string? rawfilter = null,
@@ -212,6 +216,10 @@ namespace OdhApiCore.Controllers.api
         )
         {
             return await GetPoiTypesList(
+                pagenumber,
+                pagesize,
+                idlist,
+                seed,
                 language,
                 fields: fields ?? Array.Empty<string>(),
                 searchfilter,
@@ -449,6 +457,10 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <returns>Collection of PoiTypes Object</returns>
         private Task<IActionResult> GetPoiTypesList(
+            uint? pagenumber,
+            int? pagesize,
+            string? idfilter,
+            string? seed,
             string? language,
             string[] fields,
             string? searchfilter,
@@ -463,6 +475,7 @@ namespace OdhApiCore.Controllers.api
                 var query = QueryFactory
                     .Query("poitypes")
                     .SelectRaw("data")
+                    .When(idfilter != null, q => q.IdLowerFilter(CommonListCreator.CreateIdList(idfilter?.ToLower())))
                     .SearchFilter(
                         PostgresSQLWhereBuilder.TypeDescFieldsToSearchFor(language),
                         searchfilter
@@ -470,17 +483,50 @@ namespace OdhApiCore.Controllers.api
                     .ApplyRawFilter(rawfilter)
                     .OrderOnlyByRawSortIfNotNull(rawsort);
 
-                var data = await query.GetAsync<JsonRaw?>();
+                if (pagenumber.HasValue)
+                {
+                    // Get paginated data
+                    var data = await query.PaginateAsync<JsonRaw>(
+                        page: (int)pagenumber,
+                        perPage: pagesize ?? 25
+                    );
 
-                return data.Select(raw =>
-                    raw?.TransformRawData(
-                        language,
-                        fields,
-                        filteroutNullValues: removenullvalues,
-                        urlGenerator: UrlGenerator,
-                        fieldstohide: null
-                    )
-                );
+                    var dataTransformed = data.List.Select(raw =>
+                        raw.TransformRawData(
+                            language,
+                            fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+
+                    uint totalpages = (uint)data.TotalPages;
+                    uint totalcount = (uint)data.Count;
+
+                    return ResponseHelpers.GetResult(
+                        pagenumber.Value,
+                        totalpages,
+                        totalcount,
+                        seed,
+                        dataTransformed,
+                        Url
+                    );
+                }
+                else
+                {
+                    var data = await query.GetAsync<JsonRaw?>();
+
+                    return data.Select(raw =>
+                        raw?.TransformRawData(
+                            language,
+                            fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+                }
             });
         }
 

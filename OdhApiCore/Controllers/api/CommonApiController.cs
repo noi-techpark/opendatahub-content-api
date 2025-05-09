@@ -1650,7 +1650,7 @@ namespace OdhApiCore.Controllers.api
                         language: language,
                         lastchange: commonhelper.lastchange,
                         additionalfilter: additionalfilter,
-                        userroles: UserRolesToFilter
+                        userroles: UserRolesToFilterEndpoint(endpoint)
                     )
                     .ApplyRawFilter(rawfilter)
                     .When(
@@ -1734,7 +1734,7 @@ namespace OdhApiCore.Controllers.api
                         language: language,
                         lastchange: commonhelper.lastchange,
                         additionalfilter: additionalfilter,
-                        userroles: UserRolesToFilter
+                        userroles: UserRolesToFilterEndpoint(endpoint)
                     )
                     .ApplyRawFilter(rawfilter)
                     .When(
@@ -1826,7 +1826,7 @@ namespace OdhApiCore.Controllers.api
                         searchfilter: searchfilter,
                         language: language,
                         additionalfilter: additionalfilter,
-                        userroles: UserRolesToFilter
+                        userroles: UserRolesToFilterEndpoint(endpoint)
                     )
                     .ApplyRawFilter(rawfilter)
                     .ApplyOrdering(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort)
@@ -1891,7 +1891,7 @@ namespace OdhApiCore.Controllers.api
                         searchfilter: searchfilter,
                         language: language,
                         additionalfilter: additionalfilter,
-                        userroles: UserRolesToFilter
+                        userroles: UserRolesToFilterEndpoint(endpoint)
                     )
                     .ApplyRawFilter(rawfilter)
                     .ApplyOrdering(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort)
