@@ -951,40 +951,68 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("TagParentIdFix")]
+        public async Task<IActionResult> TagParentIdFix(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.TagParentIdFix();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "TagParentIdFix",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+
         #endregion
 
         #region Shape
 
-      //  [Authorize(Roles = "DataPush")]
-      //  [HttpGet, Route("ModifyGeoShapes")]
-      //  public async Task<IActionResult> ModifyGeoShapes(          
-      //    CancellationToken cancellationToken
-      //)
-      //  {
-      //      CustomDataOperation customdataoperation = new CustomDataOperation(
-      //          settings,
-      //          QueryFactory
-      //      );
-      //      var objectscount = await customdataoperation.UpdateGeoshapeCreateMapping(               
-      //      );
-            
+        //  [Authorize(Roles = "DataPush")]
+        //  [HttpGet, Route("ModifyGeoShapes")]
+        //  public async Task<IActionResult> ModifyGeoShapes(          
+        //    CancellationToken cancellationToken
+        //)
+        //  {
+        //      CustomDataOperation customdataoperation = new CustomDataOperation(
+        //          settings,
+        //          QueryFactory
+        //      );
+        //      var objectscount = await customdataoperation.UpdateGeoshapeCreateMapping(               
+        //      );
 
-      //      return Ok(
-      //          new UpdateResult
-      //          {
-      //              operation = "Modify GeoShape",
-      //              updatetype = "custom",
-      //              otherinfo = "",
-      //              message = "Done",
-      //              recordsmodified = objectscount,
-      //              created = 0,
-      //              deleted = 0,
-      //              id = "",
-      //              updated = 0,
-      //              success = true,
-      //          }
-      //      );
-      //  }
+
+        //      return Ok(
+        //          new UpdateResult
+        //          {
+        //              operation = "Modify GeoShape",
+        //              updatetype = "custom",
+        //              otherinfo = "",
+        //              message = "Done",
+        //              recordsmodified = objectscount,
+        //              created = 0,
+        //              deleted = 0,
+        //              id = "",
+        //              updated = 0,
+        //              success = true,
+        //          }
+        //      );
+        //  }
 
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("ModifyGeoShapesTestMetaInfo")]

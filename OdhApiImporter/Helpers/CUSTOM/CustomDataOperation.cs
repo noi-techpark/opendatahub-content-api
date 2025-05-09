@@ -1446,6 +1446,52 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        
+        public async Task<int> TagParentIdFix()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("tags")
+                    .TagTypesFilter(new List<string>() { "ltscategory", "odhcategory" });
+
+
+            var data = await query.GetObjectListAsync<TagLinked>();
+            int i = 0;
+
+            foreach (var tag in data)
+            {
+                if (tag.Mapping != null && tag.Mapping.ContainsKey("lts"))
+                {
+                    if (tag.Mapping["lts"].ContainsKey("parent_id"))
+                    {
+                        if(tag.LTSTaggingInfo != null &&  tag.LTSTaggingInfo.ParentLTSRID != null)
+                        {
+                            tag.Mapping["lts"]["parent_id"] = tag.LTSTaggingInfo.ParentLTSRID;
+
+                            //Save to DB
+                            var queryresult = await QueryFactory
+                                .Query("tags")
+                                .Where("id", tag.Id)
+                                .UpdateAsync(
+                                    new JsonBData()
+                                    {
+                                        id = tag.Id?.ToLower() ?? "",
+                                        data = new JsonRaw(tag),
+                                    }
+                                );
+
+                            i++;
+                        }
+                        
+                    }
+
+                    
+                }
+            }
+
+            return i;
+        }
+
+
         public async Task<int> EventTopicsToTags()
         {
             //Load all data from PG and resave

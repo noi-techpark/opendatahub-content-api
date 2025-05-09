@@ -3381,12 +3381,14 @@ namespace DataModel
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
 
+        [SwaggerDeprecated("Deprecated")]
         public Nullable<bool> DisplayAsCategory { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Mapping or MappedIds")]
+        [SwaggerDeprecated("Deprecated, use Mapping")]
         public IDictionary<string, string>? IDMCategoryMapping { get; set; }
 
         [SwaggerDeprecated("Deprecated, use Mapping")]
+        [Obsolete("Deprecated, use Mapping")]
         public LTSTaggingInfo? LTSTaggingInfo { get; set; }
 
         [SwaggerDeprecated("Deprecated, use ValidForEntity")]
@@ -3395,6 +3397,7 @@ namespace DataModel
         //Generic Mapping Object
         public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
 
+        [SwaggerDeprecated("Deprecated, use Mapping")]
         public ICollection<string>? MappedTagIds { get; set; }
 
         //obsolete replaced by PublishDataWithTagOn to be more generic
