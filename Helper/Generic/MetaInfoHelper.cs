@@ -494,7 +494,10 @@ namespace Helper
             {
                 //Compatibility Update Info not present
                 if (oldmetadata.UpdateInfo == null)
+                {
+                    oldmetadata.UpdateInfo = new UpdateInfo();
                     newmetadata.UpdateInfo = new UpdateInfo();
+                }
 
                 //Compatibility UpdateHistory not present
                 if (oldmetadata.UpdateInfo.UpdateHistory == null)
