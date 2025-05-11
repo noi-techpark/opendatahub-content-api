@@ -117,8 +117,6 @@ namespace OdhApiImporter.Helpers
                 var imagegallery = new List<ImageGallery>();
 
                 IDictionary<string, Detail> detaildict = new Dictionary<string, Detail>();
-                Detail detailit = new Detail();
-                Detail detailen = new Detail();
 
                 var videourl = "";
                 Nullable<bool> activeweb = null;
@@ -178,16 +176,33 @@ namespace OdhApiImporter.Helpers
 
                     //eventshort.EventText = eventText;
 
-                    //Readd Event Title
-                    foreach (var eventtitle in eventshort.Detail)
+                    //Preserve detaildict
+                    if(detaildict != null && detaildict.Count > 0)
                     {
-                        if(eventshort.Detail.ContainsKey(eventtitle.Key))
-                            eventshort.Detail[eventtitle.Key].Title = eventtitle.Value.Title;
-                        else
+                        //Readd Event Title to the Detail Dictionary
+                        foreach (var eventtitle in eventshort.Detail)
                         {
-                            eventshort.Detail.TryAddOrUpdate(eventtitle.Key, eventtitle.Value);
+                            if (detaildict.ContainsKey(eventtitle.Key))
+                                detaildict[eventtitle.Key].Title = eventtitle.Value.Title;
+                            else
+                            {
+                                detaildict.TryAddOrUpdate(eventtitle.Key, eventtitle.Value);
+                            }
                         }
+
+                        eventshort.Detail = detaildict;
                     }
+                    
+                   
+                    //foreach (var eventtitle in eventshort.Detail)
+                    //{
+                    //    if(eventshort.Detail.ContainsKey(eventtitle.Key))
+                    //        eventshort.Detail[eventtitle.Key].Title = eventtitle.Value.Title;
+                    //    else
+                    //    {
+                    //        eventshort.Detail.TryAddOrUpdate(eventtitle.Key, eventtitle.Value);
+                    //    }
+                    //}
 
                     //eventshort.ActiveWeb = activeweb;
                     //eventshort.ActiveCommunityApp = activecommunity;
