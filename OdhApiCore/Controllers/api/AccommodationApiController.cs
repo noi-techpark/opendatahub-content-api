@@ -595,8 +595,8 @@ namespace OdhApiCore.Controllers
             }
 
             //If no pagenumber is used force user to add Accommodation Id
-            if (pagenumber == null && idtocheck == null)
-                throw new Exception("Please add accommodation id or pagenumber 1");
+            if (pagenumber == null && accoid == null)
+                pagenumber = 1;
 
             return await GetAccommodationRooms(
                 idtocheck,
