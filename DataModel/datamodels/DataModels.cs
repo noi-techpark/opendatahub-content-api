@@ -3291,6 +3291,10 @@ namespace DataModel
     //For Types Api
     public class ODHActivityPoiTypes : SmgPoiTypes { }
 
+    //For Types Api
+    public class EventShortTypes : SmgPoiTypes { }
+
+
     #endregion
 
     #region CommonInfos
