@@ -462,7 +462,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(IEnumerable<AccoFeature>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<AccoFeatures>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[Authorize(Roles = "DataReader,AccoReader")]
@@ -513,7 +513,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(AccoFeature), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AccoFeatures), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[Authorize(Roles = "DataReader,AccoReader")]
