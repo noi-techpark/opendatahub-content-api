@@ -315,13 +315,23 @@ namespace Helper
                                         ? false
                                         : true;
 
+                            //If this is a gastronomy and representationmode is not set to full, we have to check SmgActive because this is set in base on RepresentationRestriction
+                            //To change in future to Mapping
+                            bool isgastronomyvisible = true;
+                            if((mydata as ODHActivityPoiLinked).SyncSourceInterface == "gastronomicdata")
+                            {
+                                if((mydata as ODHActivityPoiLinked).OdhActive == false)
+                                    isgastronomyvisible = false;
+                            }
+
+
                             //IF category is white or blacklisted find an intersection
                             var tagintersection = allowedtags
                                 .Select(x => x.Id)
                                 .ToList()
                                 .Intersect((mydata as ODHActivityPoiLinked).SmgTags);
 
-                            if (tagintersection.Count() > 0 && tvallowed && ownerallowed)
+                            if (tagintersection.Count() > 0 && tvallowed && ownerallowed && isgastronomyvisible)
                             {
                                 var blacklistedpublisher = new List<string>();
 
