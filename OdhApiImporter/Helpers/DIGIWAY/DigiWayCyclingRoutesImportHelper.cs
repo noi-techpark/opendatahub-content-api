@@ -197,6 +197,8 @@ namespace OdhApiImporter.Helpers
 
                 parsedobject.Item1.GpsTrack.Add(gpstrack);
 
+                //TODO Tags recreate
+
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
                     parsedobject.Item1,

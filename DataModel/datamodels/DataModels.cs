@@ -683,8 +683,8 @@ namespace DataModel
     {
         public string? Id { get; set; }
 
-        [SwaggerDeprecated(
-            "Deprecated use the Id/Selflink to retrieve correct names from the appropriate Endpoint"
+        [SwaggerSchema(
+            "Use the Id/Selflink to retrieve correct names from the appropriate Endpoint"
         )]
         public string? Name { get; set; }
 
@@ -3291,6 +3291,10 @@ namespace DataModel
     //For Types Api
     public class ODHActivityPoiTypes : SmgPoiTypes { }
 
+    //For Types Api
+    public class EventShortTypes : SmgPoiTypes { }
+
+
     #endregion
 
     #region CommonInfos
@@ -3407,6 +3411,7 @@ namespace DataModel
         [SwaggerDeprecated("Deprecated, use Mapping")]
         public IDictionary<string, string>? IDMCategoryMapping { get; set; }
 
+        [SwaggerSchema("Deprecated, use Mapping")]
         [SwaggerDeprecated("Deprecated, use Mapping")]
         [Obsolete("Deprecated, use Mapping")]
         public LTSTaggingInfo? LTSTaggingInfo { get; set; }
