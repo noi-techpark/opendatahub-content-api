@@ -1,0 +1,514 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using DataModel;
+using Helper;
+using Helper.Generic;
+using Helper.Location;
+using Helper.Tagging;
+using LTSAPI;
+using LTSAPI.Parser;
+using MongoDB.Driver;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ServiceReferenceLCS;
+using SqlKata.Execution;
+
+
+namespace OdhApiImporter.Helpers.LTSAPI
+{
+    public class LTSApiGastronomyImportHelper : ImportHelper, IImportHelperLTS
+    {
+        public bool opendata = false;
+
+        public LTSApiGastronomyImportHelper(
+            ISettings settings,
+            QueryFactory queryfactory,
+            string table,
+            string importerURL
+        )
+            : base(settings, queryfactory, table, importerURL) { }
+
+        //public Task<UpdateDetail> SaveSingleDataToODH(
+        //    DateTime? lastchanged = null,
+        //    string? id = null,
+        //    CancellationToken cancellationToken = default)
+        //{
+        //    return SaveDataToODH(lastchanged, id, false, cancellationToken);
+        //}
+
+        public async Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged = null,
+            List<string> idlist = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return await SaveDataToODH(lastchanged, idlist, false, cancellationToken);
+        }
+
+        public async Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged = null,
+            List<string> idlist = null,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            opendata = reduced;
+
+            //Import the List
+            var gastronomylts = await GetGastronomiesFromLTSV2(idlist, lastchanged);
+
+            //Check if Data is accessible on LTS
+            if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("success") && (Boolean)gastronomylts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
+            {     //Import Single Data & Deactivate Data
+                var result = await SaveGastronomiesToPG(gastronomylts);
+                return result;
+            }
+            //If data is not accessible on LTS Side, delete or disable it
+            else if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("status") && ((int)gastronomylts.FirstOrDefault()["status"] == 403 || (int)gastronomylts.FirstOrDefault()["status"] == 404))
+            {
+                if (!opendata)
+                {
+                    //Data is pushed to marketplace with disabled status
+                    return await DeleteOrDisableGastronomiesData(idlist.FirstOrDefault(), false);
+                }
+                else
+                {
+                    //Data is pushed to marketplace as deleted
+                    return await DeleteOrDisableGastronomiesData(idlist.FirstOrDefault() + "_REDUCED", true);
+                }
+            }
+            else
+            {
+                return new UpdateDetail()
+                {
+                    updated = 0,
+                    created = 0,
+                    deleted = 0,
+                    error = 1,
+                };
+            }
+        }
+
+        private LtsApi GetLTSApi()
+        {
+            if (!opendata)
+            {
+                return new LtsApi(
+                   settings.LtsCredentials.serviceurl,
+                   settings.LtsCredentials.username,
+                   settings.LtsCredentials.password,
+                   settings.LtsCredentials.ltsclientid,
+                   false
+               );
+            }
+            else
+            {
+                return new LtsApi(
+                settings.LtsCredentialsOpen.serviceurl,
+                settings.LtsCredentialsOpen.username,
+                settings.LtsCredentialsOpen.password,
+                settings.LtsCredentialsOpen.ltsclientid,
+                true
+            );
+            }
+        }
+
+        private async Task<List<JObject>> GetGastronomiesFromLTSV2(List<string> gastroids, DateTime? lastchanged)
+        {
+            try
+            {
+                LtsApi ltsapi = GetLTSApi();
+                
+                if(gastroids.Count == 1)
+                {
+                    var qs = new LTSQueryStrings() { page_size = 1 };
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    return await ltsapi.GastronomyDetailRequest(gastroids.FirstOrDefault(), dict);
+                }
+                else
+                {
+                    var qs = new LTSQueryStrings() { page_size = 100 };
+
+                    if (gastroids != null && gastroids.Count > 0)
+                        qs.filter_rids = String.Join(",", gastroids);
+                    if (lastchanged != null)
+                        qs.filter_lastUpdate = lastchanged;
+
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    return await ltsapi.GastronomyListRequest(dict, true);
+                }                
+            }
+            catch (Exception ex)
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "list.gastronomies",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.gastronomies",
+                        success = false,
+                        error = ex.Message,
+                    }
+                );
+                return null;
+            }
+        }
+
+        private async Task<UpdateDetail> SaveGastronomiesToPG(List<JObject> ltsdata)
+        {
+            //var newimportcounter = 0;
+            //var updateimportcounter = 0;
+            //var errorimportcounter = 0;
+            //var deleteimportcounter = 0;
+
+            List<UpdateDetail> updatedetails = new List<UpdateDetail>();
+
+            if (ltsdata != null)
+            {
+                List<string> idlistlts = new List<string>();
+
+                List<LTSGastronomy> gastrodata = new List<LTSGastronomy>();
+
+                foreach (var ltsdatasingle in ltsdata)
+                {
+                    gastrodata.Add(
+                        ltsdatasingle.ToObject<LTSGastronomy>()
+                    );
+                }
+
+                foreach (var data in gastrodata)
+                {
+                    string id = data.data.rid;
+
+                    var gastroparsed = GastronomyParser.ParseLTSGastronomy(data.data, false);
+
+                    //TODO Add the Code Here for POST Processing Data
+
+                    //POPULATE LocationInfo
+                    gastroparsed.LocationInfo = await gastroparsed.UpdateLocationInfoExtension(
+                        QueryFactory
+                    );
+
+                    //DistanceCalculation
+                    await gastroparsed.UpdateDistanceCalculation(QueryFactory);
+
+                    //GET OLD Gastronomy
+                    var gastroindb = await LoadDataFromDB<ODHActivityPoiLinked>(id);
+
+                    //Add manual assigned Tags to TagIds TO check if this should be activated
+                    await MergeGastronomyTags(gastroparsed, gastroindb);
+
+                    //Create Tags
+                    await gastroparsed.UpdateTagsExtension(QueryFactory);
+
+                    if (!opendata)
+                    {
+                        //Add the MetaTitle for IDM
+                        await AddMetaTitle(gastroparsed);
+
+                        //PublishedOn Logich
+                        //Add the PublishedOn Logic
+                        gastroparsed.CreatePublishedOnList();
+                    }
+
+                    //TODO Add all compatibility 
+
+                    var result = await InsertDataToDB(gastroparsed, data.data);
+
+                    //newimportcounter = newimportcounter + result.created ?? 0;
+                    //updateimportcounter = updateimportcounter + result.updated ?? 0;
+                    //errorimportcounter = errorimportcounter + result.error ?? 0;
+
+                    updatedetails.Add(new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    });
+
+                    idlistlts.Add(id);
+
+                    WriteLog.LogToConsole(
+                        id,
+                        "dataimport",
+                        "single.gastronomies",
+                        new ImportLog()
+                        {
+                            sourceid = id,
+                            sourceinterface = "lts.gastronomies",
+                            success = true,
+                            error = "",
+                        }
+                    );
+                }
+
+                //Deactivate this in the meantime
+                //if (idlistlts.Count > 0)
+                //{
+                //    //Begin SetDataNotinListToInactive
+                //    var idlistdb = await GetAllDataBySourceAndType(
+                //        new List<string>() { "lts" },
+                //        new List<string>() { "eventcategory" }
+                //    );
+
+                //    var idstodelete = idlistdb.Where(p => !idlistlts.Any(p2 => p2 == p));
+
+                //    foreach (var idtodelete in idstodelete)
+                //    {
+                //        var deletedisableresult = await DeleteOrDisableData<TagLinked>(
+                //            idtodelete,
+                //            false
+                //        );
+
+                //        if (deletedisableresult.Item1 > 0)
+                //            WriteLog.LogToConsole(
+                //                idtodelete,
+                //                "dataimport",
+                //                "single.events.categories.deactivate",
+                //                new ImportLog()
+                //                {
+                //                    sourceid = idtodelete,
+                //                    sourceinterface = "lts.events.categories",
+                //                    success = true,
+                //                    error = "",
+                //                }
+                //            );
+                //        else if (deletedisableresult.Item2 > 0)
+                //            WriteLog.LogToConsole(
+                //                idtodelete,
+                //                "dataimport",
+                //                "single.events.categories.delete",
+                //                new ImportLog()
+                //                {
+                //                    sourceid = idtodelete,
+                //                    sourceinterface = "lts.events.categories",
+                //                    success = true,
+                //                    error = "",
+                //                }
+                //            );
+
+                //        deleteimportcounter =
+                //            deleteimportcounter
+                //            + deletedisableresult.Item1
+                //            + deletedisableresult.Item2;
+                //    }
+                //}
+            }
+            else
+            {
+                updatedetails.Add(new UpdateDetail()
+                {
+                    created = 0,
+                    updated = 0,
+                    deleted = 0,
+                    error = 1,
+                    objectchanged = 0,
+                    objectimagechanged = 0,
+                    comparedobjects = 0,
+                    pushchannels = null,
+                    changes = null                    
+                });
+            }
+
+
+            //To check, this works only for single updates             
+            //return new UpdateDetail()
+            //{
+            //    updated = updateimportcounter,
+            //    created = newimportcounter,
+            //    deleted = deleteimportcounter,
+            //    error = errorimportcounter,
+            //};
+
+            return updatedetails.FirstOrDefault();
+        }
+
+        private async Task<PGCRUDResult> InsertDataToDB(
+            ODHActivityPoiLinked objecttosave,
+            LTSGastronomyData gastrolts            
+        )
+        {
+            try
+            {
+                //Set LicenseInfo
+                //objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
+                //    objecttosave,
+                //    Helper.LicenseHelper.GetLicenseforEvent(
+                //);
+
+                //TODO
+                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(objecttosave, opendata);
+
+                //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
+                objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
+
+                //Set PublishedOn
+                objecttosave.CreatePublishedOnList();
+
+                var rawdataid = await InsertInRawDataDB(gastrolts);
+
+                return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
+                    objecttosave,
+                    new DataInfo("odhactivitypoi", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                    new EditInfo("lts.gastronomies.import", importerURL),
+                    new CRUDConstraints(),
+                    new CompareConfig(true, false),
+                    rawdataid,
+                    opendata
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        private async Task<int> InsertInRawDataDB(LTSGastronomyData gastrolts)
+        {
+            return await QueryFactory.InsertInRawtableAndGetIdAsync(
+                new RawDataStore()
+                {
+                    datasource = "lts",
+                    importdate = DateTime.Now,
+                    raw = JsonConvert.SerializeObject(gastrolts),
+                    sourceinterface = "gastronomies",
+                    sourceid = gastrolts.rid,
+                    sourceurl = "https://go.lts.it/api/v1/gastronomies",
+                    type = "odhactivitypoi",
+                    license = "open",
+                    rawformat = "json",
+                }
+            );
+        }
+
+        public async Task<UpdateDetail> DeleteOrDisableGastronomiesData(string id, bool delete)
+        {
+            UpdateDetail deletedisableresult = default(UpdateDetail);
+
+            PGCRUDResult result = default(PGCRUDResult);
+
+            if (delete)
+            {
+                result =  await QueryFactory.DeleteData<EventLinked>(
+                    id,
+                    new DataInfo("smgpoi", CRUDOperation.Delete),
+                    new CRUDConstraints()
+                );
+
+                deletedisableresult = new UpdateDetail() {
+                    created = result.created,
+                    updated = result.updated,
+                    deleted = result.deleted,
+                    error = result.error,
+                    objectchanged = result.objectchanged,
+                    objectimagechanged = result.objectimagechanged,
+                    comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                    pushchannels = result.pushchannels,
+                    changes = result.changes,
+                };
+            }
+            else
+            {
+                var query = QueryFactory.Query(table).Select("data").Where("id", id);
+
+                var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
+
+                if (data != null)
+                {
+                    if (
+                        data.Active != false
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                    )
+                    {
+                        data.Active = false;
+                        if (data is ISmgActive)
+                            ((ISmgActive)data).SmgActive = false;
+
+                        //updateresult = await QueryFactory
+                        //    .Query(table)
+                        //    .Where("id", id)
+                        //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+
+                        result = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
+                               data,
+                               new DataInfo("smgpoi", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new EditInfo("lts.gastronomies.import.deactivate", importerURL),
+                               new CRUDConstraints(),
+                               new CompareConfig(true, false)
+                        );
+
+                        deletedisableresult = new UpdateDetail()
+                        {
+                            created = result.created,
+                            updated = result.updated,
+                            deleted = result.deleted,
+                            error = result.error,
+                            objectchanged = result.objectchanged,
+                            objectimagechanged = result.objectimagechanged,
+                            comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            pushchannels = result.pushchannels,
+                            changes = result.changes,
+                        };
+                    }
+                }
+            }
+
+            return deletedisableresult;
+        }
+
+     
+        private async Task MergeGastronomyTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
+        {
+            if (gastroOld != null)
+            {
+                gastroNew.SmgTags = gastroOld.SmgTags;
+
+                //Readd all Redactional Tags
+                var redactionalassignedTags = gastroOld.Tags != null ? gastroOld.Tags.Where(x => x.Source != "lts").ToList() : null;
+                if (redactionalassignedTags != null)
+                {
+                    foreach (var tag in redactionalassignedTags)
+                    {
+                        gastroNew.TagIds.Add(tag.Id);
+                    }
+                }
+            }
+            //TODO import the Redactional Tags from Events into Tags?
+        }
+
+    
+        //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
+        private async Task AddMetaTitle(ODHActivityPoiLinked gastroNew)
+        {
+            if (gastroNew != null && gastroNew.Detail != null)
+            {                
+                foreach (var detail in gastroNew.Detail)
+                {
+                    //Check this
+                    detail.Value.MetaTitle = detail.Value.Title + " | suedtirol.info";
+                }
+            }
+        }
+    }
+}
