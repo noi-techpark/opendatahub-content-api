@@ -195,6 +195,7 @@ namespace OdhApiImporter.Controllers
 
         #region UPDATE DIRECTLY FROM LTS API
 
+        //Generic Update Single Dataset
         [HttpGet, Route("LTS/{datatype}/Update/{id}")]
         [Authorize(Roles = "DataPush")]
         public async Task<IActionResult> UpdateDataFromLTS(
@@ -254,6 +255,10 @@ namespace OdhApiImporter.Controllers
                 return BadRequest(errorResult);
             }
         }
+
+        //TODO Add Generic Active / Inactive Sync
+
+        //TODO Add Generic LastChanged Sync
 
         #endregion
 

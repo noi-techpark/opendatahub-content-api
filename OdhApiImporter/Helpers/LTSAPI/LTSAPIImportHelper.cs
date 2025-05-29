@@ -72,7 +72,27 @@ namespace OdhApiImporter.Helpers
                             );
                        
                     break;
-              
+                case "gastronomy":
+                    LTSApiGastronomyImportHelper ltsapigastroimporthelper = new LTSApiGastronomyImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    updateresult = await ltsapigastroimporthelper.SaveDataToODH(null, new List<string>() { id }, false, cancellationToken);
+
+                    //Get Reduced                    
+                    updateresultreduced = await ltsapigastroimporthelper.SaveDataToODH(null, new List<string>() { id }, true, cancellationToken);
+
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+
+                    break;
+
                 default:
                     throw new Exception("no match found");
             }
@@ -94,6 +114,9 @@ namespace OdhApiImporter.Helpers
             );
         }
 
+        //TODO Add LastChanged Sync
+
+        //TODO Add Active/Inactive Sync
 
         public async Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
             UpdateDetail myupdateresult,
