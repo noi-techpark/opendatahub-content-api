@@ -164,6 +164,22 @@ namespace OdhApiImporter.Helpers
             return ids.ToList();
         }
 
+        public async Task<List<string>> GetAllDataBySourceAndSyncSourceInterface(
+            List<string> sourcelist,
+            List<string> syncsourceinterfacelist
+        )
+        {
+            var query = QueryFactory
+                .Query(table)
+                .Select("id")
+                .SourceFilter_GeneratedColumn(sourcelist)
+                .SourceOrSyncSourceInterfaceFilter_GeneratedColumn(syncsourceinterfacelist);
+
+            var ids = await query.GetAsync<string>();
+
+            return ids.ToList();
+        }
+
         public async Task<T> LoadDataFromDB<T>(string id, IDStyle? idstyle = IDStyle.uppercase, bool reduced = false)
         {
             string reducedid = "";

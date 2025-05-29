@@ -36,14 +36,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        //public Task<UpdateDetail> SaveSingleDataToODH(
-        //    DateTime? lastchanged = null,
-        //    string? id = null,
-        //    CancellationToken cancellationToken = default)
-        //{
-        //    return SaveDataToODH(lastchanged, id, false, cancellationToken);
-        //}
-
+      
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string> idlist = null,
@@ -127,8 +120,19 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 LtsApi ltsapi = GetLTSApi();
                 
-                if(gastroids.Count == 1)
+                if(gastroids == null)
                 {
+                    //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full"  };
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    return await ltsapi.GastronomyListRequest(dict, true);
+                }
+                else if (gastroids.Count == 1)
+                {
+                    //Get Single Gastronomy
+
                     var qs = new LTSQueryStrings() { page_size = 1 };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
@@ -136,6 +140,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
                 else
                 {
+                    //Get all Gastronomies by Idlist
+
                     var qs = new LTSQueryStrings() { page_size = 100 };
 
                     if (gastroids != null && gastroids.Count > 0)
@@ -399,6 +405,89 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
             );
         }
+
+        public async Task<UpdateDetail> SetActiveDataInODH(
+          DateTime? lastchanged = null,
+          string? id = null,
+          CancellationToken cancellationToken = default)
+        {
+            var updateimportcounter = 0;
+            var errorimportcounter = 0;
+            var deleteimportcounter = 0;
+
+            //Import the gastronomies active List
+            var gastronomylts = await GetGastronomiesFromLTSV2(null, null);
+
+            //Check if Data is returned
+            if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("success") && (Boolean)gastronomylts.FirstOrDefault()["success"])
+            {
+                //TODO GET the IDList from the LTS response
+                //TO CHECK do this for reduced and full objects
+                List<string> idlistlts = new List<string>();
+
+                if (idlistlts.Count > 0)
+                {
+                    //Load all data from DB
+                    //TO CHECK load only active?
+                    var idlistdb = await GetAllDataBySourceAndSyncSourceInterface(
+                        new List<string>() { "lts" },
+                        new List<string>() { "gastronomicdata" }
+                    );
+
+                    var idstodelete = idlistdb.Where(p => !idlistlts.Any(p2 => p2 == p));
+
+                    foreach (var idtodelete in idstodelete)
+                    {
+                        var deletedisableresult = await DeleteOrDisableData<TagLinked>(
+                            idtodelete,
+                            false
+                        );
+
+                        if (deletedisableresult.Item1 > 0)
+                            WriteLog.LogToConsole(
+                                idtodelete,
+                                "dataimport",
+                                "single.gastronomies.deactivate",
+                                new ImportLog()
+                                {
+                                    sourceid = idtodelete,
+                                    sourceinterface = "lts.gastronomies",
+                                    success = true,
+                                    error = "",
+                                }
+                            );
+                        else if (deletedisableresult.Item2 > 0)
+                            WriteLog.LogToConsole(
+                                idtodelete,
+                                "dataimport",
+                                "single.gastronomies.delete",
+                                new ImportLog()
+                                {
+                                    sourceid = idtodelete,
+                                    sourceinterface = "lts.gastronomies",
+                                    success = true,
+                                    error = "",
+                                }
+                            );
+
+                        deleteimportcounter =
+                            deleteimportcounter
+                            + deletedisableresult.Item1
+                            + deletedisableresult.Item2;
+                    }
+                }
+
+            }
+
+            return new UpdateDetail()
+            {
+                updated = updateimportcounter,
+                created = 0,
+                deleted = deleteimportcounter,
+                error = errorimportcounter,
+            };
+        }
+
 
         public async Task<UpdateDetail> DeleteOrDisableGastronomiesData(string id, bool delete)
         {
