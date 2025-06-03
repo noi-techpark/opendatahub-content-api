@@ -63,7 +63,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                 var qs = new LTSQueryStrings()
                 {
                     page_size = 1,
-                    fields = "cinCode,amenities,suedtirolGuestPass,roomGroups",
+                    fields = "cinCode,amenities,suedtirolGuestPass,roomGroups,type,category",   //amenities,mealPlans
                 };
                 var dict = ltsapi.GetLTSQSDictionary(qs);
 
@@ -265,22 +265,22 @@ namespace OdhApiImporter.Helpers.RAVEN
                     //NEW TO Remove, add speciafeature Guestcard
                     accommodation.SpecialFeaturesIds.TryRemoveOnList("Guestcard");
                     //NEW Remove on Features
-                    if(accommodation.Features != null)
+                    if (accommodation.Features != null)
                     {
-                        if(accommodation.Features.Where(x => x.Id == "8192350ABF6B41DA89B255B340003991").Count() > 0)
+                        if (accommodation.Features.Where(x => x.Id == "8192350ABF6B41DA89B255B340003991").Count() > 0)
                         {
                             var featurestoremove = accommodation.Features.Where(x => x.Id == "8192350ABF6B41DA89B255B340003991").ToList();
-                            if(featurestoremove != null)
+                            if (featurestoremove != null)
                             {
-                                foreach(var featuretoremove in featurestoremove)
+                                foreach (var featuretoremove in featurestoremove)
                                 {
                                     accommodation.Features.Remove(featuretoremove);
-                                }                                
+                                }
                             }
-                                
+
                         }
                     }
-                    
+
                 }
                 else
                 {
@@ -291,7 +291,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     //Update also the Features
                     if (accommodation.Features == null)
                         accommodation.Features = new List<AccoFeatureLinked>();
-                    if(accommodation.Features.Count() == 0)
+                    if (accommodation.Features.Count() == 0)
                     {
                         accommodation.Features.Add(guestcardfeature);
                     }
@@ -340,6 +340,29 @@ namespace OdhApiImporter.Helpers.RAVEN
                 {
                     accommodation.TagIds.Add(card.rid);
                 }
+
+                //Add also Type and Category to TagIds
+                //Accommodationtype
+                var typerid =
+                    ltsdata["data"] != null
+                        ? ltsdata["data"]["type"] != null
+                            ? ltsdata["data"]["type"].Value<string?>("rid")
+                            : null
+                        : null;
+
+                var categoryrid =
+                           ltsdata["data"] != null
+                               ? ltsdata["data"]["category"] != null
+                                   ? ltsdata["data"]["category"].Value<string?>("rid")
+                                   : null
+                               : null;
+
+                if (typerid != null)
+                    accommodation.TagIds.TryAddOrUpdateOnList(typerid);
+                if (categoryrid != null)
+                    accommodation.TagIds.TryAddOrUpdateOnList(categoryrid);
+
+
                 //Populate Tags (Id/Source/Type)
                 await accommodation.UpdateTagsExtension(queryFactory);
 
@@ -362,7 +385,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },                    
+                    },
                     true
                 );
             }
@@ -392,7 +415,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     true
                 );
             }
-        }
+        }       
 
         private static IDictionary<string, string> GuestCardIdMapping()
         {
