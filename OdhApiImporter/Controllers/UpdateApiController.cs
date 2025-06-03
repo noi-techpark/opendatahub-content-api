@@ -2194,8 +2194,8 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-                LTSApiEventClassificationsImportHelper importhelper =
-                    new LTSApiEventClassificationsImportHelper(
+                LTSApiCeremonyCodesFacilitiesImportHelper importhelper =
+                    new LTSApiCeremonyCodesFacilitiesImportHelper(
                         settings,
                         QueryFactory,
                         "tags",
