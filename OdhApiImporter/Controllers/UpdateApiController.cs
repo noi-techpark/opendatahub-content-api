@@ -2779,6 +2779,66 @@ namespace OdhApiImporter.Controllers
                     cancellationToken
                 );
 
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    result.Item1,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS succeeded",
+                    otherinfo,
+                    result.Item2,
+                    true);
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        //Generic Deleted Sync        
+        [HttpGet, Route("LTS/{datatype}/UpdateDeleted/{date}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateDeletedDataFromLTS(
+            string date,
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update LTS";
+            string updatetype = "deleted";
+            string source = "api";
+            string otherinfo = datatype.ToLower();
+
+            try
+            {
+                var lastchangeddate = DateTime.Parse(date);
+
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatype),
+                    OdhPushnotifier
+                );
+                var result = await ltsapiimporthelper.UpdateDeletedDataFromLTSApi(
+                    lastchangeddate,
+                    datatype,
+                    cancellationToken
+                );
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     result.Item1,
@@ -2810,11 +2870,9 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        //TODO Add Generic Deleted Sync
-
         //TODO Add Generic Active / Inactive Sync
 
-        
+
 
         #endregion
 

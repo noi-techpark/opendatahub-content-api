@@ -177,7 +177,65 @@ namespace OdhApiImporter.Helpers
             return updatedetail;
         }
 
-        //Update Deleted Data
+        //Update Deleted Data        
+        public async Task<Tuple<string, UpdateDetail>> UpdateDeletedDataFromLTSApi(
+            DateTime lastchanged,
+            string datatype,
+            CancellationToken cancellationToken
+        )
+        {
+            Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>);
+
+            switch (datatype.ToLower())
+            {
+                case "event":
+                    LTSApiEventImportHelper ltsapieventimporthelper = new LTSApiEventImportHelper(
+                        settings,
+                        QueryFactory,
+                        "events",
+                        importerURL
+                        );
+
+                    var lastchangedlist = await ltsapieventimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
+
+                    int? updatecounter = 0;
+                    int? createcounter = 0;
+                    int? deletecounter = 0;
+                    int? errorcounter = 0;
+
+                    //Call Single Update and write LOG or write directly??
+                    foreach (var id in lastchangedlist)
+                    {
+                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "event", cancellationToken);
+
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            resulttuple.Item1,
+                            "api",
+                            "Update LTS",
+                            "single.deleted",
+                            "Update LTS succeeded",
+                            datatype,
+                            resulttuple.Item2,
+                            true
+                        );
+
+                        createcounter = resulttuple.Item2.created + createcounter;
+                        updatecounter = resulttuple.Item2.updated + updatecounter;
+                        deletecounter = resulttuple.Item2.deleted + deletecounter;
+                        errorcounter = resulttuple.Item2.error + errorcounter;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
+
+                default:
+                    throw new Exception("no match found");
+            }
+
+            return updatedetail;
+        }
 
         //TODO Add Active/Inactive Sync
 
