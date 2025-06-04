@@ -2,22 +2,24 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Amazon.Auth.AccessControlPolicy;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Tagging;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Operations;
 using OdhApiImporter.Helpers.LTSAPI;
 using OdhApiImporter.Helpers.RAVEN;
 using OdhNotifier;
 using RAVEN;
 using SqlKata;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiImporter.Helpers
 {
@@ -116,13 +118,13 @@ namespace OdhApiImporter.Helpers
         }
 
         //Update LastChanged Data
-        public async Task<List<Tuple<string, UpdateDetail>>> UpdateLastChangedDataFromLTSApi(
+        public async Task<Tuple<string, UpdateDetail>> UpdateLastChangedDataFromLTSApi(
             DateTime lastchanged,
             string datatype,
             CancellationToken cancellationToken
         )
         {
-            List<Tuple<string, UpdateDetail>> updatedetailist = new List<Tuple<string, UpdateDetail>>(); 
+            Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>); 
 
             switch (datatype.ToLower())
             {
@@ -136,12 +138,35 @@ namespace OdhApiImporter.Helpers
 
                     var lastchangedlist = await ltsapieventimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
 
-                    //TODO Call Single Update
-                    foreach(var id in lastchangedlist)
+                    int? updatecounter = 0;
+                    int? createcounter = 0;
+                    int? deletecounter = 0;
+                    int? errorcounter = 0;
+
+                    //Call Single Update and write LOG
+                    foreach (var id in lastchangedlist)
                     {
-                        updatedetailist.Add(await UpdateSingleDataFromLTSApi(id, "event", cancellationToken));
+                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "event", cancellationToken);
+
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            resulttuple.Item1,
+                            "api",
+                            "Update LTS",
+                            "single.lastchanged",
+                            "Update LTS succeeded",
+                            datatype,
+                            resulttuple.Item2,
+                            true
+                        );
+
+                        createcounter = resulttuple.Item2.created + createcounter;
+                        updatecounter = resulttuple.Item2.updated + updatecounter;
+                        deletecounter = resulttuple.Item2.deleted + deletecounter;
+                        errorcounter = resulttuple.Item2.error + errorcounter;
                     }
- 
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
                     break;
               
 
@@ -149,7 +174,7 @@ namespace OdhApiImporter.Helpers
                     throw new Exception("no match found");
             }
 
-            return updatedetailist;
+            return updatedetail;
         }
 
         //Update Deleted Data

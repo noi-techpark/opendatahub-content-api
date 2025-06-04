@@ -2778,24 +2778,19 @@ namespace OdhApiImporter.Controllers
                     datatype,
                     cancellationToken
                 );
-                
-                List<DataModel.UpdateResult> updateResults = new List<DataModel.UpdateResult>();
 
-                foreach(var updateresult in result)
-                {
-                    updateResults.Add(GenericResultsHelper.GetSuccessUpdateResult(
-                    updateresult.Item1,
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    result.Item1,
                     source,
                     operation,
                     updatetype,
                     "Update LTS succeeded",
                     otherinfo,
-                    updateresult.Item2,
-                    true
-                ));
-                }
+                    result.Item2,
+                    true);
 
-                return Ok(updateResults);
+                return Ok(updateResult);
             }
             catch (Exception ex)
             {
