@@ -18,6 +18,7 @@ using LTSAPI.Parser;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OdhApiImporter.Helpers.RAVEN;
 using ServiceReferenceLCS;
 using SqlKata.Execution;
 
@@ -36,26 +37,29 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        //public Task<UpdateDetail> SaveSingleDataToODH(
-        //    DateTime? lastchanged = null,
-        //    string? id = null,
-        //    CancellationToken cancellationToken = default)
-        //{
-        //    return SaveDataToODH(lastchanged, id, false, cancellationToken);
-        //}
-
+        //Not implemented here
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
-            List<string> idlist = null,
+            List<string>? idlist = null,
+            bool reduced = false,
             CancellationToken cancellationToken = default
         )
         {
-            return await SaveDataToODH(lastchanged, idlist, false, cancellationToken);
+            throw new NotImplementedException();            
         }
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
-            List<string> idlist = null,
+            List<string>? idlist = null,            
+            CancellationToken cancellationToken = default
+        )
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public async Task<UpdateDetail> SaveSingleDataToODH(
+            string id,
             bool reduced = false,
             CancellationToken cancellationToken = default
         )
@@ -63,7 +67,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var eventlts = await GetEventsFromLTSV2(idlist, lastchanged);
+            var eventlts = await GetEventsFromLTSV2(id, null, null, null);
 
             //Check if Data is accessible on LTS
             if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("success") && (Boolean)eventlts.FirstOrDefault()["success"]) //&& eventlts.FirstOrDefault()["Success"] == true
@@ -77,12 +81,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableEventData(idlist.FirstOrDefault(), false);
+                    return await DeleteOrDisableEventData(id, false);
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableEventData(idlist.FirstOrDefault() + "_REDUCED", true);
+                    return await DeleteOrDisableEventData(id + "_REDUCED", true);
                 }
             }
             else
@@ -95,6 +99,111 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     error = 1,
                 };
             }
+        }
+
+        public async Task<List<string>> GetLastChangedData(
+            DateTime lastchanged,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            //Import the List
+            var lastchangedlts = await GetEventsFromLTSV2(null, lastchanged, null, null);
+            List<string> lastchangedlist = new List<string>();
+
+            if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
+            {
+                var lastchangedrids = lastchangedlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                lastchangedlist = lastchangedrids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "lastchanged.events",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.events",
+                        success = false,
+                        error = "Could not fetch last changed List",
+                    }
+                );
+            }
+
+            return lastchangedlist;
+        }
+
+        public async Task<List<string>> GetLastDeletedData(
+            DateTime deletedfrom,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            //Import the List
+            var deletedlts = await GetEventsFromLTSV2(null, null, deletedfrom, null);
+            List<string> lastdeletedlist = new List<string>();
+
+            if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
+            {
+                var lastchangedrids = deletedlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                lastdeletedlist = lastchangedrids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "deleted.events",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.events",
+                        success = false,
+                        error = "Could not fetch deleted List",
+                    }
+                );
+            }
+
+            return lastdeletedlist;
+        }
+
+        public async Task<List<string>> GetActiveList(
+            bool active,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            //Import the List
+            var activelistlts = await GetEventsFromLTSV2(null, null, null, active);
+            List<string> activeList = new List<string>();
+
+            if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
+            {
+                var activerids = activelistlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                activeList = activerids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "active.events",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.events",
+                        success = false,
+                        error = "Could not fetch active List",
+                    }
+                );
+            }
+
+            return activeList;
         }
 
         private LtsApi GetLTSApi()
@@ -121,32 +230,55 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<List<JObject>> GetEventsFromLTSV2(List<string> eventids, DateTime? lastchanged)
+        private async Task<List<JObject>> GetEventsFromLTSV2(string? eventid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
             try
             {
                 LtsApi ltsapi = GetLTSApi();
-                
-                if(eventids.Count == 1)
+
+                //When 1 ID is passed retrieve only Detail
+                if (eventid != null)
                 {
                     var qs = new LTSQueryStrings() { page_size = 1, filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.EventDetailRequest(eventids.FirstOrDefault(), dict);
+                    return await ltsapi.EventDetailRequest(eventid, dict);
                 }
-                else
+                else if (lastchanged != null)
                 {
-                    var qs = new LTSQueryStrings() { page_size = 100, filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
 
-                    if (eventids != null && eventids.Count > 0)
-                        qs.filter_rids = String.Join(",", eventids);
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
                     return await ltsapi.EventListRequest(dict, true);
-                }                
+                }
+                else if (deletedfrom != null)
+                {
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
+
+                    if (deletedfrom != null)
+                        qs.filter_lastUpdate = deletedfrom;
+
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    return await ltsapi.EventDeletedRequest(dict, true);
+                }
+                else if (activelist != null)
+                {
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.MaxValue.ToString("yyyy-MM-dd"), filter_startDate = DateTime.MinValue.ToString("yyyy-MM-dd") };
+
+                    if (activelist != null)
+                        qs.filter_onlyActive = activelist;
+
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    return await ltsapi.EventListRequest(dict, true);
+                }
+                else
+                    return null;
             }
             catch (Exception ex)
             {

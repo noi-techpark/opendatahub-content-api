@@ -192,76 +192,7 @@ namespace OdhApiImporter.Controllers
         }
 
         #endregion
-
-        #region UPDATE DIRECTLY FROM LTS API
-
-        //Generic Update Single Dataset
-        [HttpGet, Route("LTS/{datatype}/Update/{id}")]
-        [Authorize(Roles = "DataPush")]
-        public async Task<IActionResult> UpdateDataFromLTS(
-            string id,
-            string datatype,
-            CancellationToken cancellationToken = default
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Update LTS";
-            string updatetype = "single";
-            string source = "api";
-            string otherinfo = datatype.ToLower();
-
-            try
-            {
-                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
-                    settings,
-                    QueryFactory,
-                    UrlGeneratorStatic("LTS/" + datatype),
-                    OdhPushnotifier
-                );
-                var resulttuple = await ltsapiimporthelper.GetFromLTSApiTransformToPGObject(
-                    id,
-                    datatype,
-                    cancellationToken
-                );
-                updatedetail = resulttuple.Item2;
-
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    resulttuple.Item1,
-                    source,
-                    operation,
-                    updatetype,
-                    "Update LTS succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
-
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
-                    id,
-                    source,
-                    operation,
-                    updatetype,
-                    "Update LTS failed",
-                    otherinfo,
-                    updatedetail,
-                    ex,
-                    true
-                );
-
-                return BadRequest(errorResult);
-            }
-        }
-
-        //TODO Add Generic Active / Inactive Sync
-
-        //TODO Add Generic LastChanged Sync
-
-        #endregion
-
+   
         #region REPROCESS PUSH FAILURE QUEUE
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("PushFailureQueue/Retry/{publishedon}")]
@@ -2753,6 +2684,145 @@ namespace OdhApiImporter.Controllers
         }
 
         #endregion
+
+        #region UPDATE DATA DIRECTLY FROM LTS API
+
+        //Generic Update Single Dataset
+        [HttpGet, Route("LTS/{datatype}/Update/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateDataFromLTS(
+            string id,
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update LTS";
+            string updatetype = "single";
+            string source = "api";
+            string otherinfo = datatype.ToLower();
+
+            try
+            {
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatype),
+                    OdhPushnotifier
+                );
+                var resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
+                    id,
+                    datatype,
+                    cancellationToken
+                );
+                updatedetail = resulttuple.Item2;
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    resulttuple.Item1,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        //Generic LastChanged Sync
+        [HttpGet, Route("LTS/{datatype}/UpdateLastChanged/{date}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateLastChangedDataFromLTS(
+            string date,
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update LTS";
+            string updatetype = "lastchanged";
+            string source = "api";
+            string otherinfo = datatype.ToLower();
+
+            try
+            {
+                var lastchangeddate = DateTime.Parse(date);
+
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatype),
+                    OdhPushnotifier
+                );
+                var result = await ltsapiimporthelper.UpdateLastChangedDataFromLTSApi(
+                    lastchangeddate,
+                    datatype,
+                    cancellationToken
+                );
+                
+                List<DataModel.UpdateResult> updateResults = new List<DataModel.UpdateResult>();
+
+                foreach(var updateresult in result)
+                {
+                    updateResults.Add(GenericResultsHelper.GetSuccessUpdateResult(
+                    updateresult.Item1,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS succeeded",
+                    otherinfo,
+                    updateresult.Item2,
+                    true
+                ));
+                }
+
+                return Ok(updateResults);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        //TODO Add Generic Deleted Sync
+
+        //TODO Add Generic Active / Inactive Sync
+
+        
+
+        #endregion
+
 
         #region DIGIWAY
 

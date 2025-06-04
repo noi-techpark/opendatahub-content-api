@@ -40,8 +40,9 @@ namespace OdhApiImporter.Helpers
             this.importerURL = importerURL;
             this.OdhPushnotifier = odhpushnotifier;
         }
-                
-        public async Task<Tuple<string, UpdateDetail>> GetFromLTSApiTransformToPGObject(
+
+        //Update Single Data                
+        public async Task<Tuple<string, UpdateDetail>> UpdateSingleDataFromLTSApi(
             string id,
             string datatype,
             CancellationToken cancellationToken
@@ -60,10 +61,10 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
-                    updateresult = await ltsapieventimporthelper.SaveDataToODH(null, new List<string>() { id }, false, cancellationToken);
+                    updateresult = await ltsapieventimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
                     //Get Reduced                    
-                    updateresultreduced = await ltsapieventimporthelper.SaveDataToODH(null, new List<string>() { id }, true, cancellationToken);
+                    updateresultreduced = await ltsapieventimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
@@ -114,7 +115,44 @@ namespace OdhApiImporter.Helpers
             );
         }
 
-        //TODO Add LastChanged Sync
+        //Update LastChanged Data
+        public async Task<List<Tuple<string, UpdateDetail>>> UpdateLastChangedDataFromLTSApi(
+            DateTime lastchanged,
+            string datatype,
+            CancellationToken cancellationToken
+        )
+        {
+            List<Tuple<string, UpdateDetail>> updatedetailist = new List<Tuple<string, UpdateDetail>>(); 
+
+            switch (datatype.ToLower())
+            {
+                case "event":
+                    LTSApiEventImportHelper ltsapieventimporthelper = new LTSApiEventImportHelper(
+                        settings,
+                        QueryFactory,
+                        "events",
+                        importerURL
+                        );
+
+                    var lastchangedlist = await ltsapieventimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
+
+                    //TODO Call Single Update
+                    foreach(var id in lastchangedlist)
+                    {
+                        updatedetailist.Add(await UpdateSingleDataFromLTSApi(id, "event", cancellationToken));
+                    }
+ 
+                    break;
+              
+
+                default:
+                    throw new Exception("no match found");
+            }
+
+            return updatedetailist;
+        }
+
+        //Update Deleted Data
 
         //TODO Add Active/Inactive Sync
 
