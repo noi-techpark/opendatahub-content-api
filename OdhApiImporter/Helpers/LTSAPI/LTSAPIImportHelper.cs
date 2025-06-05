@@ -204,6 +204,8 @@ namespace OdhApiImporter.Helpers
                     int? errorcounter = 0;
 
                     //Call Single Update and write LOG or write directly??
+                    //Use the DeleteOrDisable method?
+
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "event", cancellationToken);
@@ -259,6 +261,7 @@ namespace OdhApiImporter.Helpers
                     var lastchangedlist = await ltsapieventimporthelper.GetActiveList(onlyactive, false, cancellationToken);
 
                     //TODO Compare with DB and deactivate all inactive items
+                    //Use the DeleteOrDisable method?
 
                     int? updatecounter = 0;
                     int? createcounter = 0;
