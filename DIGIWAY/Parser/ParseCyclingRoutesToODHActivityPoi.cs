@@ -479,7 +479,7 @@ namespace DIGIWAY
             odhactivitypoi.TagIds.Add("9DE2F99EA67E4278A558755E093DB0ED"); //LTS Others bike Tag
             odhactivitypoi.TagIds.Add("cycling");
             odhactivitypoi.TagIds.Add("others bike");
-            odhactivitypoi.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");        //LTS RAdtouren Tag     
+            odhactivitypoi.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");  //LTS RAdtouren Tag     
 
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             if(digiwaydata.properties.CODE != null)
