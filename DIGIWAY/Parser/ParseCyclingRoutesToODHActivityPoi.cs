@@ -216,9 +216,9 @@ namespace DIGIWAY
 
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata, 
-                "cyclewaytyrol",
+                digiwaydata,                
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToString(digiwaydata.properties.ROUTE_NAME) : null,
+                "cyclewaytyrol",
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
                 );
 
@@ -324,9 +324,9 @@ namespace DIGIWAY
 
            
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata,
-                "mountainbikeroute",
+                digiwaydata,                
                 name,
+                "mountainbikeroute",
                 null
                 );
 
@@ -406,9 +406,9 @@ namespace DIGIWAY
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata,
-                "hikingtrail",
+                digiwaydata,                
                 name,
+                "hikingtrail",
                 null
                 );
 
@@ -494,9 +494,9 @@ namespace DIGIWAY
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata,
-                "intermunicipalcyclingroute",
+                digiwaydata,                
                 name,
+                "intermunicipalcyclingroute",
                 null
                 );
 
