@@ -2,6 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel.Annotations;
+using DataModel.validation;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Swashbuckle.AspNetCore.Annotations;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,11 +15,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using DataModel.Annotations;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Swashbuckle.AspNetCore.Annotations;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace DataModel
 {
@@ -2570,6 +2571,7 @@ namespace DataModel
         public double EndDateUTC { get; set; }
 
         //URL für externe Webseite (noch nicht ausgefüllt)
+        [UrlPrefixAttribute]
         public string? WebAddress { get; set; }
 
         //Spezialfelder
