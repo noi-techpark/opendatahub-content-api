@@ -2870,8 +2870,64 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        //TODO Add Generic Active / Inactive Sync
+        //Generic Active/Inactive Sync        
+        [HttpGet, Route("LTS/{datatype}/UpdateActiveInactive/{active}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateActiveInactiveDataFromLTS(
+            bool onlyactive,
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update LTS";
+            string updatetype = "deleted";
+            string source = "api";
+            string otherinfo = datatype.ToLower();
 
+            try
+            {
+               LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatype),
+                    OdhPushnotifier
+                );
+                var result = await ltsapiimporthelper.UpdateActiveInactiveDataFromLTSApi(
+                    onlyactive,
+                    datatype,
+                    cancellationToken
+                );
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    result.Item1,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS succeeded",
+                    otherinfo,
+                    result.Item2,
+                    true);
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
 
 
         #endregion
