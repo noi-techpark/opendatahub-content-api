@@ -481,7 +481,7 @@ namespace OdhApiImporter.Helpers
 
                     activelist = await ltsapigastroimporthelper.GetActiveList(onlyactive, false, cancellationToken);
 
-                    activelistinDB = await GetAllDataBySource("event", new List<string>() { "lts" }, null, true);
+                    activelistinDB = await GetAllDataBySource("smgpois", new List<string>() { "lts" }, new List<string>() { "gastronomicdata" }, true);
 
                     //Compare with DB and deactivate all inactive items
                     idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p)).ToList();
