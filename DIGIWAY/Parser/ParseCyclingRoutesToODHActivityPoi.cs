@@ -216,9 +216,9 @@ namespace DIGIWAY
 
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata, 
-                "cyclewaytyrol",
+                digiwaydata,                
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToString(digiwaydata.properties.ROUTE_NAME) : null,
+                "cyclewaytyrol",
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
                 );
 
@@ -324,9 +324,9 @@ namespace DIGIWAY
 
            
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata,
-                "mountainbikeroute",
+                digiwaydata,                
                 name,
+                "mountainbikeroute",
                 null
                 );
 
@@ -406,9 +406,9 @@ namespace DIGIWAY
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata,
-                "hikingtrail",
+                digiwaydata,                
                 name,
+                "hikingtrail",
                 null
                 );
 
@@ -479,7 +479,7 @@ namespace DIGIWAY
             odhactivitypoi.TagIds.Add("9DE2F99EA67E4278A558755E093DB0ED"); //LTS Others bike Tag
             odhactivitypoi.TagIds.Add("cycling");
             odhactivitypoi.TagIds.Add("others bike");
-            odhactivitypoi.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");        //LTS RAdtouren Tag     
+            odhactivitypoi.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");  //LTS RAdtouren Tag     
 
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             if(digiwaydata.properties.CODE != null)
@@ -494,9 +494,9 @@ namespace DIGIWAY
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
-                digiwaydata,
-                "intermunicipalcyclingroute",
+                digiwaydata,                
                 name,
+                "intermunicipalcyclingroute",
                 null
                 );
 

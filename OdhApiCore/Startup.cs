@@ -431,6 +431,22 @@ namespace OdhApiCore
                                         + "protocol/openid-connect/token"
                                 ),
                             },
+                            AuthorizationCode = new OpenApiOAuthFlow
+                            {
+                                TokenUrl = new Uri(
+                                    Configuration
+                                        .GetSection("OauthServerConfig")
+                                        .GetValue<string>("Authority")
+                                        + "protocol/openid-connect/token"
+                                ),
+                                AuthorizationUrl = new Uri(
+                                    Configuration
+                                        .GetSection("OauthServerConfig")
+                                        .GetValue<string>("Authority")
+                                        + "protocol/openid-connect/auth"
+                                ),
+                                //Scopes = new Dictionary<string, string>() { { "odh-api-core-scope", "Test Scope" } }
+                            }
                         },
                         BearerFormat = "JWT",
                         Scheme = "Bearer",

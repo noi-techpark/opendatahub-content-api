@@ -2,6 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using DIGIWAY;
+using Helper;
+using Helper.Generic;
+using Helper.Tagging;
+using Newtonsoft.Json;
+using SqlKata;
+using SqlKata.Execution;
+using SqlKata.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,14 +18,6 @@ using System.Runtime.Intrinsics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DataModel;
-using DIGIWAY;
-using Helper;
-using Helper.Generic;
-using Newtonsoft.Json;
-using SqlKata;
-using SqlKata.Execution;
-using SqlKata.Extensions;
 
 namespace OdhApiImporter.Helpers
 {
@@ -196,8 +197,10 @@ namespace OdhApiImporter.Helpers
                     parsedobject.Item1.GpsTrack = new List<GpsTrack>();
 
                 parsedobject.Item1.GpsTrack.Add(gpstrack);
+                
+                //Create Tags
+                await parsedobject.Item1.UpdateTagsExtension(QueryFactory);
 
-                //TODO Tags recreate
 
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
