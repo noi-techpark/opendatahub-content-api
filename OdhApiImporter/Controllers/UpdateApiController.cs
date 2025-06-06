@@ -2881,7 +2881,7 @@ namespace OdhApiImporter.Controllers
         {
             UpdateDetail updatedetail = default(UpdateDetail);
             string operation = "Update LTS";
-            string updatetype = "deleted";
+            string updatetype = "activeinactive";
             string source = "api";
             string otherinfo = datatype.ToLower();
 

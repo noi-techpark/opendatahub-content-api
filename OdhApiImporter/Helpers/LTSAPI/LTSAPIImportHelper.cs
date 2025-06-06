@@ -208,23 +208,46 @@ namespace OdhApiImporter.Helpers
 
                     foreach (var id in lastchangedlist)
                     {
-                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "event", cancellationToken);
+                        var updateresult = default(UpdateDetail);
+                        var updateresultreduced = default(UpdateDetail);
 
+                        updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false);
+
+                        //Get Reduced                    
+                        updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true);
+
+                        updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                    updateresult,
+                                    id,
+                                    datatype
+                                );
+
+                        //Create Delete/Disable Log
                         GenericResultsHelper.GetSuccessUpdateResult(
-                            resulttuple.Item1,
+                            id,
                             "api",
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
                             datatype,
-                            resulttuple.Item2,
+                            updateresult,
                             true
                         );
 
-                        createcounter = resulttuple.Item2.created + createcounter;
-                        updatecounter = resulttuple.Item2.updated + updatecounter;
-                        deletecounter = resulttuple.Item2.deleted + deletecounter;
-                        errorcounter = resulttuple.Item2.error + errorcounter;
+                        createcounter = updateresult.created + createcounter;
+                        updatecounter = updateresult.updated + updatecounter;
+                        deletecounter = updateresult.deleted + deletecounter;
+                        errorcounter = updateresult.error + errorcounter;
+
+                        //Add also Reduced info
+                        if(updateresultreduced.created != null)
+                            createcounter = createcounter + updateresultreduced.created;
+                        if (updateresultreduced.updated != null)
+                            updatecounter = updatecounter + updateresultreduced.updated;
+                        if (updateresultreduced.deleted != null)
+                            deletecounter = deletecounter + updateresultreduced.deleted;
+                        if (updateresultreduced.error != null)
+                            errorcounter = errorcounter + updateresultreduced.error;
                     }
 
                     updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
@@ -258,18 +281,68 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
-                    var lastchangedlist = await ltsapieventimporthelper.GetActiveList(onlyactive, false, cancellationToken);
+                    var activelist = await ltsapieventimporthelper.GetActiveList(onlyactive, false, cancellationToken);
 
-                    //TODO Compare with DB and deactivate all inactive items
-                    //Use the DeleteOrDisable method?
+                    var activelistinDB = await GetAllDataBySource("event", new List<string>() { "lts" }, null, true);
+                    
+                    //Compare with DB and deactivate all inactive items
+                    var idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p));
+
+                    //Ids only present on LTS Interface ?
+                    var idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2 == p));
 
                     int? updatecounter = 0;
                     int? createcounter = 0;
                     int? deletecounter = 0;
                     int? errorcounter = 0;
 
-                    //Call Single Update and write LOG or write directly??
-                    foreach (var id in lastchangedlist)
+                    //Delete Disable all Inactive Data from DB
+                    foreach (var id in idstodelete)
+                    {
+                        var updateresult = default(UpdateDetail);
+                        var updateresultreduced = default(UpdateDetail);
+
+                        updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false);
+
+                        //Get Reduced                    
+                        updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true);
+
+                        updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                    updateresult,
+                                    id,
+                                    datatype
+                                );
+
+                        //Create Delete/Disable Log
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            id,
+                            "api",
+                            "Update LTS",
+                            "single.inactivesync",
+                            "Update LTS succeeded",
+                            datatype,
+                            updateresult,
+                            true
+                        );
+
+                        createcounter = updateresult.created + createcounter;
+                        updatecounter = updateresult.updated + updatecounter;
+                        deletecounter = updateresult.deleted + deletecounter;
+                        errorcounter = updateresult.error + errorcounter;
+
+                        //Add also Reduced info
+                        if (updateresultreduced.created != null)
+                            createcounter = createcounter + updateresultreduced.created;
+                        if (updateresultreduced.updated != null)
+                            updatecounter = updatecounter + updateresultreduced.updated;
+                        if (updateresultreduced.deleted != null)
+                            deletecounter = deletecounter + updateresultreduced.deleted;
+                        if (updateresultreduced.error != null)
+                            errorcounter = errorcounter + updateresultreduced.error;
+                    }
+
+                    //Call Single Update for all active Items not present in DB
+                    foreach (var id in idstoimport)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "event", cancellationToken);
 
@@ -277,7 +350,7 @@ namespace OdhApiImporter.Helpers
                             resulttuple.Item1,
                             "api",
                             "Update LTS",
-                            "single.deleted",
+                            "single.activesync",
                             "Update LTS succeeded",
                             datatype,
                             resulttuple.Item2,
@@ -290,7 +363,8 @@ namespace OdhApiImporter.Helpers
                         errorcounter = resulttuple.Item2.error + errorcounter;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    updatedetail = Tuple.Create(String.Join(",", idstodelete), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
 
                     break;
 
@@ -300,6 +374,37 @@ namespace OdhApiImporter.Helpers
             }
 
             return updatedetail;
+        }
+
+        /// <summary>
+        /// Get All Data by passed Source
+        /// </summary>
+        /// <param name="syncsourcelist"></param>
+        /// <param name="syncsourceinterfacelist"></param>
+        /// <returns></returns>
+        public async Task<List<string>> GetAllDataBySource(
+            string table,
+            List<string> syncsourcelist,
+            List<string>? syncsourceinterfacelist = null,
+            bool? onlyactive = true
+        )
+        {
+            var query = QueryFactory
+                .Query(table)
+                .Select("id")
+                .SourceFilter_GeneratedColumn(syncsourcelist)
+                .When(
+                    syncsourceinterfacelist != null,
+                    x => x.SyncSourceInterfaceFilter_GeneratedColumn(syncsourceinterfacelist)
+                )
+                .When(
+                    onlyactive != null,
+                    x => x.ActiveFilter_GeneratedColumn(onlyactive)
+                );
+
+            var idlist = await query.GetAsync<string>();
+
+            return idlist.ToList();
         }
 
 
