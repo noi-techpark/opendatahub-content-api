@@ -223,6 +223,11 @@ namespace OdhApiImporter.Helpers
         )
         {
             Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>);
+            var lastchangedlist = default(List<string>);
+            int? updatecounter = 0;
+            int? createcounter = 0;
+            int? deletecounter = 0;
+            int? errorcounter = 0;
 
             switch (datatype.ToLower())
             {
@@ -234,12 +239,7 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
-                    var lastchangedlist = await ltsapieventimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
-
-                    int? updatecounter = 0;
-                    int? createcounter = 0;
-                    int? deletecounter = 0;
-                    int? errorcounter = 0;
+                    lastchangedlist = await ltsapieventimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
 
                     //Call Single Update and write LOG or write directly??
                     //Use the DeleteOrDisable method?
@@ -292,6 +292,67 @@ namespace OdhApiImporter.Helpers
 
                     break;
 
+                case "gastronomy":
+                    LTSApiGastronomyImportHelper ltsapigastroimporthelper = new LTSApiGastronomyImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    lastchangedlist = await ltsapigastroimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
+
+                    //Call Single Update and write LOG or write directly??
+                    //Use the DeleteOrDisable method?
+
+                    foreach (var id in lastchangedlist)
+                    {
+                        var updateresult = default(UpdateDetail);
+                        var updateresultreduced = default(UpdateDetail);
+
+                        updateresult = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id, false);
+
+                        //Get Reduced                    
+                        updateresultreduced = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id, true);
+
+                        updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                    updateresult,
+                                    id,
+                                    datatype
+                                );
+
+                        //Create Delete/Disable Log
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            id,
+                            "api",
+                            "Update LTS",
+                            "single.deleted",
+                            "Update LTS succeeded",
+                            datatype,
+                            updateresult,
+                            true
+                        );
+
+                        createcounter = updateresult.created + createcounter;
+                        updatecounter = updateresult.updated + updatecounter;
+                        deletecounter = updateresult.deleted + deletecounter;
+                        errorcounter = updateresult.error + errorcounter;
+
+                        //Add also Reduced info
+                        if (updateresultreduced.created != null)
+                            createcounter = createcounter + updateresultreduced.created;
+                        if (updateresultreduced.updated != null)
+                            updatecounter = updatecounter + updateresultreduced.updated;
+                        if (updateresultreduced.deleted != null)
+                            deletecounter = deletecounter + updateresultreduced.deleted;
+                        if (updateresultreduced.error != null)
+                            errorcounter = errorcounter + updateresultreduced.error;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
 
                 default:
                     throw new Exception("no match found");
@@ -308,6 +369,15 @@ namespace OdhApiImporter.Helpers
         )
         {
             Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>);
+            var activelist = default(List<string>);
+            var activelistinDB = default(List<string>);
+            var idstodelete = default(List<string>?);
+            var idstoimport = default(List<string>?);
+
+            int? updatecounter = 0;
+            int? createcounter = 0;
+            int? deletecounter = 0;
+            int? errorcounter = 0;
 
             switch (datatype.ToLower())
             {
@@ -319,20 +389,15 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
-                    var activelist = await ltsapieventimporthelper.GetActiveList(onlyactive, false, cancellationToken);
+                    activelist = await ltsapieventimporthelper.GetActiveList(onlyactive, false, cancellationToken);
 
-                    var activelistinDB = await GetAllDataBySource("event", new List<string>() { "lts" }, null, true);
+                    activelistinDB = await GetAllDataBySource("event", new List<string>() { "lts" }, null, true);
                     
                     //Compare with DB and deactivate all inactive items
-                    var idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p));
+                    idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p)).ToList();
 
                     //Ids only present on LTS Interface ?
-                    var idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2 == p));
-
-                    int? updatecounter = 0;
-                    int? createcounter = 0;
-                    int? deletecounter = 0;
-                    int? errorcounter = 0;
+                    idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2 == p)).ToList();
 
                     //Delete Disable all Inactive Data from DB
                     foreach (var id in idstodelete)
@@ -383,6 +448,96 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in idstoimport)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "event", cancellationToken);
+
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            resulttuple.Item1,
+                            "api",
+                            "Update LTS",
+                            "single.activesync",
+                            "Update LTS succeeded",
+                            datatype,
+                            resulttuple.Item2,
+                            true
+                        );
+
+                        createcounter = resulttuple.Item2.created + createcounter;
+                        updatecounter = resulttuple.Item2.updated + updatecounter;
+                        deletecounter = resulttuple.Item2.deleted + deletecounter;
+                        errorcounter = resulttuple.Item2.error + errorcounter;
+                    }
+
+
+                    updatedetail = Tuple.Create(String.Join(",", idstodelete), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
+                case "gastronomy":
+                    LTSApiGastronomyImportHelper ltsapigastroimporthelper = new LTSApiGastronomyImportHelper(
+                        settings,
+                        QueryFactory,
+                        "events",
+                        importerURL
+                        );
+
+                    activelist = await ltsapigastroimporthelper.GetActiveList(onlyactive, false, cancellationToken);
+
+                    activelistinDB = await GetAllDataBySource("event", new List<string>() { "lts" }, null, true);
+
+                    //Compare with DB and deactivate all inactive items
+                    idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p)).ToList();
+
+                    //Ids only present on LTS Interface ?
+                    idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2 == p)).ToList();
+
+                    //Delete Disable all Inactive Data from DB
+                    foreach (var id in idstodelete)
+                    {
+                        var updateresult = default(UpdateDetail);
+                        var updateresultreduced = default(UpdateDetail);
+
+                        updateresult = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id, false);
+
+                        //Get Reduced                    
+                        updateresultreduced = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id, true);
+
+                        updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                    updateresult,
+                                    id,
+                                    datatype
+                                );
+
+                        //Create Delete/Disable Log
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            id,
+                            "api",
+                            "Update LTS",
+                            "single.inactivesync",
+                            "Update LTS succeeded",
+                            datatype,
+                            updateresult,
+                            true
+                        );
+
+                        createcounter = updateresult.created + createcounter;
+                        updatecounter = updateresult.updated + updatecounter;
+                        deletecounter = updateresult.deleted + deletecounter;
+                        errorcounter = updateresult.error + errorcounter;
+
+                        //Add also Reduced info
+                        if (updateresultreduced.created != null)
+                            createcounter = createcounter + updateresultreduced.created;
+                        if (updateresultreduced.updated != null)
+                            updatecounter = updatecounter + updateresultreduced.updated;
+                        if (updateresultreduced.deleted != null)
+                            deletecounter = deletecounter + updateresultreduced.deleted;
+                        if (updateresultreduced.error != null)
+                            errorcounter = errorcounter + updateresultreduced.error;
+                    }
+
+                    //Call Single Update for all active Items not present in DB
+                    foreach (var id in idstoimport)
+                    {
+                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "gastronomy", cancellationToken);
 
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,

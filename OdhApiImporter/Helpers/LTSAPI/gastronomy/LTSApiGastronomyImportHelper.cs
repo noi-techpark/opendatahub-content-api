@@ -81,12 +81,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableGastronomiesData(idlist.FirstOrDefault(), false);
+                    return await DeleteOrDisableGastronomiesData(id, false);
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableGastronomiesData(idlist.FirstOrDefault() + "_REDUCED", true);
+                    return await DeleteOrDisableGastronomiesData(id + "_REDUCED", true);
                 }
             }
             else
@@ -108,7 +108,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
        )
         {
             //Import the List
-            var lastchangedlts = await GetEventsFromLTSV2(null, lastchanged, null, null);
+            var lastchangedlts = await GetGastronomiesFromLTSV2(null, lastchanged, null, null);
             List<string> lastchangedlist = new List<string>();
 
             if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
@@ -122,11 +122,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "lastchanged.events",
+                    "lastchanged.gastronomies",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.events",
+                        sourceinterface = "lts.gastronomies",
                         success = false,
                         error = "Could not fetch last changed List",
                     }
@@ -143,7 +143,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var deletedlts = await GetEventsFromLTSV2(null, null, deletedfrom, null);
+            var deletedlts = await GetGastronomiesFromLTSV2(null, null, deletedfrom, null);
             List<string> lastdeletedlist = new List<string>();
 
             if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
@@ -157,11 +157,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deleted.events",
+                    "deleted.gastronomies",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.events",
+                        sourceinterface = "lts.gastronomies",
                         success = false,
                         error = "Could not fetch deleted List",
                     }
@@ -178,7 +178,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var activelistlts = await GetEventsFromLTSV2(null, null, null, active);
+            var activelistlts = await GetGastronomiesFromLTSV2(null, null, null, active);
             List<string> activeList = new List<string>();
 
             if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
@@ -192,11 +192,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "active.events",
+                    "active.gastronomies",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.events",
+                        sourceinterface = "lts.gastronomies",
                         success = false,
                         error = "Could not fetch active List",
                     }
@@ -230,45 +230,59 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<List<JObject>> GetGastronomiesFromLTSV2(List<string> gastroids, DateTime? lastchanged)
+        private async Task<List<JObject>> GetGastronomiesFromLTSV2(string gastroid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
             try
             {
                 LtsApi ltsapi = GetLTSApi();
                 
-                if(gastroids == null)
-                {
-                    //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
-
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full"  };
-                    var dict = ltsapi.GetLTSQSDictionary(qs);
-
-                    return await ltsapi.GastronomyListRequest(dict, true);
-                }
-                else if (gastroids.Count == 1)
+                if(gastroid != null)
                 {
                     //Get Single Gastronomy
 
                     var qs = new LTSQueryStrings() { page_size = 1 };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.GastronomyDetailRequest(gastroids.FirstOrDefault(), dict);
+                    return await ltsapi.GastronomyDetailRequest(gastroid, dict);
                 }
-                else
-                {
-                    //Get all Gastronomies by Idlist
+                else if (lastchanged != null)
+                {                    
+                    //Get the Last Changes Gastronomies list
 
-                    var qs = new LTSQueryStrings() { page_size = 100 };
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    if (gastroids != null && gastroids.Count > 0)
-                        qs.filter_rids = String.Join(",", gastroids);
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
 
+                    return await ltsapi.GastronomyListRequest(dict, true);
+                }
+                else if (deletedfrom != null)
+                {
+                    //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
+                    if (deletedfrom != null)
+                        qs.filter_lastUpdate = deletedfrom;
+
+                    return await ltsapi.GastronomyDeletedRequest(dict, true);
+                }
+                else if (activelist != null)
+                {
+                    //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full" };
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    if (lastchanged != null)
+                        qs.filter_lastUpdate = lastchanged;
+
                     return await ltsapi.GastronomyListRequest(dict, true);
-                }                
+                }
+                else
+                    return null;
             }
             catch (Exception ex)
             {
@@ -532,7 +546,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             var deleteimportcounter = 0;
 
             //Import the gastronomies active List
-            var gastronomylts = await GetGastronomiesFromLTSV2(null, null);
+            var gastronomylts = await GetGastronomiesFromLTSV2(null, null, null, true);
 
             //Check if Data is returned
             if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("success") && (Boolean)gastronomylts.FirstOrDefault()["success"])
