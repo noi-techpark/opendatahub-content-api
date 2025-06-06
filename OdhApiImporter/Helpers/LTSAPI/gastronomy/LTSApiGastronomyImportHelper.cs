@@ -2,12 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -18,8 +12,15 @@ using LTSAPI.Parser;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OdhApiImporter.Helpers.RAVEN;
 using ServiceReferenceLCS;
 using SqlKata.Execution;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace OdhApiImporter.Helpers.LTSAPI
@@ -36,19 +37,29 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-      
+
+        //Not implemented here
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
-            List<string> idlist = null,
+            List<string>? idlist = null,
+            bool reduced = false,
             CancellationToken cancellationToken = default
         )
         {
-            return await SaveDataToODH(lastchanged, idlist, false, cancellationToken);
+            throw new NotImplementedException();
         }
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
-            List<string> idlist = null,
+            List<string>? idlist = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<UpdateDetail> SaveSingleDataToODH(
+            string id,
             bool reduced = false,
             CancellationToken cancellationToken = default
         )
@@ -56,7 +67,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var gastronomylts = await GetGastronomiesFromLTSV2(idlist, lastchanged);
+            var gastronomylts = await GetGastronomiesFromLTSV2(id, null, null, null);
 
             //Check if Data is accessible on LTS
             if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("success") && (Boolean)gastronomylts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
@@ -88,6 +99,111 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     error = 1,
                 };
             }
+        }
+
+        public async Task<List<string>> GetLastChangedData(
+           DateTime lastchanged,
+           bool reduced = false,
+           CancellationToken cancellationToken = default
+       )
+        {
+            //Import the List
+            var lastchangedlts = await GetEventsFromLTSV2(null, lastchanged, null, null);
+            List<string> lastchangedlist = new List<string>();
+
+            if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
+            {
+                var lastchangedrids = lastchangedlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                lastchangedlist = lastchangedrids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "lastchanged.events",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.events",
+                        success = false,
+                        error = "Could not fetch last changed List",
+                    }
+                );
+            }
+
+            return lastchangedlist;
+        }
+
+        public async Task<List<string>> GetLastDeletedData(
+            DateTime deletedfrom,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            //Import the List
+            var deletedlts = await GetEventsFromLTSV2(null, null, deletedfrom, null);
+            List<string> lastdeletedlist = new List<string>();
+
+            if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
+            {
+                var lastchangedrids = deletedlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                lastdeletedlist = lastchangedrids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "deleted.events",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.events",
+                        success = false,
+                        error = "Could not fetch deleted List",
+                    }
+                );
+            }
+
+            return lastdeletedlist;
+        }
+
+        public async Task<List<string>> GetActiveList(
+            bool active,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            //Import the List
+            var activelistlts = await GetEventsFromLTSV2(null, null, null, active);
+            List<string> activeList = new List<string>();
+
+            if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
+            {
+                var activerids = activelistlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                activeList = activerids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "active.events",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.events",
+                        success = false,
+                        error = "Could not fetch active List",
+                    }
+                );
+            }
+
+            return activeList;
         }
 
         private LtsApi GetLTSApi()

@@ -83,7 +83,7 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
-                    updateresult = await ltsapigastroimporthelper.SaveDataToODH(null, new List<string>() { id }, false, cancellationToken);
+                    updateresult = await ltsapigastroimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
                     //Get Reduced                    
                     updateresultreduced = await ltsapigastroimporthelper.SaveDataToODH(null, new List<string>() { id }, true, cancellationToken);
@@ -124,7 +124,12 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken
         )
         {
-            Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>); 
+            Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>);
+            var lastchangedlist = default(List<string>);
+            int? updatecounter = 0;
+            int? createcounter = 0;
+            int? deletecounter = 0;
+            int? errorcounter = 0;
 
             switch (datatype.ToLower())
             {
@@ -136,12 +141,7 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
-                    var lastchangedlist = await ltsapieventimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
-
-                    int? updatecounter = 0;
-                    int? createcounter = 0;
-                    int? deletecounter = 0;
-                    int? errorcounter = 0;
+                    lastchangedlist = await ltsapieventimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
 
                     //Call Single Update and write LOG
                     foreach (var id in lastchangedlist)
@@ -168,7 +168,45 @@ namespace OdhApiImporter.Helpers
                     updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
 
                     break;
-              
+
+                case "gastronomy":
+                    LTSApiGastronomyImportHelper ltsapigastroimporthelper = new LTSApiGastronomyImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    lastchangedlist = await ltsapigastroimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
+
+
+
+                    //Call Single Update and write LOG
+                    foreach (var id in lastchangedlist)
+                    {
+                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "gastronomy", cancellationToken);
+
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            resulttuple.Item1,
+                            "api",
+                            "Update LTS",
+                            "single.lastchanged",
+                            "Update LTS succeeded",
+                            datatype,
+                            resulttuple.Item2,
+                            true
+                        );
+
+                        createcounter = resulttuple.Item2.created + createcounter;
+                        updatecounter = resulttuple.Item2.updated + updatecounter;
+                        deletecounter = resulttuple.Item2.deleted + deletecounter;
+                        errorcounter = resulttuple.Item2.error + errorcounter;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
 
                 default:
                     throw new Exception("no match found");
