@@ -2,12 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -21,21 +15,28 @@ using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.RAVEN;
 using ServiceReferenceLCS;
 using SqlKata.Execution;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
-    public class LTSApiEventImportHelper : ImportHelper, IImportHelperLTS
+    public class LTSApiGastronomyImportHelper : ImportHelper, IImportHelperLTS
     {
         public bool opendata = false;
 
-        public LTSApiEventImportHelper(
+        public LTSApiGastronomyImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
             string importerURL
         )
             : base(settings, queryfactory, table, importerURL) { }
+
 
         //Not implemented here
         public async Task<UpdateDetail> SaveDataToODH(
@@ -45,18 +46,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
             CancellationToken cancellationToken = default
         )
         {
-            throw new NotImplementedException();            
+            throw new NotImplementedException();
         }
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
-            List<string>? idlist = null,            
+            List<string>? idlist = null,
             CancellationToken cancellationToken = default
         )
         {
             throw new NotImplementedException();
         }
-
 
         public async Task<UpdateDetail> SaveSingleDataToODH(
             string id,
@@ -67,26 +67,26 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var eventlts = await GetEventsFromLTSV2(id, null, null, null);
+            var gastronomylts = await GetGastronomiesFromLTSV2(id, null, null, null);
 
             //Check if Data is accessible on LTS
-            if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("success") && (Boolean)eventlts.FirstOrDefault()["success"]) //&& eventlts.FirstOrDefault()["Success"] == true
+            if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("success") && (Boolean)gastronomylts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
             {     //Import Single Data & Deactivate Data
-                var result = await SaveEventsToPG(eventlts);
+                var result = await SaveGastronomiesToPG(gastronomylts);
                 return result;
             }
             //If data is not accessible on LTS Side, delete or disable it
-            else if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("status") && ((int)eventlts.FirstOrDefault()["status"] == 403 || (int)eventlts.FirstOrDefault()["status"] == 404))
+            else if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("status") && ((int)gastronomylts.FirstOrDefault()["status"] == 403 || (int)gastronomylts.FirstOrDefault()["status"] == 404))
             {
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableEventData(id, false);
+                    return await DeleteOrDisableGastronomiesData(id, false);
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableEventData(id + "_REDUCED", true);
+                    return await DeleteOrDisableGastronomiesData(id + "_REDUCED", true);
                 }
             }
             else
@@ -102,13 +102,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         public async Task<List<string>> GetLastChangedData(
-            DateTime lastchanged,
-            bool reduced = false,
-            CancellationToken cancellationToken = default
-        )
+           DateTime lastchanged,
+           bool reduced = false,
+           CancellationToken cancellationToken = default
+       )
         {
             //Import the List
-            var lastchangedlts = await GetEventsFromLTSV2(null, lastchanged, null, null);
+            var lastchangedlts = await GetGastronomiesFromLTSV2(null, lastchanged, null, null);
             List<string> lastchangedlist = new List<string>();
 
             if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
@@ -122,11 +122,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "lastchanged.events",
+                    "lastchanged.gastronomies",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.events",
+                        sourceinterface = "lts.gastronomies",
                         success = false,
                         error = "Could not fetch last changed List",
                     }
@@ -143,7 +143,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var deletedlts = await GetEventsFromLTSV2(null, null, deletedfrom, null);
+            var deletedlts = await GetGastronomiesFromLTSV2(null, null, deletedfrom, null);
             List<string> lastdeletedlist = new List<string>();
 
             if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
@@ -157,11 +157,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deleted.events",
+                    "deleted.gastronomies",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.events",
+                        sourceinterface = "lts.gastronomies",
                         success = false,
                         error = "Could not fetch deleted List",
                     }
@@ -178,7 +178,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var activelistlts = await GetEventsFromLTSV2(null, null, null, active);
+            var activelistlts = await GetGastronomiesFromLTSV2(null, null, null, active);
             List<string> activeList = new List<string>();
 
             if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
@@ -192,11 +192,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "active.events",
+                    "active.gastronomies",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.events",
+                        sourceinterface = "lts.gastronomies",
                         success = false,
                         error = "Could not fetch active List",
                     }
@@ -230,52 +230,56 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<List<JObject>> GetEventsFromLTSV2(string? eventid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
+        private async Task<List<JObject>> GetGastronomiesFromLTSV2(string gastroid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
             try
             {
                 LtsApi ltsapi = GetLTSApi();
-
-                //When 1 ID is passed retrieve only Detail
-                if (eventid != null)
+                
+                if(gastroid != null)
                 {
-                    var qs = new LTSQueryStrings() { page_size = 1, filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
+                    //Get Single Gastronomy
+
+                    var qs = new LTSQueryStrings() { page_size = 1 };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.EventDetailRequest(eventid, dict);
+                    return await ltsapi.GastronomyDetailRequest(gastroid, dict);
                 }
                 else if (lastchanged != null)
-                {
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
+                {                    
+                    //Get the Last Changes Gastronomies list
+
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
 
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
 
-                    var dict = ltsapi.GetLTSQSDictionary(qs);
-
-                    return await ltsapi.EventListRequest(dict, true);
+                    return await ltsapi.GastronomyListRequest(dict, true);
                 }
                 else if (deletedfrom != null)
                 {
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
+                    //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
 
                     if (deletedfrom != null)
                         qs.filter_lastUpdate = deletedfrom;
 
-                    var dict = ltsapi.GetLTSQSDictionary(qs);
-
-                    return await ltsapi.EventDeletedRequest(dict, true);
+                    return await ltsapi.GastronomyDeletedRequest(dict, true);
                 }
                 else if (activelist != null)
                 {
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.MaxValue.ToString("yyyy-MM-dd"), filter_startDate = DateTime.MinValue.ToString("yyyy-MM-dd") };
+                    //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
-                    if (activelist != null)
-                        qs.filter_onlyActive = activelist;
-
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full" };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.EventListRequest(dict, true);
+                    if (lastchanged != null)
+                        qs.filter_lastUpdate = lastchanged;
+
+                    return await ltsapi.GastronomyListRequest(dict, true);
                 }
                 else
                     return null;
@@ -285,11 +289,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "list.events",
+                    "list.gastronomies",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.events",
+                        sourceinterface = "lts.gastronomies",
                         success = false,
                         error = ex.Message,
                     }
@@ -298,36 +302,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<List<JObject>> GetOrganizerFromLTSV2(string organizerid)
-        {
-            try
-            {
-                LtsApi ltsapi = GetLTSApi();
-
-                var qs = new LTSQueryStrings() { page_size = 1 };
-                var dict = ltsapi.GetLTSQSDictionary(qs);
-
-                return await ltsapi.EventOrganizerDetailRequest(organizerid, dict);
-            }
-            catch (Exception ex)
-            {
-                WriteLog.LogToConsole(
-                    "",
-                    "dataimport",
-                    "single.events.organizers",
-                    new ImportLog()
-                    {
-                        sourceid = "",
-                        sourceinterface = "lts.events.organizers",
-                        success = false,
-                        error = ex.Message,
-                    }
-                );
-                return null;
-            }
-        }
-
-        private async Task<UpdateDetail> SaveEventsToPG(List<JObject> ltsdata)
+        private async Task<UpdateDetail> SaveGastronomiesToPG(List<JObject> ltsdata)
         {
             //var newimportcounter = 0;
             //var updateimportcounter = 0;
@@ -340,64 +315,53 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 List<string> idlistlts = new List<string>();
 
-                List<LTSEvent> eventdata = new List<LTSEvent>();
+                List<LTSGastronomy> gastrodata = new List<LTSGastronomy>();
 
                 foreach (var ltsdatasingle in ltsdata)
                 {
-                    eventdata.Add(
-                        ltsdatasingle.ToObject<LTSEvent>()
+                    gastrodata.Add(
+                        ltsdatasingle.ToObject<LTSGastronomy>()
                     );
                 }
 
-                foreach (var data in eventdata)
+                foreach (var data in gastrodata)
                 {
                     string id = data.data.rid;
 
-                    var eventparsed = EventParser.ParseLTSEventV1(data.data, false);
+                    var gastroparsed = GastronomyParser.ParseLTSGastronomy(data.data, false);
 
                     //TODO Add the Code Here for POST Processing Data
 
                     //POPULATE LocationInfo
-                    eventparsed.LocationInfo = await eventparsed.UpdateLocationInfoExtension(
+                    gastroparsed.LocationInfo = await gastroparsed.UpdateLocationInfoExtension(
                         QueryFactory
                     );
 
                     //DistanceCalculation
-                    await eventparsed.UpdateDistanceCalculation(QueryFactory);
+                    await gastroparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    //GET OLD Event
-                    var eventindb = await LoadDataFromDB<EventLinked>(id);
-
-                    //Do not delete Old Dates from Event
-                    await MergeEventDates(eventparsed, eventindb, 6);
+                    //GET OLD Gastronomy
+                    var gastroindb = await LoadDataFromDB<ODHActivityPoiLinked>(id);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
-                    await MergeEventTags(eventparsed, eventindb);
+                    await MergeGastronomyTags(gastroparsed, gastroindb);
 
                     //Create Tags
-                    await eventparsed.UpdateTagsExtension(QueryFactory);
+                    await gastroparsed.UpdateTagsExtension(QueryFactory);
 
                     if (!opendata)
                     {
-                        //GET Organizer Data and add to Event
-                        await AddOrganizerData(eventparsed);
-
                         //Add the MetaTitle for IDM
-                        await AddMetaTitle(eventparsed);
-
-                        //Resort the publisher
-                        await ResortPublisher(eventparsed);
+                        await AddMetaTitle(gastroparsed);
 
                         //PublishedOn Logich
                         //Add the PublishedOn Logic
-                        eventparsed.CreatePublishedOnList();
+                        gastroparsed.CreatePublishedOnList();
                     }
 
-                    //Compatibility create Topic Object
-                    await GenerateTopicObject(eventparsed);
+                    //TODO Add all compatibility 
 
-
-                    var result = await InsertDataToDB(eventparsed, data.data);
+                    var result = await InsertDataToDB(gastroparsed, data.data);
 
                     //newimportcounter = newimportcounter + result.created ?? 0;
                     //updateimportcounter = updateimportcounter + result.updated ?? 0;
@@ -422,11 +386,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     WriteLog.LogToConsole(
                         id,
                         "dataimport",
-                        "single.events",
+                        "single.gastronomies",
                         new ImportLog()
                         {
                             sourceid = id,
-                            sourceinterface = "lts.events",
+                            sourceinterface = "lts.gastronomies",
                             success = true,
                             error = "",
                         }
@@ -515,8 +479,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            EventLinked objecttosave,
-            LTSEventData eventlts            
+            ODHActivityPoiLinked objecttosave,
+            LTSGastronomyData gastrolts            
         )
         {
             try
@@ -526,7 +490,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //    objecttosave,
                 //    Helper.LicenseHelper.GetLicenseforEvent(
                 //);
-                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforEvent(objecttosave, opendata);
+
+                //TODO
+                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(objecttosave, opendata);
 
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
@@ -534,12 +500,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Set PublishedOn
                 objecttosave.CreatePublishedOnList();
 
-                var rawdataid = await InsertInRawDataDB(eventlts);
+                var rawdataid = await InsertInRawDataDB(gastrolts);
 
-                return await QueryFactory.UpsertData<EventLinked>(
+                return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                     objecttosave,
-                    new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                    new EditInfo("lts.events.import", importerURL),
+                    new DataInfo("odhactivitypoi", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                    new EditInfo("lts.gastronomies.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
                     rawdataid,
@@ -552,25 +518,25 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<int> InsertInRawDataDB(LTSEventData eventlts)
+        private async Task<int> InsertInRawDataDB(LTSGastronomyData gastrolts)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
                     datasource = "lts",
                     importdate = DateTime.Now,
-                    raw = JsonConvert.SerializeObject(eventlts),
-                    sourceinterface = "events",
-                    sourceid = eventlts.rid,
-                    sourceurl = "https://go.lts.it/api/v1/events",
-                    type = "events",
+                    raw = JsonConvert.SerializeObject(gastrolts),
+                    sourceinterface = "gastronomies",
+                    sourceid = gastrolts.rid,
+                    sourceurl = "https://go.lts.it/api/v1/gastronomies",
+                    type = "odhactivitypoi",
                     license = "open",
                     rawformat = "json",
                 }
             );
         }
-
-        public async Task<UpdateDetail> DeleteOrDisableEventData(string id, bool delete)
+        
+        public async Task<UpdateDetail> DeleteOrDisableGastronomiesData(string id, bool delete)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
@@ -580,7 +546,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 result =  await QueryFactory.DeleteData<EventLinked>(
                     id,
-                    new DataInfo("events", CRUDOperation.Delete),
+                    new DataInfo("smgpoi", CRUDOperation.Delete),
                     new CRUDConstraints()
                 );
 
@@ -601,7 +567,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 var query = QueryFactory.Query(table).Select("data").Where("id", id);
 
-                var data = await query.GetObjectSingleAsync<EventLinked>();
+                var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
                 if (data != null)
                 {
@@ -619,10 +585,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //    .Where("id", id)
                         //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
 
-                        result = await QueryFactory.UpsertData<EventLinked>(
+                        result = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                                data,
-                               new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                               new EditInfo("lts.events.import.deactivate", importerURL),
+                               new DataInfo("smgpoi", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new EditInfo("lts.gastronomies.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
                         );
@@ -647,118 +613,36 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return deletedisableresult;
         }
 
-        private async Task MergeEventDates(EventLinked eventNew, EventLinked eventOld, int monthstogoback = 12)
+     
+        private async Task MergeGastronomyTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
         {
-
-            if (eventOld != null && eventOld.EventDate != null)
+            if (gastroOld != null)
             {
-                //EventDates not delete
-                //Event Start Begindate Logic    
-                List<EventDate> eventDatesBeforeToday = new List<EventDate>();
-                foreach (var eventdate in eventOld.EventDate.Where(x => x.From.Date < DateTime.Now.Date))
-                {
-                    //How many event dates we have to store?
-                    if(eventdate.From.Date > DateTime.Now.Date.AddMonths(-1 * monthstogoback))
-                        eventDatesBeforeToday.Add(eventdate);
-                }
-
-                foreach (var eventdatebefore in eventDatesBeforeToday)
-                {
-                    if (eventNew.EventDate.Where(x => x.DayRID == eventdatebefore.DayRID).Count() == 0)
-                        eventNew.EventDate.Add(eventdatebefore);
-                }
-            }
-
-            //Reorder Event Dates
-            eventNew.EventDate = eventNew.EventDate.OrderBy(x => x.From).ToList();
-
-            //Set Begindate to the first possible date
-            if(eventNew.EventDate.Count > 0)
-                eventNew.DateBegin = eventNew.EventDate.Select(x => x.From).Min();
-
-            //Set Enddate to the last possible date
-            if(eventNew.EventDate.Count > 0)
-                eventNew.DateEnd = eventNew.EventDate.Select(x => x.To).Max();
-        }
-
-        private async Task MergeEventTags(EventLinked eventNew, EventLinked eventOld)
-        {
-            if (eventOld != null)
-            {
-                eventNew.SmgTags = eventOld.SmgTags;
+                gastroNew.SmgTags = gastroOld.SmgTags;
 
                 //Readd all Redactional Tags
-                var redactionalassignedTags = eventOld.Tags != null ? eventOld.Tags.Where(x => x.Source != "lts").ToList() : null;
+                var redactionalassignedTags = gastroOld.Tags != null ? gastroOld.Tags.Where(x => x.Source != "lts").ToList() : null;
                 if (redactionalassignedTags != null)
                 {
                     foreach (var tag in redactionalassignedTags)
                     {
-                        eventNew.TagIds.Add(tag.Id);
+                        gastroNew.TagIds.Add(tag.Id);
                     }
                 }
             }
             //TODO import the Redactional Tags from Events into Tags?
         }
 
-        //Compatibility reasons recreate this Topic Object but without description
-        private async Task GenerateTopicObject(EventLinked eventNew)
-        {
-            if (eventNew != null && eventNew.Tags != null && eventNew.Tags.Count > 0)
-            {
-                eventNew.Topics = new List<TopicLinked>();
-
-                foreach (var topicrid in eventNew.Tags.Where(x => x.Type == "eventcategory"))
-                {
-                    eventNew.Topics.Add(new TopicLinked() { TopicRID = topicrid.Id, TopicInfo = topicrid.Name  });
-                }
-            }            
-        }
-
+    
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
-        private async Task AddMetaTitle(EventLinked eventNew)
+        private async Task AddMetaTitle(ODHActivityPoiLinked gastroNew)
         {
-            if (eventNew != null && eventNew.Detail != null)
+            if (gastroNew != null && gastroNew.Detail != null)
             {                
-                foreach (var detail in eventNew.Detail)
+                foreach (var detail in gastroNew.Detail)
                 {
+                    //Check this
                     detail.Value.MetaTitle = detail.Value.Title + " | suedtirol.info";
-                }
-            }
-        }
-
-        //Compatibility make sure publisher C9475CF585664B2887DE543481182A2D if available is on first position
-        private async Task ResortPublisher(EventLinked eventNew)
-        {
-            if(eventNew.EventPublisher != null)
-            {
-                if (eventNew.EventPublisher.Where(x => x.PublisherRID == "C9475CF585664B2887DE543481182A2D").Count() > 0)
-                {
-                    var toppublisher = eventNew.EventPublisher.Where(x => x.PublisherRID == "C9475CF585664B2887DE543481182A2D").FirstOrDefault();
-                    if (toppublisher != null)
-                    {                        
-                        eventNew.EventPublisher.Remove(toppublisher);
-                        eventNew.EventPublisher = eventNew.EventPublisher.Prepend(toppublisher).ToList();
-                    }
-                }
-                //seems not working
-                //eventNew.EventPublisher = eventNew.EventPublisher.OrderBy(x => x.PublisherRID == "C9475CF585664B2887DE543481182A2D").ToList();
-            }
-        }
-
-        private async Task AddOrganizerData(EventLinked eventNew)
-        {
-            if(!String.IsNullOrEmpty(eventNew.OrgRID))
-            {
-                //Get the Organizer from LTS
-                //To check add organizer only in languages the event is available?
-                //To chek VAT missing
-
-                var organizer = await GetOrganizerFromLTSV2(eventNew.OrgRID);
-
-                if (organizer != null)
-                {
-                    var organizerinfo = EventOrganizerParser.ParseLTSEventOrganizer(organizer.FirstOrDefault());
-                    eventNew.OrganizerInfos = organizerinfo;
                 }
             }
         }
