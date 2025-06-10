@@ -353,10 +353,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     {
                         //Add the MetaTitle for IDM
                         await AddMetaTitle(gastroparsed);
-
-                        //PublishedOn Logich
-                        //Add the PublishedOn Logic
-                        gastroparsed.CreatePublishedOnList();
                     }
 
                     //TODO Add all compatibility 
@@ -502,6 +498,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 var rawdataid = await InsertInRawDataDB(gastrolts);
 
+                //Prefix Gastronomy with "smgpoi" Id
+                objecttosave.Id = "smgpoi" + objecttosave.Id;
+
                 return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                     objecttosave,
                     new DataInfo("odhactivitypoi", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
@@ -632,6 +631,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             //TODO import the Redactional Tags from Events into Tags?
         }
+
+        //Gastronomies Tags assignment logic TODO
 
     
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";

@@ -81,12 +81,12 @@ namespace OdhApiImporter.Helpers
                         QueryFactory,
                         "smgpois",
                         importerURL
-                        );
+                        );                    
 
                     updateresult = await ltsapigastroimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
                     //Get Reduced                    
-                    updateresultreduced = await ltsapigastroimporthelper.SaveDataToODH(null, new List<string>() { id }, true, cancellationToken);
+                    updateresultreduced = await ltsapigastroimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
