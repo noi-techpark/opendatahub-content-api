@@ -248,10 +248,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Get the Last Changes Gastronomies list
 
                     var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
-                    var dict = ltsapi.GetLTSQSDictionary(qs);
-
+               
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
+
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
 
                     return await ltsapi.GastronomyListRequest(dict, true);
                 }
@@ -260,10 +261,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
                     var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
-                    var dict = ltsapi.GetLTSQSDictionary(qs);
-
+                
                     if (deletedfrom != null)
                         qs.filter_lastUpdate = deletedfrom;
+
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
 
                     return await ltsapi.GastronomyDeletedRequest(dict, true);
                 }
@@ -272,10 +274,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
                     var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full" };
-                    var dict = ltsapi.GetLTSQSDictionary(qs);
-
+                
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
+
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
 
                     return await ltsapi.GastronomyListRequest(dict, true);
                 }
