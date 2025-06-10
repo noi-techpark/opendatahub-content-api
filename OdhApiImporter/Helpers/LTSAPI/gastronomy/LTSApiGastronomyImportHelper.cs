@@ -639,6 +639,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         private async Task AssignODHTags(ODHActivityPoiLinked gastroNew)
         {
             gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, gastroNew.SmgTags);
+            //lowercase all ODHTags
+            gastroNew.SmgTags = gastroNew.SmgTags.Select(x => x.ToLower()).ToList();
         }
         
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
