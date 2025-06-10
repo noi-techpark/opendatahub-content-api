@@ -340,7 +340,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await gastroparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Gastronomy
-                    var gastroindb = await LoadDataFromDB<ODHActivityPoiLinked>(id);
+                    var gastroindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeGastronomyTags(gastroparsed, gastroindb);
@@ -352,6 +352,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     {
                         //Add the SmgTags for IDM
                         await AssignODHTags(gastroparsed);
+
+                        await SetODHActiveBasedOnRepresentationMode(gastroparsed);
 
                         //Add the MetaTitle for IDM
                         await AddMetaTitle(gastroparsed);
@@ -487,8 +489,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-                //Set PublishedOn
-                objecttosave.CreatePublishedOnList();
+
+                //Add the PublishedOn Logic
+                //Exception here all Tags with autopublish has to be passed
+                var autopublishtaglist =
+                    await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
+                        settings.JsonConfig.Jsondir
+                    );               
+                //Set PublishedOn with allowedtaglist
+                objecttosave.CreatePublishedOnList(autopublishtaglist);
 
                 var rawdataid = await InsertInRawDataDB(gastrolts);
 
@@ -497,7 +506,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                     objecttosave,
-                    new DataInfo("odhactivitypoi", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                    new DataInfo("smgpois", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.gastronomies.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
@@ -664,6 +673,18 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //    //Check this
                 //    detail.Value.MetaTitle = detail.Value.Title + " | suedtirol.info";
                 //}
+            }
+        }
+
+        private async Task SetODHActiveBasedOnRepresentationMode(ODHActivityPoiLinked gastroNew)
+        {
+            if(gastroNew.Mapping != null && gastroNew.Mapping.ContainsKey("lts") && gastroNew.Mapping["lts"].ContainsKey("representationMode"))
+            {                
+                    var representationmode = gastroNew.Mapping["lts"]["representationMode"];
+                if (representationmode == "full")
+                {
+                    gastroNew.SmgActive = true;
+                }
             }
         }
 
