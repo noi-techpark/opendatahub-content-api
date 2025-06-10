@@ -328,12 +328,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var gastroparsed = GastronomyParser.ParseLTSGastronomy(data.data, false);
 
-                    //TODO Add the Code Here for POST Processing Data
-
-                    //POPULATE LocationInfo
+                    //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
                     gastroparsed.LocationInfo = await gastroparsed.UpdateLocationInfoExtension(
                         QueryFactory
                     );
+
+                    //if (gastroparsed.LocationInfo != null && gastroparsed.LocationInfo.DistrictInfo != null)
+                    //    gastroparsed.LocationInfo = await LocationInfoHelper.GetTheLocationInfoDistrict(QueryFactory, gastroparsed.LocationInfo.DistrictInfo.Id);
 
                     //DistanceCalculation
                     await gastroparsed.UpdateDistanceCalculation(QueryFactory);
@@ -350,13 +351,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     if (!opendata)
                     {
                         //Add the SmgTags for IDM
-                        await AddODHTags(gastroparsed);
+                        await AssignODHTags(gastroparsed);
 
                         //Add the MetaTitle for IDM
                         await AddMetaTitle(gastroparsed);
-                    }
-
-                    //TODO Add all compatibility 
+                    }                    
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
 
@@ -483,13 +482,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             try
             {
                 //Set LicenseInfo
-                //objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
-                //    objecttosave,
-                //    Helper.LicenseHelper.GetLicenseforEvent(
-                //);
-
-                //TODO
-                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(objecttosave, opendata);
+                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforGastronomy(objecttosave, opendata);
 
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
@@ -634,9 +627,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         //Gastronomies ODHTags assignment
-        private async Task AddODHTags(ODHActivityPoiLinked gastroNew)
+        private async Task AssignODHTags(ODHActivityPoiLinked gastroNew)
         {
-            var odhtags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, gastroNew.SmgTags.ToList());
+            gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, gastroNew.SmgTags);
         }
         
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
@@ -729,7 +722,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return returnstring;
         }
 
-        public static List<string> GetODHTagListGastroCategory(ICollection<CategoryCodesLinked> categorycodes, ICollection<FacilitiesLinked> facilitycodes, List<string> smgtaglist)
+        public static ICollection<string> GetODHTagListGastroCategory(ICollection<CategoryCodesLinked> categorycodes, ICollection<FacilitiesLinked> facilitycodes, ICollection<string>? smgtaglist)
         {
             if (smgtaglist == null)
                 smgtaglist = new List<string>();

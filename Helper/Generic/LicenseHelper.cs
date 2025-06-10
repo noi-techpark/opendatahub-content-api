@@ -117,6 +117,31 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
+        public static LicenseInfo GetLicenseforGastronomy(ODHActivityPoi data, bool opendata = false)
+        {
+            var isopendata = false;
+            var licensetype = "Closed";
+            var licenseholder = @"https://www.lts.it";
+
+            //Is done in future by LTS
+            //if (data.Active)
+            //{
+            //    if (data.RepresentationRestriction > 0)
+            //    {
+            //        isopendata = true;
+            //        licensetype = "CC0";
+            //    }
+            //}
+
+            if (opendata)
+            {
+                isopendata = true;
+                licensetype = "CC0";
+            }
+
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
+        }
+
         public static LicenseInfo GetLicenseforEvent(Event data, bool opendata = false)
         {
             var isopendata = false;
@@ -280,7 +305,7 @@ namespace Helper
 
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
-
+   
         public static LicenseInfo GetLicenseforPackage(Package data)
         {
             var isopendata = false;
