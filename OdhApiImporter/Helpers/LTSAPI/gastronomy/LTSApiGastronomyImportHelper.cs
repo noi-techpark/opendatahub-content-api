@@ -354,7 +354,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     if (!opendata)
                     {
                         //Add the SmgTags for IDM
-                        await AssignODHTags(gastroparsed);
+                        await AssignODHTags(gastroparsed, gastroindb);
 
                         await SetODHActiveBasedOnRepresentationMode(gastroparsed);
 
