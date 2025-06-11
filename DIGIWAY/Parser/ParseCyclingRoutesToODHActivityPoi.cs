@@ -209,7 +209,19 @@ namespace DIGIWAY
                 additionalvalues.Add("id", Convert.ToString(digiwaydata.properties.ID));
             if (digiwaydata.properties.ROUTE_TYPE != null)
                 additionalvalues.Add("route_type", Convert.ToString(digiwaydata.properties.ROUTE_TYPE));
-            
+
+
+            if (digiwaydata.properties.ROUTE_START != null)
+                additionalvalues.Add("route_start", Convert.ToString(digiwaydata.properties.ROUTE_START));
+            if (digiwaydata.properties.ROUTE_END != null)
+                additionalvalues.Add("route_end", Convert.ToString(digiwaydata.properties.ROUTE_END));
+            if (digiwaydata.properties.STATUS != null)
+                additionalvalues.Add("status", Convert.ToString(digiwaydata.properties.STATUS));
+            if (digiwaydata.properties.STATUS_DATE != null)
+                additionalvalues.Add("status_date", Convert.ToString(digiwaydata.properties.STATUS_DATE));
+
+            //Add ROUTE_START / ROUTE_END
+
             var bboxformatted = digiwaydata.bbox.Select(d => d.ToString(CultureInfo.InvariantCulture)).ToList();
 
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
