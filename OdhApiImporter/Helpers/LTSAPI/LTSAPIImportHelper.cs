@@ -81,7 +81,7 @@ namespace OdhApiImporter.Helpers
                         QueryFactory,
                         "smgpois",
                         importerURL
-                        );                    
+                        );
 
                     updateresult = await ltsapigastroimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
@@ -179,8 +179,6 @@ namespace OdhApiImporter.Helpers
 
                     lastchangedlist = await ltsapigastroimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
 
-
-
                     //Call Single Update and write LOG
                     foreach (var id in lastchangedlist)
                     {
@@ -243,11 +241,11 @@ namespace OdhApiImporter.Helpers
 
                     //Call Single Update and write LOG or write directly??
                     //Use the DeleteOrDisable method?
-
+                 
                     foreach (var id in lastchangedlist)
                     {
                         var updateresult = default(UpdateDetail);
-                        var updateresultreduced = default(UpdateDetail);
+                        var updateresultreduced = default(UpdateDetail);                        
 
                         updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false);
 
@@ -304,6 +302,9 @@ namespace OdhApiImporter.Helpers
 
                     //Call Single Update and write LOG or write directly??
                     //Use the DeleteOrDisable method?
+
+                    //ensure lowercase ids in lastchangedlist
+                    lastchangedlist = lastchangedlist.Select(x => x.ToLower()).ToList();
 
                     foreach (var id in lastchangedlist)
                     {
@@ -484,10 +485,10 @@ namespace OdhApiImporter.Helpers
                     activelistinDB = await GetAllDataBySource("smgpois", new List<string>() { "lts" }, new List<string>() { "gastronomicdata" }, true);
 
                     //Compare with DB and deactivate all inactive items
-                    idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p)).ToList();
+                    idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p.Replace("smgpoi","").ToUpper())).ToList();
 
                     //Ids only present on LTS Interface ?
-                    idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2 == p)).ToList();
+                    idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2.Replace("smgpoi", "").ToUpper() == p)).ToList();
 
                     //Delete Disable all Inactive Data from DB
                     foreach (var id in idstodelete)

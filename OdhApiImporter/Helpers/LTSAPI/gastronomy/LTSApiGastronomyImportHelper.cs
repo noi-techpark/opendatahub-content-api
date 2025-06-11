@@ -84,7 +84,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableGastronomiesData(id + "_REDUCED", true);
+                    return await DeleteOrDisableGastronomiesData(id + "_reduced", true);
                 }
             }
             else
@@ -327,7 +327,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 foreach (var data in gastrodata)
                 {
-                    string id = data.data.rid;
+                    string id = data.data.rid.ToLower();
 
                     var gastroparsed = GastronomyParser.ParseLTSGastronomy(data.data, false);
 
@@ -505,7 +505,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 var rawdataid = await InsertInRawDataDB(gastrolts);
 
                 //Prefix Gastronomy with "smgpoi" Id
-                objecttosave.Id = "smgpoi" + objecttosave.Id;
+                objecttosave.Id = "smgpoi" + objecttosave.Id.ToLower();
 
                 return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                     objecttosave,
@@ -550,7 +550,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (delete)
             {
                 result =  await QueryFactory.DeleteData<EventLinked>(
-                    id,
+                    "smgpoi" + id.ToLower(),
                     new DataInfo("smgpoi", CRUDOperation.Delete),
                     new CRUDConstraints()
                 );
@@ -570,7 +570,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                var query = QueryFactory.Query(table).Select("data").Where("id", id);
+                var query = QueryFactory.Query(table).Select("data").Where("id", "smgpoi" + id.ToLower());
 
                 var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
@@ -622,9 +622,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         private async Task MergeGastronomyTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
         {
             if (gastroOld != null)
-            {
-                gastroNew.SmgTags = gastroOld.SmgTags;
-
+            {                                
                 //Readd all Redactional Tags
                 var redactionalassignedTags = gastroOld.Tags != null ? gastroOld.Tags.Where(x => x.Source != "lts").ToList() : null;
                 if (redactionalassignedTags != null)
@@ -635,15 +633,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-            //TODO import the Redactional Tags from Events into Tags?
+            //TODO import the Redactional Tags from Gastronomies into Tags?
         }
 
         //Gastronomies ODHTags assignment
-        private async Task AssignODHTags(ODHActivityPoiLinked gastroNew)
+        private async Task AssignODHTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
         {
-            gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, gastroNew.SmgTags);
-            //lowercase all ODHTags
-            gastroNew.SmgTags = gastroNew.SmgTags.Select(x => x.ToLower()).ToList();
+            //Remove all ODHTags that where automatically assigned            
+            List<string> tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
+            
+            gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
         }
         
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
@@ -753,8 +752,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (smgtaglist == null)
                 smgtaglist = new List<string>();
 
-            if (!smgtaglist.Contains("Essen Trinken"))
-                smgtaglist.Add("Essen Trinken");
+            if (!smgtaglist.Contains("essen trinken"))
+                smgtaglist.Add("essen trinken");
 
             //IDM Categorization
             //Restaurants & Gasthäuser	
@@ -783,151 +782,151 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     {
                         //Restaurant
                         case "B0BDC4C2C5938D9B734D97B09C8A47A4":
-                            if (!smgtaglist.Contains("Restaurants Gasthäuser"))
-                                smgtaglist.Add("Restaurants Gasthäuser");
-                            if (!smgtaglist.Contains("Restaurants"))
-                                smgtaglist.Add("Restaurants");
+                            if (!smgtaglist.Contains("restaurants gasthäuser"))
+                                smgtaglist.Add("restaurants gasthäuser");
+                            if (!smgtaglist.Contains("restaurants"))
+                                smgtaglist.Add("restaurants");
                             break;
                         //Bar / Café / Bistro
                         case "9095FC003A3E2F393D63A54682359B37":
-                            if (!smgtaglist.Contains("Restaurants Gasthäuser"))
-                                smgtaglist.Add("Restaurants Gasthäuser");
-                            if (!smgtaglist.Contains("Bars Cafes Bistros"))
-                                smgtaglist.Add("Bars Cafes Bistros");
+                            if (!smgtaglist.Contains("restaurants gasthäuser"))
+                                smgtaglist.Add("restaurants gasthäuser");
+                            if (!smgtaglist.Contains("bars cafes bistros"))
+                                smgtaglist.Add("bars cafes bistros");
                             break;
                         //Pub / Disco
                         case "59FE0B38EB7F4AC3951A5F477A0E1FA2":
-                            if (!smgtaglist.Contains("Andere Gastronomiebetriebe"))
-                                smgtaglist.Add("Andere Gastronomiebetriebe");
-                            if (!smgtaglist.Contains("Pub Disco"))
-                                smgtaglist.Add("Pub Disco");
+                            if (!smgtaglist.Contains("andere gastronomiebetriebe"))
+                                smgtaglist.Add("andere gastronomiebetriebe");
+                            if (!smgtaglist.Contains("pub disco"))
+                                smgtaglist.Add("pub disco");
                             break;
                         //Apres Ski
                         case "43D095A3FE8A450099D33926BBC1ADF8":
-                            if (!smgtaglist.Contains("Andere Gastronomiebetriebe"))
-                                smgtaglist.Add("Andere Gastronomiebetriebe");
-                            if (!smgtaglist.Contains("Apres Ski"))
-                                smgtaglist.Add("Apres Ski");
+                            if (!smgtaglist.Contains("andere gastronomiebetriebe"))
+                                smgtaglist.Add("andere gastronomiebetriebe");
+                            if (!smgtaglist.Contains("apres ski"))
+                                smgtaglist.Add("apres ski");
                             break;
                         //Jausenstation
                         case "8176B5A707E2067708AF18045E068E15":
-                            if (!smgtaglist.Contains("Restaurants Gasthäuser"))
-                                smgtaglist.Add("Restaurants Gasthäuser");
-                            if (!smgtaglist.Contains("Gasthäuser Gasthöfe"))
-                                smgtaglist.Add("Gasthäuser Gasthöfe");
-                            if (!smgtaglist.Contains("Jausenstation"))
-                                smgtaglist.Add("Jausenstation");
+                            if (!smgtaglist.Contains("restaurants gasthäuser"))
+                                smgtaglist.Add("restaurants gasthäuser");
+                            if (!smgtaglist.Contains("gasthäuser gasthöfe"))
+                                smgtaglist.Add("gasthäuser gasthöfe");
+                            if (!smgtaglist.Contains("jausenstation"))
+                                smgtaglist.Add("jausenstation");
                             break;
                         //Pizzeria
                         case "AC56B3717C3152A428A1D338A638C570":
-                            if (!smgtaglist.Contains("Restaurants Gasthäuser"))
-                                smgtaglist.Add("Restaurants Gasthäuser");
-                            if (!smgtaglist.Contains("Pizzerias"))
-                                smgtaglist.Add("Pizzerias");
+                            if (!smgtaglist.Contains("restaurants gasthäuser"))
+                                smgtaglist.Add("restaurants gasthäuser");
+                            if (!smgtaglist.Contains("pizzerias"))
+                                smgtaglist.Add("pizzerias");
                             break;
                         //Bäuerlicher Schankbetrieb
                         case "E8883A596A2463A9B3E1586C9E780F17":
-                            if (!smgtaglist.Contains("Bäuerliche Schankbetriebe"))
-                                smgtaglist.Add("Bäuerliche Schankbetriebe");
+                            if (!smgtaglist.Contains("bäuerliche schankbetriebe"))
+                                smgtaglist.Add("bäuerliche schankbetriebe");
                             break;
                         //Buschenschank
                         case "700B02F1BE96B01C34CCF7A637DB3054":
-                            if (!smgtaglist.Contains("Bäuerliche Schankbetriebe"))
-                                smgtaglist.Add("Bäuerliche Schankbetriebe");
-                            if (!smgtaglist.Contains("Buschen Hofschänke"))
-                                smgtaglist.Add("Buschen Hofschänke");
-                            if (!smgtaglist.Contains("Buschenschank"))
-                                smgtaglist.Add("Buschenschank");
+                            if (!smgtaglist.Contains("bäuerliche schankbetriebe"))
+                                smgtaglist.Add("bäuerliche schankbetriebe");
+                            if (!smgtaglist.Contains("buschen hofschänke"))
+                                smgtaglist.Add("buschen hofschänke");
+                            if (!smgtaglist.Contains("buschenschank"))
+                                smgtaglist.Add("buschenschank");
                             break;
                         //Hofschank
                         case "4A14E16888CB07C18C65A6B59C5A19A7":
-                            if (!smgtaglist.Contains("Bäuerliche Schankbetriebe"))
-                                smgtaglist.Add("Bäuerliche Schankbetriebe");
-                            if (!smgtaglist.Contains("Buschen Hofschänke"))
-                                smgtaglist.Add("Buschen Hofschänke");
-                            if (!smgtaglist.Contains("Hofschank"))
-                                smgtaglist.Add("Hofschank");
+                            if (!smgtaglist.Contains("bäuerliche schankbetriebe"))
+                                smgtaglist.Add("bäuerliche schankbetriebe");
+                            if (!smgtaglist.Contains("buschen hofschänke"))
+                                smgtaglist.Add("buschen hofschänke");
+                            if (!smgtaglist.Contains("hofschank"))
+                                smgtaglist.Add("hofschank");
                             break;
                         //Törggele Lokale
                         case "AB320B063588EA95F45505E940903115":
-                            if (!smgtaglist.Contains("Andere Gastronomiebetriebe"))
-                                smgtaglist.Add("Andere Gastronomiebetriebe");
-                            if (!smgtaglist.Contains("Törggele Lokal"))
-                                smgtaglist.Add("Törggele Lokal");
+                            if (!smgtaglist.Contains("andere gastronomiebetriebe"))
+                                smgtaglist.Add("andere gastronomiebetriebe");
+                            if (!smgtaglist.Contains("törggele lokal"))
+                                smgtaglist.Add("törggele lokal");
                             break;
                         //Schnellimbiss
                         case "33B86F5B91A08A0EFD6854DEB0207205":
-                            if (!smgtaglist.Contains("Andere Gastronomiebetriebe"))
-                                smgtaglist.Add("Andere Gastronomiebetriebe");
-                            if (!smgtaglist.Contains("Schnellimbiss"))
-                                smgtaglist.Add("Schnellimbiss");
+                            if (!smgtaglist.Contains("andere gastronomiebetriebe"))
+                                smgtaglist.Add("andere gastronomiebetriebe");
+                            if (!smgtaglist.Contains("schnellimbiss"))
+                                smgtaglist.Add("schnellimbiss");
                             break;
                         //Mensa
                         case "29BC7A9AE7CF173FBCCE6A48DD001229":
-                            if (!smgtaglist.Contains("Andere Gastronomiebetriebe"))
-                                smgtaglist.Add("Andere Gastronomiebetriebe");
-                            if (!smgtaglist.Contains("Mensa"))
-                                smgtaglist.Add("Mensa");
+                            if (!smgtaglist.Contains("andere gastronomiebetriebe"))
+                                smgtaglist.Add("andere gastronomiebetriebe");
+                            if (!smgtaglist.Contains("mensa"))
+                                smgtaglist.Add("mensa");
                             break;
                         //Vinothek / Weinhaus / Taverne
                         case "C3CC9C83C32BFA4E9A05133291EA9FFB":
-                            if (!smgtaglist.Contains("Restaurants Gasthäuser"))
-                                smgtaglist.Add("Restaurants Gasthäuser");
-                            if (!smgtaglist.Contains("Vinotheken"))
-                                smgtaglist.Add("Vinotheken");
+                            if (!smgtaglist.Contains("restaurants gasthäuser"))
+                                smgtaglist.Add("restaurants gasthäuser");
+                            if (!smgtaglist.Contains("vinotheken"))
+                                smgtaglist.Add("vinotheken");
                             break;
                         //Eisdiele
                         case "6A2A32E2BFEE270083351B0CFD9BA2E3":
-                            if (!smgtaglist.Contains("Andere Gastronomiebetriebe"))
-                                smgtaglist.Add("Andere Gastronomiebetriebe");
-                            if (!smgtaglist.Contains("Eisdiele"))
-                                smgtaglist.Add("Eisdiele");
+                            if (!smgtaglist.Contains("andere gastronomiebetriebe"))
+                                smgtaglist.Add("andere gastronomiebetriebe");
+                            if (!smgtaglist.Contains("eisdiele"))
+                                smgtaglist.Add("eisdiele");
                             break;
                         //Gasthaus
                         case "9B158D17F03509C46037C3C7B23F2FE4":
-                            if (!smgtaglist.Contains("Restaurants Gasthäuser"))
-                                smgtaglist.Add("Restaurants Gasthäuser");
-                            if (!smgtaglist.Contains("Gasthäuser Gasthöfe"))
-                                smgtaglist.Add("Gasthäuser Gasthöfe");
-                            if (!smgtaglist.Contains("Gasthaus"))
-                                smgtaglist.Add("Gasthaus");
+                            if (!smgtaglist.Contains("restaurants gasthäuser"))
+                                smgtaglist.Add("restaurants gasthäuser");
+                            if (!smgtaglist.Contains("gasthäuser gasthöfe"))
+                                smgtaglist.Add("gasthäuser gasthöfe");
+                            if (!smgtaglist.Contains("gasthaus"))
+                                smgtaglist.Add("gasthaus");
                             break;
                         //Gasthof
                         case "D8B8ABEDD17A139DEDA2695545C420D6":
-                            if (!smgtaglist.Contains("Restaurants Gasthäuser"))
-                                smgtaglist.Add("Restaurants Gasthäuser");
-                            if (!smgtaglist.Contains("Gasthäuser Gasthöfe"))
-                                smgtaglist.Add("Gasthäuser Gasthöfe");
-                            if (!smgtaglist.Contains("Gasthof"))
-                                smgtaglist.Add("Gasthof");
+                            if (!smgtaglist.Contains("restaurants gasthäuser"))
+                                smgtaglist.Add("restaurants gasthäuser");
+                            if (!smgtaglist.Contains("gasthäuser gasthöfe"))
+                                smgtaglist.Add("gasthäuser gasthöfe");
+                            if (!smgtaglist.Contains("gasthof"))
+                                smgtaglist.Add("gasthof");
                             break;
                         //Braugarten
                         case "902D9BA559B1ED889694284F05CFA41E":
-                            if (!smgtaglist.Contains("Andere Gastronomiebetriebe"))
-                                smgtaglist.Add("Andere Gastronomiebetriebe");
-                            if (!smgtaglist.Contains("Braugarten"))
-                                smgtaglist.Add("Braugarten");
+                            if (!smgtaglist.Contains("andere gastronomiebetriebe"))
+                                smgtaglist.Add("andere gastronomiebetriebe");
+                            if (!smgtaglist.Contains("braugarten"))
+                                smgtaglist.Add("braugarten");
                             break;
                         //Schutzhütte
                         case "2328C37167BBBC5776831B8A262A6C36":
-                            if (!smgtaglist.Contains("Hütten Almen"))
-                                smgtaglist.Add("Hütten Almen");
-                            if (!smgtaglist.Contains("Schutzhütten"))
-                                smgtaglist.Add("Schutzhütten");
+                            if (!smgtaglist.Contains("hütten almen"))
+                                smgtaglist.Add("hütten almen");
+                            if (!smgtaglist.Contains("schutzhütten"))
+                                smgtaglist.Add("schutzhütten");
                             break;
                         //Alm
                         case "8025DB5CFCBA4FF281DDDE1F2B1D19A2":
-                            if (!smgtaglist.Contains("Hütten Almen"))
-                                smgtaglist.Add("Hütten Almen");
-                            if (!smgtaglist.Contains("Almen"))
-                                smgtaglist.Add("Almen");
+                            if (!smgtaglist.Contains("hütten almen"))
+                                smgtaglist.Add("hütten almen");
+                            if (!smgtaglist.Contains("almen"))
+                                smgtaglist.Add("almen");
                             break;
                         //Skihütte
                         case "B916489A77C94D8D92B03184EE587A31":
-                            if (!smgtaglist.Contains("Hütten Almen"))
-                                smgtaglist.Add("Hütten Almen");
-                            if (!smgtaglist.Contains("Skihütten"))
-                                smgtaglist.Add("Skihütten");
+                            if (!smgtaglist.Contains("hütten almen"))
+                                smgtaglist.Add("hütten almen");
+                            if (!smgtaglist.Contains("skihütten"))
+                                smgtaglist.Add("skihütten");
                             break;
                     }
                 }
@@ -941,8 +940,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     {
                         //Restaurant
                         case "ED4028BEE0164BF185B923B3DD4FF9A0":
-                            if (!smgtaglist.Contains("Roter Hahn"))
-                                smgtaglist.Add("Roter Hahn");
+                            if (!smgtaglist.Contains("roter hahn"))
+                                smgtaglist.Add("roter hahn");
                             break;
                     }
                 }
@@ -952,38 +951,36 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return smgtaglist;
         }
 
-        public static List<string> GetOdhTagListValidforTranslations()
+        public static IEnumerable<string> GetOdhTagListAssigned()
         {
             List<string> myvalidsmgtagstotranslate = new List<string>();
-            myvalidsmgtagstotranslate.Add("Restaurants Gasthäuser");
-            myvalidsmgtagstotranslate.Add("Restaurants");
-            myvalidsmgtagstotranslate.Add("Gasthäuser Gasthöfe");
-            myvalidsmgtagstotranslate.Add("Pizzerias");
-            myvalidsmgtagstotranslate.Add("Vinotheken");
-            myvalidsmgtagstotranslate.Add("Bars Cafes Bistros");
-            myvalidsmgtagstotranslate.Add("Hütten Almen");
-            myvalidsmgtagstotranslate.Add("Schutzhütten");
-            myvalidsmgtagstotranslate.Add("Almen");
-            myvalidsmgtagstotranslate.Add("Skihütten");
-            myvalidsmgtagstotranslate.Add("Bäuerliche Schankbetriebe");
-            myvalidsmgtagstotranslate.Add("Buschen Hofschänke");
-            myvalidsmgtagstotranslate.Add("Weinkellereien");
-            myvalidsmgtagstotranslate.Add("Roter Hahn");
-
-            //TODO ADD THE ANDERE CATEGORIES
-            myvalidsmgtagstotranslate.Add("Andere Gastronomiebetriebe");
-            myvalidsmgtagstotranslate.Add("Pub Disco");
-            myvalidsmgtagstotranslate.Add("Apres Ski");
-            myvalidsmgtagstotranslate.Add("Jausenstation");
-            myvalidsmgtagstotranslate.Add("Buschenschank");
-            myvalidsmgtagstotranslate.Add("Hofschank");
-            myvalidsmgtagstotranslate.Add("Törggele Lokal");
-            myvalidsmgtagstotranslate.Add("Schnellimbiss");
-            myvalidsmgtagstotranslate.Add("Mensa");
-            myvalidsmgtagstotranslate.Add("Eisdiele");
-            myvalidsmgtagstotranslate.Add("Gasthaus");
-            myvalidsmgtagstotranslate.Add("Gasthof");
-            myvalidsmgtagstotranslate.Add("Braugarten");
+            myvalidsmgtagstotranslate.Add("restaurants gasthäuser");
+            myvalidsmgtagstotranslate.Add("restaurants");
+            myvalidsmgtagstotranslate.Add("gasthäuser gasthöfe");
+            myvalidsmgtagstotranslate.Add("pizzerias");
+            myvalidsmgtagstotranslate.Add("vinotheken");
+            myvalidsmgtagstotranslate.Add("bars cafes bistros");
+            myvalidsmgtagstotranslate.Add("hütten almen");
+            myvalidsmgtagstotranslate.Add("schutzhütten");
+            myvalidsmgtagstotranslate.Add("almen");
+            myvalidsmgtagstotranslate.Add("skihütten");
+            myvalidsmgtagstotranslate.Add("bäuerliche schankbetriebe");
+            myvalidsmgtagstotranslate.Add("buschen hofschänke");
+            myvalidsmgtagstotranslate.Add("weinkellereien");
+            myvalidsmgtagstotranslate.Add("roter hahn");            
+            myvalidsmgtagstotranslate.Add("andere gastronomiebetriebe");
+            myvalidsmgtagstotranslate.Add("pub disco");
+            myvalidsmgtagstotranslate.Add("apres ski");
+            myvalidsmgtagstotranslate.Add("jausenstation");
+            myvalidsmgtagstotranslate.Add("buschenschank");
+            myvalidsmgtagstotranslate.Add("hofschank");
+            myvalidsmgtagstotranslate.Add("törggele lokal");
+            myvalidsmgtagstotranslate.Add("schnellimbiss");
+            myvalidsmgtagstotranslate.Add("mensa");
+            myvalidsmgtagstotranslate.Add("eisdiele");
+            myvalidsmgtagstotranslate.Add("gasthaus");
+            myvalidsmgtagstotranslate.Add("gasthof");
+            myvalidsmgtagstotranslate.Add("braugarten");
 
             return myvalidsmgtagstotranslate;
         }

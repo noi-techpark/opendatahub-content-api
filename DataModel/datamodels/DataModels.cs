@@ -4015,6 +4015,7 @@ namespace DataModel
 
         public string? Language { get; set; }
 
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public List<string>? Categories { get; set; }
     }
 
