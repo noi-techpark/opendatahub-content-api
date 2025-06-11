@@ -231,7 +231,7 @@ namespace DIGIWAY
                 digiwaydata,                
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToString(digiwaydata.properties.ROUTE_NAME) : null,
                 "cyclewaytyrol",
-                digiwaydata.properties.ROUTE_NAME != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
+                digiwaydata.properties.START_HEIGHT != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
                 );
 
             odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
