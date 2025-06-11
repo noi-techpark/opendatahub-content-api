@@ -268,10 +268,19 @@ namespace DataModel
         public int? AgeTo { get; set; }
 
         //Gastronomy Infos
+        [SwaggerDeprecated("Deprecated, Use Mapping instead")]
         public int? MaxSeatingCapacity { get; set; }
+
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public ICollection<CategoryCodes>? CategoryCodes { get; set; }
+        
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public ICollection<DishRates>? DishRates { get; set; }
+        
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public ICollection<CapacityCeremony>? CapacityCeremony { get; set; }
+        
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public ICollection<Facilities>? Facilities { get; set; }
 
         //End Gastronomy Infos
@@ -3691,29 +3700,29 @@ namespace DataModel
         public bool Active { get; set; }
         public string? Shortname { get; set; }
 
-        [SwaggerDeprecated("Use Ratings.Difficulty")]
+        [SwaggerDeprecated("Deprecated, Use Ratings.Difficulty")]
         public string? Difficulty { get; set; }
 
-        [SwaggerDeprecated("Use AdditionalPoiInfos.Categories instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public string? Type { get; set; }
 
-        [SwaggerDeprecated("Use AdditionalPoiInfos.Categories instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public string? SubType { get; set; }
 
-        [SwaggerDeprecated("Use AdditionalPoiInfos.Categories instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public string? PoiType { get; set; }
 
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
 
-        [SwaggerDeprecated("Use PublishedOn field")]
+        [SwaggerDeprecated("Deprecated, Use PublishedOn field")]
         public bool SmgActive { get; set; }
 
         public LocationInfo? LocationInfo { get; set; }
 
         public string? TourismorganizationId { get; set; }
 
-        [SwaggerDeprecated("Deprecated use AreaIds")]
+        [SwaggerDeprecated("Deprecated, use AreaIds")]
         public HashSet<string>? AreaId { get; set; }
 
         [GetOnlyJsonProperty]
@@ -3995,13 +4004,13 @@ namespace DataModel
         //public string Difficulty { get; set; }
         public string? Novelty { get; set; }
 
-        [SwaggerDeprecated("Use Categories instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public string? MainType { get; set; }
 
-        [SwaggerDeprecated("Use Categories instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public string? SubType { get; set; }
 
-        [SwaggerDeprecated("Use Categories instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead")]
         public string? PoiType { get; set; }
 
         public string? Language { get; set; }
