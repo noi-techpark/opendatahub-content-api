@@ -241,7 +241,7 @@ namespace Helper
             }
         }
 
-        public static async Task<List<CategoriesTagsSingleLanguage>> GetAllGastronomyTagsfromJson(string jsondir)
+        public static async Task<List<CategoriesTags>> GetAllGastronomyTagsfromJson(string jsondir)
         {
             using (
                 StreamReader r = new StreamReader(Path.Combine(jsondir, $"TagsForGastronomy.json"))
@@ -249,7 +249,7 @@ namespace Helper
             {
                 string json = await r.ReadToEndAsync();
 
-                return JsonConvert.DeserializeObject<List<CategoriesTagsSingleLanguage>>(json) ?? new();
+                return JsonConvert.DeserializeObject<List<CategoriesTags>>(json) ?? new();
             }
         }
     }

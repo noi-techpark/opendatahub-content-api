@@ -325,11 +325,23 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     );
                 }
 
+                //Load the json Data
+                var jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                    settings.JsonConfig.Jsondir,
+                    new List<string>()
+                        {
+                            "CategoryCodes",
+                            "DishRates",
+                            "Facilities",
+                            "CapacityCeremonies",
+                        }
+                    );
+
                 foreach (var data in gastrodata)
                 {
                     string id = data.data.rid.ToLower();
 
-                    var gastroparsed = GastronomyParser.ParseLTSGastronomy(data.data, false);
+                    var gastroparsed = GastronomyParser.ParseLTSGastronomy(data.data, false, jsondata);
 
                     //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
                     gastroparsed.LocationInfo = await gastroparsed.UpdateLocationInfoExtension(
@@ -357,9 +369,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Add the MetaTitle for IDM
                         await AddMetaTitle(gastroparsed);
-
-                        //Fill the Shortname for the old Compatibility Objects
-                        await GenerateGastronomyCompatibilityObjects(gastroparsed);
                     }                    
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
@@ -691,29 +700,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
             }
         }
-
-        //Compatibility generate the Facilitiesobject names
-        private async Task GenerateGastronomyCompatibilityObjects(ODHActivityPoiLinked gastroNew)
-        {
-            //Load all Facilities, Categorycodes, Ceremonycodes etc... and add the Key in german
-
-            var gastronomytaglist =
-                        await GenericTaggingHelper.GetAllGastronomyTagsfromJson(
-                            settings.JsonConfig.Jsondir
-                        );
-
-            //DishRates Shortname,MinAmount,MaxAmount,CurrencyCode
-            //Facilities Id,Shortname
-            //CapacityCeremony Id,Shortname,MaxSeatingCapacity
-            //CategoryCode Id,Shortname
-
-            //Assign the German Key
-            foreach (var ceremonycode in gastroNew.CapacityCeremony)
-            {
-                //ceremonycode.MaxSeatingCapacity
-            }
-        }
-
 
         #region OLD Compatibility Stuff
 

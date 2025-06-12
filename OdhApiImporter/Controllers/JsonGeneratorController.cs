@@ -159,8 +159,28 @@ namespace OdhApiImporter.Controllers
                 await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
                     QueryFactory,
                     settings.JsonConfig.Jsondir,
-                    "TagsForGastronomy"
+                    "CategoryCodes",
+                     new List<string>() { "gastronomycategory" }
                 );
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "DishRates",
+                     new List<string>() { "gastronomydishcodes" }
+                ); 
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "Facilities",
+                     new List<string>() { "gastronomyfacilities" }
+                );
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "CapacityCeremonies",
+                     new List<string>() { "gastronomyceremonycodes" }
+                );
+
 
                 var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
                     "Json Generation",

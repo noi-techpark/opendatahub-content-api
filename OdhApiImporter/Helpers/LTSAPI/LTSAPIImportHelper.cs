@@ -9,6 +9,7 @@ using Helper.Generic;
 using Helper.Tagging;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Operations;
+using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.LTSAPI;
 using OdhApiImporter.Helpers.RAVEN;
 using OdhNotifier;
@@ -17,9 +18,11 @@ using SqlKata;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
@@ -647,6 +650,36 @@ namespace OdhApiImporter.Helpers
             }
 
             return pushresults;
+        }
+
+        public static async Task<IDictionary<string, JArray>> LoadJsonFiles(string directory, List<string> filenames)
+        {
+            IDictionary<string, JArray> myjsonfiles = new Dictionary<string, JArray>();
+            foreach (var filename in filenames)
+            {
+                myjsonfiles.Add(filename, await LoadFromJsonAndDeSerialize(filename, directory));
+            }
+            return myjsonfiles;
+        }
+
+        public static async Task<JArray> LoadFromJsonAndDeSerialize(string filename, string path)
+        {
+            using (StreamReader r = new StreamReader(Path.Combine(path, filename + ".json")))
+            {
+                string json = await r.ReadToEndAsync();
+
+                return JArray.Parse(json) ?? new JArray();
+            }
+        }
+
+        public static IDictionary<string, XDocument> LoadXmlFiles(string directory, string filename)
+        {
+            //TODO move this files to Database
+
+            IDictionary<string, XDocument> myxmlfiles = new Dictionary<string, XDocument>();
+            myxmlfiles.Add(filename, XDocument.Load(directory + filename + ".xml"));
+
+            return myxmlfiles;
         }
     }
 }

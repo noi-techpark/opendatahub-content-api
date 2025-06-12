@@ -254,12 +254,11 @@ namespace Helper
         public static async Task GenerateJSONGastronomyTagCategoriesList(
             QueryFactory queryFactory,
             string jsondir,
-            string jsonName
+            string jsonName,
+            List<string> typelist
         )
         {
             var serializer = new JsonSerializer();
-
-            var typelist = new List<string>() { "gastronomyfacilities", "gastronomydishcodes", "gastronomycategory", "gastronomyceremonycodes" };
 
             var query = queryFactory
                 .Query()
@@ -270,7 +269,7 @@ namespace Helper
             var datafirst = await query.GetObjectListAsync<TagLinked>();
 
             var data = datafirst
-                .Select(x => new CategoriesTagsSingleLanguage() { Id = x.Id, TagName = x.TagName["de"] })
+                .Select(x => new CategoriesTags() { Id = x.Id, TagName = x.TagName })
                 .ToList();
 
             //Save json
@@ -297,12 +296,6 @@ namespace Helper
     {
         public string Id { get; set; }
         public IDictionary<string, string> TagName { get; set; }
-    }
-
-    public class CategoriesTagsSingleLanguage
-    {
-        public string Id { get; set; }
-        public string TagName { get; set; }
     }
 
     public class LocationList
