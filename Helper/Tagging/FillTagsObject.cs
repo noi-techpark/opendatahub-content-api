@@ -29,12 +29,28 @@ namespace Helper.Tagging
         public static async Task UpdateTagsExtension<T>(this T data, QueryFactory queryFactory)
             where T : IHasTagInfo
         {
-            data.Tags = await UpdateTags(data.TagIds, queryFactory);
+            Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve = null;
+
+            //If there are TagEntrys pass this
+            if (data.Tags != null)
+            {
+                if(data.Tags.Where(x => x.TagEntry != null).Count() > 0)
+                {
+                    tagEntrysTopreserve = new Dictionary<string, IDictionary<string, string>>();
+                    foreach (var tagEntry in data.Tags.Where(x => x.TagEntry != null))
+                    {
+                        tagEntrysTopreserve.TryAddOrUpdate(tagEntry.Id, tagEntry.TagEntry);
+                    }                    
+                }
+            }
+
+            data.Tags = await UpdateTags(data.TagIds, queryFactory, tagEntrysTopreserve);
         }
 
         private static async Task<ICollection<Tags>> UpdateTags(
             ICollection<string> tagIds,
-            QueryFactory queryFactory
+            QueryFactory queryFactory,
+            Dictionary<string, IDictionary<string,string>>? tagEntrysTopreserve
         )
         {
             ICollection<Tags> tags = new HashSet<Tags>();
@@ -49,6 +65,12 @@ namespace Helper.Tagging
                 //Create Tags object
                 foreach (var tag in assignedtags)
                 {
+                    IDictionary<string, string>? tagentry = null;
+                    if(tagEntrysTopreserve != null && tagEntrysTopreserve.ContainsKey(tag.Id))
+                    {
+                        tagentry = tagEntrysTopreserve[tag.Id];
+                    }
+
                     tags.Add(
                         new Tags()
                         {
@@ -56,6 +78,7 @@ namespace Helper.Tagging
                             Source = tag.Source,
                             Type = GetTypeFromTagTypes(tag.Types),
                             Name = GetTagName(tag.TagName),
+                            TagEntry = tagentry
                         }
                     );
                 }
