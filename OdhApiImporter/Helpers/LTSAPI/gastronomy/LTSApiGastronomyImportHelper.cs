@@ -362,8 +362,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeGastronomyTags(gastroparsed, gastroindb);
 
-                    //Create Tags
-                    await gastroparsed.UpdateTagsExtension(QueryFactory);
+                    //Create Tags and preserve the old TagEntries
+                    await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroindb) : null);
 
                     if (!opendata)
                     {

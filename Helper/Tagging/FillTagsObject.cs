@@ -26,7 +26,14 @@ namespace Helper.Tagging
         /// </summary>
         /// <param name="queryFactory"></param>
         /// <returns></returns>
-        public static async Task UpdateTagsExtension<T>(this T data, QueryFactory queryFactory)
+        public static async Task UpdateTagsExtension<T>(this T data, QueryFactory queryFactory, Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve = null)
+            where T : IHasTagInfo
+        {
+            data.Tags = await UpdateTags(data.TagIds, queryFactory, tagEntrysTopreserve);
+        }
+
+        //Get the Tag entries to preserve if update
+        public static async Task<Dictionary<string, IDictionary<string, string>>?> GetTagEntrysToPreserve<T>(T data)
             where T : IHasTagInfo
         {
             Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve = null;
@@ -34,17 +41,17 @@ namespace Helper.Tagging
             //If there are TagEntrys pass this
             if (data.Tags != null)
             {
-                if(data.Tags.Where(x => x.TagEntry != null).Count() > 0)
+                if (data.Tags.Where(x => x.TagEntry != null).Count() > 0)
                 {
                     tagEntrysTopreserve = new Dictionary<string, IDictionary<string, string>>();
                     foreach (var tagEntry in data.Tags.Where(x => x.TagEntry != null))
                     {
                         tagEntrysTopreserve.TryAddOrUpdate(tagEntry.Id, tagEntry.TagEntry);
-                    }                    
+                    }
                 }
             }
 
-            data.Tags = await UpdateTags(data.TagIds, queryFactory, tagEntrysTopreserve);
+            return tagEntrysTopreserve;
         }
 
         private static async Task<ICollection<Tags>> UpdateTags(
