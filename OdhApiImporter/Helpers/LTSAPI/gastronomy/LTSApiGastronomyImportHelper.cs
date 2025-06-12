@@ -326,7 +326,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
 
                 //Load the json Data
-                var jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                IDictionary<string,JArray> jsondata = default(Dictionary<string, JArray>);
+
+                if (!opendata)
+                {
+                    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
                     settings.JsonConfig.Jsondir,
                     new List<string>()
                         {
@@ -336,6 +340,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             "CapacityCeremonies",
                         }
                     );
+                }
 
                 foreach (var data in gastrodata)
                 {
