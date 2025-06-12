@@ -149,7 +149,43 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        [HttpGet, Route("ODH/GastronomyCategorieslist")]
+        public async Task<IActionResult> ProduceGastronomyCategoriesListJson(
+    CancellationToken cancellationToken
+)
+        {
+            try
+            {
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
                     "TagsForGastronomy"
+                );
+
+                var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
+                    "Json Generation",
+                    "GastronomyCategorieslist",
+                    "Generate Json GastronomyCategorieslist succeeded",
+                    true
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var result = GenericResultsHelper.GetErrorJsonGenerateResult(
+                    "Json Generation",
+                    "GastronomyCategorieslist",
+                    "Generate Json GastronomyCategorieslist failed",
+                    ex,
+                    true
+                );
+
+                return BadRequest(result);
+            }
+        }
+
+
         #endregion
 
         #region LocationInfo

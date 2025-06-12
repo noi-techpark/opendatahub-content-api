@@ -336,9 +336,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         QueryFactory
                     );
 
-                    //if (gastroparsed.LocationInfo != null && gastroparsed.LocationInfo.DistrictInfo != null)
-                    //    gastroparsed.LocationInfo = await LocationInfoHelper.GetTheLocationInfoDistrict(QueryFactory, gastroparsed.LocationInfo.DistrictInfo.Id);
-
                     //DistanceCalculation
                     await gastroparsed.UpdateDistanceCalculation(QueryFactory);
 
@@ -360,6 +357,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Add the MetaTitle for IDM
                         await AddMetaTitle(gastroparsed);
+
+                        //Fill the Shortname for the old Compatibility Objects
+                        await GenerateGastronomyCompatibilityObjects(gastroparsed);
                     }                    
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
@@ -691,6 +691,29 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
             }
         }
+
+        //Compatibility generate the Facilitiesobject names
+        private async Task GenerateGastronomyCompatibilityObjects(ODHActivityPoiLinked gastroNew)
+        {
+            //Load all Facilities, Categorycodes, Ceremonycodes etc... and add the Key in german
+
+            var gastronomytaglist =
+                        await GenericTaggingHelper.GetAllGastronomyTagsfromJson(
+                            settings.JsonConfig.Jsondir
+                        );
+
+            //DishRates Shortname,MinAmount,MaxAmount,CurrencyCode
+            //Facilities Id,Shortname
+            //CapacityCeremony Id,Shortname,MaxSeatingCapacity
+            //CategoryCode Id,Shortname
+
+            //Assign the German Key
+            foreach (var ceremonycode in gastroNew.CapacityCeremony)
+            {
+                //ceremonycode.MaxSeatingCapacity
+            }
+        }
+
 
         #region OLD Compatibility Stuff
 
