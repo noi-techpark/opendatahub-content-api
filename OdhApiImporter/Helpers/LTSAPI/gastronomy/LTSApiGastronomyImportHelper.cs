@@ -374,6 +374,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Add the MetaTitle for IDM
                         await AddMetaTitle(gastroparsed);
+
+                        //Add the values to Tags (TagEntry)
+                        await AddTagEntryToTags(gastroparsed);
                     }                    
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
@@ -658,7 +661,41 @@ namespace OdhApiImporter.Helpers.LTSAPI
             
             gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
         }
-        
+
+        private async Task AddTagEntryToTags(ODHActivityPoiLinked gastroNew)
+        {
+            //CeremeonyCodes
+            foreach(var tag in gastroNew.Tags.Where(x => x.Type == "dishcodes"))
+            {
+                if(gastroNew.DishRates != null)
+                {
+                    var dishcode = gastroNew.DishRates.Where(x => x.Id == tag.Id).FirstOrDefault();
+
+                    if (dishcode != null)
+                    {
+                        tag.TagEntry = new Dictionary<string, string>();
+                        tag.TagEntry.TryAddOrUpdate("MaxAmount", dishcode.MaxAmount.ToString());
+                        tag.TagEntry.TryAddOrUpdate("MinAmount", dishcode.MinAmount.ToString());
+                        tag.TagEntry.TryAddOrUpdate("CurrencyCode", dishcode.CurrencyCode);
+                    }
+                }
+            }
+            //CeremonyCodes
+            foreach (var tag in gastroNew.Tags.Where(x => x.Type == "ceremonycodes"))
+            {
+                if (gastroNew.DishRates != null)
+                {
+                    var capacityceremony = gastroNew.CapacityCeremony.Where(x => x.Id == tag.Id).FirstOrDefault();
+
+                    if (capacityceremony != null)
+                    {
+                        tag.TagEntry = new Dictionary<string, string>();
+                        tag.TagEntry.TryAddOrUpdate("MaxSeatingCapacity", capacityceremony.MaxSeatingCapacity.ToString());
+                    }
+                }
+            }
+        }
+
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
         private async Task AddMetaTitle(ODHActivityPoiLinked gastroNew)
         {

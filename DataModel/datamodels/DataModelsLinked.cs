@@ -198,6 +198,9 @@ namespace DataModel
         public string? Type { get; set; }
 
         public string? Name { get; set; }
+
+        //Generic Dictionary where values can be stored, needed on Gastronomy
+        public IDictionary<string,string>? TagEntry { get; set; }
     }
 
     public class ODHActivityPoiTypesLink
