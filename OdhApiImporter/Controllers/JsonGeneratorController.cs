@@ -149,6 +149,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+                    "TagsForGastronomy"
         #endregion
 
         #region LocationInfo
