@@ -26,15 +26,38 @@ namespace Helper.Tagging
         /// </summary>
         /// <param name="queryFactory"></param>
         /// <returns></returns>
-        public static async Task UpdateTagsExtension<T>(this T data, QueryFactory queryFactory)
+        public static async Task UpdateTagsExtension<T>(this T data, QueryFactory queryFactory, Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve = null)
             where T : IHasTagInfo
         {
-            data.Tags = await UpdateTags(data.TagIds, queryFactory);
+            data.Tags = await UpdateTags(data.TagIds, queryFactory, tagEntrysTopreserve);
+        }
+
+        //Get the Tag entries to preserve if update
+        public static async Task<Dictionary<string, IDictionary<string, string>>?> GetTagEntrysToPreserve<T>(T data)
+            where T : IHasTagInfo
+        {
+            Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve = null;
+
+            //If there are TagEntrys pass this
+            if (data.Tags != null)
+            {
+                if (data.Tags.Where(x => x.TagEntry != null).Count() > 0)
+                {
+                    tagEntrysTopreserve = new Dictionary<string, IDictionary<string, string>>();
+                    foreach (var tagEntry in data.Tags.Where(x => x.TagEntry != null))
+                    {
+                        tagEntrysTopreserve.TryAddOrUpdate(tagEntry.Id, tagEntry.TagEntry);
+                    }
+                }
+            }
+
+            return tagEntrysTopreserve;
         }
 
         private static async Task<ICollection<Tags>> UpdateTags(
             ICollection<string> tagIds,
-            QueryFactory queryFactory
+            QueryFactory queryFactory,
+            Dictionary<string, IDictionary<string,string>>? tagEntrysTopreserve
         )
         {
             ICollection<Tags> tags = new HashSet<Tags>();
@@ -49,6 +72,12 @@ namespace Helper.Tagging
                 //Create Tags object
                 foreach (var tag in assignedtags)
                 {
+                    IDictionary<string, string>? tagentry = null;
+                    if(tagEntrysTopreserve != null && tagEntrysTopreserve.ContainsKey(tag.Id))
+                    {
+                        tagentry = tagEntrysTopreserve[tag.Id];
+                    }
+
                     tags.Add(
                         new Tags()
                         {
@@ -56,6 +85,7 @@ namespace Helper.Tagging
                             Source = tag.Source,
                             Type = GetTypeFromTagTypes(tag.Types),
                             Name = GetTagName(tag.TagName),
+                            TagEntry = tagentry
                         }
                     );
                 }
