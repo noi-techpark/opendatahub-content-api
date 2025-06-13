@@ -363,7 +363,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await MergeGastronomyTags(gastroparsed, gastroindb);
 
                     //Create Tags and preserve the old TagEntries
-                    await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroindb) : null);
+                    await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroparsed) : null);
 
                     if (!opendata)
                     {
@@ -375,9 +375,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //Add the MetaTitle for IDM
                         await AddMetaTitle(gastroparsed);
 
-                        //Add the values to Tags (TagEntry)
-                        await AddTagEntryToTags(gastroparsed);
-                    }                    
+                        //Add the values to Tags (TagEntry) not needed anymore?
+                        //await AddTagEntryToTags(gastroparsed);
+                    }
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
 
@@ -413,59 +413,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             error = "",
                         }
                     );
-                }
-
-                //Deactivate this in the meantime
-                //if (idlistlts.Count > 0)
-                //{
-                //    //Begin SetDataNotinListToInactive
-                //    var idlistdb = await GetAllDataBySourceAndType(
-                //        new List<string>() { "lts" },
-                //        new List<string>() { "eventcategory" }
-                //    );
-
-                //    var idstodelete = idlistdb.Where(p => !idlistlts.Any(p2 => p2 == p));
-
-                //    foreach (var idtodelete in idstodelete)
-                //    {
-                //        var deletedisableresult = await DeleteOrDisableData<TagLinked>(
-                //            idtodelete,
-                //            false
-                //        );
-
-                //        if (deletedisableresult.Item1 > 0)
-                //            WriteLog.LogToConsole(
-                //                idtodelete,
-                //                "dataimport",
-                //                "single.events.categories.deactivate",
-                //                new ImportLog()
-                //                {
-                //                    sourceid = idtodelete,
-                //                    sourceinterface = "lts.events.categories",
-                //                    success = true,
-                //                    error = "",
-                //                }
-                //            );
-                //        else if (deletedisableresult.Item2 > 0)
-                //            WriteLog.LogToConsole(
-                //                idtodelete,
-                //                "dataimport",
-                //                "single.events.categories.delete",
-                //                new ImportLog()
-                //                {
-                //                    sourceid = idtodelete,
-                //                    sourceinterface = "lts.events.categories",
-                //                    success = true,
-                //                    error = "",
-                //                }
-                //            );
-
-                //        deleteimportcounter =
-                //            deleteimportcounter
-                //            + deletedisableresult.Item1
-                //            + deletedisableresult.Item2;
-                //    }
-                //}
+                }          
             }
             else
             {
@@ -656,8 +604,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
         //Gastronomies ODHTags assignment
         private async Task AssignODHTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
         {
-            //Remove all ODHTags that where automatically assigned            
-            List<string> tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
+            List<string> tagstopreserve = new List<string>();
+            //Remove all ODHTags that where automatically assigned         
+            if(gastroOld != null && gastroOld.SmgTags != null)
+                tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
             
             gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
         }
