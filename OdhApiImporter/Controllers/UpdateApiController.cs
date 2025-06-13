@@ -2871,7 +2871,7 @@ namespace OdhApiImporter.Controllers
         }
 
         //Generic Active/Inactive Sync        
-        [HttpGet, Route("LTS/{datatype}/UpdateActiveInactive/{active}")]
+        [HttpGet, Route("LTS/{datatype}/UpdateActiveInactive/{onlyactive}")]
         [Authorize(Roles = "DataPush")]
         public async Task<IActionResult> UpdateActiveInactiveDataFromLTS(
             bool onlyactive,

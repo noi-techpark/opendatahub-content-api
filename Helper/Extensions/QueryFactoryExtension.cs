@@ -557,14 +557,14 @@ namespace Helper
             string reducedId = "";
             if (reduced)
                 reducedId = "_REDUCED";
-
-            var idtodelete = Helper.IdGenerator.CheckIdFromType<T>(id);
+            
+            var idtodelete = Helper.IdGenerator.CheckIdFromType<T>(id + reducedId);
 
             //Check if data exists
             var queryresult = await QueryFactory
                 .Query(dataconfig.Table)
                 .Select("data")
-                .Where("id", idtodelete + reducedId)
+                .Where("id", idtodelete)
                 .When(
                     constraints.AccessRole.Count() > 0,
                     q => q.FilterDataByAccessRoles(constraints.AccessRole)
@@ -623,7 +623,7 @@ namespace Helper
 
                 deleteresult = await QueryFactory
                     .Query(dataconfig.Table)
-                    .Where("id", idtodelete + reducedId)
+                    .Where("id", idtodelete)
                     .DeleteAsync();
             }
 

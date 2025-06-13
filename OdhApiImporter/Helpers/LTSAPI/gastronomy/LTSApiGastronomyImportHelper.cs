@@ -79,12 +79,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableGastronomiesData(id, false);
+                    return await DeleteOrDisableGastronomiesData(id, false, false);
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableGastronomiesData(id + "_reduced", true);
+                    return await DeleteOrDisableGastronomiesData(id, true, true);
                 }
             }
             else
@@ -175,6 +175,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             CancellationToken cancellationToken = default
         )
         {
+            opendata = reduced;
+
             //Import the List
             var activelistlts = await GetGastronomiesFromLTSV2(null, null, null, active);
             List<string> activeList = new List<string>();
@@ -513,7 +515,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             );
         }
         
-        public async Task<UpdateDetail> DeleteOrDisableGastronomiesData(string id, bool delete)
+        public async Task<UpdateDetail> DeleteOrDisableGastronomiesData(string id, bool delete, bool reduced)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
@@ -521,24 +523,29 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result =  await QueryFactory.DeleteData<EventLinked>(
-                    "smgpoi" + id.ToLower(),
-                    new DataInfo("smgpois", CRUDOperation.Delete),
-                    new CRUDConstraints()
+                result = await QueryFactory.DeleteData<ODHActivityPoiLinked>(
+                "smgpoi" + id.ToLower(),
+                new DataInfo("smgpois", CRUDOperation.Delete),
+                new CRUDConstraints(),
+                reduced
                 );
 
-                deletedisableresult = new UpdateDetail() {
-                    created = result.created,
-                    updated = result.updated,
-                    deleted = result.deleted,
-                    error = result.error,
-                    objectchanged = result.objectchanged,
-                    objectimagechanged = result.objectimagechanged,
-                    comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                    pushchannels = result.pushchannels,
-                    changes = result.changes,
-                };
+                if (result.errorreason != "Data Not Found")
+                {
+                    deletedisableresult = new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    };
+                }
             }
             else
             {

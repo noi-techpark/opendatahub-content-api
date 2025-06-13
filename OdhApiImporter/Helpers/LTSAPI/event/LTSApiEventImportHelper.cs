@@ -580,18 +580,22 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     new CRUDConstraints()
                 );
 
-                deletedisableresult = new UpdateDetail() {
-                    created = result.created,
-                    updated = result.updated,
-                    deleted = result.deleted,
-                    error = result.error,
-                    objectchanged = result.objectchanged,
-                    objectimagechanged = result.objectimagechanged,
-                    comparedobjects =
+                if (result.errorreason != "Data Not Found")
+                {
+                    deletedisableresult = new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
                         result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                    pushchannels = result.pushchannels,
-                    changes = result.changes,
-                };
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    };
+                }
             }
             else
             {
