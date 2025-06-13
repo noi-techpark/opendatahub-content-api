@@ -361,10 +361,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeGastronomyTags(gastroparsed, gastroindb);
-
-                    //Create Tags and preserve the old TagEntries
-                    await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroparsed) : null);
-
+              
                     if (!opendata)
                     {
                         //Add the SmgTags for IDM
@@ -377,7 +374,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Add the values to Tags (TagEntry) not needed anymore?
                         //await AddTagEntryToTags(gastroparsed);
+
+                        //Traduce all Tags with Source IDM to english tags
+                        await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                            gastroparsed,
+                            settings.JsonConfig.Jsondir
+                        );
                     }
+
+                    //Create Tags and preserve the old TagEntries
+                    await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroparsed) : null);
+
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
 
@@ -516,7 +523,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 result =  await QueryFactory.DeleteData<EventLinked>(
                     "smgpoi" + id.ToLower(),
-                    new DataInfo("smgpoi", CRUDOperation.Delete),
+                    new DataInfo("smgpois", CRUDOperation.Delete),
                     new CRUDConstraints()
                 );
 
@@ -557,7 +564,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         result = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                                data,
-                               new DataInfo("smgpoi", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new DataInfo("smgpois", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                                new EditInfo("lts.gastronomies.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
@@ -588,8 +595,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             if (gastroOld != null)
             {                                
-                //Readd all Redactional Tags
-                var redactionalassignedTags = gastroOld.Tags != null ? gastroOld.Tags.Where(x => x.Source != "lts").ToList() : null;
+                //Readd all Redactional Tags to check if this query fits
+                var redactionalassignedTags = gastroOld.Tags != null ? gastroOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
                 if (redactionalassignedTags != null)
                 {
                     foreach (var tag in redactionalassignedTags)
@@ -598,7 +605,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-            //TODO import the Redactional Tags from Gastronomies into Tags?
+
+            //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
+
+            //TODO import the Redactional Tags from SmgTags into Tags?
         }
 
         //Gastronomies ODHTags assignment
