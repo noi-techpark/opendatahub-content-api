@@ -495,13 +495,15 @@ namespace OdhApiCore
             app.UseForwardedHeaders(new ForwardedHeadersOptions()
             {
                 ForwardedHeaders = ForwardedHeaders.XForwardedProto,
-                KnownProxies =
-                {
-                    // Caddy Prod
-                    IPAddress.Parse("172.31.1.28"),
-                    // Caddy Test
-                    IPAddress.Parse("172.31.23.94"),
-                }
+                KnownNetworks = { },
+                KnownProxies = { },
+                //KnownProxies =
+                //{
+                //    // Caddy Prod
+                //    IPAddress.Parse("172.31.1.28"),
+                //    // Caddy Test
+                //    IPAddress.Parse("172.31.23.94"),
+                //}
                 //KnownNetworks =
                 //{
                 //    // IP v4 network
