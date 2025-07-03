@@ -135,6 +135,12 @@ namespace OdhApiCore
             //    .Where(c => c.Type == ClaimTypes.Role)
             //    .Select(c => c.Value);
 
+            //Logging all Headers
+            if(context.Request.Query.ContainsKey("debugheaders"))
+            {
+                Console.WriteLine(JsonConvert.SerializeObject(context.Request.Headers));
+            }
+
             HttpRequestLog httplog = new HttpRequestLog()
             {
                 host = context.Request.Host.ToString(),
