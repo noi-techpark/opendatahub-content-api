@@ -498,6 +498,7 @@ namespace OdhApiCore
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseHsts();
             }
             else
             {
