@@ -500,7 +500,7 @@ namespace OdhApiCore
                 KnownProxies =
                 {
                     // Caddy Test
-                    IPAddress.Parse("46.18.28.240"),                    
+                    IPAddress.Parse("52.16.145.216"),                    
                 }
                 //KnownNetworks =
                 //{
