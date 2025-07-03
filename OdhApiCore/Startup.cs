@@ -490,7 +490,26 @@ namespace OdhApiCore
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseForwardedHeaders();
+            //app.UseForwardedHeaders();
+
+            app.UseForwardedHeaders(new ForwardedHeadersOptions()
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedProto,
+                KnownProxies =
+                {
+                    // Caddy Prod
+                    IPAddress.Parse("172.31.1.28"),
+                    // Caddy Test
+                    IPAddress.Parse("172.31.23.94"),
+                }
+                //KnownNetworks =
+                //{
+                //    // IP v4 network
+                //    //new IPNetwork(IPAddress.Parse("10.244.0.0"), 16),                    
+                //}
+            });
+
+
             //// TODO: Move to Production
             //app.UseClientRateLimiting();
             //app.UseIpRateLimiting();
@@ -498,7 +517,6 @@ namespace OdhApiCore
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseHsts();
             }
             else
             {
