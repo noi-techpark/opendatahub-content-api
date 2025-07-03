@@ -479,10 +479,10 @@ namespace OdhApiCore
                 ServiceDescriptor.Transient<ISwaggerProvider, CachingSwaggerProvider>()
             );
 
-            services.Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-            });
+            //services.Configure<ForwardedHeadersOptions>(options =>
+            //{
+            //    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+            //});
 
             //services.AddHttpContextAccessor();
         }
