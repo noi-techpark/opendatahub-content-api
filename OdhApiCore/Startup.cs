@@ -479,10 +479,10 @@ namespace OdhApiCore
                 ServiceDescriptor.Transient<ISwaggerProvider, CachingSwaggerProvider>()
             );
 
-            //services.Configure<ForwardedHeadersOptions>(options =>
-            //{
-            //    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-            //});
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+            });
 
             //services.AddHttpContextAccessor();
         }
@@ -500,12 +500,12 @@ namespace OdhApiCore
                 KnownProxies =
                 {
                     // Caddy Test
-                    IPAddress.Parse("52.16.145.216"),                    
-                }
+                    IPAddress.Parse("52.16.145.216"),
+                },
                 //KnownNetworks =
                 //{
                 //    // IP v4 network
-                //    //new IPNetwork(IPAddress.Parse("10.244.0.0"), 16),                    
+                //    new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("172.31.0.0"), 16),                    
                 //}
             });
 
