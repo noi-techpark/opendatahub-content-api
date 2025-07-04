@@ -497,17 +497,17 @@ namespace OdhApiCore
                 ForwardedHeaders = ForwardedHeaders.XForwardedProto,
                 //KnownNetworks = { },
                 //KnownProxies = { },
-                //KnownProxies =
-                //{
-                //    // Caddy Test
-                //    IPAddress.Parse("52.16.145.216"),
-                //},
-                //TO TEST!
-                KnownNetworks =
+                KnownProxies =
                 {
-                    // IP v4 network
-                    new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("172.31.0.0"), 16),
-                }
+                    // Caddy Test
+                    IPAddress.Parse("52.16.145.216"),
+                },
+                //TO TEST!
+                //KnownNetworks =
+                //{
+                //    // IP v4 network
+                //    new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("172.31.0.0"), 16),
+                //}
             });
 
 
