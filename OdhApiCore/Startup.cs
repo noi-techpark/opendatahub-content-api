@@ -491,29 +491,20 @@ namespace OdhApiCore
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             //app.UseForwardedHeaders();
-
+            
             app.UseForwardedHeaders(new ForwardedHeadersOptions()
             {
-                ForwardedHeaders = ForwardedHeaders.XForwardedProto,
-                //KnownNetworks = { },
-                //KnownProxies = { },
+                ForwardedHeaders = ForwardedHeaders.XForwardedProto,                
                 KnownProxies =
                 {
                     // Caddy Test
-                    IPAddress.Parse("52.16.145.216"),
-                },
-                //TO TEST!
-                //KnownNetworks =
-                //{
-                //    // IP v4 network
-                //    new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("172.31.0.0"), 16),
-                //}
+                    IPAddress.Parse(Configuration.GetSection("ProxyConfig").GetValue<string>("CaddyTest")),
+                    IPAddress.Parse(Configuration.GetSection("ProxyConfig").GetValue<string>("CaddyProd")),
+                },                
             });
 
 
-            //Configuration
-            //           .GetSection("ProxyConfig")
-            //           .GetValue<string>("CaddyTest")
+            //
 
             //// TODO: Move to Production
             //app.UseClientRateLimiting();

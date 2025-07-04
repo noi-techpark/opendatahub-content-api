@@ -19,6 +19,8 @@ services:
       ASPNETCORE_S3ImageresizerConfig__AccessKey: ${S3_IMAGEUPLOADER_ACCESSKEY}
       ASPNETCORE_S3ImageresizerConfig__SecretKey: ${S3_IMAGEUPLOADER_SECRETKEY}
       ASPNETCORE_OauthServerConfig__Authority: ${OAUTH_AUTORITY}
+      ASPNETCORE_ProxyConfig__CaddyTest: ${CADDY_TEST_IP}
+      ASPNETCORE_ProxyConfig__CaddyProd: ${CADDY_PROD_IP}
       ASPNETCORE_ElasticSearchConfig__ElasticUrl: ${ELK_URL}
       ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ${ELK_TOKEN}
       ASPNETCORE_JsonConfig__Jsondir: ${JSONPATH}
