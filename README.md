@@ -4,13 +4,13 @@ SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-# odh-api-core
+# opendatahub-content-api
 
-Port of ODH Tourim Api to .Net Core.
+Port of Open Data Hub Tourim Api to .Net Core.
 
-[![REUSE Compliance](https://github.com/noi-techpark/odh-api-core/actions/workflows/reuse.yml/badge.svg)](https://github.com/noi-techpark/odh-docs/wiki/REUSE#badges)
-[![CI/CD API](https://github.com/noi-techpark/odh-api-core/actions/workflows/main_api.yml/badge.svg)](https://github.com/noi-techpark/odh-api-core/actions/workflows/main_api.yml)
-[![CI/CD Importer](https://github.com/noi-techpark/odh-api-core/actions/workflows/main_importer.yml/badge.svg)](https://github.com/noi-techpark/odh-api-core/actions/workflows/main_importer.yml)
+[![REUSE Compliance](https://github.com/noi-techpark/opendatahub-content-api/actions/workflows/reuse.yml/badge.svg)](https://github.com/noi-techpark/opendatahub-docs/wiki/REUSE#badges)
+[![CI/CD API](https://github.com/noi-techpark/opendatahub-content-api/actions/workflows/main_api.yml/badge.svg)](https://github.com/noi-techpark/opendatahub-content-api/actions/workflows/main_api.yml)
+[![CI/CD Importer](https://github.com/noi-techpark/opendatahub-content-api/actions/workflows/main_importer.yml/badge.svg)](https://github.com/noi-techpark/opendatahub-content-api/actions/workflows/main_importer.yml)
 
 ## Project Goals/Requirements:
 
@@ -157,10 +157,10 @@ Set the needed environment variables
 ### using Docker
 
 go into \OdhApiCore\ folder \
-`docker-compose up` starts the odh-api appliaction on http://localhost:8001/
+`docker-compose up` starts the Open Data Hub Content Api application on http://localhost:8001/
 
 go into \OdhApiImporter\ folder \
-`docker-compose up` starts the odh-api appliaction on http://localhost:8002/
+`docker-compose up` starts the  Open Data Hub Content Api application on http://localhost:8002/
 
 ### using .Net Core CLI
 
@@ -584,7 +584,7 @@ $function$
 
 ### REUSE
 
-This project is [REUSE](https://reuse.software) compliant, more information about the usage of REUSE in NOI Techpark repositories can be found [here](https://github.com/noi-techpark/odh-docs/wiki/Guidelines-for-developers-and-licenses#guidelines-for-contributors-and-new-developers).
+This project is [REUSE](https://reuse.software) compliant, more information about the usage of REUSE in NOI Techpark repositories can be found [here](https://github.com/noi-techpark/opendatahub-docs/wiki/Guidelines-for-developers-and-licenses#guidelines-for-contributors-and-new-developers).
 
 Since the CI for this project checks for REUSE compliance you might find it useful to use a pre-commit hook checking for REUSE compliance locally. The [pre-commit-config](.pre-commit-config.yaml) file in the repository root is already configured to check for REUSE compliance with help of the [pre-commit](https://pre-commit.com) tool.
 
