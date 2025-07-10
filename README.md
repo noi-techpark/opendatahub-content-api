@@ -29,7 +29,7 @@ Port of Open Data Hub Tourim Api to .Net Core.
 
 ## Project Structure
 
-Test Server on https://api.tourism.testingmachine.eu  
+Test Server on https://tourism.api.opendatahub.testingmachine.eu  
 Production Server on https://tourism.api.opendatahub.com
 
 ### DataModel
