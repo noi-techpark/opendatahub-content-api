@@ -182,6 +182,7 @@ $RECYCLE.BIN/
 /google-service-account.noicommunity.json
 /OdhApiImporter/json/Amenities.json
 /OdhApiImporter/json/Features.json
+/OdhApiImporter/json
 /OdhApiImporter/json/TagsForGastronomy.json
 /OdhApiImporter/json/CapacityCeremonies.json
 /OdhApiImporter/json/CategoryCodes.json

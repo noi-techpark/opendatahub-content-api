@@ -85,6 +85,8 @@ jobs:
           X_S3_IMAGEUPLOADER_ACCESSKEY: ${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}
           X_S3_IMAGEUPLOADER_SECRETKEY: ${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}
           X_OAUTH_AUTORITY: "https://auth.opendatahub.testingmachine.eu/auth/realms/noi/"
+          X_CADDY_TEST_IP: ${{ secrets.CADDY_TEST_IP }}
+          X_CADDY_PROD_IP: ${{ secrets.CADDY_PROD_IP }}
           X_ELK_URL: ${{ secrets.ELK_URL_TEST }}
           X_ELK_TOKEN: ${{ secrets.ELK_TOKEN_TEST }}
           X_JSONPATH: "./json/"
@@ -221,6 +223,8 @@ jobs:
           X_S3_IMAGEUPLOADER_ACCESSKEY: ${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}
           X_S3_IMAGEUPLOADER_SECRETKEY: ${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}
           X_OAUTH_AUTORITY: "https://auth.opendatahub.com/auth/realms/noi/"
+          X_CADDY_TEST_IP: ${{ secrets.CADDY_TEST_IP }}
+          X_CADDY_PROD_IP: ${{ secrets.CADDY_PROD_IP }}
           X_ELK_URL: ${{ secrets.ELK_URL_TEST }}
           X_ELK_TOKEN: ${{ secrets.ELK_TOKEN_TEST }}
           X_JSONPATH: "./json/"
