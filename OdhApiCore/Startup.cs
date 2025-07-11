@@ -503,9 +503,6 @@ namespace OdhApiCore
                 },                
             });
 
-
-            //
-
             //// TODO: Move to Production
             //app.UseClientRateLimiting();
             //app.UseIpRateLimiting();
@@ -583,11 +580,6 @@ namespace OdhApiCore
                 c.OAuthRealm("noi");
                 c.EnableDeepLinking();
             });
-
-            //if (env.IsDevelopment())
-            //{
-            //    app.UseRateLimiting();
-            //}
 
             app.UseRateLimiting();
 
