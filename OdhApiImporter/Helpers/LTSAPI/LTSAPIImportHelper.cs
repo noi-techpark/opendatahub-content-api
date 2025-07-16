@@ -99,6 +99,27 @@ namespace OdhApiImporter.Helpers
 
                     break;
 
+                case "poi":
+                    LTSApiPoiImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    updateresult = await ltsapipoiimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
+
+                    //Get Reduced                    
+                    updateresultreduced = await ltsapipoiimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
+
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+
+                    break;
+
                 default:
                     throw new Exception("no match found");
             }
@@ -186,6 +207,42 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "gastronomy", cancellationToken);
+
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            resulttuple.Item1,
+                            "api",
+                            "Update LTS",
+                            "single.lastchanged",
+                            "Update LTS succeeded",
+                            datatype,
+                            resulttuple.Item2,
+                            true
+                        );
+
+                        createcounter = resulttuple.Item2.created + createcounter;
+                        updatecounter = resulttuple.Item2.updated + updatecounter;
+                        deletecounter = resulttuple.Item2.deleted + deletecounter;
+                        errorcounter = resulttuple.Item2.error + errorcounter;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
+                case "poi":
+                    LTSApiPoiImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    lastchangedlist = await ltsapipoiimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
+
+                    //Call Single Update and write LOG
+                    foreach (var id in lastchangedlist)
+                    {
+                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "poi", cancellationToken);
 
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
