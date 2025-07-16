@@ -54,6 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Helpers\LTSAPI\activity\" />
     <Folder Include="Models\" />
     <Folder Include="json\" />
   </ItemGroup>
