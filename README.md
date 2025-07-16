@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC0-1.0
 
 # opendatahub-content-api
 
-Port of Open Data Hub Tourim Api to .Net Core.
+Port of Open Data Hub Tourism Api to .Net Core.
 
 [![REUSE Compliance](https://github.com/noi-techpark/opendatahub-content-api/actions/workflows/reuse.yml/badge.svg)](https://github.com/noi-techpark/opendatahub-docs/wiki/REUSE#badges)
 [![CI/CD API](https://github.com/noi-techpark/opendatahub-content-api/actions/workflows/main_api.yml/badge.svg)](https://github.com/noi-techpark/opendatahub-content-api/actions/workflows/main_api.yml)
@@ -34,11 +34,11 @@ Production Server on https://tourism.api.opendatahub.com
 
 ### DataModel
 
-Definition of all ODH Tourism Models. Available as Nuget package (https://www.nuget.org/packages/opendatahub-datamodel-tourism)
+Definition of all Open Data Hub Tourism Models. Available as Nuget package (https://www.nuget.org/packages/opendatahub-datamodel-tourism)
 
 ### OdhApiCore
 
-Api to retrieve ODH Tourism Data
+Api to retrieve Open Data Hub Tourism Data
 
 ### OdhApiImporter
 
@@ -46,7 +46,7 @@ Workerservice which is importing the Data with help of the Data Collectors
 
 ### Helper
 
-Class Library with Extension Methods and other ODH Helper Methods
+Class Library with Extension Methods and other Open Data Hub Tourism Helper Methods
 
 ### CDB, DSS, EBMS, LCS, MSS, NINJA, RAVEN, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
 
