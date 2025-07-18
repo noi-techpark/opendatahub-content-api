@@ -2,6 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using Helper;
+using LTSAPI;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using OdhNotifier;
+using SqlKata;
+using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,13 +17,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DataModel;
-using Helper;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using OdhNotifier;
-using SqlKata;
-using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers
 {
@@ -55,6 +56,8 @@ namespace OdhApiImporter.Helpers
             bool reduced = false,
             CancellationToken cancellationToken = default
         );
+
+        LtsApi GetLTSApi(bool opendata);
     }
 
     public class ImportHelper
@@ -76,6 +79,31 @@ namespace OdhApiImporter.Helpers
             this.table = table;
             this.importerURL = importerURL;
         }
+
+        public LtsApi GetLTSApi(bool opendata)
+        {
+            if (!opendata)
+            {
+                return new LtsApi(
+                   settings.LtsCredentials.serviceurl,
+                   settings.LtsCredentials.username,
+                   settings.LtsCredentials.password,
+                   settings.LtsCredentials.ltsclientid,
+                   false
+               );
+            }
+            else
+            {
+                return new LtsApi(
+                settings.LtsCredentialsOpen.serviceurl,
+                settings.LtsCredentialsOpen.username,
+                settings.LtsCredentialsOpen.password,
+                settings.LtsCredentialsOpen.ltsclientid,
+                true
+            );
+            }
+        }
+
 
         /// <summary>
         /// Deletes or disables the data by the selected option
