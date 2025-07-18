@@ -277,7 +277,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             try
             {
-                LtsApi ltsapi = GetLTSApi();
+                LtsApi ltsapi = GetLTSApi(opendata);
 
                 var qs = new LTSQueryStrings() { page_size = 1 };
                 var dict = ltsapi.GetLTSQSDictionary(qs);
