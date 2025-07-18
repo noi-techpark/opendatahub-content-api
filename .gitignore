@@ -183,3 +183,8 @@ $RECYCLE.BIN/
 /OdhApiImporter/json/Amenities.json
 /OdhApiImporter/json/Features.json
 /OdhApiImporter/json
+/OdhApiImporter/json/TagsForGastronomy.json
+/OdhApiImporter/json/CapacityCeremonies.json
+/OdhApiImporter/json/CategoryCodes.json
+/OdhApiImporter/json/DishRates.json
+/OdhApiImporter/json/Facilities.json
