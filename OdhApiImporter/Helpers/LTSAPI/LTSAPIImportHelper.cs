@@ -100,7 +100,7 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "poi":
-                    LTSApiPoiImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
+                    LTSApiVenueImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -230,7 +230,7 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "poi":
-                    LTSApiPoiImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
+                    LTSApiVenueImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -415,7 +415,7 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "poi":
-                    LTSApiPoiImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
+                    LTSApiVenueImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -715,7 +715,7 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "poi":
-                    LTSApiPoiImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
+                    LTSApiVenueImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",

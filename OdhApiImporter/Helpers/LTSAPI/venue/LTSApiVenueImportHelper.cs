@@ -23,11 +23,11 @@ using System.Threading.Tasks;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
-    public class LTSApiPoiImportHelper : ImportHelper, IImportHelperLTS
+    public class LTSApiVenueImportHelper : ImportHelper, IImportHelperLTS
     {
         public bool opendata = false;
 
-        public LTSApiPoiImportHelper(
+        public LTSApiVenueImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -65,26 +65,26 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var poilts = await GetPoisFromLTSV2(id, null, null, null);
+            var venuelts = await GetVenuesFromLTSV2(id, null, null, null);
 
             //Check if Data is accessible on LTS
-            if (poilts != null && poilts.FirstOrDefault().ContainsKey("success") && (Boolean)poilts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
+            if (venuelts != null && venuelts.FirstOrDefault().ContainsKey("success") && (Boolean)venuelts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
             {     //Import Single Data & Deactivate Data
-                var result = await SavePoisToPG(poilts);
+                var result = await SaveVenuesToPG(venuelts);
                 return result;
             }
             //If data is not accessible on LTS Side, delete or disable it
-            else if (poilts != null && poilts.FirstOrDefault().ContainsKey("status") && ((int)poilts.FirstOrDefault()["status"] == 403 || (int)poilts.FirstOrDefault()["status"] == 404))
+            else if (venuelts != null && venuelts.FirstOrDefault().ContainsKey("status") && ((int)venuelts.FirstOrDefault()["status"] == 403 || (int)venuelts.FirstOrDefault()["status"] == 404))
             {
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisablePoisData(id, false, false);
+                    return await DeleteOrDisableVenuesData(id, false, false);
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisablePoisData(id, true, true);
+                    return await DeleteOrDisableVenuesData(id, true, true);
                 }
             }
             else
@@ -106,7 +106,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
        )
         {
             //Import the List
-            var lastchangedlts = await GetPoisFromLTSV2(null, lastchanged, null, null);
+            var lastchangedlts = await GetVenuesFromLTSV2(null, lastchanged, null, null);
             List<string> lastchangedlist = new List<string>();
 
             if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
@@ -120,11 +120,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "lastchanged.pointofinterests",
+                    "lastchanged.venues",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.pointofinterests",
+                        sourceinterface = "lts.venues",
                         success = false,
                         error = "Could not fetch last changed List",
                     }
@@ -141,7 +141,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var deletedlts = await GetPoisFromLTSV2(null, null, deletedfrom, null);
+            var deletedlts = await GetVenuesFromLTSV2(null, null, deletedfrom, null);
             List<string> lastdeletedlist = new List<string>();
 
             if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
@@ -155,11 +155,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deleted.pointofinterests",
+                    "deleted.venues",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.pointofinterests",
+                        sourceinterface = "lts.venues",
                         success = false,
                         error = "Could not fetch deleted List",
                     }
@@ -178,7 +178,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var activelistlts = await GetPoisFromLTSV2(null, null, null, active);
+            var activelistlts = await GetVenuesFromLTSV2(null, null, null, active);
             List<string> activeList = new List<string>();
 
             if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
@@ -192,11 +192,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "active.pointofinterests",
+                    "active.venues",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.pointofinterests",
+                        sourceinterface = "lts.venues",
                         success = false,
                         error = "Could not fetch active List",
                     }
@@ -206,24 +206,24 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return activeList;
         }
 
-        private async Task<List<JObject>> GetPoisFromLTSV2(string poiid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
+        private async Task<List<JObject>> GetVenuesFromLTSV2(string venueid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
             try
             {
                 LtsApi ltsapi = GetLTSApi(opendata);
                 
-                if(poiid != null)
+                if(venueid != null)
                 {
-                    //Get Single Poi
+                    //Get Single Venue
 
                     var qs = new LTSQueryStrings() { page_size = 1 };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.PoiDetailRequest(poiid, dict);
+                    return await ltsapi.VenueDetailRequest(venueid, dict);
                 }
                 else if (lastchanged != null)
-                {                    
-                    //Get the Last Changed Pois list
+                {
+                    //Get the Last Changed Venues list
 
                     var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false }; //To check filter_onlyTourismOrganizationMember
 
@@ -232,11 +232,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.PoiListRequest(dict, true);
+                    return await ltsapi.VenueListRequest(dict, true);
                 }
                 else if (deletedfrom != null)
                 {
-                    //Get the Active Pois list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+                    //Get the Active Venues list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
                     var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
                 
@@ -245,11 +245,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.PoiDeletedRequest(dict, true);
+                    return await ltsapi.VenueDeletedRequest(dict, true);
                 }
                 else if (activelist != null)
                 {
-                    //Get the Active Pois list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+                    //Get the Active Venues list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
                     var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full" };
                 
@@ -258,7 +258,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.PoiListRequest(dict, true);
+                    return await ltsapi.VenueListRequest(dict, true);
                 }
                 else
                     return null;
@@ -268,11 +268,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "list.pointofinterests",
+                    "list.venues",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.pointofinterests",
+                        sourceinterface = "lts.venues",
                         success = false,
                         error = ex.Message,
                     }
@@ -281,7 +281,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<UpdateDetail> SavePoisToPG(List<JObject> ltsdata)
+        private async Task<UpdateDetail> SaveVenuesToPG(List<JObject> ltsdata)
         {
             //var newimportcounter = 0;
             //var updateimportcounter = 0;
@@ -294,12 +294,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 List<string> idlistlts = new List<string>();
 
-                List<LTSPointofInterest> poidata = new List<LTSPointofInterest>();
+                List<LTSVenue> venuedata = new List<LTSVenue>();
 
                 foreach (var ltsdatasingle in ltsdata)
                 {
-                    poidata.Add(
-                        ltsdatasingle.ToObject<LTSPointofInterest>()
+                    venuedata.Add(
+                        ltsdatasingle.ToObject<LTSVenue>()
                     );
                 }
 
@@ -317,54 +317,54 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //    );
                 //}
 
-                foreach (var data in poidata)
+                foreach (var data in venuedata)
                 {
                     string id = data.data.rid.ToLower();
 
-                    var poiparsed = PointofInterestParser.ParseLTSPointofInterest(data.data, false);
+                    var venueparsed = VenueParser.ParseLTSVenueV2(data.data, false);
 
                     //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
-                    poiparsed.LocationInfo = await poiparsed.UpdateLocationInfoExtension(
-                        QueryFactory
-                    );
+                    //venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
+                    //    QueryFactory
+                    //);
 
                     //DistanceCalculation
-                    await poiparsed.UpdateDistanceCalculation(QueryFactory);
+                    //await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    //GET OLD Poi
-                    var poiindb = await LoadDataFromDB<ODHActivityPoiLinked>(id, IDStyle.lowercase);
+                    //GET OLD Venue
+                    var venueindb = await LoadDataFromDB<VenueV2>(id, IDStyle.lowercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
-                    await MergePoiTags(poiparsed, poiindb);
+                    //await MergeVenueTags(venueparsed, venueindb);
               
                     if (!opendata)
                     {
                         //TO CHECK
                         //Add the SmgTags for IDM
-                        //await AssignODHTags(poiparsed, poiindb);
+                        //await AssignODHTags(venueparsed, vewnueindb);
 
                         //TO CHECK
-                        //await SetODHActiveBasedOnRepresentationMode(poiparsed);
+                        //await SetODHActiveBasedOnRepresentationMode(venueparsed);
 
                         //TO CHECK
                         //Add the MetaTitle for IDM
-                        //await AddMetaTitle(poiparsed);
+                        //await AddMetaTitle(venueparsed);
 
                         //Add the values to Tags (TagEntry) not needed anymore?
-                        //await AddTagEntryToTags(poiparsed);
+                        //await AddTagEntryToTags(venueparsed);
 
                         //Traduce all Tags with Source IDM to english tags
-                        await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                            poiparsed,
-                            settings.JsonConfig.Jsondir
-                        );
+                        //await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                        //    venueparsed,
+                        //    settings.JsonConfig.Jsondir
+                        //);
                     }
 
                     //Create Tags and preserve the old TagEntries
-                    await poiparsed.UpdateTagsExtension(QueryFactory, null);
+                    await venueparsed.UpdateTagsExtension(QueryFactory, null);
 
 
-                    var result = await InsertDataToDB(poiparsed, data.data);
+                    var result = await InsertDataToDB(venueparsed, data.data);
 
                     //newimportcounter = newimportcounter + result.created ?? 0;
                     //updateimportcounter = updateimportcounter + result.updated ?? 0;
@@ -389,11 +389,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     WriteLog.LogToConsole(
                         id,
                         "dataimport",
-                        "single.pointofinterests",
+                        "single.venues",
                         new ImportLog()
                         {
                             sourceid = id,
-                            sourceinterface = "lts.pointofinterests",
+                            sourceinterface = "lts.venues",
                             success = true,
                             error = "",
                         }
@@ -430,15 +430,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            ODHActivityPoiLinked objecttosave,
-            LTSPointofInterestData poilts            
+            VenueV2 objecttosave,
+            LTSVenueData venuelts
         )
         {
             try
             {
                 //TODO!
                 //Set LicenseInfo
-                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(objecttosave, opendata);
+                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforVenue(objecttosave, opendata);
 
                 //TODO!
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
@@ -453,14 +453,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Set PublishedOn with allowedtaglist
                 objecttosave.CreatePublishedOnList(autopublishtaglist);
 
-                var rawdataid = await InsertInRawDataDB(poilts);
+                var rawdataid = await InsertInRawDataDB(venuelts);
                 
                 objecttosave.Id = objecttosave.Id.ToLower();
 
-                return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
+                return await QueryFactory.UpsertData<VenueV2>(
                     objecttosave,
-                    new DataInfo("smgpois", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                    new EditInfo("lts.pointofinterests.import", importerURL),
+                    new DataInfo("venuesv2", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                    new EditInfo("lts.venues.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
                     rawdataid,
@@ -473,25 +473,25 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<int> InsertInRawDataDB(LTSPointofInterestData poilts)
+        private async Task<int> InsertInRawDataDB(LTSVenueData venuelts)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
                     datasource = "lts",
                     importdate = DateTime.Now,
-                    raw = JsonConvert.SerializeObject(poilts),
-                    sourceinterface = "pointofinterests",
-                    sourceid = poilts.rid,
-                    sourceurl = "https://go.lts.it/api/v1/pointofinterests",
-                    type = "odhactivitypoi",
+                    raw = JsonConvert.SerializeObject(venuelts),
+                    sourceinterface = "venues",
+                    sourceid = venuelts.rid,
+                    sourceurl = "https://go.lts.it/api/v1/venues",
+                    type = "venue",
                     license = "open",
                     rawformat = "json",
                 }
             );
         }
         
-        public async Task<UpdateDetail> DeleteOrDisablePoisData(string id, bool delete, bool reduced)
+        public async Task<UpdateDetail> DeleteOrDisableVenuesData(string id, bool delete, bool reduced)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
@@ -499,9 +499,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result = await QueryFactory.DeleteData<ODHActivityPoiLinked>(
+                result = await QueryFactory.DeleteData<VenueV2>(
                 id.ToLower(),
-                new DataInfo("smgpois", CRUDOperation.Delete),
+                new DataInfo("venues", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
                 );
@@ -527,7 +527,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
 
-                var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
+                var data = await query.GetObjectSingleAsync<VenueV2>();
 
                 if (data != null)
                 {
@@ -545,10 +545,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //    .Where("id", id)
                         //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
 
-                        result = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
+                        result = await QueryFactory.UpsertData<VenueV2>(
                                data,
-                               new DataInfo("smgpois", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                               new EditInfo("lts.pointofinterests.import.deactivate", importerURL),
+                               new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new EditInfo("lts.venues.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
                         );
@@ -574,17 +574,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
      
-        private async Task MergePoiTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        private async Task MergeVenueTags(VenueV2 vNew, VenueV2 vOld)
         {
-            if (poiOld != null)
+            if (vOld != null)
             {                                
                 //Readd all Redactional Tags to check if this query fits
-                var redactionalassignedTags = poiOld.Tags != null ? poiOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
                 if (redactionalassignedTags != null)
                 {
                     foreach (var tag in redactionalassignedTags)
                     {
-                        poiNew.TagIds.Add(tag.Id);
+                        vNew.TagIds.Add(tag.Id);
                     }
                 }
             }

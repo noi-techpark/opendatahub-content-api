@@ -206,35 +206,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return activeList;
         }
 
-        private LtsApi GetLTSApi()
-        {
-            if (!opendata)
-            {
-                return new LtsApi(
-                   settings.LtsCredentials.serviceurl,
-                   settings.LtsCredentials.username,
-                   settings.LtsCredentials.password,
-                   settings.LtsCredentials.ltsclientid,
-                   false
-               );
-            }
-            else
-            {
-                return new LtsApi(
-                settings.LtsCredentialsOpen.serviceurl,
-                settings.LtsCredentialsOpen.username,
-                settings.LtsCredentialsOpen.password,
-                settings.LtsCredentialsOpen.ltsclientid,
-                true
-            );
-            }
-        }
-
         private async Task<List<JObject>> GetGastronomiesFromLTSV2(string gastroid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
             try
             {
-                LtsApi ltsapi = GetLTSApi();
+                LtsApi ltsapi = GetLTSApi(opendata);
                 
                 if(gastroid != null)
                 {
