@@ -209,7 +209,19 @@ namespace DIGIWAY
                 additionalvalues.Add("id", Convert.ToString(digiwaydata.properties.ID));
             if (digiwaydata.properties.ROUTE_TYPE != null)
                 additionalvalues.Add("route_type", Convert.ToString(digiwaydata.properties.ROUTE_TYPE));
-            
+
+
+            if (digiwaydata.properties.ROUTE_START != null)
+                additionalvalues.Add("route_start", Convert.ToString(digiwaydata.properties.ROUTE_START));
+            if (digiwaydata.properties.ROUTE_END != null)
+                additionalvalues.Add("route_end", Convert.ToString(digiwaydata.properties.ROUTE_END));
+            if (digiwaydata.properties.STATUS != null)
+                additionalvalues.Add("status", Convert.ToString(digiwaydata.properties.STATUS));
+            if (digiwaydata.properties.STATUS_DATE != null)
+                additionalvalues.Add("status_date", Convert.ToString(digiwaydata.properties.STATUS_DATE));
+
+            //Add ROUTE_START / ROUTE_END
+
             var bboxformatted = digiwaydata.bbox.Select(d => d.ToString(CultureInfo.InvariantCulture)).ToList();
 
             additionalvalues.Add("bbox", "[" + String.Join(",", bboxformatted) + "]");
@@ -219,7 +231,7 @@ namespace DIGIWAY
                 digiwaydata,                
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToString(digiwaydata.properties.ROUTE_NAME) : null,
                 "cyclewaytyrol",
-                digiwaydata.properties.ROUTE_NAME != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
+                digiwaydata.properties.START_HEIGHT != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
                 );
 
             odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
@@ -479,7 +491,7 @@ namespace DIGIWAY
             odhactivitypoi.TagIds.Add("9DE2F99EA67E4278A558755E093DB0ED"); //LTS Others bike Tag
             odhactivitypoi.TagIds.Add("cycling");
             odhactivitypoi.TagIds.Add("others bike");
-            odhactivitypoi.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");        //LTS RAdtouren Tag     
+            odhactivitypoi.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");  //LTS RAdtouren Tag     
 
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             if(digiwaydata.properties.CODE != null)
