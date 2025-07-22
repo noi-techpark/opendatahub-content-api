@@ -297,13 +297,22 @@ namespace Helper
             IReadOnlyCollection<string> regionlist,
             IReadOnlyCollection<string> tourismvereinlist,
             IReadOnlyCollection<string> municipalitylist,
-            IReadOnlyCollection<string> districtlist) =>
+            IReadOnlyCollection<string> districtlist,
+            bool usedistrictfield = false) =>
              query.Where(q =>
              {
                  q.OrWhereInJsonb(list: regionlist, jsonPath: "LocationInfo.RegionInfo.Id");
                  q.OrWhereInJsonb(list: tourismvereinlist, jsonPath: "LocationInfo.TvInfo.Id");
-                 q.OrWhereInJsonb(list: municipalitylist,jsonPath: "LocationInfo.MunicipalityInfo.Id");
-                 q.OrWhereInJsonb(list: districtlist, jsonPath: "LocationInfo.DistrictInfo.Id");
+                 q.OrWhereInJsonb(list: municipalitylist, jsonPath: "LocationInfo.MunicipalityInfo.Id");
+                 q.When(
+                     usedistrictfield,
+                     q => q.OrWhereInJsonb(list: districtlist, jsonPath: "DistrictId")
+                 );
+                 q.When(
+                     usedistrictfield == false,
+                     q => q.OrWhereInJsonb(list: districtlist, jsonPath: "LocationInfo.DistrictInfo.Id")
+                 );
+
                  return q;
              });
 

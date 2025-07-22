@@ -280,7 +280,7 @@ namespace Helper
                 //.LocFilterMunicipalityFilter(municipalitylist)
                 //.LocFilterTvsFilter(tourismvereinlist)
                 //.LocFilterRegionFilter(regionlist)
-                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist)
+                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
                 .AreaFilter(arealist)
                 .DifficultyFilter(difficultylist)
                 .DistanceFilter(distance, distancemin, distancemax)
@@ -355,7 +355,7 @@ namespace Helper
                 //.LocFilterMunicipalityFilter(municipalitylist) //Use generated columns also here?
                 //.LocFilterTvsFilter(tourismvereinlist) //Use generated columns also here?
                 //.LocFilterRegionFilter(regionlist) //Use generated columns also here?
-                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist)
+                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
                 .AreaFilter(arealist) //Use generated columns also here?
                 .HighlightFilter(highlight)
                 .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
@@ -423,7 +423,7 @@ namespace Helper
                 //.LocFilterMunicipalityFilter(municipalitylist)
                 //.LocFilterTvsFilter(tourismvereinlist)
                 //.LocFilterRegionFilter(regionlist)
-                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist)
+                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
                 .CeremonyCodeFilter(ceremonycodeslist)
                 .CategoryCodeFilter(categorycodeslist)
                 .CuisineCodeFilter(facilitycodeslist)
@@ -728,7 +728,7 @@ namespace Helper
                 //.LocFilterMunicipalityFilter(municipalitylist)
                 //.LocFilterTvsFilter(tourismvereinlist)
                 //.LocFilterRegionFilter(regionlist)
-                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist)
+                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
                 .EventPublisherRancFilter(ranclist)
                 .EventOrgFilter(orglist)
                 .SearchFilterWithGenId(TitleFieldsToSearchFor(language, languagelist), searchfilter)
@@ -798,7 +798,7 @@ namespace Helper
                 //.LocFilterMunicipalityFilter(municipalitylist)
                 //.LocFilterTvsFilter(tourismvereinlist)
                 //.LocFilterRegionFilter(regionlist)
-                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist)
+                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
                 .When(
                     tagdict != null && tagdict.Count > 0,
                     q => q.TaggingFilter_GeneratedColumn(tagdict)
@@ -905,7 +905,7 @@ namespace Helper
                 //.LocFilterMunicipalityFilter(municipalitylist)
                 //.LocFilterTvsFilter(tourismvereinlist)
                 //.LocFilterRegionFilter(regionlist)
-                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist)
+                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
                 .AccoAltitudeFilter(altitude, altitudemin, altitudemax)
                 .SearchFilter(AccoTitleFieldsToSearchFor(language, languagelist), searchfilter)
                 .When(
