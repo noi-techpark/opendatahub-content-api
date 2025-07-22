@@ -139,6 +139,25 @@ namespace Helper
             }
         }
 
+        public static Query OrWhereInJsonb<T>(
+            this Query query,
+            IReadOnlyCollection<T> list,
+            string jsonPath
+        )
+        {
+            if (list.Count == 0)
+            {
+                return query;
+            }
+            else
+            {
+                return query.OrWhereRaw(
+                    $"data#>>'\\{{{JsonPathToPostgresArray(jsonPath)}\\}}' = ANY($$)",
+                    new[] { new[] { list } }
+                );
+            }
+        }
+
         [Obsolete]
         public static Query WhereAllInJsonb<T>(
             this Query query,
@@ -272,6 +291,21 @@ namespace Helper
             this Query query,
             IReadOnlyCollection<string> regionlist
         ) => query.WhereInJsonb(list: regionlist, jsonPath: "LocationInfo.RegionInfo.Id");
+
+        public static Query LocFilterCombined(
+            this Query query,
+            IReadOnlyCollection<string> regionlist,
+            IReadOnlyCollection<string> tourismvereinlist,
+            IReadOnlyCollection<string> municipalitylist,
+            IReadOnlyCollection<string> districtlist) =>
+             query.Where(q =>
+             {
+                 q.OrWhereInJsonb(list: regionlist, jsonPath: "LocationInfo.RegionInfo.Id");
+                 q.OrWhereInJsonb(list: tourismvereinlist, jsonPath: "LocationInfo.TvInfo.Id");
+                 q.OrWhereInJsonb(list: municipalitylist,jsonPath: "LocationInfo.MunicipalityInfo.Id");
+                 q.OrWhereInJsonb(list: districtlist, jsonPath: "LocationInfo.DistrictInfo.Id");
+                 return q;
+             });
 
         public static Query AreaFilter(this Query query, IReadOnlyCollection<string> arealist) =>
             query.WhereInJsonb(arealist, areaid => new { AreaId = new[] { areaid } });
