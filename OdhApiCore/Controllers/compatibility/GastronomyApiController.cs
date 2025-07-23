@@ -35,7 +35,7 @@ namespace OdhApiCore.Controllers
     [Obsolete("Please use ODHActivityPoi Endpoint")]
     [ApiExplorerSettings(IgnoreApi = true)]
     [EnableCors("CorsPolicy")]
-    [NullStringParameterActionFilter]
+    [NullStringParameterActionFilter]     
     public class GastronomyController : OdhController
     {
         public GastronomyController(
@@ -119,7 +119,7 @@ namespace OdhApiCore.Controllers
         )
         {
             //Use the ODHActivityPoi Endpoint
-            return this.RedirectToAction("ODHActivityPoi", "v1/ODHActivityPoi",
+            return this.RedirectToRoute("GetODHActivityPoiList",
                 new { 
                     tagfilter = "Gastronomy",
                     seed = seed,
@@ -161,7 +161,7 @@ namespace OdhApiCore.Controllers
                 id = id.ToLower().Replace("gastro", "smgpoi");
 
             //Use the ODHActivityPoi Endpoint
-            return RedirectToAction("GetODHActivityPoiSingle", "ODHActivityPoiController",
+            return this.RedirectToRoute("SingleODHActivityPoi",
                 new
                 {
                     id = id,
