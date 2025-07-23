@@ -200,7 +200,7 @@ namespace DataModel
 
     public interface IHasDistrictId
     {
-        string? DistrictId { get; set; }
+        string? DistrictId { get; }
     }
 
     public interface IHasDistrictIds

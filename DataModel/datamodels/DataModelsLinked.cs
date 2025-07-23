@@ -1016,7 +1016,7 @@ namespace DataModel
         {
             get
             {
-                return this.LocationInfo != null && this.LocationInfo.DistrictInfo != null && this.LocationInfo.DistrictInfo.Id != null ? this.LocationInfo.DistrictInfo.Id : null
+                return this.LocationInfo != null && this.LocationInfo.DistrictInfo != null && this.LocationInfo.DistrictInfo.Id != null ? this.LocationInfo.DistrictInfo.Id : null;
             }
         }
     }
