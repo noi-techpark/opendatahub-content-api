@@ -119,7 +119,7 @@ namespace OdhApiCore.Controllers
         )
         {
             //Use the ODHActivityPoi Endpoint
-            return RedirectToAction("GetODHActivityPoiList", "ODHActivityPoiController", 
+            return this.RedirectToAction("ODHActivityPoi", "v1/ODHActivityPoi",
                 new { 
                     tagfilter = "Gastronomy",
                     seed = seed,

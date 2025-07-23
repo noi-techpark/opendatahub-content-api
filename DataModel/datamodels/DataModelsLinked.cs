@@ -649,7 +649,9 @@ namespace DataModel
             IGPSInfoAware,
             IGPSPointsAware,
             IHasLocationInfoLinked,
-            IHasTagInfo
+            IHasTagInfo,
+            IHasDistrictId,
+            IHasDistrictIds
     {
         public Metadata? _Meta { get; set; }
 
@@ -912,7 +914,8 @@ namespace DataModel
             IGPSInfoAware,
             IGPSPointsAware,
             IHasLocationInfoLinked,
-            IHasTagInfo
+            IHasTagInfo,
+            IHasDistrictId
     {
         public Metadata? _Meta { get; set; }
 
@@ -1008,6 +1011,14 @@ namespace DataModel
         //Overwrites LTSTags
         public new List<LTSTagsLinked>? LTSTags { get; set; }
         public ICollection<string>? TagIds { get; set; }
+
+        public string? DistrictId
+        {
+            get
+            {
+                return this.LocationInfo != null && this.LocationInfo.DistrictInfo != null && this.LocationInfo.DistrictInfo.Id != null ? this.LocationInfo.DistrictInfo.Id : null
+            }
+        }
     }
 
     public class LTSPoiLinked

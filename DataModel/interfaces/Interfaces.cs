@@ -198,6 +198,21 @@ namespace DataModel
         Nullable<double> DistanceToMunicipality { get; set; }
     }
 
+    public interface IHasDistrictId
+    {
+        string? DistrictId { get; set; }
+    }
+
+    public interface IHasDistrictIds
+    {
+        ICollection<string>? DistrictIds { get; set; }
+    }
+
+    public interface IHasTourismOrganizationId
+    {
+        string? TourismOrganizationId { get; set; }
+    }
+
     public interface IGpsTrack
     {
         string? Id { get; set; }

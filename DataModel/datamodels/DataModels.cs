@@ -237,7 +237,7 @@ namespace DataModel
         : PoiBaseInfos,
             ILicenseInfo,
             IGPSPointsAware,
-            IHasAdditionalProperties
+            IHasAdditionalProperties               
     {
         public ODHActivityPoi()
         {
@@ -298,7 +298,7 @@ namespace DataModel
 
         //Check if here we can define what classes this Additionalproperties can be
         //[SwaggerSchema()]
-        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
     }
 
     public interface IAdditionalProperties { }
