@@ -365,74 +365,74 @@ namespace Helper
                 .FilterReducedDataByRoles(userroles);
         }
 
-        //Return Where and Parameters for Gastronomy
-        public static Query GastronomyWhereExpression(
-            this Query query,
-            IReadOnlyCollection<string> languagelist,
-            IReadOnlyCollection<string> idlist,
-            IReadOnlyCollection<string> dishcodeslist,
-            IReadOnlyCollection<string> ceremonycodeslist,
-            IReadOnlyCollection<string> categorycodeslist,
-            IReadOnlyCollection<string> facilitycodeslist,
-            IReadOnlyCollection<string> smgtaglist,
-            IReadOnlyCollection<string> districtlist,
-            IReadOnlyCollection<string> municipalitylist,
-            IReadOnlyCollection<string> tourismvereinlist,
-            IReadOnlyCollection<string> regionlist,
-            bool? activefilter,
-            bool? smgactivefilter,
-            string? searchfilter,
-            string? language,
-            string? lastchange,
-            string? additionalfilter,
-            IEnumerable<string> userroles
-        )
-        {
-            LogMethodInfo(
-                System.Reflection.MethodBase.GetCurrentMethod()!,
-                idlist,
-                dishcodeslist,
-                ceremonycodeslist,
-                categorycodeslist,
-                facilitycodeslist,
-                smgtaglist,
-                districtlist,
-                municipalitylist,
-                tourismvereinlist,
-                regionlist,
-                activefilter,
-                smgactivefilter,
-                searchfilter,
-                language,
-                lastchange
-            );
+        ////Return Where and Parameters for Gastronomy DEPRECATED
+        //public static Query GastronomyWhereExpression(
+        //    this Query query,
+        //    IReadOnlyCollection<string> languagelist,
+        //    IReadOnlyCollection<string> idlist,
+        //    IReadOnlyCollection<string> dishcodeslist,
+        //    IReadOnlyCollection<string> ceremonycodeslist,
+        //    IReadOnlyCollection<string> categorycodeslist,
+        //    IReadOnlyCollection<string> facilitycodeslist,
+        //    IReadOnlyCollection<string> smgtaglist,
+        //    IReadOnlyCollection<string> districtlist,
+        //    IReadOnlyCollection<string> municipalitylist,
+        //    IReadOnlyCollection<string> tourismvereinlist,
+        //    IReadOnlyCollection<string> regionlist,
+        //    bool? activefilter,
+        //    bool? smgactivefilter,
+        //    string? searchfilter,
+        //    string? language,
+        //    string? lastchange,
+        //    string? additionalfilter,
+        //    IEnumerable<string> userroles
+        //)
+        //{
+        //    LogMethodInfo(
+        //        System.Reflection.MethodBase.GetCurrentMethod()!,
+        //        idlist,
+        //        dishcodeslist,
+        //        ceremonycodeslist,
+        //        categorycodeslist,
+        //        facilitycodeslist,
+        //        smgtaglist,
+        //        districtlist,
+        //        municipalitylist,
+        //        tourismvereinlist,
+        //        regionlist,
+        //        activefilter,
+        //        smgactivefilter,
+        //        searchfilter,
+        //        language,
+        //        lastchange
+        //    );
 
-            return query
-                .IdUpperFilter(idlist)
-                .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.SmgTagFilter(smgtaglist)
-                .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
-                .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
-                .LastChangedFilter_GeneratedColumn(lastchange)
-                .When(
-                    languagelist.Count > 0,
-                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
-                ) //.HasLanguageFilter(languagelist)
-                .DistrictFilter(districtlist)
-                .LocFilterMunicipalityFilter(municipalitylist)
-                .LocFilterTvsFilter(tourismvereinlist)
-                .LocFilterRegionFilter(regionlist)
-                .CeremonyCodeFilter(ceremonycodeslist)
-                .CategoryCodeFilter(categorycodeslist)
-                .CuisineCodeFilter(facilitycodeslist)
-                .DishCodeFilter(dishcodeslist)
-                .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
-                .When(
-                    !String.IsNullOrEmpty(additionalfilter),
-                    q => q.FilterAdditionalDataByCondition(additionalfilter)
-                )
-                .FilterDataByAccessRoles(userroles)
-                .FilterReducedDataByRoles(userroles);
-        }
+        //    return query
+        //        .IdUpperFilter(idlist)
+        //        .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.SmgTagFilter(smgtaglist)
+        //        .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
+        //        .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
+        //        .LastChangedFilter_GeneratedColumn(lastchange)
+        //        .When(
+        //            languagelist.Count > 0,
+        //            q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+        //        ) //.HasLanguageFilter(languagelist)
+        //        .DistrictFilter(districtlist)
+        //        .LocFilterMunicipalityFilter(municipalitylist)
+        //        .LocFilterTvsFilter(tourismvereinlist)
+        //        .LocFilterRegionFilter(regionlist)
+        //        .CeremonyCodeFilter(ceremonycodeslist)
+        //        .CategoryCodeFilter(categorycodeslist)
+        //        .CuisineCodeFilter(facilitycodeslist)
+        //        .DishCodeFilter(dishcodeslist)
+        //        .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
+        //        .When(
+        //            !String.IsNullOrEmpty(additionalfilter),
+        //            q => q.FilterAdditionalDataByCondition(additionalfilter)
+        //        )
+        //        .FilterDataByAccessRoles(userroles)
+        //        .FilterReducedDataByRoles(userroles);
+        //}
 
         //Return Where and Parameters for Activity
         public static Query ODHActivityPoiWhereExpression(

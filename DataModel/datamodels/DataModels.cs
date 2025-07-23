@@ -848,114 +848,114 @@ namespace DataModel
 
     #region Gastronomy
 
-    public abstract class Gastronomy
-        : IIdentifiable,
-            IActivateable,
-            IGpsInfo,
-            IImageGalleryAware,
-            IContactInfosAware,
-            ISmgTags,
-            ISmgActive,
-            IImportDateassigneable,
-            IDetailInfosAware,
-            ISource,
-            IMappingAware,
-            IDistanceInfoAware,
-            ILicenseInfo,
-            IPublishedOn,
-            IDistrictId
-    {
-        public LicenseInfo? LicenseInfo { get; set; }
+    //public abstract class Gastronomy
+    //    : IIdentifiable,
+    //        IActivateable,
+    //        IGpsInfo,
+    //        IImageGalleryAware,
+    //        IContactInfosAware,
+    //        ISmgTags,
+    //        ISmgActive,
+    //        IImportDateassigneable,
+    //        IDetailInfosAware,
+    //        ISource,
+    //        IMappingAware,
+    //        IDistanceInfoAware,
+    //        ILicenseInfo,
+    //        IPublishedOn,
+    //        IDistrictId
+    //{
+    //    public LicenseInfo? LicenseInfo { get; set; }
 
-        public Gastronomy()
-        {
-            Detail = new Dictionary<string, Detail>();
-            ContactInfos = new Dictionary<string, ContactInfos>();
-            //Mapping New
-            Mapping = new Dictionary<string, IDictionary<string, string>>();
-        }
+    //    public Gastronomy()
+    //    {
+    //        Detail = new Dictionary<string, Detail>();
+    //        ContactInfos = new Dictionary<string, ContactInfos>();
+    //        //Mapping New
+    //        Mapping = new Dictionary<string, IDictionary<string, string>>();
+    //    }
 
-        public string? Id { get; set; }
-        public bool Active { get; set; }
-        public string? Shortname { get; set; }
+    //    public string? Id { get; set; }
+    //    public bool Active { get; set; }
+    //    public string? Shortname { get; set; }
 
-        public string? Type { get; set; }
+    //    public string? Type { get; set; }
 
-        //Region Fraktion
-        public string? DistrictId { get; set; }
+    //    //Region Fraktion
+    //    public string? DistrictId { get; set; }
 
-        //public string MunicipalityId { get; set; }
-        //public string RegionId { get; set; }
-        //public string TourismorganizationId { get; set; }
+    //    //public string MunicipalityId { get; set; }
+    //    //public string RegionId { get; set; }
+    //    //public string TourismorganizationId { get; set; }
 
-        public DateTime? FirstImport { get; set; }
-        public DateTime? LastChange { get; set; }
+    //    public DateTime? FirstImport { get; set; }
+    //    public DateTime? LastChange { get; set; }
 
-        //GPS Info
-        public string? Gpstype { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public Nullable<double> Altitude { get; set; }
-        public string? AltitudeUnitofMeasure { get; set; }
+    //    //GPS Info
+    //    public string? Gpstype { get; set; }
+    //    public double Latitude { get; set; }
+    //    public double Longitude { get; set; }
+    //    public Nullable<double> Altitude { get; set; }
+    //    public string? AltitudeUnitofMeasure { get; set; }
 
-        //OperationSchedule
-        //public string OperationscheduleName { get; set; }
-        //public DateTime Start { get; set; }
-        //public DateTime Stop { get; set; }
-        //public bool? ClosedonPublicHolidays { get; set; }
-        //public ICollection<OperationScheduleTime> OperationScheduleTime { get; set; }
-        //Wenn mearere sein aso
-        public ICollection<OperationSchedule>? OperationSchedule { get; set; }
+    //    //OperationSchedule
+    //    //public string OperationscheduleName { get; set; }
+    //    //public DateTime Start { get; set; }
+    //    //public DateTime Stop { get; set; }
+    //    //public bool? ClosedonPublicHolidays { get; set; }
+    //    //public ICollection<OperationScheduleTime> OperationScheduleTime { get; set; }
+    //    //Wenn mearere sein aso
+    //    public ICollection<OperationSchedule>? OperationSchedule { get; set; }
 
-        //CapacityCeremony
-        public int? MaxSeatingCapacity { get; set; }
+    //    //CapacityCeremony
+    //    public int? MaxSeatingCapacity { get; set; }
 
-        //public ICollection<GpsInfo> GpsInfo { get; set; }
-        public ICollection<ImageGallery>? ImageGallery { get; set; }
-        public IDictionary<string, Detail> Detail { get; set; }
-        public IDictionary<string, ContactInfos> ContactInfos { get; set; }
+    //    //public ICollection<GpsInfo> GpsInfo { get; set; }
+    //    public ICollection<ImageGallery>? ImageGallery { get; set; }
+    //    public IDictionary<string, Detail> Detail { get; set; }
+    //    public IDictionary<string, ContactInfos> ContactInfos { get; set; }
 
-        public ICollection<CategoryCodes>? CategoryCodes { get; set; }
-        public ICollection<DishRates>? DishRates { get; set; }
-        public ICollection<CapacityCeremony>? CapacityCeremony { get; set; }
-        public ICollection<Facilities>? Facilities { get; set; }
+    //    public ICollection<CategoryCodes>? CategoryCodes { get; set; }
+    //    public ICollection<DishRates>? DishRates { get; set; }
+    //    public ICollection<CapacityCeremony>? CapacityCeremony { get; set; }
+    //    public ICollection<Facilities>? Facilities { get; set; }
 
-        public ICollection<string>? MarketinggroupId { get; set; }
+    //    public ICollection<string>? MarketinggroupId { get; set; }
 
-        //NEU Region TV Municipality Fraktion NEU LocationInfo Classe
-        public LocationInfo? LocationInfo { get; set; }
+    //    //NEU Region TV Municipality Fraktion NEU LocationInfo Classe
+    //    public LocationInfo? LocationInfo { get; set; }
 
-        public string? AccommodationId { get; set; }
+    //    public string? AccommodationId { get; set; }
 
-        public ICollection<string>? SmgTags { get; set; }
+    //    public ICollection<string>? SmgTags { get; set; }
 
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
-        public bool SmgActive { get; set; }
+    //    [SwaggerDeprecated("Obsolete, use PublishedOn")]
+    //    public bool SmgActive { get; set; }
 
-        public ICollection<string>? HasLanguage { get; set; }
+    //    public ICollection<string>? HasLanguage { get; set; }
 
-        //NEW
-        public Nullable<int> RepresentationRestriction { get; set; }
+    //    //NEW
+    //    public Nullable<int> RepresentationRestriction { get; set; }
 
-        //New published on List
-        public ICollection<string>? PublishedOn { get; set; }
+    //    //New published on List
+    //    public ICollection<string>? PublishedOn { get; set; }
 
-        public string Source { get; set; }
+    //    public string Source { get; set; }
 
-        //New Mapping
-        public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
+    //    //New Mapping
+    //    public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
 
-        public DistanceInfo? DistanceInfo { get; set; }
-    }
+    //    public DistanceInfo? DistanceInfo { get; set; }
+    //}
 
-    public class GastronomyRaven : Gastronomy
-    {
-        public new ICollection<CategoryCodesLinked>? CategoryCodes { get; set; }
-        public new ICollection<DishRatesLinked>? DishRates { get; set; }
-        public new ICollection<CapacityCeremonyLinked>? CapacityCeremony { get; set; }
-        public new ICollection<FacilitiesLinked>? Facilities { get; set; }
-        public new LocationInfoLinked? LocationInfo { get; set; }
-    }
+    //public class GastronomyRaven : Gastronomy
+    //{
+    //    public new ICollection<CategoryCodesLinked>? CategoryCodes { get; set; }
+    //    public new ICollection<DishRatesLinked>? DishRates { get; set; }
+    //    public new ICollection<CapacityCeremonyLinked>? CapacityCeremony { get; set; }
+    //    public new ICollection<FacilitiesLinked>? Facilities { get; set; }
+    //    public new LocationInfoLinked? LocationInfo { get; set; }
+    //}
 
     #endregion
 

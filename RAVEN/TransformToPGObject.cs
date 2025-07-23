@@ -687,82 +687,82 @@ namespace RAVEN
             return eventlinked;
         }
 
-        public static GastronomyLinked GetGastronomyPGObject(GastronomyLinked data)
-        {
-            data.Id = data.Id.ToUpper();
-            if (!String.IsNullOrEmpty(data.AccommodationId))
-                data.AccommodationId = data.AccommodationId.ToUpper();
+        //public static ODHActivityPoiLinked GetGastronomyPGObject(ODHActivityPoiLinked data)
+        //{
+        //    data.Id = data.Id.ToUpper();
+        //    //if (!String.IsNullOrEmpty(data.AccommodationId))
+        //    //    data.AccommodationId = data.AccommodationId.ToUpper();
 
-            if (data.SmgTags != null && data.SmgTags.Count > 0)
-                data.SmgTags = data.SmgTags.Select(x => x.ToLower()).ToList();
+        //    if (data.SmgTags != null && data.SmgTags.Count > 0)
+        //        data.SmgTags = data.SmgTags.Select(x => x.ToLower()).ToList();
 
-            if (String.IsNullOrEmpty(data.Source))
-                data.Source = "lts";
-            else
-                data.Source = data.Source.ToLower();
+        //    if (String.IsNullOrEmpty(data.Source))
+        //        data.Source = "lts";
+        //    else
+        //        data.Source = data.Source.ToLower();
 
-            data.PublishedOn = new List<string>();
+        //    data.PublishedOn = new List<string>();
 
-            data._Meta = MetadataHelper.GetMetadataobject<GastronomyLinked>(
-                data,
-                MetadataHelper.GetMetadataforGastronomy
-            ); //GetMetadata(data.Id, "ltsgastronomy", "lts", data.LastChange);
+        //    data._Meta = MetadataHelper.GetMetadataobject<GastronomyLinked>(
+        //        data,
+        //        MetadataHelper.GetMetadataforGastronomy
+        //    ); //GetMetadata(data.Id, "ltsgastronomy", "lts", data.LastChange);
 
-            return data;
-        }
+        //    return data;
+        //}
 
-        public static GastronomyLinked GetGastronomyPGObject(GastronomyRaven data)
-        {
-            GastronomyLinked gastro = new GastronomyLinked();
+        //public static GastronomyLinked GetGastronomyPGObject(GastronomyRaven data)
+        //{
+        //    GastronomyLinked gastro = new GastronomyLinked();
 
-            gastro.Id = data.Id.ToUpper();
-            gastro.Active = data.Active;
-            gastro.CapacityCeremony = data.CapacityCeremony;
-            gastro.CategoryCodes = data.CategoryCodes;
-            gastro.ContactInfos = data.ContactInfos;
-            gastro.Detail = data.Detail;
-            gastro.DishRates = data.DishRates;
-            gastro.DistanceInfo = data.DistanceInfo;
-            gastro.DistrictId = data.DistrictId;
-            gastro.Facilities = data.Facilities;
-            gastro.FirstImport = data.FirstImport;
-            gastro.GpsInfo = data.ConvertGpsInfoOnRootToGpsInfoArray();
-            gastro.HasLanguage = data.HasLanguage;
-            gastro.ImageGallery = data.ImageGallery;
-            gastro.LastChange = data.LastChange;
-            gastro.LicenseInfo = data.LicenseInfo;
-            gastro.LocationInfo = data.LocationInfo;
-            gastro.Mapping = data.Mapping;
-            gastro.MarketinggroupId = data.MarketinggroupId;
-            gastro.MaxSeatingCapacity = data.MaxSeatingCapacity;
-            gastro.OperationSchedule = data.OperationSchedule;
-            gastro.RepresentationRestriction = data.RepresentationRestriction;
-            gastro.Shortname = data.Shortname;
-            gastro.SmgActive = data.SmgActive;
-            gastro.Source = data.Source;
-            gastro.SmgTags = data.SmgTags;
-            gastro.Type = data.Type;
+        //    gastro.Id = data.Id.ToUpper();
+        //    gastro.Active = data.Active;
+        //    gastro.CapacityCeremony = data.CapacityCeremony;
+        //    gastro.CategoryCodes = data.CategoryCodes;
+        //    gastro.ContactInfos = data.ContactInfos;
+        //    gastro.Detail = data.Detail;
+        //    gastro.DishRates = data.DishRates;
+        //    gastro.DistanceInfo = data.DistanceInfo;
+        //    gastro.DistrictId = data.DistrictId;
+        //    gastro.Facilities = data.Facilities;
+        //    gastro.FirstImport = data.FirstImport;
+        //    gastro.GpsInfo = data.ConvertGpsInfoOnRootToGpsInfoArray();
+        //    gastro.HasLanguage = data.HasLanguage;
+        //    gastro.ImageGallery = data.ImageGallery;
+        //    gastro.LastChange = data.LastChange;
+        //    gastro.LicenseInfo = data.LicenseInfo;
+        //    gastro.LocationInfo = data.LocationInfo;
+        //    gastro.Mapping = data.Mapping;
+        //    gastro.MarketinggroupId = data.MarketinggroupId;
+        //    gastro.MaxSeatingCapacity = data.MaxSeatingCapacity;
+        //    gastro.OperationSchedule = data.OperationSchedule;
+        //    gastro.RepresentationRestriction = data.RepresentationRestriction;
+        //    gastro.Shortname = data.Shortname;
+        //    gastro.SmgActive = data.SmgActive;
+        //    gastro.Source = data.Source;
+        //    gastro.SmgTags = data.SmgTags;
+        //    gastro.Type = data.Type;
 
-            if (!String.IsNullOrEmpty(data.AccommodationId))
-                gastro.AccommodationId = data.AccommodationId.ToUpper();
+        //    if (!String.IsNullOrEmpty(data.AccommodationId))
+        //        gastro.AccommodationId = data.AccommodationId.ToUpper();
 
-            if (data.SmgTags != null && data.SmgTags.Count > 0)
-                gastro.SmgTags = data.SmgTags.Select(x => x.ToLower()).ToList();
+        //    if (data.SmgTags != null && data.SmgTags.Count > 0)
+        //        gastro.SmgTags = data.SmgTags.Select(x => x.ToLower()).ToList();
 
-            if (String.IsNullOrEmpty(data.Source))
-                gastro.Source = "lts";
-            else
-                gastro.Source = data.Source.ToLower();
+        //    if (String.IsNullOrEmpty(data.Source))
+        //        gastro.Source = "lts";
+        //    else
+        //        gastro.Source = data.Source.ToLower();
 
-            gastro.PublishedOn = new List<string>();
+        //    gastro.PublishedOn = new List<string>();
 
-            gastro._Meta = MetadataHelper.GetMetadataobject<GastronomyLinked>(
-                gastro,
-                MetadataHelper.GetMetadataforGastronomy
-            ); //GetMetadata(data.Id, "ltsgastronomy", "lts", data.LastChange);
+        //    gastro._Meta = MetadataHelper.GetMetadataobject<GastronomyLinked>(
+        //        gastro,
+        //        MetadataHelper.GetMetadataforGastronomy
+        //    ); //GetMetadata(data.Id, "ltsgastronomy", "lts", data.LastChange);
 
-            return gastro;
-        }
+        //    return gastro;
+        //}
 
         public static WebcamInfoLinked GetWebcamInfoPGObject(WebcamInfoLinked data)
         {

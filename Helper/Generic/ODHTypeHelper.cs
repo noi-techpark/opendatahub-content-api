@@ -22,7 +22,7 @@ namespace Helper
                 "accommodationroom",
                 "ltsactivity",
                 "ltspoi",
-                "ltsgastronomy",
+                //"ltsgastronomy",
                 "event",
                 "odhactivitypoi",
                 "package",
@@ -72,7 +72,7 @@ namespace Helper
                 AccoRoom or AccommodationRoomLinked => "accommodationroom",
                 LTSActivityLinked => "ltsactivity",
                 LTSPoiLinked => "ltspoi",
-                GastronomyLinked => "ltsgastronomy",
+                //GastronomyLinked => "ltsgastronomy",
                 Event or EventLinked => "event",
                 ODHActivityPoi or ODHActivityPoiLinked => "odhactivitypoi",
                 Package or PackageLinked => "package",
@@ -124,7 +124,7 @@ namespace Helper
                 AccoRoom or AccommodationRoomLinked => "accommodationrooms",
                 LTSActivityLinked => "activities",
                 LTSPoiLinked => "pois",
-                GastronomyLinked => "gastronomies",
+                //GastronomyLinked => "gastronomies",
                 Event or EventLinked => "events",
                 ODHActivityPoi or ODHActivityPoiLinked => "smgpois",
                 Package or PackageLinked => "packages",
@@ -174,7 +174,7 @@ namespace Helper
                 "accommodationroom" => "accommodationrooms",
                 "ltsactivity" => "activities",
                 "ltspoi" => "pois",
-                "ltsgastronomy" => "gastronomies",
+                //"ltsgastronomy" => "gastronomies",
                 "event" => "events",
                 "odhactivitypoi" => "smgpois",
                 "package" => "packages",
@@ -217,7 +217,7 @@ namespace Helper
                 "accommodationroom" => typeof(AccommodationRoomLinked),
                 "ltsactivity" => typeof(LTSActivityLinked),
                 "ltspoi" => typeof(LTSPoiLinked),
-                "ltsgastronomy" => typeof(GastronomyLinked),
+                //"ltsgastronomy" => typeof(GastronomyLinked),
                 "event" => typeof(EventLinked),
                 "odhactivitypoi" => typeof(ODHActivityPoiLinked),
                 "package" => typeof(PackageLinked),
@@ -269,7 +269,7 @@ namespace Helper
                 "accommodationrooms" => "accommodationroom",
                 "activities" => "ltsactivity",
                 "pois" => "ltspoi",
-                "gastronomies" => "ltsgastronomy",
+                //"gastronomies" => "ltsgastronomy",
                 "events" => "event",
                 "smgpois" => "odhactivitypoi",
                 "packages" => "package",
@@ -314,7 +314,7 @@ namespace Helper
                 "accommodationrooms" => typeof(AccommodationRoomLinked),
                 "activities" => typeof(LTSActivityLinked),
                 "pois" => typeof(LTSPoiLinked),
-                "gastronomies" => typeof(GastronomyLinked),
+                //"gastronomies" => typeof(GastronomyLinked),
                 "events" => typeof(EventLinked),
                 "smgpois" => typeof(ODHActivityPoiLinked),
                 "packages" => typeof(PackageLinked),
@@ -366,7 +366,7 @@ namespace Helper
                 "accommodationroom" => id.ToUpper(),
                 "ltsactivity" => id.ToUpper(),
                 "ltspoi" => id.ToUpper(),
-                "ltsgastronomy" => id.ToUpper(),
+                //"ltsgastronomy" => id.ToUpper(),
                 "event" => id.ToUpper(),
                 "odhactivitypoi" => id.ToLower(),
                 "package" => id.ToUpper(),
@@ -410,7 +410,7 @@ namespace Helper
                 )!,
                 "ltsactivity" => JsonConvert.DeserializeObject<LTSActivityLinked>(raw.Value)!,
                 "ltspoi" => JsonConvert.DeserializeObject<LTSPoiLinked>(raw.Value)!,
-                "ltsgastronomy" => JsonConvert.DeserializeObject<GastronomyLinked>(raw.Value)!,
+                //"ltsgastronomy" => JsonConvert.DeserializeObject<GastronomyLinked>(raw.Value)!,
                 "event" => JsonConvert.DeserializeObject<EventLinked>(raw.Value)!,
                 "odhactivitypoi" => JsonConvert.DeserializeObject<ODHActivityPoiLinked>(raw.Value)!,
                 "package" => JsonConvert.DeserializeObject<PackageLinked>(raw.Value)!,
@@ -469,7 +469,7 @@ namespace Helper
                 odhtypes.Add("package");
                 odhtypes.Add("ltsactivity");
                 odhtypes.Add("ltspoi");
-                odhtypes.Add("ltsgastronomy");
+                //odhtypes.Add("ltsgastronomy");
                 odhtypes.Add("measuringpoint");
                 odhtypes.Add("article");
                 odhtypes.Add("municipality");
@@ -493,7 +493,7 @@ namespace Helper
                 "accommodationroom" => PostgresSQLWhereBuilder.AccoRoomNameFieldsToSearchFor,
                 "ltsactivity"
                 or "ltspoi"
-                or "ltsgastronomy"
+                //or "ltsgastronomy"
                 or "event"
                 or "odhactivitypoi"
                 or "metaregion"
@@ -533,7 +533,7 @@ namespace Helper
                 "package" => "Package",
                 "ltsactivity" => "Activity",
                 "ltspoi" => "Poi",
-                "ltsgastronomy" => "Gastronomy",
+                //"ltsgastronomy" => "Gastronomy",
                 "measuringpoint" => "Weather/Measuringpoint",
                 "article" => "Article",
                 "municipality" => "Municipality",
@@ -589,7 +589,7 @@ namespace Helper
                 "accommodationroom" => $"AccoRoomDetail.{language}.Name",
                 "ltsactivity"
                 or "ltspoi"
-                or "ltsgastronomy"
+                //or "ltsgastronomy"
                 or "event"
                 or "odhactivitypoi"
                 or "metaregion"
@@ -619,7 +619,7 @@ namespace Helper
                 "accommodationroom" => $"AccoRoomDetail.{language}.Longdesc",
                 "ltsactivity"
                 or "ltspoi"
-                or "ltsgastronomy"
+                //or "ltsgastronomy"
                 or "event"
                 or "odhactivitypoi"
                 or "metaregion"

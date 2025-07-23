@@ -72,7 +72,7 @@ namespace Helper
                 AccommodationRoomLinked al => GetMetadataforAccommodationRoom(al),
                 LTSActivityLinked ltsal => GetMetadataforActivity(ltsal),
                 LTSPoiLinked ltspl => GetMetadataforPoi(ltspl),
-                GastronomyLinked gl => GetMetadataforGastronomy(gl),
+                //GastronomyLinked gl => GetMetadataforGastronomy(gl),
                 EventLinked el => GetMetadataforEvent(el, reduced),
                 ODHActivityPoiLinked odhapl => GetMetadataforOdhActivityPoi(odhapl),
                 PackageLinked pl => GetMetadataforPackage(pl),
@@ -173,14 +173,14 @@ namespace Helper
             return GetMetadata(data, "lts", reduced);
         }
 
-        public static Metadata GetMetadataforGastronomy(GastronomyLinked data)
-        {
-            bool reduced = false;
-            if (data._Meta != null)
-                reduced = (bool)data._Meta.Reduced;
+        //public static Metadata GetMetadataforGastronomy(GastronomyLinked data)
+        //{
+        //    bool reduced = false;
+        //    if (data._Meta != null)
+        //        reduced = (bool)data._Meta.Reduced;
 
-            return GetMetadata(data, "lts", reduced);
-        }
+        //    return GetMetadata(data, "lts", reduced);
+        //}
 
         public static Metadata GetMetadataforEvent(EventLinked data, bool reduced = false)
         {

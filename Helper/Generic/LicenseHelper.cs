@@ -99,23 +99,23 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
-        public static LicenseInfo GetLicenseforGastronomy(Gastronomy data)
-        {
-            var isopendata = false;
-            var licensetype = "Closed";
-            var licenseholder = @"https://www.lts.it";
+        //public static LicenseInfo GetLicenseforGastronomy(Gastronomy data)
+        //{
+        //    var isopendata = false;
+        //    var licensetype = "Closed";
+        //    var licenseholder = @"https://www.lts.it";
 
-            if (data.Active)
-            {
-                if (data.RepresentationRestriction > 0)
-                {
-                    isopendata = true;
-                    licensetype = "CC0";
-                }
-            }
+        //    if (data.Active)
+        //    {
+        //        if (data.RepresentationRestriction > 0)
+        //        {
+        //            isopendata = true;
+        //            licensetype = "CC0";
+        //        }
+        //    }
 
-            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
-        }
+        //    return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
+        //}
 
         public static LicenseInfo GetLicenseforGastronomy(ODHActivityPoi data, bool opendata = false)
         {
