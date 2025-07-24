@@ -181,7 +181,7 @@ namespace OdhApiImporter.Controllers
                      new List<string>() { "gastronomyceremonycodes" }
                 );
                 //Maybe Duplicate
-                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                await JsonGeneratorHelper.GenerateJSONODHTagsDisplayAsCategoryList(
                     QueryFactory,
                     settings.JsonConfig.Jsondir,
                     "GastronomyDisplayAsCategory",

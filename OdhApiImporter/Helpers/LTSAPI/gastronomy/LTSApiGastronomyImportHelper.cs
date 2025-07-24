@@ -315,6 +315,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             "DishRates",
                             "Facilities",
                             "CapacityCeremonies",
+                            "GastronomyDisplayAsCategory",
                         }
                     );
                 }
@@ -1007,7 +1008,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     if(gastroNew.AdditionalPoiInfos == null)
                         gastroNew.AdditionalPoiInfos = new Dictionary<string, AdditionalPoiInfos>();
 
-                    foreach (var languagecategory in gastroNew.HasLanguage)
+                    foreach (var languagecategory in new List<string>() { "de","it","en","nl","cs","pl","fr","ru" })
                     {
                         AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string>() };
 
