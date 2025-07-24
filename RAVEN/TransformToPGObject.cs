@@ -308,9 +308,8 @@ namespace RAVEN
                         .PoiProperty.Where(f => f.Value.Count > 0)
                         .ToDictionary(x => x.Key, x => x.Value);
 
-            data._Meta = MetadataHelper.GetMetadataobject<ODHActivityPoiLinked>(
-                data,
-                MetadataHelper.GetMetadataforOdhActivityPoi
+            data._Meta = MetadataHelper.GetMetadataobject(
+                data
             ); //GetMetadata(data.Id, "odhactivitypoi", sourcemeta, data.LastChange);
 
             ODHTagHelper.SetMainCategorizationForODHActivityPoi(data);
