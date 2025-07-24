@@ -611,14 +611,14 @@ namespace OdhApiImporter.Controllers
                     );
                     ;
                     break;
-                case "ltsgastronomy":
-                    objectscount = await customdataoperation.ResaveSourcesOnType<GastronomyLinked>(
-                        odhtype,
-                        sourcetofilter,
-                        sourcetochange
-                    );
-                    ;
-                    break;
+                //case "ltsgastronomy":
+                //    objectscount = await customdataoperation.ResaveSourcesOnType<GastronomyLinked>(
+                //        odhtype,
+                //        sourcetofilter,
+                //        sourcetochange
+                //    );
+                //    ;
+                //    break;
                 case "webcam":
                     objectscount = await customdataoperation.ResaveSourcesOnType<WebcamInfoLinked>(
                         odhtype,

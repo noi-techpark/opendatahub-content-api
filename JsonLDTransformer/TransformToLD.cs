@@ -29,7 +29,7 @@ namespace JsonLDTransformer
                     );
                     break;
                 case "Gastronomy":
-                    objectlist.Add(TransformGastronomyToLD((Gastronomy)(object)data, language));
+                    objectlist.Add(TransformGastronomyToLD((ODHActivityPoi)(object)data, language));
                     break;
                 case "Event":
 
@@ -81,7 +81,7 @@ namespace JsonLDTransformer
             return myhotel;
         }
 
-        public static RestaurantLD TransformGastronomyToLD(Gastronomy gastro, string language)
+        public static RestaurantLD TransformGastronomyToLD(ODHActivityPoi gastro, string language)
         {
             RestaurantLD mygastro = new RestaurantLD();
 
@@ -110,8 +110,8 @@ namespace JsonLDTransformer
 
             geoLD mygeo = new geoLD();
             mygeo.type = "http://schema.org/GeoCoordinates";
-            mygeo.latitude = gastro.Latitude;
-            mygeo.longitude = gastro.Longitude;
+            mygeo.latitude = gastro.GpsInfo.Where(x => x.Gpstype == "position").Count() > 0 ? gastro.GpsInfo.Where(x => x.Gpstype == "position").FirstOrDefault().Latitude : 0;
+            mygeo.longitude = gastro.GpsInfo.Where(x => x.Gpstype == "position").Count() > 0 ? gastro.GpsInfo.Where(x => x.Gpstype == "position").FirstOrDefault().Longitude : 0;
 
             mygastro.geo = mygeo;
 

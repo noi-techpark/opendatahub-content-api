@@ -39,11 +39,11 @@ namespace Helper
                         ? true
                         : false
                     : false,
-                GastronomyLinked => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
+                //GastronomyLinked => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
                 Event or EventLinked => myobject.Source != null
                     ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
                         ? true
@@ -211,60 +211,60 @@ namespace Helper
             return reduced;
         }
 
-        //LTS Gastronomic Data ACTIVE: (IsEnabled=1 and RepresentationRestricition=1)
-        public static GastronomyLinkedReduced CopyLTSGastronomyToReducedObject(
-            GastronomyLinked mypoi
-        )
-        {
-            var reduced = new GastronomyLinkedReduced();
+        ////LTS Gastronomic Data ACTIVE: (IsEnabled=1 and RepresentationRestricition=1)
+        //public static GastronomyLinkedReduced CopyLTSGastronomyToReducedObject(
+        //    GastronomyLinked mypoi
+        //)
+        //{
+        //    var reduced = new GastronomyLinkedReduced();
 
-            reduced.Id = mypoi.Id + "_REDUCED";
-            //reduced.GpsPoints = mypoi.GpsPoints; read only
-            //reduced.Latitude = mypoi.Latitude;
-            //reduced.Longitude = mypoi.Longitude;
-            //reduced.Gpstype = mypoi.Gpstype;
-            //reduced.Altitude = mypoi.Altitude;
-            //reduced.AltitudeUnitofMeasure = mypoi.AltitudeUnitofMeasure;
-            reduced.GpsInfo = mypoi.GpsInfo;
+        //    reduced.Id = mypoi.Id + "_REDUCED";
+        //    //reduced.GpsPoints = mypoi.GpsPoints; read only
+        //    //reduced.Latitude = mypoi.Latitude;
+        //    //reduced.Longitude = mypoi.Longitude;
+        //    //reduced.Gpstype = mypoi.Gpstype;
+        //    //reduced.Altitude = mypoi.Altitude;
+        //    //reduced.AltitudeUnitofMeasure = mypoi.AltitudeUnitofMeasure;
+        //    reduced.GpsInfo = mypoi.GpsInfo;
 
-            //ContactInfo/CompanyName
-            reduced.Detail = ReducedDataHelper.ReduceDetailInfo(mypoi.Detail);
-            //ContactInfo/CompanyName
-            reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForGastronomy(
-                mypoi.ContactInfos
-            );
+        //    //ContactInfo/CompanyName
+        //    reduced.Detail = ReducedDataHelper.ReduceDetailInfo(mypoi.Detail);
+        //    //ContactInfo/CompanyName
+        //    reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForGastronomy(
+        //        mypoi.ContactInfos
+        //    );
 
-            //CategoryCodes/GastronomicCategory
-            reduced.CategoryCodes = mypoi.CategoryCodes;
+        //    //CategoryCodes/GastronomicCategory
+        //    reduced.CategoryCodes = mypoi.CategoryCodes;
 
-            //ODH Fields
-            reduced.Active = mypoi.Active;
-            reduced.SmgActive = mypoi.SmgActive;
-            reduced.LastChange = mypoi.LastChange;
-            reduced.FirstImport = mypoi.FirstImport;
-            reduced.HasLanguage = mypoi.HasLanguage;
-            reduced.Shortname = mypoi.Shortname;
-            reduced.Source = mypoi.Source;
+        //    //ODH Fields
+        //    reduced.Active = mypoi.Active;
+        //    reduced.SmgActive = mypoi.SmgActive;
+        //    reduced.LastChange = mypoi.LastChange;
+        //    reduced.FirstImport = mypoi.FirstImport;
+        //    reduced.HasLanguage = mypoi.HasLanguage;
+        //    reduced.Shortname = mypoi.Shortname;
+        //    reduced.Source = mypoi.Source;
 
-            ///LocationInfo, ODH Object calculated with
-            reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(mypoi.LocationInfo);
+        //    ///LocationInfo, ODH Object calculated with
+        //    reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(mypoi.LocationInfo);
 
-            //License + Meta
-            reduced.LicenseInfo = mypoi.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "ltsgastronomy",
-                "lts",
-                reduced.LastChange,
-                true
-            );
-            //reduced.PublishedOn = HelperClass.GetPublishenOnList("ltsgastronomy", reduced.SmgActive);
+        //    //License + Meta
+        //    reduced.LicenseInfo = mypoi.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "ltsgastronomy",
+        //        "lts",
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    //reduced.PublishedOn = HelperClass.GetPublishenOnList("ltsgastronomy", reduced.SmgActive);
 
-            //ImageGallery
-            reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(mypoi.ImageGallery);
+        //    //ImageGallery
+        //    reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(mypoi.ImageGallery);
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
 
         //LTS PoiData ActivityData
         public static LTSODHActivityPoiReduced CopyLTSODHActivtyPoiToReducedObject(

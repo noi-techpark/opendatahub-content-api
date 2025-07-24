@@ -204,13 +204,14 @@ namespace Helper
             CRUDConstraints constraints,
             CompareConfig compareConfig,
             int? rawdataid = null,
-            bool reduced = false
+            bool reduced = false            
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
         {
             //TOCHECK: What if no id is passed? Generate ID?
             //TOCHECK: Id Uppercase or Lowercase depending on table
             //TOCHECK: Shortname population?
+
 
             List<string> channelstopublish = new List<string>();
             int? objectchangedcount = null;
@@ -239,11 +240,14 @@ namespace Helper
             if (reduced)
                 reducedId = "_REDUCED";
 
+            var idtoprocess = IdGenerator.CheckIdFromType<T>(data.Id + reducedId);
+            IdGenerator.CheckIdFromType<T>(data);
+
             //Check if data exists already
             var queryresult = await QueryFactory
                 .Query(dataconfig.Table)
                 .Select("data")
-                .Where("id", data.Id + reducedId)
+                .Where("id", idtoprocess)
                 .When(
                     constraints.AccessRole.Count() > 0,
                     q => q.FilterDataByAccessRoles(constraints.AccessRole)
@@ -323,13 +327,13 @@ namespace Helper
                 {
                     createresult = await QueryFactory
                         .Query(dataconfig.Table)
-                        .InsertAsync(new JsonBData() { id = data.Id + reducedId, data = new JsonRaw(data) });
+                        .InsertAsync(new JsonBData() { id = idtoprocess, data = new JsonRaw(data) });
                 }
                 else
                 {
                     createresult = await QueryFactory
                         .Query(dataconfig.Table)
-                        .InsertAsync(new JsonBDataRaw() { id = data.Id + reducedId, data = new JsonRaw(data), rawdataid = rawdataid.Value });
+                        .InsertAsync(new JsonBDataRaw() { id = idtoprocess, data = new JsonRaw(data), rawdataid = rawdataid.Value });
                 }
                 
 
@@ -432,15 +436,15 @@ namespace Helper
                 {
                     updateresult = await QueryFactory
                    .Query(dataconfig.Table)
-                   .Where("id", data.Id + reducedId)
-                   .UpdateAsync(new JsonBData() { id = data.Id + reducedId, data = new JsonRaw(data) });
+                   .Where("id", idtoprocess)
+                   .UpdateAsync(new JsonBData() { id = idtoprocess, data = new JsonRaw(data) });
                 }
                 else
                 {
                     updateresult = await QueryFactory
                    .Query(dataconfig.Table)
-                   .Where("id", data.Id + reducedId)
-                   .UpdateAsync(new JsonBDataRaw() { id = data.Id + reducedId, data = new JsonRaw(data), rawdataid = rawdataid.Value });
+                   .Where("id", idtoprocess)
+                   .UpdateAsync(new JsonBDataRaw() { id = idtoprocess, data = new JsonRaw(data), rawdataid = rawdataid.Value });
                 }
 
                 dataconfig.Operation = CRUDOperation.Update;
@@ -553,14 +557,14 @@ namespace Helper
             string reducedId = "";
             if (reduced)
                 reducedId = "_REDUCED";
-
-            var idtodelete = Helper.IdGenerator.CheckIdFromType<T>(id);
+            
+            var idtodelete = Helper.IdGenerator.CheckIdFromType<T>(id + reducedId);
 
             //Check if data exists
             var queryresult = await QueryFactory
                 .Query(dataconfig.Table)
                 .Select("data")
-                .Where("id", idtodelete + reducedId)
+                .Where("id", idtodelete)
                 .When(
                     constraints.AccessRole.Count() > 0,
                     q => q.FilterDataByAccessRoles(constraints.AccessRole)
@@ -619,7 +623,7 @@ namespace Helper
 
                 deleteresult = await QueryFactory
                     .Query(dataconfig.Table)
-                    .Where("id", idtodelete + reducedId)
+                    .Where("id", idtodelete)
                     .DeleteAsync();
             }
 
