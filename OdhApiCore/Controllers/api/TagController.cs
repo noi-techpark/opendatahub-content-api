@@ -118,8 +118,6 @@ namespace OdhApiCore.Controllers
         [HttpGet, Route("Tag/{id}", Name = "SingleTag")]
         //[Authorize(Roles = "DataReader,CommonReader,AccoReader,ActivityReader,PoiReader,ODHPoiReader,PackageReader,GastroReader,EventReader,ArticleReader")]
         public async Task<IActionResult> GetTagSingle(
-            uint? pagenumber,
-            int? pagesize,
             string id,
             string? language = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,

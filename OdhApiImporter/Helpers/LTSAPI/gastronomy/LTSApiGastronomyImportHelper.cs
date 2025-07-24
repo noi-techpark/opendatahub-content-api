@@ -351,14 +351,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         await AddMetaTitle(gastroparsed);
 
                         //Add the values to Tags (TagEntry) not needed anymore?
-                        //await AddTagEntryToTags(gastroparsed);
-
-                        //Traduce all Tags with Source IDM to english tags
-                        await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                            gastroparsed,
-                            settings.JsonConfig.Jsondir
-                        );
+                        //await AddTagEntryToTags(gastroparsed);                        
                     }
+
+                    //Traduce all Tags with Source IDM to english tags
+                    await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                        gastroparsed,
+                        settings.JsonConfig.Jsondir
+                    );
 
                     //Create Tags and preserve the old TagEntries
                     await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroparsed) : null);
