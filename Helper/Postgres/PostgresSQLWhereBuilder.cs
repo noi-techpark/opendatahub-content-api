@@ -509,7 +509,7 @@ namespace Helper
             );
 
             return query
-                .IdLowerFilter(idlist)
+                .IdLowerFilter(idlist, "gen_id")
                 .When(typelist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(typelist)) //.ODHActivityPoiTypeFilterOnTags(typelist)
                 .When(subtypelist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(subtypelist)) //.ODHActivityPoiSubTypeFilterOnTags(subtypelist)
                 .When(
@@ -694,7 +694,7 @@ namespace Helper
             );
 
             return query
-                .IdUpperFilter(idlist)
+                .IdUpperFilter(idlist,"gen_id")
                 .EventTopicFilter_GeneratedColumn(topiclist)
                 //.EventDateFilterEnd_GeneratedColumn(begindate, enddate)
                 //.EventDateFilterBegin_GeneratedColumn(begindate, enddate)
