@@ -201,7 +201,12 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            return null;
+            return StatusCode(410, new
+            {
+                message = "This endpoint is no longer available.",
+                replacement = "/v1/Tag?source=lts&validforentity=gastronomy",
+                note = "Please refer to the API docs for migration."
+            });
         }
 
         /// <summary>
@@ -225,7 +230,12 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            return null;
+            return StatusCode(410, new
+            {
+                message = "This endpoint is no longer available.",
+                replacement = "/v1/Tag?source=lts&validforentity=gastronomy",
+                note = "Please refer to the API docs for migration."
+            });
         }
 
         #endregion
