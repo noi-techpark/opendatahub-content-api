@@ -22,7 +22,7 @@ namespace DataModel
 
     public class EventLinkedReduced : EventLinked { }
 
-    public class GastronomyLinkedReduced : GastronomyLinked { }
+    //public class GastronomyLinkedReduced : GastronomyLinked { }
 
     public class MeasuringpointLinkedReduced : MeasuringpointLinked { }
 

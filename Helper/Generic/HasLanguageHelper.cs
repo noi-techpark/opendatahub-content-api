@@ -532,117 +532,117 @@ namespace Helper
             }
         }
 
-        //For Gastronomy
-        public static void CheckMyInsertedLanguages(
-            this Gastronomy mypoiactivity,
-            List<string> availablelanguages
-        )
-        {
-            if (mypoiactivity.HasLanguage == null)
-                mypoiactivity.HasLanguage = new List<string>();
+        ////For Gastronomy
+        //public static void CheckMyInsertedLanguages(
+        //    this Gastronomy mypoiactivity,
+        //    List<string> availablelanguages
+        //)
+        //{
+        //    if (mypoiactivity.HasLanguage == null)
+        //        mypoiactivity.HasLanguage = new List<string>();
 
-            //Detail, ImageGallery, ContactInfos, AdditionalArticleInfos,
-            foreach (string language in availablelanguages)
-            {
-                if (
-                    mypoiactivity.Detail.ContainsKey(language)
-                    || mypoiactivity.ContactInfos.ContainsKey(language)
-                ) // || mypoiactivity.AdditionalPoiInfos.ContainsKey(language))
-                {
-                    bool removelang = true;
+        //    //Detail, ImageGallery, ContactInfos, AdditionalArticleInfos,
+        //    foreach (string language in availablelanguages)
+        //    {
+        //        if (
+        //            mypoiactivity.Detail.ContainsKey(language)
+        //            || mypoiactivity.ContactInfos.ContainsKey(language)
+        //        ) // || mypoiactivity.AdditionalPoiInfos.ContainsKey(language))
+        //        {
+        //            bool removelang = true;
 
-                    if (
-                        mypoiactivity.Detail.ContainsKey(language)
-                        && mypoiactivity.Detail[language] != null
-                    )
-                    {
-                        var detailvalues = mypoiactivity.Detail[language];
-                        FixDetailBaseAndIntroText(detailvalues);
+        //            if (
+        //                mypoiactivity.Detail.ContainsKey(language)
+        //                && mypoiactivity.Detail[language] != null
+        //            )
+        //            {
+        //                var detailvalues = mypoiactivity.Detail[language];
+        //                FixDetailBaseAndIntroText(detailvalues);
 
-                        FixDetailLanguageField(detailvalues, language);
+        //                FixDetailLanguageField(detailvalues, language);
 
-                        if (!String.IsNullOrEmpty(detailvalues.AdditionalText))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(detailvalues.BaseText))
-                            if (!String.IsNullOrEmpty(detailvalues.BaseText.Trim()))
-                                removelang = false;
-                        if (!String.IsNullOrEmpty(detailvalues.GetThereText))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(detailvalues.Header))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(detailvalues.IntroText))
-                            if (!String.IsNullOrEmpty(detailvalues.IntroText.Trim()))
-                                removelang = false;
-                        if (!String.IsNullOrEmpty(detailvalues.SubHeader))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(detailvalues.Title))
-                            removelang = false;
-                    }
+        //                if (!String.IsNullOrEmpty(detailvalues.AdditionalText))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(detailvalues.BaseText))
+        //                    if (!String.IsNullOrEmpty(detailvalues.BaseText.Trim()))
+        //                        removelang = false;
+        //                if (!String.IsNullOrEmpty(detailvalues.GetThereText))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(detailvalues.Header))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(detailvalues.IntroText))
+        //                    if (!String.IsNullOrEmpty(detailvalues.IntroText.Trim()))
+        //                        removelang = false;
+        //                if (!String.IsNullOrEmpty(detailvalues.SubHeader))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(detailvalues.Title))
+        //                    removelang = false;
+        //            }
 
-                    if (
-                        mypoiactivity.ContactInfos.ContainsKey(language)
-                        && mypoiactivity.ContactInfos[language] != null
-                    )
-                    {
-                        var contactvalues = mypoiactivity.ContactInfos[language];
+        //            if (
+        //                mypoiactivity.ContactInfos.ContainsKey(language)
+        //                && mypoiactivity.ContactInfos[language] != null
+        //            )
+        //            {
+        //                var contactvalues = mypoiactivity.ContactInfos[language];
 
-                        FixDetailLanguageField(contactvalues, language);
+        //                FixDetailLanguageField(contactvalues, language);
 
-                        if (!String.IsNullOrEmpty(contactvalues.Address))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.City))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.CompanyName))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.CountryCode))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.CountryName))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.Email))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.Faxnumber))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.Givenname))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.LogoUrl))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.NamePrefix))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.Phonenumber))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.Surname))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.Tax))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.Url))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.Vat))
-                            removelang = false;
-                        if (!String.IsNullOrEmpty(contactvalues.ZipCode))
-                            removelang = false;
-                    }
+        //                if (!String.IsNullOrEmpty(contactvalues.Address))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.City))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.CompanyName))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.CountryCode))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.CountryName))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.Email))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.Faxnumber))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.Givenname))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.LogoUrl))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.NamePrefix))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.Phonenumber))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.Surname))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.Tax))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.Url))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.Vat))
+        //                    removelang = false;
+        //                if (!String.IsNullOrEmpty(contactvalues.ZipCode))
+        //                    removelang = false;
+        //            }
 
-                    //Add Language
-                    if (removelang == false)
-                    {
-                        if (!mypoiactivity.HasLanguage.Contains(language))
-                            mypoiactivity.HasLanguage.Add(language);
-                    }
-                    //Remove Language
-                    else if (removelang == true)
-                    {
-                        if (mypoiactivity.Detail.ContainsKey(language))
-                            mypoiactivity.Detail.Remove(language);
+        //            //Add Language
+        //            if (removelang == false)
+        //            {
+        //                if (!mypoiactivity.HasLanguage.Contains(language))
+        //                    mypoiactivity.HasLanguage.Add(language);
+        //            }
+        //            //Remove Language
+        //            else if (removelang == true)
+        //            {
+        //                if (mypoiactivity.Detail.ContainsKey(language))
+        //                    mypoiactivity.Detail.Remove(language);
 
-                        if (mypoiactivity.ContactInfos.ContainsKey(language))
-                            mypoiactivity.ContactInfos.Remove(language);
+        //                if (mypoiactivity.ContactInfos.ContainsKey(language))
+        //                    mypoiactivity.ContactInfos.Remove(language);
 
-                        if (mypoiactivity.HasLanguage.Contains(language))
-                            mypoiactivity.HasLanguage.Remove(language);
-                    }
-                }
-            }
-        }
+        //                if (mypoiactivity.HasLanguage.Contains(language))
+        //                    mypoiactivity.HasLanguage.Remove(language);
+        //            }
+        //        }
+        //    }
+        //}
 
         //For EventShort
         public static void CheckMyInsertedLanguages(

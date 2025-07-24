@@ -31,7 +31,7 @@ namespace OdhApiCore.Controllers.api
     /// ODH Activity Poi Api (data provided by various data providers) SOME DATA Available as OPENDATA
     /// </summary>
     [EnableCors("CorsPolicy")]
-    [NullStringParameterActionFilter]
+    [NullStringParameterActionFilter]    
     public class ODHActivityPoiController : OdhController
     {
         private readonly ISettings settings;
@@ -106,7 +106,7 @@ namespace OdhApiCore.Controllers.api
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [TypeFilter(typeof(Filters.RequestInterceptorAttribute))]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
-        [HttpGet, Route("ODHActivityPoi")]
+        [HttpGet, Route("ODHActivityPoi", Name = "GetODHActivityPoiList")]
         public async Task<IActionResult> GetODHActivityPoiList(
             string? language = null,
             uint pagenumber = 1,

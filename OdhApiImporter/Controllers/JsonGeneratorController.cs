@@ -149,6 +149,69 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        [HttpGet, Route("ODH/GastronomyCategorieslist")]
+        public async Task<IActionResult> ProduceGastronomyCategoriesListJson(
+    CancellationToken cancellationToken
+)
+        {
+            try
+            {
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "CategoryCodes",
+                     new List<string>() { "gastronomycategory" }
+                );
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "DishRates",
+                     new List<string>() { "gastronomydishcodes" }
+                );
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "Facilities",
+                     new List<string>() { "gastronomyfacilities" }
+                );
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "CapacityCeremonies",
+                     new List<string>() { "gastronomyceremonycodes" }
+                );
+                //Maybe Duplicate
+                await JsonGeneratorHelper.GenerateJSONODHTagsDisplayAsCategoryList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "GastronomyDisplayAsCategory",
+                     new List<string>() { "essen trinken" }
+                );
+
+                var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
+                    "Json Generation",
+                    "GastronomyCategorieslist",
+                    "Generate Json GastronomyCategorieslist succeeded",
+                    true
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var result = GenericResultsHelper.GetErrorJsonGenerateResult(
+                    "Json Generation",
+                    "GastronomyCategorieslist",
+                    "Generate Json GastronomyCategorieslist failed",
+                    ex,
+                    true
+                );
+
+                return BadRequest(result);
+            }
+        }
+
+
         #endregion
 
         #region LocationInfo

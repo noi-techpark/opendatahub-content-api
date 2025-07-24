@@ -263,14 +263,24 @@ namespace Helper.Location
         {
             LocationInfoLinked? oldlocationinfo = data.LocationInfo;
 
-            //Check if Locationinfo is already there //Test ObjectNullCheck
-            if (oldlocationinfo == null || ObjectAndStringNullCheck(oldlocationinfo))
+           
+            if (
+                //Check if Locationinfo is already there //Test ObjectNullCheck
+                (oldlocationinfo == null || ObjectAndStringNullCheck(oldlocationinfo)) || 
+                //Check if 
+                (oldlocationinfo != null && oldlocationinfo.DistrictInfo != null && oldlocationinfo.RegionInfo == null && oldlocationinfo.MunicipalityInfo == null && oldlocationinfo.TvInfo == null))
             {
                 //IF a DistrictId is there use this
                 if (data is IDistrictId && !String.IsNullOrEmpty((data as IDistrictId).DistrictId))
                     return await GetTheLocationInfoDistrict(
                         queryFactory,
                         (data as IDistrictId).DistrictId as string
+                    );
+                //Use the DistrictInfo from LocationInfo if only this info is filled
+                else if (data.LocationInfo != null &&  data.LocationInfo.DistrictInfo != null && !String.IsNullOrEmpty(data.LocationInfo.DistrictInfo.Id))
+                    return await GetTheLocationInfoDistrict(
+                        queryFactory,
+                        data.LocationInfo.DistrictInfo.Id
                     );
                 //Else use the GPS Point
                 else if (

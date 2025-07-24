@@ -248,52 +248,54 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "gastronomy":
-                    mydata = await GetDataFromRaven.GetRavenData<GastronomyRaven>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            GastronomyRaven,
-                            GastronomyLinked
-                        >((GastronomyRaven)mydata, TransformToPGObject.GetGastronomyPGObject);
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<GastronomyRaven>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<
+                    //        GastronomyRaven,
+                    //        GastronomyLinked
+                    //    >((GastronomyRaven)mydata, TransformToPGObject.GetGastronomyPGObject);
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    myupdateresult = await SaveRavenObjectToPG<GastronomyLinked>(
-                        (GastronomyLinked)mypgdata,
-                        "gastronomies",
-                        false,
-                        false,
-                        true
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<GastronomyLinked>(
+                    //    (GastronomyLinked)mypgdata,
+                    //    "gastronomies",
+                    //    false,
+                    //    false,
+                    //    true
+                    //);
 
-                    //No need for Publishedon, neither comparing data since this data is from a deprecated endpoint
+                    ////No need for Publishedon, neither comparing data since this data is from a deprecated endpoint
 
-                    //Check if data has to be reduced and save it
-                    if (
-                        ReduceDataTransformer.ReduceDataCheck<GastronomyLinked>(
-                            (GastronomyLinked)mypgdata
-                        ) == true
-                    )
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (GastronomyLinked)mypgdata,
-                            ReduceDataTransformer.CopyLTSGastronomyToReducedObject
-                        );
+                    ////Check if data has to be reduced and save it
+                    //if (
+                    //    ReduceDataTransformer.ReduceDataCheck<GastronomyLinked>(
+                    //        (GastronomyLinked)mypgdata
+                    //    ) == true
+                    //)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (GastronomyLinked)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSGastronomyToReducedObject
+                    //    );
 
-                        updateresultreduced = await SaveRavenObjectToPG<GastronomyLinked>(
-                            (GastronomyLinkedReduced)reducedobject,
-                            "gastronomies",
-                            false,
-                            false,
-                            false
-                        );
-                    }
+                    //    updateresultreduced = await SaveRavenObjectToPG<GastronomyLinked>(
+                    //        (GastronomyLinkedReduced)reducedobject,
+                    //        "gastronomies",
+                    //        false,
+                    //        false,
+                    //        false
+                    //    );
+                    //}
+
+                    throw new Exception("Gastronomy Update Raven Migrated!");
 
                     break;
 
@@ -1217,8 +1219,7 @@ namespace OdhApiImporter.Helpers
 
                 case "gastronomy":
 
-                    //deleteresult = await DeleteRavenObjectFromPG(id, "gastronomies", true, IdGenerator.GetIDStyle(typeof(GastronomyLinked)));
-                    deleteresult = await DeleteRavenObjectFromPG<GastronomyLinked>(
+                    deleteresult = await DeleteRavenObjectFromPG<ODHActivityPoiLinked>(
                         id,
                         "gastronomies",
                         true
@@ -1228,7 +1229,6 @@ namespace OdhApiImporter.Helpers
 
                 case "activity":
 
-                    //deleteresult = await DeleteRavenObjectFromPG(id, "activities", true, IdGenerator.GetIDStyle(typeof(LTSActivityLinked)));
                     deleteresult = await DeleteRavenObjectFromPG<LTSActivityLinked>(
                         id,
                         "activities",
@@ -1239,8 +1239,11 @@ namespace OdhApiImporter.Helpers
 
                 case "poi":
 
-                    //deleteresult = await DeleteRavenObjectFromPG(id, "pois", true, IdGenerator.GetIDStyle(typeof(LTSPoiLinked)));
-                    deleteresult = await DeleteRavenObjectFromPG<LTSPoiLinked>(id, "pois", true);
+                    deleteresult = await DeleteRavenObjectFromPG<LTSPoiLinked>(
+                        id, 
+                        "pois", 
+                        true
+                    );
 
                     break;
 
