@@ -704,7 +704,7 @@ namespace DataModel
                     : new List<DistrictLink>();
             }
         }
-
+        
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public ICollection<ODHTags>? ODHTags
         {
@@ -928,6 +928,7 @@ namespace DataModel
             }
         }
 
+        [SwaggerDeprecated("Deprecated use PublishedOn")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public bool OdhActive
         {
@@ -947,6 +948,7 @@ namespace DataModel
             }
         }
 
+        [SwaggerDeprecated("Deprecated, use Tags")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public ICollection<ODHActivityPoiTypesLink>? ODHActivityPoiTypes
         {
@@ -1000,9 +1002,13 @@ namespace DataModel
             }
         }
 
+        [SwaggerDeprecated("Deprecated, use Tags of type gastronomycategory")]
         public new ICollection<CategoryCodesLinked>? CategoryCodes { get; set; }
+        [SwaggerDeprecated("Deprecated, use Tags of type gastronomydishcodes")]
         public new ICollection<DishRatesLinked>? DishRates { get; set; }
+        [SwaggerDeprecated("Deprecated, use Tags of type gastronomyceremonycodes")] 
         public new ICollection<CapacityCeremonyLinked>? CapacityCeremony { get; set; }
+        [SwaggerDeprecated("Deprecated, use Tags of type gastronomyfacilities")] 
         public new ICollection<FacilitiesLinked>? Facilities { get; set; }
 
         //Overwrites The LocationInfo

@@ -339,12 +339,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeGastronomyTags(gastroparsed, gastroindb);
-              
+
+                    //Add the SmgTags for IDM
+                    await AssignODHTags(gastroparsed, gastroindb);
+
                     if (!opendata)
                     {
-                        //Add the SmgTags for IDM
-                        await AssignODHTags(gastroparsed, gastroindb);
-
                         await SetODHActiveBasedOnRepresentationMode(gastroparsed);
 
                         //Add the MetaTitle for IDM
