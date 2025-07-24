@@ -120,7 +120,7 @@ namespace OdhApiCore.Controllers
         {
             //Remove Reduced from idlist
             if (idlist != null)
-                idlist = idlist.ToLower().Replace("gastro", "smgpoi"); //TO CHECK.Replace("_reduced", "");
+                idlist = idlist.ToLower().Replace("gastro", "smgpoi").Replace("_reduced", "");
 
             //Use the ODHActivityPoi Endpoint
             return this.RedirectToRoute("GetODHActivityPoiList",
@@ -171,7 +171,7 @@ namespace OdhApiCore.Controllers
         )
         {
             //Hack Replace GASTRO with SMGPOI in Id            
-            id = id.ToLower().Replace("gastro", "smgpoi"); //TO CHECK.Replace("_reduced", "");
+            id = id.ToLower().Replace("gastro", "smgpoi").Replace("_reduced", "");
 
             //Use the ODHActivityPoi Endpoint
             return this.RedirectToRoute("SingleODHActivityPoi",

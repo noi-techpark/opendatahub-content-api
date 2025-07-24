@@ -178,22 +178,12 @@ namespace Helper
             IReadOnlyCollection<string> districtlist
         ) => query.WhereInJsonb(list: districtlist, "DistrictId", id => id.ToUpper());
 
-        public static Query IdUpperFilter(this Query query, IReadOnlyCollection<string> idlist) =>
+        public static Query IdUpperFilter(this Query query, IReadOnlyCollection<string> idlist, string fieldname = "id") =>
             query.Where(q =>
             {
                 foreach (var id in idlist)
                 {
-                    q = q.OrWhere("id", "=", id.ToUpper());
-                }
-                return q;
-            });
-
-        public static Query IdUpperFilterGenId(this Query query, IReadOnlyCollection<string> idlist) =>
-            query.Where(q =>
-            {
-                foreach (var id in idlist)
-                {
-                    q = q.OrWhere("gen_id", "=", id.ToUpper());
+                    q = q.OrWhere(fieldname, "=", id.ToUpper());
                 }
                 return q;
             });
@@ -208,22 +198,12 @@ namespace Helper
                return q;
            });
 
-        public static Query IdLowerFilter(this Query query, IReadOnlyCollection<string> idlist) =>
+        public static Query IdLowerFilter(this Query query, IReadOnlyCollection<string> idlist, string fieldname = "id") =>
             query.Where(q =>
             {
                 foreach (var id in idlist)
                 {
-                    q = q.OrWhere("id", "=", id.ToLower());
-                }
-                return q;
-            });
-
-        public static Query IdLowerFilterGenId(this Query query, IReadOnlyCollection<string> idlist) =>
-            query.Where(q =>
-            {
-                foreach (var id in idlist)
-                {
-                    q = q.OrWhere("gen_id", "=", id.ToLower());
+                    q = q.OrWhere(fieldname, "=", id.ToLower());
                 }
                 return q;
             });
@@ -238,22 +218,12 @@ namespace Helper
                 return q;
             });
 
-        public static Query IdIlikeFilter(this Query query, IReadOnlyCollection<string> idlist) =>
+        public static Query IdIlikeFilter(this Query query, IReadOnlyCollection<string> idlist, string fieldname = "id") =>
             query.Where(q =>
             {
                 foreach (var id in idlist)
                 {
-                    q = q.OrWhere("id", "ILIKE", id);
-                }
-                return q;
-            });
-
-        public static Query IdIlikeFilterGenId(this Query query, IReadOnlyCollection<string> idlist) =>
-            query.Where(q =>
-            {
-                foreach (var id in idlist)
-                {
-                    q = q.OrWhere("gen_id", "ILIKE", id);
+                    q = q.OrWhere(fieldname, "ILIKE", id);
                 }
                 return q;
             });

@@ -522,12 +522,13 @@ namespace OdhApiCore.Controllers.api
                 var query = QueryFactory
                     .Query("smgpois")
                     .Select("data")
-                    .Where("id", id.ToLower())
+                    .Where("gen_id", id.ToLower())
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)
                     )
-                    .FilterDataByAccessRoles(UserRolesToFilter);
+                    .FilterDataByAccessRoles(UserRolesToFilter)
+                    .FilterReducedDataByRoles(UserRolesToFilter);
 
                 var data = await query.FirstOrDefaultAsync<JsonRaw?>();
 
