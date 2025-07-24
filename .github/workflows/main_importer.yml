@@ -191,6 +191,7 @@ jobs:
           curl "${{ env.API_URL_IMPORTER }}ODH/Taglist"
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagAutoPublishlist"
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagCategorieslist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
 
   deploy-prod-importer:
     runs-on: ubuntu-22.04
@@ -335,3 +336,4 @@ jobs:
           curl "${{ env.API_URL_IMPORTER }}ODH/Taglist"
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagAutoPublishlist"
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagCategorieslist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"

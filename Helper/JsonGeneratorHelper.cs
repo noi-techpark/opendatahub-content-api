@@ -279,6 +279,36 @@ namespace Helper
                 serializer.Serialize(writer, data);
             }
         }
+
+        public static async Task GenerateJSONODHTagsDisplayAsCategoryList(
+            QueryFactory queryFactory,
+            string jsondir,
+            string jsonName,
+            List<string> validforentitylist
+        )
+        {
+            var serializer = new JsonSerializer();
+
+            var query = queryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("smgtags")
+                .ODHTagDisplayAsCategoryFilter(true)
+                .ODHTagValidForEntityFilter(validforentitylist);
+
+            var datafirst = await query.GetObjectListAsync<ODHTagLinked>();
+
+            var data = datafirst
+                .Select(x => new CategoriesTags() { Id = x.Id, TagName = x.TagName })
+                .ToList();
+
+            //Save json
+            string fileName = Path.Combine(jsondir, $"{jsonName}.json");
+            using (var writer = File.CreateText(fileName))
+            {
+                serializer.Serialize(writer, data);
+            }
+        }
     }
 
     public struct AccoBooklist

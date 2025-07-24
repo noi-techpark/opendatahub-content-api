@@ -167,7 +167,7 @@ namespace OdhApiImporter.Controllers
                     settings.JsonConfig.Jsondir,
                     "DishRates",
                      new List<string>() { "gastronomydishcodes" }
-                ); 
+                );
                 await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
                     QueryFactory,
                     settings.JsonConfig.Jsondir,
@@ -180,7 +180,13 @@ namespace OdhApiImporter.Controllers
                     "CapacityCeremonies",
                      new List<string>() { "gastronomyceremonycodes" }
                 );
-
+                //Maybe Duplicate
+                await JsonGeneratorHelper.GenerateJSONGastronomyTagCategoriesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "GastronomyDisplayAsCategory",
+                     new List<string>() { "essen trinken" }
+                );
 
                 var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
                     "Json Generation",

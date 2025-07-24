@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
@@ -304,7 +305,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
 
                 //Load the json Data
-                IDictionary<string,JArray> jsondata = default(Dictionary<string, JArray>);
+                IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
 
                 if (!opendata)
                 {
@@ -318,6 +319,18 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             "CapacityCeremonies",
                         }
                     );
+                }
+                else
+                {
+                    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                    settings.JsonConfig.Jsondir,
+                    new List<string>()
+                        {
+                            "CategoryCodes",
+                            "GastronomyDisplayAsCategory",
+                        }
+                    );
+
                 }
 
                 foreach (var data in gastrodata)
@@ -354,15 +367,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //await AddTagEntryToTags(gastroparsed);                        
                     }
 
+                    SetAdditionalInfosCategoriesByODHTags(gastroparsed, jsondata);
+
                     //Traduce all Tags with Source IDM to english tags
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                        gastroparsed,
-                        settings.JsonConfig.Jsondir
-                    );
+                            gastroparsed,
+                            settings.JsonConfig.Jsondir
+                        );
 
                     //Create Tags and preserve the old TagEntries
                     await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroparsed) : null);
-
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
 
@@ -398,7 +412,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             error = "",
                         }
                     );
-                }          
+                }
             }
             else
             {
@@ -412,7 +426,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     objectimagechanged = 0,
                     comparedobjects = 0,
                     pushchannels = null,
-                    changes = null                    
+                    changes = null
                 });
             }
 
@@ -979,6 +993,40 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return myvalidsmgtagstotranslate;
         }
 
+        private static void SetAdditionalInfosCategoriesByODHTags(ODHActivityPoiLinked gastroNew, IDictionary<string, JArray>? jsonfiles)
+        {
+            //If a Tag is found in 
+            //SET ADDITIONALINFOS
+            //Setting Categorization by Valid Tags
+            var validcategorylist = jsonfiles != null && jsonfiles["GastronomyDisplayAsCategory"] != null ? jsonfiles["GastronomyDisplayAsCategory"].ToObject<List<CategoriesTags>>() : null;
+
+            if (validcategorylist != null && gastroNew.SmgTags != null)
+            {
+                var currentcategories = validcategorylist.Where(x => gastroNew.SmgTags.Select(y => y.ToLower()).Contains(x.Id.ToLower())).ToList();
+
+                if (currentcategories != null)
+                {
+                    if(gastroNew.AdditionalPoiInfos == null)
+                        gastroNew.AdditionalPoiInfos = new Dictionary<string, AdditionalPoiInfos>();
+
+                    foreach (var languagecategory in gastroNew.HasLanguage)
+                    {
+                        AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string> };
+
+                        //Reassigning Categories
+                        foreach (var smgtagtotranslate in currentcategories)
+                        {
+                            if (smgtagtotranslate.TagName.ContainsKey(languagecategory))
+                            {
+                                additionalPoiInfos.Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
+                            }                            
+                        }
+
+                        gastroNew.AdditionalPoiInfos.Add(languagecategory, additionalPoiInfos);
+                    }
+                }                
+            }
+        }
 
         #endregion
     }
