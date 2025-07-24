@@ -118,10 +118,24 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
+            //Remove Reduced from idlist
+            if (idlist != null)
+                idlist = idlist.ToLower().Replace("gastro", "smgpoi").Replace("_reduced", "");
+
             //Use the ODHActivityPoi Endpoint
             return this.RedirectToRoute("GetODHActivityPoiList",
                 new { 
                     tagfilter = "Gastronomy",
+                    pagenumber = pagenumber,
+                    pagesize = pagesize,
+                    language = language,
+                    idlist = idlist,
+                    locfilter = locfilter,
+                    odhtagfilter = odhtagfilter,
+                    active = active,
+                    odhactive = odhactive,
+                    updatefrom = updatefrom,
+                    fields = fields,
                     seed = seed,
                     latitude = latitude,
                     longitude = longitude,
@@ -156,9 +170,8 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            //Hack Replace GASTRO with SMGPOI in Id
-            if (id.ToLower().StartsWith("gastro"))
-                id = id.ToLower().Replace("gastro", "smgpoi");
+            //Hack Replace GASTRO with SMGPOI in Id            
+            id = id.ToLower().Replace("gastro", "smgpoi").Replace("_reduced", "");
 
             //Use the ODHActivityPoi Endpoint
             return this.RedirectToRoute("SingleODHActivityPoi",
