@@ -15,12 +15,10 @@ using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.RAVEN;
 using SqlKata.Execution;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
@@ -1011,7 +1009,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     foreach (var languagecategory in gastroNew.HasLanguage)
                     {
-                        AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string> };
+                        AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string>() };
 
                         //Reassigning Categories
                         foreach (var smgtagtotranslate in currentcategories)
