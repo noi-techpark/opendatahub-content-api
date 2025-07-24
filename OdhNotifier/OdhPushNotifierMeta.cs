@@ -840,7 +840,7 @@ namespace OdhNotifier
                 return type.ToLower() switch
                 {
                     "accommodation" => "ACCOMMODATION",
-                    "activity" => "NOT SUPPORTED", //deprecated
+                    "activity" => "ODH_ACTIVITY_POI", //deprecated
                     "article" => "NOT SUPPORTED", //Recipes (only 1 time import in AEM)
                     "event" => "EVENT",
                     "metaregion" => "NOT SUPPORTED", //to check
@@ -852,8 +852,8 @@ namespace OdhNotifier
                     "district" => "DISTRICT",
                     "skiregion" => "NOT SUPPORTED", //to check
                     "skiarea" => "SKI_AREA",
-                    "gastronomy" => "NOT SUPPORTED", //deprecated
-                    "poi" => "NOT SUPPORTED", //deprecated
+                    "gastronomy" => "ODH_ACTIVITY_POI", //deprecated
+                    "poi" => "ODH_ACTIVITY_POI", //deprecated
                     "odhactivitypoi" => "ODH_ACTIVITY_POI",
                     "odhtag" => "ODH_TAG",
                     "ski_area" => "SKI_AREA",
