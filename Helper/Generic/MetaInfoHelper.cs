@@ -74,7 +74,7 @@ namespace Helper
                 LTSPoiLinked ltspl => GetMetadataforPoi(ltspl),
                 //GastronomyLinked gl => GetMetadataforGastronomy(gl),
                 EventLinked el => GetMetadataforEvent(el, reduced),
-                ODHActivityPoiLinked odhapl => GetMetadataforOdhActivityPoi(odhapl),
+                ODHActivityPoiLinked odhapl => GetMetadataforOdhActivityPoi(odhapl, reduced),
                 PackageLinked pl => GetMetadataforPackage(pl),
                 MeasuringpointLinked ml => GetMetadataforMeasuringpoint(ml),
                 WebcamInfoLinked wil => GetMetadataforWebcam(wil),
@@ -202,16 +202,16 @@ namespace Helper
             return GetMetadata(data, sourcemeta, reduced);
         }
 
-        public static Metadata GetMetadataforOdhActivityPoi(ODHActivityPoiLinked data)
+        public static Metadata GetMetadataforOdhActivityPoi(ODHActivityPoiLinked data, bool reduced = false)
         {
             string? sourcemeta = data.Source?.ToLower();
 
             if (sourcemeta == "common" || sourcemeta == "magnolia" || sourcemeta == "content")
                 sourcemeta = "idm";
 
-            bool reduced = false;
-            if (data._Meta != null)
-                reduced = (bool)data._Meta.Reduced;
+            //bool reduced = false;
+            //if (data._Meta != null)
+            //    reduced = (bool)data._Meta.Reduced;
 
             return GetMetadata(data, sourcemeta ?? "", reduced);
         }

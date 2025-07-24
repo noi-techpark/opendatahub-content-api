@@ -222,9 +222,9 @@ namespace OdhApiCore.Controllers.sta
                     );
 
                     //MetaData
-                    odhactivitypoi._Meta = MetadataHelper.GetMetadataobject<ODHActivityPoiLinked>(
+                    odhactivitypoi._Meta = MetadataHelper.GetMetadataobject(
                         odhactivitypoi,
-                        MetadataHelper.GetMetadataforOdhActivityPoi
+                        false
                     ); //GetMetadata(data.Id, "odhactivitypoi", sourcemeta, data.LastChange);
                     //LicenseInfo                                                                                                                                    //License
                     odhactivitypoi.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(
