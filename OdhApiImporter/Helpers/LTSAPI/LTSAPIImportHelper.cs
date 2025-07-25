@@ -141,6 +141,100 @@ namespace OdhApiImporter.Helpers
             );
         }
 
+        //Delete Single Data        
+        public async Task<Tuple<string, UpdateDetail>> DeleteSingleDataFromLTSApi(
+            string id,
+            string datatype,
+            CancellationToken cancellationToken
+        )
+        {
+            var updateresult = default(UpdateDetail);
+            var updateresultreduced = default(UpdateDetail);
+
+            switch (datatype.ToLower())
+            {
+                case "event":
+                    LTSApiEventImportHelper ltsapieventimporthelper = new LTSApiEventImportHelper(
+                        settings,
+                        QueryFactory,
+                        "events",
+                        importerURL
+                        );
+
+                    //Deactivate Full
+                    updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false);
+
+                    //Delete Reduced                    
+                    updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true);
+
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+                    break;
+
+                case "gastronomy":
+                    LTSApiGastronomyImportHelper ltsapigastroimporthelper = new LTSApiGastronomyImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    updateresult = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id, false, false);
+
+                    //Get Reduced                    
+                    updateresultreduced = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id, true, true);
+
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+                    break;
+
+                case "poi":
+                    LTSApiPoiImportHelper ltsapipoiimporthelper = new LTSApiPoiImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    updateresult = await ltsapipoiimporthelper.DeleteOrDisablePoisData(id, false, false);
+
+                    //Get Reduced                    
+                    updateresultreduced = await ltsapipoiimporthelper.DeleteOrDisablePoisData(id, true, true);
+
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+                    break;
+
+                default:
+                    throw new Exception("no match found");
+            }
+
+            var mergelist = new List<UpdateDetail>() { updateresult };
+
+            if (
+                updateresultreduced.updated != null
+                || updateresultreduced.created != null
+                || updateresultreduced.deleted != null
+            )
+            {
+                mergelist.Add(updateresultreduced);
+            }
+
+            return Tuple.Create<string, UpdateDetail>(
+                id,
+                GenericResultsHelper.MergeUpdateDetail(mergelist)
+            );
+        }
+
         //Update LastChanged Data
         public async Task<Tuple<string, UpdateDetail>> UpdateLastChangedDataFromLTSApi(
             DateTime lastchanged,
