@@ -368,6 +368,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         eventparsed.CreatePublishedOnList();
                     }
 
+                    //When requested with opendata Interface does not return isActive field
+                    //All data returned by opendata interface are active by default
+                    if (opendata)
+                    {
+                        eventparsed.Active = true;
+                        eventparsed.SmgActive = true;
+                    }
+
                     //Compatibility create Topic Object
                     await GenerateTopicObject(eventparsed);
 

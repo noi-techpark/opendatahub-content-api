@@ -2945,34 +2945,33 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-                //TO Finish
+                //Deletes the reduced data, deactivates the full data and sends a push
 
-                //LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
-                //    settings,
-                //    QueryFactory,
-                //    UrlGeneratorStatic("LTS/" + datatype),
-                //    OdhPushnotifier
-                //);
-                //var result = await ltsapiimporthelper.DeleteTriggerFromLTS(
-                //    id,
-                //    datatype,
-                //    cancellationToken
-                //);
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatype),
+                    OdhPushnotifier
+                );
+                var result = await ltsapiimporthelper.DeleteSingleDataFromLTSApi(
+                    id,
+                    datatype,
+                    cancellationToken
+                );
+                updatedetail = result.Item2;
 
-                //var deleteResult = GenericResultsHelper.GetSuccessUpdateResult(
-                //    result.Item1,
-                //    source,
-                //    operation,
-                //    updatetype,
-                //    "Delete LTS succeeded",
-                //    otherinfo,
-                //    result.Item2,
-                //    true
-                //);
+                var deleteResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    result.Item1,
+                    source,
+                    operation,
+                    updatetype,
+                    "Delete LTS succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
 
-                //return Ok(deleteResult);
-
-                throw new NotImplementedException("not ready yet");
+                return Ok(deleteResult);
             }
             catch (Exception ex)
             {

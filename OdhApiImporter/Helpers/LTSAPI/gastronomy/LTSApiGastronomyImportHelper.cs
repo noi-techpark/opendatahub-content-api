@@ -366,6 +366,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //await AddTagEntryToTags(gastroparsed);                        
                     }
 
+                    //When requested with opendata Interface does not return isActive field
+                    //All data returned by opendata interface are active by default
+                    if(opendata)
+                    {
+                        gastroparsed.Active = true;
+                        gastroparsed.SmgActive = true;
+                    }                        
+
                     SetAdditionalInfosCategoriesByODHTags(gastroparsed, jsondata);
 
                     //Traduce all Tags with Source IDM to english tags
@@ -691,7 +699,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             if(gastroNew.Mapping != null && gastroNew.Mapping.ContainsKey("lts") && gastroNew.Mapping["lts"].ContainsKey("representationMode"))
             {                
-                    var representationmode = gastroNew.Mapping["lts"]["representationMode"];
+                var representationmode = gastroNew.Mapping["lts"]["representationMode"];
                 if (representationmode == "full")
                 {
                     gastroNew.SmgActive = true;
