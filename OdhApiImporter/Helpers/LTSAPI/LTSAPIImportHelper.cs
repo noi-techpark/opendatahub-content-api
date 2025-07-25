@@ -272,7 +272,7 @@ namespace OdhApiImporter.Helpers
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
-                            datatype,
+                            datatype.ToLower(),
                             resulttuple.Item2,
                             true
                         );
@@ -308,7 +308,7 @@ namespace OdhApiImporter.Helpers
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
-                            datatype,
+                            datatype.ToLower(),
                             resulttuple.Item2,
                             true
                         );
@@ -344,7 +344,7 @@ namespace OdhApiImporter.Helpers
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
-                            datatype,
+                            datatype.ToLower(),
                             resulttuple.Item2,
                             true
                         );
@@ -419,7 +419,7 @@ namespace OdhApiImporter.Helpers
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
-                            datatype,
+                            datatype.ToLower(),
                             updateresult,
                             true
                         );
@@ -483,7 +483,7 @@ namespace OdhApiImporter.Helpers
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
-                            datatype,
+                            datatype.ToLower(),
                             updateresult,
                             true
                         );
@@ -547,7 +547,7 @@ namespace OdhApiImporter.Helpers
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
-                            datatype,
+                            datatype.ToLower(),
                             updateresult,
                             true
                         );
@@ -656,7 +656,7 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
-                                datatype,
+                                datatype.ToLower(),
                                 updateresult,
                                 true
                             );
@@ -688,7 +688,7 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS",
                                 "single.activesync",
                                 "Update LTS succeeded",
-                                datatype,
+                                datatype.ToLower(),
                                 resulttuple.Item2,
                                 true
                             );
@@ -754,7 +754,7 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
-                                datatype,
+                                datatype.ToLower(),
                                 updateresult,
                                 true
                             );
@@ -791,7 +791,7 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS",
                                 "single.activesync",
                                 "Update LTS succeeded",
-                                datatype,
+                                datatype.ToLower(),
                                 resulttuple.Item2,
                                 true
                             );
@@ -858,7 +858,7 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
-                                datatype,
+                                datatype.ToLower(),
                                 updateresult,
                                 true
                             );
@@ -895,7 +895,7 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS",
                                 "single.activesync",
                                 "Update LTS succeeded",
-                                datatype,
+                                datatype.ToLower(),
                                 resulttuple.Item2,
                                 true
                             );
