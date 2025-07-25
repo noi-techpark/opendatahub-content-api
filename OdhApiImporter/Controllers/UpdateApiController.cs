@@ -4,14 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using DIGIWAY;
 using EBMS;
@@ -41,6 +33,15 @@ using RAVEN;
 using ServiceReferenceLCS;
 using SqlKata;
 using SqlKata.Execution;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiImporter.Controllers
 {
@@ -2765,11 +2766,9 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-                //if no date is set, use the date of 24h before
-                if (date == null)
-                    date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd-");
-
-                var lastchangeddate = DateTime.Parse(date);
+                //supported '2h', '3d', '15m', or '1w'
+                if (!DateTime.TryParse(date, out DateTime lastchangeddate))
+                    lastchangeddate = DateTimeHelper.SubtractFromNow(date);
 
                 LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
                     settings,
@@ -2830,12 +2829,10 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-                //if no date is set, use the date of 24h before
-                if (date == null)
-                    date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd-");
-
-                var lastchangeddate = DateTime.Parse(date);
-
+                //supported '2h', '3d', '15m', or '1w'
+                if (!DateTime.TryParse(date, out DateTime lastchangeddate))
+                    lastchangeddate = DateTimeHelper.SubtractFromNow(date);
+             
                 LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
                     settings,
                     QueryFactory,
@@ -3154,6 +3151,34 @@ namespace OdhApiImporter.Controllers
                 return "single";
             else
                 return "passed_ids";
+        }
+  
+    }
+
+    public static class DateTimeHelper
+    {
+        public static DateTime SubtractFromNow(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                throw new ArgumentException("Input string cannot be null or empty.");
+
+            var match = Regex.Match(input, @"^(\d+)([smhdw])$", RegexOptions.IgnoreCase);
+
+            if (!match.Success)
+                throw new FormatException("Invalid format. Use e.g., '2h', '3d', '15m', or '1w'.");
+
+            int value = int.Parse(match.Groups[1].Value);
+            string unit = match.Groups[2].Value.ToLower();
+
+            return unit switch
+            {
+                "s" => DateTime.Now.AddSeconds(-value),
+                "m" => DateTime.Now.AddMinutes(-value),
+                "h" => DateTime.Now.AddHours(-value),
+                "d" => DateTime.Now.AddDays(-value),
+                "w" => DateTime.Now.AddDays(-7 * value),
+                _ => throw new NotSupportedException($"Time unit '{unit}' is not supported.")
+            };
         }
     }
 }
