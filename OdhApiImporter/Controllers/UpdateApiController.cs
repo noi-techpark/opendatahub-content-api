@@ -2749,7 +2749,13 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        //Generic LastChanged Sync
+        /// <summary>
+        /// Generic LastChanged Sync
+        /// </summary>
+        /// <param name="date">Pass a date in format (yyyy-MM-dd hh:mm) or also supported '2h','3d','15m','1w'...</param>
+        /// <param name="datatype">Pass a valid LTS Datatype</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         [HttpGet, Route("LTS/{datatype}/UpdateLastChanged/{date}")]
         [Authorize(Roles = "DataPush")]
         public async Task<IActionResult> UpdateLastChangedDataFromLTS(
