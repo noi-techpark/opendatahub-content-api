@@ -9,6 +9,7 @@ using Helper.Generic;
 using Helper.Tagging;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Operations;
+using NetTopologySuite.GeometriesGraph;
 using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.LTSAPI;
 using OdhApiImporter.Helpers.RAVEN;
@@ -593,14 +594,12 @@ namespace OdhApiImporter.Helpers
             var idstodelete = default(List<string>?);
             var idstoimport = default(List<string>?);
 
-            int? updatecounter = 0;
-            int? createcounter = 0;
-            int? deletecounter = 0;
-            int? errorcounter = 0;
-
             List<string> datatoprocesslist = new List<string>() { "full", "reduced" };
 
             bool reduced = false;
+
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
+            List<string> updatedidlist = new List<string>();
 
             switch (datatype.ToLower())
             {
@@ -614,6 +613,11 @@ namespace OdhApiImporter.Helpers
 
                     foreach (var datatoprocess in datatoprocesslist)
                     {
+                        int? updatecounter = 0;
+                        int? createcounter = 0;
+                        int? deletecounter = 0;
+                        int? errorcounter = 0;
+
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -699,8 +703,9 @@ namespace OdhApiImporter.Helpers
                             errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-
-                        updatedetail = Tuple.Create(String.Join(",", idstodelete), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                        updatedidlist.AddRange(idstodelete);
+                        updatedidlist.AddRange(idstoimport);
                     }
                     break;
 
@@ -714,6 +719,11 @@ namespace OdhApiImporter.Helpers
 
                     foreach(var datatoprocess in datatoprocesslist)
                     {
+                        int? updatecounter = 0;
+                        int? createcounter = 0;
+                        int? deletecounter = 0;
+                        int? errorcounter = 0;
+
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -781,6 +791,7 @@ namespace OdhApiImporter.Helpers
                         }
 
                         //Call Single Update for all active Items not present in DB
+                        //Do this only for the full workflow otherwise double import
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "gastronomy", cancellationToken);
@@ -802,8 +813,9 @@ namespace OdhApiImporter.Helpers
                             errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-                        updatedetail = Tuple.Create(String.Join(",", idstodelete), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
-
+                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                        updatedidlist.AddRange(idstodelete);
+                        updatedidlist.AddRange(idstoimport);
                     }
 
                     break;
@@ -818,6 +830,11 @@ namespace OdhApiImporter.Helpers
 
                     foreach (var datatoprocess in datatoprocesslist)
                     {
+                        int? updatecounter = 0;
+                        int? createcounter = 0;
+                        int? deletecounter = 0;
+                        int? errorcounter = 0;
+
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -906,8 +923,9 @@ namespace OdhApiImporter.Helpers
                             errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-                        updatedetail = Tuple.Create(String.Join(",", idstodelete), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
-
+                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                        updatedidlist.AddRange(idstodelete);
+                        updatedidlist.AddRange(idstoimport);
                     }
 
                     break;
@@ -916,6 +934,7 @@ namespace OdhApiImporter.Helpers
                 default:
                     throw new Exception("no match found");
             }
+            updatedetail = Tuple.Create(String.Join(",", updatedidlist), GenericResultsHelper.MergeUpdateDetail(updatedetaillist));
 
             return updatedetail;
         }
