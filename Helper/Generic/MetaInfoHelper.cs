@@ -213,6 +213,11 @@ namespace Helper
             //if (data._Meta != null)
             //    reduced = (bool)data._Meta.Reduced;
 
+            //To Remove after activity poi migration HACK for reduced
+            if (data.Id.ToLower().Contains("_reduced"))
+                reduced = true;
+
+
             return GetMetadata(data, sourcemeta ?? "", reduced);
         }
 

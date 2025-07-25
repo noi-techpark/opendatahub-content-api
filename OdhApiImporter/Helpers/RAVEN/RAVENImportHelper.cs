@@ -392,7 +392,7 @@ namespace OdhApiImporter.Helpers
                             "pois",
                             false,
                             false,
-                            false
+                            false                            
                         );
                     }
 
@@ -473,7 +473,7 @@ namespace OdhApiImporter.Helpers
                             "smgpois",
                             false,
                             false,
-                            false
+                            false                            
                         );
                     }
 
@@ -1219,11 +1219,13 @@ namespace OdhApiImporter.Helpers
 
                 case "gastronomy":
 
-                    deleteresult = await DeleteRavenObjectFromPG<ODHActivityPoiLinked>(
-                        id,
-                        "gastronomies",
-                        true
-                    );
+                    //deleteresult = await DeleteRavenObjectFromPG<ODHActivityPoiLinked>(
+                    //    id,
+                    //    "gastronomies",
+                    //    true
+                    //);
+
+                    throw new Exception("Gastronomy Delete Raven Migrated!");
 
                     break;
 
@@ -1262,8 +1264,10 @@ namespace OdhApiImporter.Helpers
                 case "event":
 
                     //Delete
-                    deleteresult = await DeleteRavenObjectFromPG<EventLinked>(id, "events", true);
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    //deleteresult = await DeleteRavenObjectFromPG<EventLinked>(id, "events", true);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+
+                    throw new Exception("Events Delete Raven Migrated!");
 
                     break;
 
