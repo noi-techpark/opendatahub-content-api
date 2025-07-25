@@ -557,8 +557,13 @@ namespace Helper
             string reducedId = "";
             if (reduced)
                 reducedId = "_REDUCED";
-            
-            var idtodelete = Helper.IdGenerator.CheckIdFromType<T>(id + reducedId);
+
+            //Hack for old reduced ids
+            string idtoprocess = id;
+            if (!id.ToLower().Contains("_reduced"))
+                idtoprocess = id + reducedId;
+
+            var idtodelete = Helper.IdGenerator.CheckIdFromType<T>(idtoprocess);
 
             //Check if data exists
             var queryresult = await QueryFactory
