@@ -2765,6 +2765,10 @@ namespace OdhApiImporter.Controllers
 
             try
             {
+                //if no date is set, use the date of 24h before
+                if (date == null)
+                    date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd-");
+
                 var lastchangeddate = DateTime.Parse(date);
 
                 LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
@@ -2826,6 +2830,10 @@ namespace OdhApiImporter.Controllers
 
             try
             {
+                //if no date is set, use the date of 24h before
+                if (date == null)
+                    date = DateTime.Now.AddDays(-1).ToString("yyyy-MM-dd-");
+
                 var lastchangeddate = DateTime.Parse(date);
 
                 LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
