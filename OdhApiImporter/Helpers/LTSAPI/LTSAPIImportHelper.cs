@@ -67,9 +67,10 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
+                    //Get full data
                     updateresult = await ltsapieventimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
-                    //Get Reduced                    
+                    //Get reduced data
                     updateresultreduced = await ltsapieventimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
@@ -87,9 +88,10 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
+                    //Get full data
                     updateresult = await ltsapigastroimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
-                    //Get Reduced                    
+                    //Get reduced data
                     updateresultreduced = await ltsapigastroimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
@@ -108,10 +110,33 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
+                    //Get full data
                     updateresult = await ltsapipoiimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
-                    //Get Reduced                    
+                    //Get reduced data
                     updateresultreduced = await ltsapipoiimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
+
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+
+                    break;
+
+                case "activity":
+                    LTSApiActivityImportHelper ltsapiactivityimporthelper = new LTSApiActivityImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    //Get full data
+                    updateresult = await ltsapiactivityimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
+
+                    //Get reduced data                  
+                    updateresultreduced = await ltsapiactivityimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
@@ -142,7 +167,7 @@ namespace OdhApiImporter.Helpers
             );
         }
 
-        //Delete Single Data        
+        //Delete or Deactivate Single Data        
         public async Task<Tuple<string, UpdateDetail>> DeleteSingleDataFromLTSApi(
             string id,
             string datatype,
@@ -183,9 +208,10 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
+                    //Deactivate Full
                     updateresult = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id, false, false);
 
-                    //Get Reduced                    
+                    //Delete Reduced               
                     updateresultreduced = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id, true, true);
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
@@ -203,11 +229,33 @@ namespace OdhApiImporter.Helpers
                         importerURL
                         );
 
+                    //Deactivate Full
                     updateresult = await ltsapipoiimporthelper.DeleteOrDisablePoisData(id, false, false);
 
-                    //Get Reduced                    
+                    //Delete Reduced                  
                     updateresultreduced = await ltsapipoiimporthelper.DeleteOrDisablePoisData(id, true, true);
 
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+                    break;
+
+                case "activity":
+                    LTSApiActivityImportHelper ltsapiactivityimporthelper = new LTSApiActivityImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    //Deactivate Full
+                    updateresult = await ltsapiactivityimporthelper.DeleteOrDisableActivitiesData(id, false, false);
+
+                    //Delete Reduced
+                    updateresultreduced = await ltsapiactivityimporthelper.DeleteOrDisableActivitiesData(id, true, true);
+                    
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
                                 id,
@@ -236,7 +284,7 @@ namespace OdhApiImporter.Helpers
             );
         }
 
-        //Update LastChanged Data
+        //Update LastChanged Data (By using Update single data)
         public async Task<Tuple<string, UpdateDetail>> UpdateLastChangedDataFromLTSApi(
             DateTime lastchanged,
             string datatype,
@@ -360,6 +408,41 @@ namespace OdhApiImporter.Helpers
 
                     break;
 
+                case "activity":
+                    LTSApiActivityImportHelper ltsapiactivityimporthelper = new LTSApiActivityImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    lastchangedlist = await ltsapiactivityimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
+
+                    //Call Single Update and write LOG
+                    foreach (var id in lastchangedlist)
+                    {
+                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "activity", cancellationToken);
+
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            resulttuple.Item1,
+                            "api",
+                            "Update LTS",
+                            "single.lastchanged",
+                            "Update LTS succeeded",
+                            datatype.ToLower(),
+                            resulttuple.Item2,
+                            true
+                        );
+
+                        createcounter = resulttuple.Item2.created + createcounter;
+                        updatecounter = resulttuple.Item2.updated + updatecounter;
+                        deletecounter = resulttuple.Item2.deleted + deletecounter;
+                        errorcounter = resulttuple.Item2.error + errorcounter;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
 
                 default:
                     throw new Exception("no match found");
@@ -368,7 +451,7 @@ namespace OdhApiImporter.Helpers
             return updatedetail;
         }
 
-        //Update Deleted Data        
+        //Update Deleted Data (By using Delete or deactivate single data)
         public async Task<Tuple<string, UpdateDetail>> UpdateDeletedDataFromLTSApi(
             DateTime lastchanged,
             string datatype,
@@ -393,18 +476,17 @@ namespace OdhApiImporter.Helpers
                         );
 
                     lastchangedlist = await ltsapieventimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
-
-                    //Call Single Update and write LOG or write directly??
-                    //Use the DeleteOrDisable method?
-                 
+                    
+                
                     foreach (var id in lastchangedlist)
                     {
                         var updateresult = default(UpdateDetail);
-                        var updateresultreduced = default(UpdateDetail);                        
+                        var updateresultreduced = default(UpdateDetail);
 
+                        //Use the DeleteOrDisable method
                         updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false);
 
-                        //Get Reduced                    
+                        //Use the DeleteOrDisable method
                         updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true);
 
                         updateresult.pushed = await CheckIfObjectChangedAndPush(
@@ -534,6 +616,70 @@ namespace OdhApiImporter.Helpers
 
                         //Get Reduced                    
                         updateresultreduced = await ltsapipoiimporthelper.DeleteOrDisablePoisData(id, true, true);
+
+                        updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                    updateresult,
+                                    id,
+                                    datatype
+                                );
+
+                        //Create Delete/Disable Log
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            id,
+                            "api",
+                            "Update LTS",
+                            "single.deleted",
+                            "Update LTS succeeded",
+                            datatype.ToLower(),
+                            updateresult,
+                            true
+                        );
+
+                        createcounter = updateresult.created + createcounter;
+                        updatecounter = updateresult.updated + updatecounter;
+                        deletecounter = updateresult.deleted + deletecounter;
+                        errorcounter = updateresult.error + errorcounter;
+
+                        //Add also Reduced info
+                        if (updateresultreduced.created != null)
+                            createcounter = createcounter + updateresultreduced.created;
+                        if (updateresultreduced.updated != null)
+                            updatecounter = updatecounter + updateresultreduced.updated;
+                        if (updateresultreduced.deleted != null)
+                            deletecounter = deletecounter + updateresultreduced.deleted;
+                        if (updateresultreduced.error != null)
+                            errorcounter = errorcounter + updateresultreduced.error;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
+                case "activity":
+                    LTSApiActivityImportHelper ltsapiactivityimporthelper = new LTSApiActivityImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    lastchangedlist = await ltsapiactivityimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
+
+                    //Call Single Update and write LOG or write directly??
+                    //Use the DeleteOrDisable method?
+
+                    //ensure lowercase ids in lastchangedlist
+                    lastchangedlist = lastchangedlist.Select(x => x.ToLower()).ToList();
+
+                    foreach (var id in lastchangedlist)
+                    {
+                        var updateresult = default(UpdateDetail);
+                        var updateresultreduced = default(UpdateDetail);
+
+                        updateresult = await ltsapiactivityimporthelper.DeleteOrDisableActivitiesData(id, false, false);
+
+                        //Get Reduced                    
+                        updateresultreduced = await ltsapiactivityimporthelper.DeleteOrDisableActivitiesData(id, true, true);
 
                         updateresult.pushed = await CheckIfObjectChangedAndPush(
                                     updateresult,
@@ -905,6 +1051,116 @@ namespace OdhApiImporter.Helpers
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "poi", cancellationToken);
+
+                            GenericResultsHelper.GetSuccessUpdateResult(
+                                resulttuple.Item1,
+                                "api",
+                                "Update LTS",
+                                "single.activesync",
+                                "Update LTS succeeded",
+                                datatype.ToLower(),
+                                resulttuple.Item2,
+                                true
+                            );
+
+                            createcounter = resulttuple.Item2.created + createcounter;
+                            updatecounter = resulttuple.Item2.updated + updatecounter;
+                            deletecounter = resulttuple.Item2.deleted + deletecounter;
+                            errorcounter = resulttuple.Item2.error + errorcounter;
+                        }
+
+                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                        updatedidlist.AddRange(idstodelete);
+                        updatedidlist.AddRange(idstoimport);
+                    }
+
+                    break;
+
+                case "activity":
+                    LTSApiActivityImportHelper ltsapiactivityimporthelper = new LTSApiActivityImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        importerURL
+                        );
+
+                    foreach (var datatoprocess in datatoprocesslist)
+                    {
+                        int? updatecounter = 0;
+                        int? createcounter = 0;
+                        int? deletecounter = 0;
+                        int? errorcounter = 0;
+
+                        if (datatoprocess == "reduced")
+                            reduced = true;
+
+                        activelist = await ltsapiactivityimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+                        activelistinDB = await GetAllDataBySource("smgpois", new List<string>() { "lts" }, new List<string>() { "activitydata" }, true, reduced);
+
+                        //Compare with DB and deactivate all inactive items
+                        idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p.Replace("smgpoi", "").Replace("_reduced", "").ToUpper())).ToList();
+
+                        //Ids only present on LTS Interface ?
+                        idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2.Replace("smgpoi", "").Replace("_reduced", "").ToUpper() == p)).ToList();
+
+                        //Delete Disable all Inactive Data from DB
+                        foreach (var id in idstodelete)
+                        {
+                            var updateresult = default(UpdateDetail);
+                            var updateresultreduced = default(UpdateDetail);
+
+                            if (!reduced)
+                            {
+                                updateresult = await ltsapiactivityimporthelper.DeleteOrDisableActivitiesData(id.Replace("smgpoi", ""), false, false);
+
+                                updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                            updateresult,
+                                            id,
+                                            datatype
+                                        );
+                            }
+
+                            if (reduced)
+                                updateresultreduced = await ltsapiactivityimporthelper.DeleteOrDisableActivitiesData(id.Replace("smgpoi", ""), true, true);
+
+
+                            //Create Delete/Disable Log
+                            GenericResultsHelper.GetSuccessUpdateResult(
+                                id,
+                                "api",
+                                "Update LTS",
+                                "single.inactivesync",
+                                "Update LTS succeeded",
+                                datatype.ToLower(),
+                                updateresult,
+                                true
+                            );
+
+                            if (updateresult.created != null)
+                                createcounter = updateresult.created + createcounter;
+                            if (updateresult.updated != null)
+                                updatecounter = updateresult.updated + updatecounter;
+                            if (updateresult.deleted != null)
+                                deletecounter = updateresult.deleted + deletecounter;
+                            if (updateresult.error != null)
+                                errorcounter = updateresult.error + errorcounter;
+
+
+                            //Add also Reduced info
+                            if (updateresultreduced.created != null)
+                                createcounter = createcounter + updateresultreduced.created;
+                            if (updateresultreduced.updated != null)
+                                updatecounter = updatecounter + updateresultreduced.updated;
+                            if (updateresultreduced.deleted != null)
+                                deletecounter = deletecounter + updateresultreduced.deleted;
+                            if (updateresultreduced.error != null)
+                                errorcounter = errorcounter + updateresultreduced.error;
+                        }
+
+                        //Call Single Update for all active Items not present in DB
+                        foreach (var id in idstoimport)
+                        {
+                            var resulttuple = await UpdateSingleDataFromLTSApi(id, "activity", cancellationToken);
 
                             GenericResultsHelper.GetSuccessUpdateResult(
                                 resulttuple.Item1,
