@@ -147,9 +147,6 @@ jobs:
             echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_NOICOMMUNITY }}" > google-service-account.noicommunity.json
             chmod +r google-service-account.noicommunity.json
 
-      - name: Show disk usage
-        run: df -h
-
       - name: Build and push 
         uses: noi-techpark/github-actions/docker-build-and-push@v2
         with:
