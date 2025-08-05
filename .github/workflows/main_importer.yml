@@ -51,14 +51,14 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '8.0.x'        
+        dotnet-version: '8.0.17'        
     - name: Restore dependencies
       run: dotnet restore OdhApiCore.sln
     - name: Build OdhApiCore Solution
       run: dotnet build OdhApiCore.sln --no-restore
 
   deploy-test-importer:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/main'
     env:
       API_URL: "https://api.tourism.testingmachine.eu/v1/"
