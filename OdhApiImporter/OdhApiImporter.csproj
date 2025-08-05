@@ -8,17 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Helpers\CDB\**" />
-    <Compile Remove="Helpers\LCS\**" />
-    <Content Remove="Helpers\CDB\**" />
-    <Content Remove="Helpers\LCS\**" />
-    <EmbeddedResource Remove="Helpers\CDB\**" />
-    <EmbeddedResource Remove="Helpers\LCS\**" />
-    <None Remove="Helpers\CDB\**" />
-    <None Remove="Helpers\LCS\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
@@ -37,8 +26,7 @@
     <ProjectReference Include="..\EBMS\EBMS.csproj" />
     <ProjectReference Include="..\FERATEL\FERATEL.csproj" />
     <ProjectReference Include="..\GTFSAPI\GTFSAPI.csproj" />
-    <ProjectReference Include="..\Helper\Helper.csproj" />
-    <ProjectReference Include="..\LCS\LCS.csproj" />
+    <ProjectReference Include="..\Helper\Helper.csproj" />    
     <ProjectReference Include="..\LOOPTEC\LOOPTEC.csproj" />
     <ProjectReference Include="..\MSS\MSS.csproj" />
     <ProjectReference Include="..\NINJA\NINJA.csproj" />

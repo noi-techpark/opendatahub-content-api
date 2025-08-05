@@ -11,10 +11,6 @@ using Helper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using Newtonsoft.Json;
-using Npgsql;
-using ServiceReferenceLCS;
 using SqlKata.Execution;
 
 namespace OdhApiImporter.Controllers

@@ -9,14 +9,12 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using DataModel;
 using DSS;
 using DSS.Parser;
 using Helper;
 using Helper.Generic;
 using Newtonsoft.Json;
-using ServiceReferenceLCS;
 using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers.DSS
