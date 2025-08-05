@@ -705,6 +705,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     gastroNew.SmgActive = true;
                 }
             }
+            else
+                gastroNew.SmgActive = false;
         }
 
         #region OLD Compatibility Stuff
