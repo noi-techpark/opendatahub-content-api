@@ -38,7 +38,7 @@ env:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v2
@@ -55,7 +55,7 @@ jobs:
         docker-compose-file: docker-compose.yml
 
   deploy-test-importer:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
     env:
       API_URL: "https://api.tourism.testingmachine.eu/v1/"
@@ -194,7 +194,7 @@ jobs:
           curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
 
   deploy-prod-importer:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/prod'
     env:
       API_URL: "https://tourism.api.opendatahub.com/v1/"
