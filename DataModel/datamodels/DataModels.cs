@@ -4303,7 +4303,7 @@ namespace DataModel
 
                 return TranslateTypeString2EndPoint(odhtype);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return "ODHActivityPoi";
             }

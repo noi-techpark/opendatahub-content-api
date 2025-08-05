@@ -12,7 +12,6 @@ COPY DSS/DSS.csproj DSS/
 COPY MSS/MSS.csproj MSS/
 COPY LCS/LCS.csproj LCS/
 COPY SIAG/SIAG.csproj SIAG/
-COPY CDB/CDB.csproj CDB/
 COPY SuedtirolWein/SuedtirolWein.csproj SuedtirolWein/
 COPY NINJA/NINJA.csproj NINJA/
 COPY RAVEN/RAVEN.csproj RAVEN/
