@@ -31,7 +31,7 @@ jobs:
       run: dotnet test OdhApiCore --filter Category!=Integration
 
   deploy-test-api:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/main'
     env:
       API_URL: "https://api.tourism.testingmachine.eu/v1/"
