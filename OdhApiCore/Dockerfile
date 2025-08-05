@@ -3,7 +3,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0.412-jammy AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-jammy AS build
 WORKDIR /src
 COPY DataModel/DataModel.csproj DataModel/
 COPY RawQueryParser/RawQueryParser.fsproj RawQueryParser/
@@ -18,7 +18,7 @@ COPY RAVEN/RAVEN.csproj RAVEN/
 COPY STA/STA.csproj STA/
 COPY LOOPTEC/LOOPTEC.csproj LOOPTEC/
 COPY OdhNotifier/OdhNotifier.csproj OdhNotifier/
-COPY PushServer/PushServer.csproj EBMS/
+COPY PushServer/PushServer.csproj PushServer/
 COPY JsonLDTransformer/JsonLDTransformer.csproj JsonLDTransformer/
 COPY OdhApiCore/OdhApiCore.csproj OdhApiCore/
 COPY google-service-account.noicommunity.json OdhApiCore/google-service-account.noicommunity.json
