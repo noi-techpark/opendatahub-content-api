@@ -25,7 +25,7 @@ COPY google-service-account.noicommunity.json OdhApiCore/google-service-account.
 RUN dotnet restore OdhApiCore/OdhApiCore.csproj
 COPY . .
 WORKDIR /src/OdhApiCore
-RUN dotnet build OdhApiCore.csproj -c Release -o /app
+RUN dotnet build OdhApiCore.csproj -c Release -o /app -v diag
 
 FROM build AS test
 WORKDIR /src
