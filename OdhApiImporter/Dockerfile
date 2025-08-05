@@ -7,6 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0.411-jammy AS build
 WORKDIR /src
 COPY DataModel/DataModel.csproj DataModel/
 COPY RawQueryParser/RawQueryParser.fsproj RawQueryParser/
+COPY GeoConverter/GeoConverter.csproj GeoConverter/
 COPY Helper/Helper.csproj Helper/
 COPY EBMS/EBMS.csproj EBMS/
 COPY DSS/DSS.csproj DSS/
@@ -41,6 +42,5 @@ COPY --from=publish /app/publish .
 COPY OdhApiImporter/xml/Weather.xml xml/
 COPY OdhApiImporter/xml/STACategories.xml xml/
 COPY OdhApiImporter/xml/BezirkWeather.xml xml/
-#COPY OdhApiImporter/xml/RequestInterceptor.xml xml/
 
 ENTRYPOINT ["dotnet", "OdhApiImporter.dll"]

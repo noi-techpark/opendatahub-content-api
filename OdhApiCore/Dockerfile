@@ -6,13 +6,13 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:8.0.411-jammy AS build
 WORKDIR /src
 COPY DataModel/DataModel.csproj DataModel/
+COPY RawQueryParser/RawQueryParser.csproj RawQueryParser/
+COPY GeoConverter/GeoConverter.csproj GeoConverter/
 COPY Helper/Helper.csproj Helper/
 COPY EBMS/EBMS.csproj EBMS/
-COPY DSS/DSS.csproj DSS/
 COPY MSS/MSS.csproj MSS/
 COPY LCS/LCS.csproj LCS/
 COPY SIAG/SIAG.csproj SIAG/
-COPY SuedtirolWein/SuedtirolWein.csproj SuedtirolWein/
 COPY NINJA/NINJA.csproj NINJA/
 COPY RAVEN/RAVEN.csproj RAVEN/
 COPY STA/STA.csproj STA/
