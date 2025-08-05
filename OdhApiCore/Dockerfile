@@ -3,7 +3,7 @@ WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0.411-jammy AS build
 WORKDIR /src
 COPY DataModel/DataModel.csproj DataModel/
 COPY Helper/Helper.csproj Helper/
