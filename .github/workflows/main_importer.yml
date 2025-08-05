@@ -51,7 +51,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '8.0.17'        
+        dotnet-version: '8.0.411'        
     - name: Restore dependencies
       run: dotnet restore OdhApiCore.sln
     - name: Build OdhApiCore Solution
