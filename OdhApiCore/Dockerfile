@@ -48,7 +48,6 @@ COPY --from=publish /app/publish .
 COPY OdhApiCore/xml/Weather.xml xml/
 COPY OdhApiCore/xml/STACategories.xml xml/
 COPY OdhApiCore/xml/BezirkWeather.xml xml/
-COPY OdhApiCore/xml/RequestInterceptor.xml xml/
 COPY OdhApiCore/appsettings.Production.json appsettings.json
 
 # Expose the API port
