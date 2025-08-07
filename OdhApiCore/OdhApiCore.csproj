@@ -6,26 +6,17 @@
     <UserSecretsId>aspnet-OdhApiCore-8340F15F-CE93-44F5-ABBD-4E830074B59D</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>1701;1702;1591;1572;1573</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>    
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile></DocumentationFile>
+    <WarningLevel>1</WarningLevel>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="Middleware\OdhRateLimitMiddleware.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Remove="xml\RequestInterceptor.xml" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="xml\RequestInterceptor.xml" />
-    <Content Include="xml\STACategories.xml" />
-  </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <WarningLevel>1</WarningLevel>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.CacheOutput" Version="2.1.0" />
@@ -52,12 +43,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="docker\postgres\" />
-    <Folder Include="Factories\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\CDB\CDB.csproj" />
     <ProjectReference Include="..\EBMS\EBMS.csproj" />
     <ProjectReference Include="..\GeoConverter\GeoConverter.csproj" />
     <ProjectReference Include="..\Helper\Helper.csproj" />

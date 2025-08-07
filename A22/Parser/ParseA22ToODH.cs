@@ -37,8 +37,8 @@ namespace A22
             //Detail
             Detail detail = new Detail();
             detail.Language = "it";
-            detail.Title = webcamtoparse.Element(ns + "Titolo").Value;
-            detail.BaseText = webcamtoparse.Element(ns + "Descrizione").Value;
+            detail.Title = webcamtoparse.Element(ns + "Titolo") != null ? webcamtoparse.Element(ns + "Titolo").Value : "";
+            detail.BaseText = webcamtoparse.Element(ns + "Descrizione") != null ? webcamtoparse.Element(ns + "Descrizione").Value : "";
 
             webcam.Detail.TryAddOrUpdate(detail.Language, detail);
 

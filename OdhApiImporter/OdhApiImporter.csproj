@@ -8,38 +8,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Helpers\CDB\**" />
-    <Compile Remove="Helpers\LCS\**" />
-    <Content Remove="Helpers\CDB\**" />
-    <Content Remove="Helpers\LCS\**" />
-    <EmbeddedResource Remove="Helpers\CDB\**" />
-    <EmbeddedResource Remove="Helpers\LCS\**" />
-    <None Remove="Helpers\CDB\**" />
-    <None Remove="Helpers\LCS\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="7.0.11" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
-    <PackageReference Include="opendatahub-ltsapi-importer" Version="2.8.0" />
+    <PackageReference Include="opendatahub-ltsapi-importer" Version="2.8.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
     <PackageReference Include="SqlKata.Execution" Version="3.0.0-beta" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\A22\A22.csproj" />
-    <ProjectReference Include="..\CDB\CDB.csproj" />
     <ProjectReference Include="..\DIGIWAY\DIGIWAY.csproj" />
     <ProjectReference Include="..\DSS\DSS.csproj" />
     <ProjectReference Include="..\EBMS\EBMS.csproj" />
     <ProjectReference Include="..\FERATEL\FERATEL.csproj" />
     <ProjectReference Include="..\GTFSAPI\GTFSAPI.csproj" />
-    <ProjectReference Include="..\Helper\Helper.csproj" />
-    <ProjectReference Include="..\LCS\LCS.csproj" />
+    <ProjectReference Include="..\Helper\Helper.csproj" />    
     <ProjectReference Include="..\LOOPTEC\LOOPTEC.csproj" />
     <ProjectReference Include="..\MSS\MSS.csproj" />
     <ProjectReference Include="..\NINJA\NINJA.csproj" />

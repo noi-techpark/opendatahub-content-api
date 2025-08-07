@@ -279,101 +279,116 @@ namespace Helper
                         )
                             publishedonlist.TryAddOrUpdateOnList("suedtirolwein.com");
 
+
                         if (
                             (mydata as ODHActivityPoiLinked).Active
                             && allowedsourcesMP[mydata._Meta.Type].Contains(mydata._Meta.Source)
                         )
                         {
-                            //Check if LocationInfo is in one of the blacklistedtv
-                            bool tvallowed = true;
-                            if ((mydata as ODHActivityPoiLinked).TourismorganizationId != null)
-                                tvallowed =
-                                    notallowedtvs[mydata._Meta.Type]
-                                        .Where(x =>
-                                            x.Contains(
-                                                (
-                                                    mydata as ODHActivityPoiLinked
-                                                ).TourismorganizationId
-                                            )
-                                        )
-                                        .Count() > 0
-                                        ? false
-                                        : true;
-
-                            bool ownerallowed = true;
-                            if ((mydata as ODHActivityPoiLinked).OwnerRid != null)
-                                ownerallowed =
-                                    notallowedownerrids[mydata._Meta.Type]
-                                        .Where(x =>
-                                            x.Contains(
-                                                (
-                                                    mydata as ODHActivityPoiLinked
-                                                ).OwnerRid
-                                            )
-                                        )
-                                        .Count() > 0
-                                        ? false
-                                        : true;
-
-                            //If this is a gastronomy and representationmode is not set to full, we have to check SmgActive because this is set in base on RepresentationRestriction
-                            //To change in future to Mapping
-                            bool isgastronomyvisible = true;
-                            if((mydata as ODHActivityPoiLinked).SyncSourceInterface == "gastronomicdata")
+                            //ODHActivityPoi Rules
+                            //Check if TV is allowed, Check if Owner is allowed, Check if Tag is allowed
+                            if((mydata as ODHActivityPoiLinked).SyncSourceInterface != "gastronomicdata")
                             {
-                                if((mydata as ODHActivityPoiLinked).OdhActive == false)
-                                    isgastronomyvisible = false;
-                            }
+                                //Check if LocationInfo is in one of the blacklistedtv
+                                bool tvallowed = true;
+                                if ((mydata as ODHActivityPoiLinked).TourismorganizationId != null)
+                                    tvallowed =
+                                        notallowedtvs[mydata._Meta.Type]
+                                            .Where(x =>
+                                                x.Contains(
+                                                    (
+                                                        mydata as ODHActivityPoiLinked
+                                                    ).TourismorganizationId
+                                                )
+                                            )
+                                            .Count() > 0
+                                            ? false
+                                            : true;
 
+                                bool ownerallowed = true;
+                                if ((mydata as ODHActivityPoiLinked).OwnerRid != null)
+                                    ownerallowed =
+                                        notallowedownerrids[mydata._Meta.Type]
+                                            .Where(x =>
+                                                x.Contains(
+                                                    (
+                                                        mydata as ODHActivityPoiLinked
+                                                    ).OwnerRid
+                                                )
+                                            )
+                                            .Count() > 0
+                                            ? false
+                                            : true;
 
-                            //IF category is white or blacklisted find an intersection
-                            var tagintersection = allowedtags
-                                .Select(x => x.Id)
-                                .ToList()
-                                .Intersect((mydata as ODHActivityPoiLinked).SmgTags);
+                                //IF category is white or blacklisted find an intersection
+                                var tagintersection = allowedtags
+                                    .Select(x => x.Id)
+                                    .ToList()
+                                    .Intersect((mydata as ODHActivityPoiLinked).SmgTags);
 
-                            if (tagintersection.Count() > 0 && tvallowed && ownerallowed && isgastronomyvisible)
-                            {
-                                var blacklistedpublisher = new List<string>();
-
-                                List<string> publisherstoadd = new List<string>();
-
-                                foreach (var intersectedtag in tagintersection)
+                                if (tagintersection.Count() > 0 && tvallowed && ownerallowed)
                                 {
-                                    var myallowedtag = allowedtags
-                                        .Where(x => x.Id == intersectedtag)
-                                        .FirstOrDefault();
+                                    var blacklistedpublisher = new List<string>();
 
-                                    foreach (var publishon in myallowedtag.PublishDataWithTagOn)
+                                    List<string> publisherstoadd = new List<string>();
+
+                                    foreach (var intersectedtag in tagintersection)
                                     {
-                                        //Marked as blacklist overwrites whitelist
-                                        if (publishon.Value == false)
-                                            blacklistedpublisher.Add(publishon.Key);
+                                        var myallowedtag = allowedtags
+                                            .Where(x => x.Id == intersectedtag)
+                                            .FirstOrDefault();
 
-                                        if (
-                                            blacklistsourcesandtagsMP[mydata._Meta.Type] != null
-                                            && blacklistsourcesandtagsMP[mydata._Meta.Type].Item1
-                                                == mydata._Meta.Source
-                                            && (mydata as ODHActivityPoiLinked).SmgTags.Contains(
-                                                blacklistsourcesandtagsMP[mydata._Meta.Type].Item2
-                                            )
-                                        )
-                                            blacklistedpublisher.Add("idm-marketplace");
-
-                                        if (!blacklistedpublisher.Contains(publishon.Key))
+                                        foreach (var publishon in myallowedtag.PublishDataWithTagOn)
                                         {
-                                            if (!publisherstoadd.Contains(publishon.Key))
+                                            //Marked as blacklist overwrites whitelist
+                                            if (publishon.Value == false)
+                                                blacklistedpublisher.Add(publishon.Key);
+
+                                            if (
+                                                blacklistsourcesandtagsMP[mydata._Meta.Type] != null
+                                                && blacklistsourcesandtagsMP[mydata._Meta.Type].Item1
+                                                    == mydata._Meta.Source
+                                                && (mydata as ODHActivityPoiLinked).SmgTags.Contains(
+                                                    blacklistsourcesandtagsMP[mydata._Meta.Type].Item2
+                                                )
+                                            )
+                                                blacklistedpublisher.Add("idm-marketplace");
+
+                                            if (!blacklistedpublisher.Contains(publishon.Key))
                                             {
-                                                publisherstoadd.Add(publishon.Key);
+                                                if (!publisherstoadd.Contains(publishon.Key))
+                                                {
+                                                    publisherstoadd.Add(publishon.Key);
+                                                }
                                             }
                                         }
                                     }
-                                }
 
-                                foreach (var publishertoadd in publisherstoadd)
-                                {
-                                    publishedonlist.TryAddOrUpdateOnList(publishertoadd);
+                                    foreach (var publishertoadd in publisherstoadd)
+                                    {
+                                        publishedonlist.TryAddOrUpdateOnList(publishertoadd);
+                                    }
                                 }
                             }
+
+                            //Gastronomy Rules
+                            //If this is a gastronomy and representationmode is not set to full activate it for MP                                                        
+                            if ((mydata as ODHActivityPoiLinked).SyncSourceInterface == "gastronomicdata")
+                            {
+                                if ((mydata as ODHActivityPoiLinked).Mapping != null &&
+                                    (mydata as ODHActivityPoiLinked).Mapping.ContainsKey("lts") &&
+                                    (mydata as ODHActivityPoiLinked).Mapping["lts"] != null &&
+                                    (mydata as ODHActivityPoiLinked).Mapping["lts"].ContainsKey("representationMode") != null &&
+                                    (mydata as ODHActivityPoiLinked).Mapping["lts"]["representationMode"] == "full"
+                                    )
+                                {
+                                    publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                                }
+                            }
+
+
+                            
+
                         }
 
                         break;

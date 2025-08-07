@@ -17,7 +17,6 @@ using Helper;
 using Helper.Generic;
 using Helper.Location;
 using Newtonsoft.Json;
-using ServiceReferenceLCS;
 using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers.DSS

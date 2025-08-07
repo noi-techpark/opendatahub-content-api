@@ -36,11 +36,11 @@ Production Server on https://tourism.api.opendatahub.com
 
 Definition of all Open Data Hub Tourism Models. Available as Nuget package (https://www.nuget.org/packages/opendatahub-datamodel-tourism)
 
-### OdhApiCore
+### Open Data Hub Api Core (OdhApiCore)
 
 Api to retrieve Open Data Hub Tourism Data
 
-### OdhApiImporter
+### Open Data Hub Importer (OdhApiImporter)
 
 Workerservice which is importing the Data with help of the Data Collectors
 
@@ -50,7 +50,7 @@ Class Library with Extension Methods and other Open Data Hub Tourism Helper Meth
 
 ### CDB, DSS, EBMS, LCS, MSS, NINJA, RAVEN, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
 
-Data Collectors used by Api and Importer, usually containing classes that retrieve Data, and classes that parse the data to ODH Objects (defined in DataModel)
+Data Collectors used by Api and Importer, usually containing classes that retrieve Data, and classes that parse the data to Open Data Hub Objects (defined in DataModel)
 
 ### GeoConverter
 
@@ -62,7 +62,7 @@ gpx to GeoJson
 
 Helper Library which converts Open Data Hub Content Api Objects to schema.org Models in ld+json format.
 
-### OdhNotifier
+### Open Data Hub Notifier (OdhNotifier)
 
 Component which notifies pre configured Consumers about Data Changes
 

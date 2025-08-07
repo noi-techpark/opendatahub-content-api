@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using AspNetCore.CacheOutput;
-using CDB;
 using DataModel;
 using Geo.Measure;
 using Helper;
@@ -483,9 +482,9 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            if (!String.IsNullOrEmpty(source) && source == "lts")
-                return GetFeatureListXML(cancellationToken);
-            else
+            //if (!String.IsNullOrEmpty(source) && source == "lts")
+            //    return GetFeatureListXML(cancellationToken);
+            //else
                 return await GetAccoFeatureList(
                     pagenumber,
                     pagesize,
@@ -1618,19 +1617,19 @@ namespace OdhApiCore.Controllers
             });
         }
 
-        private IActionResult GetFeatureListXML(CancellationToken cancellationToken)
-        {
-            XDocument mytins = GetAccommodationDataCDB.GetTinfromCDB(
-                "1",
-                settings.CDBConfig.Username,
-                settings.CDBConfig.Password,
-                settings.CDBConfig.ServiceUrl
-            );
+        //private IActionResult GetFeatureListXML(CancellationToken cancellationToken)
+        //{
+        //    XDocument mytins = GetAccommodationDataCDB.GetTinfromCDB(
+        //        "1",
+        //        settings.CDBConfig.Username,
+        //        settings.CDBConfig.Password,
+        //        settings.CDBConfig.ServiceUrl
+        //    );
 
-            //return new ContentResult { Content = mytins.ToString(), ContentType = "text/xml", StatusCode = 200 };
+        //    //return new ContentResult { Content = mytins.ToString(), ContentType = "text/xml", StatusCode = 200 };
 
-            return Ok(mytins);
-        }
+        //    return Ok(mytins);
+        //}
 
         #endregion
 

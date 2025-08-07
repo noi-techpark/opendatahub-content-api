@@ -12,8 +12,6 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Location;
-using Newtonsoft.Json;
-using ServiceReferenceLCS;
 using SIAG;
 using SqlKata.Execution;
 

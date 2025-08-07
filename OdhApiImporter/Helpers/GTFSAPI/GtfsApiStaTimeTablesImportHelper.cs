@@ -199,7 +199,10 @@ namespace OdhApiImporter.Helpers
                 new List<string>() { "sta" }, 
                 QueryFactory);
 
-            //Create Tags not needed
+            //TODO Add the LTS Tags for Mobility / Bus Stops etc..? 
+
+
+            //Create Tags not needed because of extension used
             //await data.UpdateTagsExtension(QueryFactory);
 
             //DistanceCalculation only if not present
