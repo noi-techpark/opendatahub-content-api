@@ -378,7 +378,7 @@ namespace Helper
                                 if ((mydata as ODHActivityPoiLinked).Mapping != null &&
                                     (mydata as ODHActivityPoiLinked).Mapping.ContainsKey("lts") &&
                                     (mydata as ODHActivityPoiLinked).Mapping["lts"] != null &&
-                                    (mydata as ODHActivityPoiLinked).Mapping["lts"].ContainsKey("representationMode") != null &&
+                                    (mydata as ODHActivityPoiLinked).Mapping["lts"].ContainsKey("representationMode") &&
                                     (mydata as ODHActivityPoiLinked).Mapping["lts"]["representationMode"] == "full"
                                     )
                                 {
