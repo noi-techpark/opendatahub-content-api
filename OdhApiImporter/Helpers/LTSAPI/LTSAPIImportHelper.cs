@@ -92,9 +92,10 @@ namespace OdhApiImporter.Helpers
                     //Get Reduced                    
                     updateresultreduced = await ltsapigastroimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
+                    //Push data with smgpoi prefixed lowercase id
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
-                                id,
+                                "smgpoi" + id.ToLower(),
                                 datatype
                             );
 
@@ -113,9 +114,10 @@ namespace OdhApiImporter.Helpers
                     //Get Reduced                    
                     updateresultreduced = await ltsapipoiimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
+                    //Push data with smgpoi prefixed lowercase id
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
-                                id,
+                                "smgpoi" + id.ToLower(),
                                 datatype
                             );
 
@@ -190,7 +192,7 @@ namespace OdhApiImporter.Helpers
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
-                                id,
+                                "smgpoi" + id.ToLower(),
                                 datatype
                             );
                     break;
@@ -210,7 +212,7 @@ namespace OdhApiImporter.Helpers
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
-                                id,
+                                "smgpoi" + id.ToLower(),
                                 datatype
                             );
                     break;
@@ -473,7 +475,7 @@ namespace OdhApiImporter.Helpers
 
                         updateresult.pushed = await CheckIfObjectChangedAndPush(
                                     updateresult,
-                                    id,
+                                    "smgpoi" + id.ToLower(),
                                     datatype
                                 );
 
@@ -537,7 +539,7 @@ namespace OdhApiImporter.Helpers
 
                         updateresult.pushed = await CheckIfObjectChangedAndPush(
                                     updateresult,
-                                    id,
+                                    "smgpoi" + id.ToLower(),
                                     datatype
                                 );
 
@@ -748,7 +750,7 @@ namespace OdhApiImporter.Helpers
 
                                 updateresult.pushed = await CheckIfObjectChangedAndPush(
                                             updateresult,
-                                            id,
+                                            "smgpoi" + id.ToLower(),
                                             datatype
                                         );
                             }
@@ -859,7 +861,7 @@ namespace OdhApiImporter.Helpers
 
                                 updateresult.pushed = await CheckIfObjectChangedAndPush(
                                             updateresult,
-                                            id,
+                                            "smgpoi" + id.ToLower(),
                                             datatype
                                         );
                             }
