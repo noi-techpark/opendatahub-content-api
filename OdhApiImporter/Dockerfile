@@ -31,7 +31,7 @@ COPY OdhApiImporter/OdhApiImporter.csproj OdhApiImporter/
 RUN dotnet restore OdhApiImporter/OdhApiImporter.csproj
 COPY . .
 WORKDIR /src/OdhApiImporter
-RUN dotnet build OdhApiImporter.csproj -c Release -o /app -v diag
+RUN dotnet build OdhApiImporter.csproj -c Release -o /app -v q --no-restore
 
 FROM build AS publish
 RUN dotnet publish OdhApiImporter.csproj -c Release -o /app/publish
