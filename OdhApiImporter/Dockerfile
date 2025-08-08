@@ -7,6 +7,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0.407 AS build
 WORKDIR /src
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+ENV DOTNET_NOLOGO=1
 COPY DataModel/DataModel.csproj DataModel/
 COPY RawQueryParser/RawQueryParser.fsproj RawQueryParser/
 COPY GeoConverter/GeoConverter.csproj GeoConverter/
@@ -33,7 +34,7 @@ COPY OdhApiImporter/OdhApiImporter.csproj OdhApiImporter/
 RUN dotnet restore OdhApiImporter/OdhApiImporter.csproj
 COPY . .
 WORKDIR /src/OdhApiImporter
-RUN dotnet build OdhApiImporter.csproj -c Release -o /app -v q --no-restore
+RUN dotnet build OdhApiImporter.csproj -c Release -o /app --no-restore --no-incremental --verbosity diagnostic
 
 FROM build AS publish
 RUN dotnet publish OdhApiImporter.csproj -c Release -o /app/publish
