@@ -13,8 +13,6 @@ using Helper.Generic;
 using LTSAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NINJA.Parser;
-using ServiceReferenceLCS;
 using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers.LTSAPI

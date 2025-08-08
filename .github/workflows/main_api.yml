@@ -11,7 +11,7 @@ env:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v2
@@ -23,7 +23,6 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '8.0.x'
-        dotnet-quality: 'preview'
     - name: Restore dependencies
       run: dotnet restore OdhApiCore.sln
     - name: Build OdhApiCore Solution

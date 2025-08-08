@@ -12,13 +12,9 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Location;
-using Helper.Tagging;
-using Microsoft.FSharp.Control;
 using Newtonsoft.Json;
 using NINJA;
 using NINJA.Parser;
-using ServiceReferenceLCS;
-using SqlKata;
 using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers

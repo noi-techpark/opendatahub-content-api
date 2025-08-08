@@ -99,7 +99,7 @@ namespace Helper
         }
 
         #region Using Reflection
-        public static async Task<IIdentifiable> GetObjectSingleAsync<T>(
+        public static async Task<IIdentifiable?> GetObjectSingleAsync<T>(
             this Query query,
             Type type,
             CancellationToken cancellationToken = default
@@ -121,7 +121,7 @@ namespace Helper
             var methodinfo = method.FirstOrDefault()!.MakeGenericMethod(type);
             //var parseddata = methodinfo.Invoke(null, new object[] { datar.Value });
             var parseddata = methodinfo.Invoke(null, new object[] { resultraw.Value, settings });
-            if (parseddata != null)
+            if (parseddata != null && parseddata is IIdentifiable)
                 return parseddata as IIdentifiable;
             else
                 return null;

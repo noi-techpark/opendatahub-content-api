@@ -7,19 +7,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.Auth.AccessControlPolicy;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using LTSAPI;
-using Microsoft.AspNetCore.Components.Forms;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NINJA.Parser;
 using OdhNotifier;
-using ServiceReferenceLCS;
 using SqlKata.Execution;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {

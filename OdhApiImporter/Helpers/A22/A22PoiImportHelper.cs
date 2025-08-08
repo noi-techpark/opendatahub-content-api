@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -14,7 +13,6 @@ using A22;
 using DataModel;
 using Helper;
 using Helper.Generic;
-using ServiceReferenceLCS;
 using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers
