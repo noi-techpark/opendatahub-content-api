@@ -1,4 +1,8 @@
-﻿using NetTopologySuite.Geometries;
+﻿// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using NetTopologySuite.Geometries;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
