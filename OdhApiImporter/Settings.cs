@@ -212,7 +212,8 @@ namespace OdhApiImporter
                             digiwaycfg.GetValue<string>("ServiceUrl", ""),
                             digiwaycfg.GetValue<string>("Username", ""),                            
                             digiwaycfg.GetValue<string>("Password", ""),
-                            digiwaycfg.Key
+                            digiwaycfg.Key,
+                            digiwaycfg.GetValue<string>("Format", "")
                         )
                     );
                 }

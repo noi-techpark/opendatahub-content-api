@@ -188,6 +188,10 @@ namespace DIGIWAY
             });
             odhactivitypoi.DistanceLength = digiwaydata.properties.LENGTH != null ? Convert.ToDouble(digiwaydata.properties.LENGTH) : null;
             odhactivitypoi.Difficulty = digiwaydata.properties.DIFFICULTY != null ? Convert.ToString(digiwaydata.properties.DIFFICULTY) : null;
+
+            if(odhactivitypoi.Difficulty != null)
+                odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
+
             odhactivitypoi.AltitudeSumDown = digiwaydata.properties.DOWNHILL_METERS != null ? Convert.ToDouble(digiwaydata.properties.DOWNHILL_METERS) : null;
             odhactivitypoi.AltitudeSumUp = digiwaydata.properties.UPHILL_METERS != null ? Convert.ToDouble(digiwaydata.properties.UPHILL_METERS) : null;
             odhactivitypoi.Source = "civis.geoserver";

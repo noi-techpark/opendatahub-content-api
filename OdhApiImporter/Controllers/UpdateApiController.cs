@@ -2854,30 +2854,58 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-                DigiWayImportHelper digiwayimporthelper = new DigiWayImportHelper(
-                    settings,
-                    QueryFactory,
-                    "smgpois",
-                    UrlGeneratorStatic("DIGIWAY/" + identifier)
-                );
+                //search from Settings the identifier
+                var digiwayconfig = settings.DigiWayConfig[identifier];
 
-                digiwayimporthelper.identifier = identifier;
+                if (digiwayconfig == null)
+                    throw new Exception("unknown identifier");
 
-                updatedetail = await digiwayimporthelper.SaveDataToODH(
-                                        null,
-                                        null,
-                                        cancellationToken);
-                 
+                var digiwayformat = digiwayconfig.Format.Split("/");
+
+                if (digiwayformat[0] == "geoservices1.civis.bz.it")
+                {
+                    DigiWayImportHelper digiwayimporthelper = new DigiWayImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        UrlGeneratorStatic("DIGIWAY/" + identifier)
+                    );
+
+                    digiwayimporthelper.identifier = identifier;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
+                else if (digiwayformat[0] == "dservices3.arcgis.com")
+                {
+                    DigiWayWFSXmlImportHelper digiwayimporthelper = new DigiWayWFSXmlImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        UrlGeneratorStatic("DIGIWAY/" + identifier)
+                    );
+
+                    digiwayimporthelper.identifier = digiwayconfig.Identifier;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
+
+
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "Import DIGIWAY " + identifier + " succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
+                        null,
+                        source,
+                        operation,
+                        updatetype,
+                        "Import DIGIWAY " + identifier + " succeeded",
+                        otherinfo,
+                        updatedetail,
+                        true
+                    );
 
                 return Ok(updateResult);
             }
