@@ -2,17 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Location;
 using Helper.Tagging;
+using Helper.Extensions;
 using LTSAPI;
 using LTSAPI.Parser;
 using MongoDB.Driver;
@@ -20,6 +15,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.RAVEN;
 using SqlKata.Execution;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 
 namespace OdhApiImporter.Helpers.LTSAPI
@@ -362,6 +364,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //Resort the publisher
                         await ResortPublisher(eventparsed);
 
+                        //Add Event Tag of type eventtag to ODHTags Compatibility
+                        await AddEventTagsToODHTags(eventparsed);
+
                         //PublishedOn Logich
                         //Add the PublishedOn Logic
                         eventparsed.CreatePublishedOnList();
@@ -668,6 +673,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (eventOld != null)
             {
                 eventNew.SmgTags = eventOld.SmgTags;
+                //Remove all assigned EventTags first (we copied EventTags to ODHTags)
+                if (eventNew.SmgTags != null && eventNew.SmgTags.Count > 0)
+                {
+                    //GET all Tags of Type "eventtag" ID only
+                    var eventtagidlist = await QueryFactory.Query().From("tags").TagTypesFilter(new List<string>() { "eventtag" }).Select("id").GetAsync<string>();
+
+                    if(eventtagidlist != null && eventtagidlist.Count() > 0)
+                        eventNew.SmgTags = ListExtensions.RemoveItemsPresentInOtherList(eventNew.SmgTags.ToList(), eventtagidlist.ToList());
+                }
 
                 //Readd all Redactional Tags
                 var redactionalassignedTags = eventOld.Tags != null ? eventOld.Tags.Where(x => x.Source != "lts").ToList() : null;
@@ -680,6 +694,24 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
             }
             //TODO import the Redactional Tags from Events into Tags?
+        }
+
+        //Compatibility resons add the Event Tag to ODHTag
+        private async Task AddEventTagsToODHTags(EventLinked eventNew)
+        {
+
+
+            if (eventNew != null && eventNew.Tags != null && eventNew.Tags.Count > 0)
+            {               
+                foreach (var eventtag in eventNew.Tags.Where(x => x.Type == "eventtag"))
+                {
+                    if(eventNew.SmgTags == null)
+                        eventNew.SmgTags = new List<string>();
+
+                    if(!eventNew.SmgTags.Contains(eventtag.Id.ToLower()))
+                        eventNew.SmgTags.Add(eventtag.Id.ToLower());
+                }
+            }
         }
 
         //Compatibility reasons recreate this Topic Object but without description

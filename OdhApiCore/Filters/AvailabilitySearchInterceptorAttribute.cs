@@ -2,15 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
+using Helper.Converters;
 using LTSAPI;
 using LTSAPI.Parser;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +14,15 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OdhApiCore.Controllers;
 using OdhApiCore.Controllers.helper;
+using Schema.NET;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using static RawQueryParser.Filtering;
 
 namespace OdhApiCore.Filters
@@ -879,6 +881,7 @@ namespace OdhApiCore.Filters
 
                 var myroomdata = AccommodationSearchUtilities.RoomstringtoAvailabilitySearchRequestRoomoption(roominfo);
 
+                var myservice = AccoListCreator.CreateBoardListLCSfromFlag(boardfilter);
 
                 var accoidlist =
                     bookableaccoIDs != null && bookableaccoIDs.Count > 0
@@ -894,9 +897,12 @@ namespace OdhApiCore.Filters
                     endDate = departure,
                     paging = new LTSAvailabilitySearchRequestPaging() { pageNumber = 1, pageSize = 10000 },
                     cacheLifeTimeInSeconds = 300,
-                    onlySuedtirolInfoActive = true,
-                    //mealplans: myhelper.service,
-                    roomOptions = myroomdata
+                    onlySuedtirolInfoActive = true,                    
+                    roomOptions = myroomdata,
+                    checkAvailabilityStatus = true,
+                    mealPlanCodes = ListConverter.ConvertToIntListSafe(myservice),
+                    language = language,
+                    onlyBookable = false
                 };
                 
                 //What about language

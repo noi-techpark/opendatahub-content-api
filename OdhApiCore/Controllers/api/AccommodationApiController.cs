@@ -17,6 +17,7 @@ using Helper;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.Location;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -1665,7 +1666,12 @@ namespace OdhApiCore.Controllers
                 accommodation.LocationInfo = await accommodation.UpdateLocationInfoExtension(
                     QueryFactory
                 );
+
                 //TODO DISTANCE Calculation
+
+                //Populate Tags (Id/Source/Type)
+                await accommodation.UpdateTagsExtension(QueryFactory);
+
                 //TRIM all strings
                 accommodation.TrimStringProperties();
 
@@ -1709,7 +1715,12 @@ namespace OdhApiCore.Controllers
                 accommodation.LocationInfo = await accommodation.UpdateLocationInfoExtension(
                     QueryFactory
                 );
+
+                //Populate Tags (Id/Source/Type)
+                await accommodation.UpdateTagsExtension(QueryFactory);
+
                 //TODO DISTANCE Calculation
+
                 //TRIM all strings
                 accommodation.TrimStringProperties();
 

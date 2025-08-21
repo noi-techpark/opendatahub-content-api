@@ -77,5 +77,24 @@ namespace Helper.Extensions
             else
                 return smgtags;
         }
+
+        /// <summary>
+        /// Removes all items from list1 that are present in list2 (case-insensitive comparison)
+        /// </summary>
+        /// <param name="list1">The list to remove items from</param>
+        /// <param name="list2">The list containing items to be removed from list1</param>
+        public static List<string>? RemoveItemsPresentInOtherList(List<string> list1, List<string> list2)
+        {
+            if (list1 == null || list2 == null || list2.Count == 0)
+                return list1;
+
+            // Create a HashSet from list2 with case-insensitive comparison for O(1) lookups
+            var list2Set = new HashSet<string>(list2, StringComparer.OrdinalIgnoreCase);
+
+            // Remove items from list1 that exist in list2 (case-insensitive)
+            list1.RemoveAll(item => list2Set.Contains(item));
+
+            return list1;
+        }
     }
 }

@@ -32,7 +32,7 @@ namespace OdhApiCore.Controllers
         public GeoController(
             IWebHostEnvironment env,
             ISettings settings,
-            ILogger<TagController> logger,
+            ILogger<GeoController> logger,
             QueryFactory queryFactory,
             IOdhPushNotifier odhpushnotifier
         )
