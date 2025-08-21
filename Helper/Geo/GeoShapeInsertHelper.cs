@@ -4,10 +4,12 @@
 
 using DataModel;
 using Helper;
+using MongoDB.Driver;
 using SqlKata;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -116,6 +118,10 @@ namespace Helper
             }
         }
 
-
+        public static async Task<int> DeleteFromShapesDB(QueryFactory queryFactory,
+            string id)
+        {
+            return await queryFactory.Query("geoshapes").Where("id", id).DeleteAsync();
+        }
     }
 }

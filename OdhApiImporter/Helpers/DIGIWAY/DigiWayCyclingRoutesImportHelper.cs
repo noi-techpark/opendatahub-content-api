@@ -25,6 +25,7 @@ namespace OdhApiImporter.Helpers
     {
         public List<string> idlistinterface { get; set; }
         public string? identifier { get; set; }
+        public string? source { get; set; }
 
         public DigiWayImportHelper(
             ISettings settings,
@@ -43,9 +44,9 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken = default
         )
         {
-            if (identifier == null)
-                throw new Exception("no identifier defined");
-
+            if (identifier == null || source == null)
+                throw new Exception("no identifier|source defined");
+            
             var data = await GetData(cancellationToken);
 
             ////UPDATE all data
@@ -122,7 +123,9 @@ namespace OdhApiImporter.Helpers
                 if (parsedobject.Item1 == null || parsedobject.Item2 == null)
                     throw new Exception();
 
-                var pgcrudshaperesult = await InsertDataInShapesDB(parsedobject.Item2);
+                //var pgcrudshaperesult = await InsertDataInShapesDB(parsedobject.Item2);
+                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, "32632");
+
 
                 //Create GPX Info
                 GpsTrack gpstrack = new GpsTrack()
@@ -220,110 +223,7 @@ namespace OdhApiImporter.Helpers
             );
 
             return pgcrudresult;
-        }
-
-        private async Task<PGCRUDResult> InsertDataInShapesDB(
-          GeoShapeJson data
-      )
-        {
-            try
-            {                
-                //Set LicenseInfo
-                data.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<GeoShapeJson>(
-                    data,
-                    Helper.LicenseHelper.GetLicenseforGeoShape
-                );
-
-                //Set Meta
-                data._Meta = MetadataHelper.GetMetadataobject<GeoShapeJson>(data);
-
-                //Check if data is there by Name
-                var shapeid = await QueryFactory.Query("geoshapes").Select("id").Where("id", data.Id.ToLower()).FirstOrDefaultAsync<string>();
-
-                int insert = 0;
-                int update = 0;
-
-                PGCRUDResult result = default(PGCRUDResult);
-                if (String.IsNullOrEmpty(shapeid))
-                {                                                            
-                    insert = await QueryFactory
-                   .Query("geoshapes")
-                   .InsertAsync(new GeoShapeDB<UnsafeLiteral>()
-                   {
-                       id = data.Id.ToLower(),
-                       licenseinfo = new JsonRaw(data.LicenseInfo),
-                       meta = new JsonRaw(data._Meta),
-                       mapping = new JsonRaw(data.Mapping),
-                       name = data.Name,
-                       country = data.Country,
-                       type = data.Type,
-                       source = "civis.geoserver",
-                       srid = "32632",                       
-                       //geom = new PGGeometryRaw("ST_GeometryFromText('" + data.Geometry + "', 32632)"),                       
-                       geometry = new UnsafeLiteral("ST_GeometryFromText('" + data.Geometry.ToString() + "', 32632)", false),
-                       //geojson = new UnsafeLiteral("ST_AsGeoJSON(ST_Transform(ST_GeometryFromText('" + data.Geometry.ToString() + "', 32632),4326))", false),
-                   });
-                }
-                else
-                {
-                    update = await QueryFactory
-                   .Query("geoshapes")
-                   .Where("id", data.Id.ToLower())
-                   .UpdateAsync(new GeoShapeDB<UnsafeLiteral>()
-                   {
-                       id = data.Id.ToLower(),
-                       licenseinfo = new JsonRaw(data.LicenseInfo),
-                       meta = new JsonRaw(data._Meta),
-                       mapping = new JsonRaw(data.Mapping),
-                       name = data.Name,
-                       country = data.Country,
-                       type = data.Type,
-                       source = "civis.geoserver",
-                       srid = "32632",
-                       //geom = new PGGeometryRaw("ST_GeometryFromText('" + data.Geometry + "', 32632)"),                       
-                       geometry = new UnsafeLiteral("ST_GeometryFromText('" + data.Geometry.ToString() + "', 32632)", false),
-                       //geojson = new UnsafeLiteral("ST_AsGeoJSON(ST_Transform(ST_GeometryFromText('" + data.Geometry.ToString() + "', 32632),4326))", false),
-                   });
-                }
-
-                return new PGCRUDResult()
-                {
-                    id = data.Id,
-                    odhtype = data._Meta.Type,
-                    created = insert,
-                    updated = update,
-                    deleted = 0,
-                    error = 0,
-                    errorreason = null,
-                    operation = "insert shape",
-                    changes = null,
-                    compareobject = false,
-                    objectchanged = 0,
-                    objectimagechanged = 0,
-                    pushchannels = null,
-                };
-            }
-            catch (Exception ex)
-            {
-                return new PGCRUDResult()
-                {
-                    id = "",
-                    odhtype = data._Meta.Type,
-                    created = 0,
-                    updated = 0,
-                    deleted = 0,
-                    error = 1,
-                    errorreason = ex.Message,
-                    operation = "insert shape",
-                    changes = null,
-                    compareobject = false,
-                    objectchanged = 0,
-                    objectimagechanged = 0,
-                    pushchannels = null,
-                };
-            }
-        }
-
+        }     
         private async Task<int> InsertInRawDataDB(KeyValuePair<string, IGeoServerCivisData> data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
@@ -333,7 +233,7 @@ namespace OdhApiImporter.Helpers
                     rawformat = "json",
                     importdate = DateTime.Now,
                     license = "open",
-                    sourceinterface = identifier,
+                    sourceinterface = source + "." + identifier,
                     sourceurl = settings.DigiWayConfig[identifier].ServiceUrl,
                     type = "odhactivitypoi",
                     sourceid = data.Key,
@@ -353,7 +253,7 @@ namespace OdhApiImporter.Helpers
 
             var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
-            var result = ParseGeoServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier);
+            var result = ParseGeoServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, source);
 
             return result;
         }
@@ -370,16 +270,30 @@ namespace OdhApiImporter.Helpers
             try
             {
                 //Begin SetDataNotinListToInactive
-                var idlistdb = await GetAllDataBySource(new List<string>() { "civis.geoserver" }, new List<string>() { "civis.geoserver." + identifier.ToLower() });
+                var idlistdb = await GetAllDataBySource(new List<string>() { source }, new List<string>() { source + "." + identifier.ToLower() });
 
                 var idstodelete = idlistdb.Where(p => !idlistinterface.Any(p2 => p2 == p));
 
                 foreach (var idtodelete in idstodelete)
                 {
-                    var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
+                    //since the id is not the same delete all old 
+                    if (source == "civis.geoserver")
+                    {
+                        //Delete Data
+                        var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, true);
+                        //Delete Gps Data
+                        var result2 = await GeoShapeInsertHelper.DeleteFromShapesDB(QueryFactory, idtodelete);
 
-                    updateresult = updateresult + result.Item1;
-                    deleteresult = deleteresult + result.Item2;
+                        deleteresult = deleteresult + result.Item2 + result2;
+                    }
+                    //else simply deactivate
+                    else
+                    {
+                        var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
+
+                        updateresult = updateresult + result.Item1;
+                        deleteresult = deleteresult + result.Item2;
+                    }
                 }
             }
             catch (Exception ex)

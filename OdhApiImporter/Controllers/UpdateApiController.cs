@@ -2859,10 +2859,8 @@ namespace OdhApiImporter.Controllers
 
                 if (digiwayconfig == null)
                     throw new Exception("unknown identifier");
-
-                var digiwayformat = digiwayconfig.Format.Split("/");
-
-                if (digiwayformat[0] == "geoservices1.civis.bz.it")
+                
+                if (digiwayconfig.Source == "civis.geoservices")
                 {
                     DigiWayImportHelper digiwayimporthelper = new DigiWayImportHelper(
                         settings,
@@ -2871,14 +2869,15 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("DIGIWAY/" + identifier)
                     );
 
-                    digiwayimporthelper.identifier = identifier;
+                    digiwayimporthelper.identifier = identifier; 
+                    digiwayimporthelper.source = digiwayconfig.Source;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,
                                             null,
                                             cancellationToken);
                 }
-                else if (digiwayformat[0] == "dservices3.arcgis.com")
+                else if (digiwayconfig.Source == "dservices3.arcgis.com")
                 {
                     DigiWayWFSXmlImportHelper digiwayimporthelper = new DigiWayWFSXmlImportHelper(
                         settings,
@@ -2887,7 +2886,8 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("DIGIWAY/" + identifier)
                     );
 
-                    digiwayimporthelper.identifier = digiwayconfig.Identifier;
+                    digiwayimporthelper.identifier = identifier;
+                    digiwayimporthelper.source = digiwayconfig.Source;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,

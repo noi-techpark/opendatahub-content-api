@@ -26,6 +26,7 @@ namespace OdhApiImporter.Helpers
     {
         public List<string> idlistinterface { get; set; }
         public string? identifier { get; set; }
+        public string? source { get; set; }
 
         public DigiWayWFSXmlImportHelper(
             ISettings settings,
@@ -44,8 +45,8 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken = default
         )
         {
-            if (identifier == null)
-                throw new Exception("no identifier defined");
+            if (identifier == null || source == null)
+                throw new Exception("no identifier|source defined");
 
             var data = await GetData(cancellationToken);
 
@@ -124,7 +125,7 @@ namespace OdhApiImporter.Helpers
                 if (parsedobject.Item1 == null || parsedobject.Item2 == null)
                     throw new Exception();
 
-                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, "dservices3.arcgis.com", "31254");
+                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, "31254");
 
                 //Create GPX Info
                 GpsTrack gpstrack = new GpsTrack()
@@ -270,7 +271,7 @@ namespace OdhApiImporter.Helpers
             try
             {
                 //Begin SetDataNotinListToInactive
-                var idlistdb = await GetAllDataBySource(new List<string>() { "dservices3.arcgis.com" }, new List<string>() { "dservices3.arcgis.com." + identifier.ToLower() });
+                var idlistdb = await GetAllDataBySource(new List<string>() { source }, new List<string>() { source + "." + identifier.ToLower() });
 
                 var idstodelete = idlistdb.Where(p => !idlistinterface.Any(p2 => p2 == p));
 
