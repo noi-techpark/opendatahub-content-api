@@ -785,6 +785,7 @@ namespace OdhNotifier
                         "EVENT",
                         "ODH_TAG",
                         "SKI_AREA",
+                        "TAG",
                     };
 
                     this.NotifyType = TransformType(this.Type, "idm-marketplace");
@@ -821,6 +822,7 @@ namespace OdhNotifier
                         "odhactivitypoi",
                         "smgtags",
                         "odhtag",
+                        "tag"
                     };
 
                     this.NotifyType = TransformType(this.Type, "sinfo");
@@ -856,6 +858,7 @@ namespace OdhNotifier
                     "poi" => "ODH_ACTIVITY_POI", //deprecated
                     "odhactivitypoi" => "ODH_ACTIVITY_POI",
                     "odhtag" => "ODH_TAG",
+                    "tag" => "ODH_TAG", // to check if this works
                     "ski_area" => "SKI_AREA",
                     "odh_activity_poi" => "ODH_ACTIVITY_POI",
                     "webcam" => "NOT SUPPORTED",
