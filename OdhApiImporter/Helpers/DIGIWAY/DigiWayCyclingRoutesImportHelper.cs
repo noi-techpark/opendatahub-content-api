@@ -111,7 +111,7 @@ namespace OdhApiImporter.Helpers
 
             try
             {
-                returnid = digiwaydata.id;
+                returnid = digiwaydata.id.ToLower();
 
                 idlistinterface.Add(returnid);
 

@@ -2860,7 +2860,7 @@ namespace OdhApiImporter.Controllers
                 if (digiwayconfig == null)
                     throw new Exception("unknown identifier");
                 
-                if (digiwayconfig.Source == "civis.geoservices")
+                if (digiwayconfig.Source == "civis.geoserver")
                 {
                     DigiWayImportHelper digiwayimporthelper = new DigiWayImportHelper(
                         settings,
