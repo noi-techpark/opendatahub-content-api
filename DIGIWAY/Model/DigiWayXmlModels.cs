@@ -171,7 +171,7 @@ namespace DIGIWAY.Model
                                     if (double.TryParse(posValues[i], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) &&
                                         double.TryParse(posValues[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
                                     {
-                                        coordinates.Add(new MtbCoordinate(x, y));
+                                        coordinates.Add(new MtbCoordinate(y, x));
                                     }
                                 }
                             }

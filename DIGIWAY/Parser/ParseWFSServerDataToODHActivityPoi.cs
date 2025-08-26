@@ -36,7 +36,7 @@ namespace DIGIWAY
         {
             var result = type switch
             {
-                "Radrouten_Tirol" or "Radrouten_Tirol:TN_WALD_Radrouten_Tirol_CDBD5BC5-8635-418A-BC13-52A99900D008" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as MountainBikeRoute, type),
+                "radrouten_tirol" or "Radrouten_Tirol:TN_WALD_Radrouten_Tirol_CDBD5BC5-8635-418A-BC13-52A99900D008" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as MountainBikeRoute, type),
                 "_" => (null,null)
             };
 

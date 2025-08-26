@@ -2836,7 +2836,7 @@ namespace OdhApiImporter.Controllers
 
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("DIGIWAY/{identifier}/Update")]
-        public async Task<IActionResult> UpdateAllDigiwayCyclingRoutes(
+        public async Task<IActionResult> UpdateAllDigiwayData(
             string identifier,
             CancellationToken cancellationToken = default
     )
@@ -2855,7 +2855,7 @@ namespace OdhApiImporter.Controllers
             try
             {
                 //search from Settings the identifier
-                var digiwayconfig = settings.DigiWayConfig[identifier];
+                var digiwayconfig = settings.DigiWayConfig[identifier.ToLower()];
 
                 if (digiwayconfig == null)
                     throw new Exception("unknown identifier");
@@ -2866,10 +2866,10 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier)
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
                     );
 
-                    digiwayimporthelper.identifier = identifier; 
+                    digiwayimporthelper.identifier = identifier.ToLower(); 
                     digiwayimporthelper.source = digiwayconfig.Source;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
@@ -2883,10 +2883,10 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier)
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
                     );
 
-                    digiwayimporthelper.identifier = identifier;
+                    digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(

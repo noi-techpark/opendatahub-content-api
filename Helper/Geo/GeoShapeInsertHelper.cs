@@ -76,7 +76,7 @@ namespace Helper
                        type = data.Type,
                        source = source,
                        srid = srid,                          
-                       geometry = new UnsafeLiteral("ST_GeometryFromText('" + data.Geometry.ToString() + "', \" + srid + \")", false),                       
+                       geometry = new UnsafeLiteral("ST_GeometryFromText('" + data.Geometry.ToString() + "', " + srid + ")", false),
                    });
                 }
 
