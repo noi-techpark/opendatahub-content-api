@@ -36,13 +36,13 @@ namespace Helper
                 data._Meta = MetadataHelper.GetMetadataobject<GeoShapeJson>(data);
 
                 //Check if data is there by Name
-                var shapeid = await queryFactory.Query("geoshapes").Select("id").Where("id", data.Id.ToLower()).FirstOrDefaultAsync<string>();
+                var shapeid = await queryFactory.Query("geoshapes").Select("id").Where("id", data.Id.ToLower()).GetAsync<string>();
 
                 int insert = 0;
                 int update = 0;
 
                 PGCRUDResult result = default(PGCRUDResult);
-                if (String.IsNullOrEmpty(shapeid))
+                if (shapeid == null || shapeid.ToList().Count == 0 )
                 {
                     insert = await queryFactory
                    .Query("geoshapes")

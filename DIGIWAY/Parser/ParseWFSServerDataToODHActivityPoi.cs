@@ -15,6 +15,7 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Utilities;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
+using Npgsql.Internal;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -55,7 +56,9 @@ namespace DIGIWAY
 
             //get first point of geometry
             var firstCoord = geoshape.Geometry.Coordinates.FirstOrDefault();
-            var (latitude, longitude) = CoordinateConverterEPSG31254ToWGS84.ConvertWithProjNet(firstCoord.X, firstCoord.Y);
+
+            var converter = new EPSG31254ToEPSG4326Converter();
+            var (longitude, latitude) = converter.ConvertToWGS84(firstCoord.X, firstCoord.Y);
 
             var gpsinfo = new GpsInfo()
             {
