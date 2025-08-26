@@ -4,6 +4,7 @@
 
 using DataModel;
 using DIGIWAY;
+using DIGIWAY.Model;
 using Helper;
 using Helper.Generic;
 using Helper.Tagging;
@@ -21,13 +22,13 @@ using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
-    public class DigiWayImportHelper : ImportHelper, IImportHelper
+    public class DigiWayWFSXmlImportHelper : ImportHelper, IImportHelper
     {
         public List<string> idlistinterface { get; set; }
         public string? identifier { get; set; }
         public string? source { get; set; }
 
-        public DigiWayImportHelper(
+        public DigiWayWFSXmlImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -46,7 +47,7 @@ namespace OdhApiImporter.Helpers
         {
             if (identifier == null || source == null)
                 throw new Exception("no identifier|source defined");
-            
+
             var data = await GetData(cancellationToken);
 
             ////UPDATE all data
@@ -61,14 +62,14 @@ namespace OdhApiImporter.Helpers
         }
 
         //Get Data from Source
-        private async Task<IGeoserverCivisResult> GetData(CancellationToken cancellationToken)
+        private async Task<WFSResult> GetData(CancellationToken cancellationToken)
         {
-            return await GetDigiwayData.GetDigiWayDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
+            return await GetDigiwayData.GetDigiWayWfsDataFromXmlAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
         }
 
         //Import the Data
         public async Task<UpdateDetail> ImportData(
-            IGeoserverCivisResult digiwaydatalist,
+            WFSResult wfsresult,
             CancellationToken cancellationToken
         )
         {
@@ -77,17 +78,18 @@ namespace OdhApiImporter.Helpers
             int deletecounter = 0;
             int errorcounter = 0;
 
-            if (digiwaydatalist != null && digiwaydatalist.features != null)
+            if (wfsresult != null && wfsresult.Results != null)
             {                
-                foreach (var digiwaydata in digiwaydatalist.features)
+                foreach (var digiwaydata in wfsresult.Results)
                 {
                     var importresult = await ImportDataSingle(digiwaydata);
 
                     newcounter = newcounter + importresult.created ?? newcounter;
                     updatecounter = updatecounter + importresult.updated ?? updatecounter;
                     errorcounter = errorcounter + importresult.error ?? errorcounter;
-                }
+                }              
             }
+
 
             return new UpdateDetail()
             {
@@ -99,7 +101,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parsing the Data
-        public async Task<UpdateDetail> ImportDataSingle(IGeoServerCivisData digiwaydata)
+        public async Task<UpdateDetail> ImportDataSingle(IWFSRoute digiwaydata)
         {
             int updatecounter = 0;
             int newcounter = 0;
@@ -111,7 +113,7 @@ namespace OdhApiImporter.Helpers
 
             try
             {
-                returnid = digiwaydata.id.ToLower();
+                returnid = (identifier  + "_" + digiwaydata.ObjectId.ToString()).ToLower();
 
                 idlistinterface.Add(returnid);
 
@@ -123,9 +125,7 @@ namespace OdhApiImporter.Helpers
                 if (parsedobject.Item1 == null || parsedobject.Item2 == null)
                     throw new Exception();
 
-                //var pgcrudshaperesult = await InsertDataInShapesDB(parsedobject.Item2);
-                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, "32632");
-
+                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, "31254");
 
                 //Create GPX Info
                 GpsTrack gpstrack = new GpsTrack()
@@ -149,7 +149,7 @@ namespace OdhApiImporter.Helpers
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
                     parsedobject.Item1,
-                    new KeyValuePair<string, IGeoServerCivisData>(returnid, digiwaydata)
+                    new KeyValuePair<string, IWFSRoute>(returnid, digiwaydata)
                 );
 
                 newcounter = newcounter + pgcrudresult.created ?? 0;
@@ -198,7 +198,7 @@ namespace OdhApiImporter.Helpers
         //Inserting into DB
         private async Task<PGCRUDResult> InsertDataToDB(
             ODHActivityPoiLinked data,
-            KeyValuePair<string, IGeoServerCivisData> digiwaydata
+            KeyValuePair<string, IWFSRoute> digiwaydata
         )
         {
             var rawdataid = await InsertInRawDataDB(digiwaydata);
@@ -223,17 +223,18 @@ namespace OdhApiImporter.Helpers
             );
 
             return pgcrudresult;
-        }     
-        private async Task<int> InsertInRawDataDB(KeyValuePair<string, IGeoServerCivisData> data)
+        }
+  
+        private async Task<int> InsertInRawDataDB(KeyValuePair<string, IWFSRoute> data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
                     datasource = "digiway",
-                    rawformat = "json",
+                    rawformat = "xml",
                     importdate = DateTime.Now,
                     license = "open",
-                    sourceinterface = source + "." + identifier,
+                    sourceinterface = identifier,
                     sourceurl = settings.DigiWayConfig[identifier].ServiceUrl,
                     type = "odhactivitypoi",
                     sourceid = data.Key,
@@ -245,7 +246,7 @@ namespace OdhApiImporter.Helpers
         //Parse the interface content
         public async Task<(ODHActivityPoiLinked?, GeoShapeJson?)> ParseDigiWayDataToODHActivityPoi(
             string odhid,
-             IGeoServerCivisData input
+            IWFSRoute input
         )
         {
             //Get the ODH Item
@@ -253,7 +254,7 @@ namespace OdhApiImporter.Helpers
 
             var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
-            var result = ParseGeoServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, source);
+            var result = ParseWFSServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier);
 
             return result;
         }
@@ -276,24 +277,10 @@ namespace OdhApiImporter.Helpers
 
                 foreach (var idtodelete in idstodelete)
                 {
-                    //since the id is not the same delete all old 
-                    if (source == "civis.geoserver")
-                    {
-                        //Delete Data
-                        var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, true);
-                        //Delete Gps Data
-                        var result2 = await GeoShapeInsertHelper.DeleteFromShapesDB(QueryFactory, idtodelete);
+                    var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
 
-                        deleteresult = deleteresult + result.Item2 + result2;
-                    }
-                    //else simply deactivate
-                    else
-                    {
-                        var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
-
-                        updateresult = updateresult + result.Item1;
-                        deleteresult = deleteresult + result.Item2;
-                    }
+                    updateresult = updateresult + result.Item1;
+                    deleteresult = deleteresult + result.Item2;
                 }
             }
             catch (Exception ex)

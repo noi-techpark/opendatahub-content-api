@@ -259,7 +259,7 @@ namespace Helper
                 licenseholder = @"";
             if (data.Source.ToLower() == "echargingspreadsheet")
                 licenseholder = @"";
-            if (data.Source.ToLower() == "civis.bz.it")
+            if (data.Source.ToLower() == "civis.geoserver")
                 licenseholder = @"https://geoservices1.civis.bz.it";
 
             List<string?> allowedsyncsourceinterfaces = new List<string?>()

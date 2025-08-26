@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using DIGIWAY.Model;
 using Newtonsoft.Json;
 
 namespace DIGIWAY
@@ -53,6 +54,30 @@ namespace DIGIWAY
             
         }
 
-    
+        public static async Task<WFSResult> GetDigiWayWfsDataFromXmlAsync(
+            string user,
+            string pass,
+            string serviceurl,
+            string identifier
+        )
+        {
+            //Request
+            HttpResponseMessage response = await GetDigiwayDataFromService(user, pass, serviceurl);
+            //Parse JSON Response to
+            var responsetask = await response.Content.ReadAsStringAsync();
+
+            if (responsetask != null && !String.IsNullOrEmpty(identifier))
+            {
+                var parser = new WfsMountainBikeRouteParser();
+
+                var mtblist = parser.ParseXml(responsetask);
+
+                return new WFSResult() { Results = mtblist };
+
+            }
+            else
+                return null;
+
+        }
     }
 }
