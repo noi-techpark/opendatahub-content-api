@@ -85,9 +85,20 @@ services:
       ASPNETCORE_LTSApiOpen__XLSClientid: ${LTSAPI_OPENDATA_XLTSCLIENTID}
       ASPNETCORE_LTSApiOpen__Opendata: ${LTSAPI_OPENDATA_OPENDATA}
       ASPNETCORE_DigiWayConfig__cyclewaystyrol__ServiceUrl: ${DIGIWAY_CYCLEWAYSTIROL_URL}
+      ASPNETCORE_DigiWayConfig__cyclewaystyrol__Source: ${DIGIWAY_CYCLEWAYSTIROL_SOURCE}
+      ASPNETCORE_DigiWayConfig__cyclewaystyrol__Format: ${DIGIWAY_CYCLEWAYSTIROL_FORMAT}
       ASPNETCORE_DigiWayConfig__mountainbikeroutes__ServiceUrl: ${DIGIWAY_MTBROUTES_URL}
+      ASPNETCORE_DigiWayConfig__mountainbikeroutes__Source: ${DIGIWAY_MTBROUTES_SOURCE}
+      ASPNETCORE_DigiWayConfig__mountainbikeroutes__Format: ${DIGIWAY_MTBROUTES_FORMAT}
       ASPNETCORE_DigiWayConfig__hikingtrails__ServiceUrl: ${DIGIWAY_HIKINGTRAILS_URL}
+      ASPNETCORE_DigiWayConfig__hikingtrails__Source: ${DIGIWAY_HIKINGTRAILS_SOURCE}
+      ASPNETCORE_DigiWayConfig__hikingtrails__Format: ${DIGIWAY_HIKINGTRAILS_FORMAT}
       ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__ServiceUrl: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_URL}
+      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__Source: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_SOURCE}
+      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__Format: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_FORMAT}
+      ASPNETCORE_DigiWayConfig__radrouten_tirol__ServiceUrl: ${DIGIWAY_RADROUTENTYROL_URL}
+      ASPNETCORE_DigiWayConfig__radrouten_tirol__Source: ${DIGIWAY_RADROUTENTYROL_SOURCE}
+      ASPNETCORE_DigiWayConfig__radrouten_tirol__Format: ${DIGIWAY_RADROUTENTYROL_FORMAT}
       ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl: ${GTFSAPI_STATIMETABLES_URL}
     restart: unless-stopped
     ports:
