@@ -231,7 +231,7 @@ namespace OdhApiImporter.Helpers
                 new RawDataStore()
                 {
                     datasource = "digiway",
-                    rawformat = "xml",
+                    rawformat = settings.DigiWayConfig[identifier].Format,
                     importdate = DateTime.Now,
                     license = "open",
                     sourceinterface = identifier,

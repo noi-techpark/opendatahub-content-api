@@ -230,7 +230,7 @@ namespace OdhApiImporter.Helpers
                 new RawDataStore()
                 {
                     datasource = "digiway",
-                    rawformat = "json",
+                    rawformat = settings.DigiWayConfig[identifier].Format,
                     importdate = DateTime.Now,
                     license = "open",
                     sourceinterface = source + "." + identifier,
