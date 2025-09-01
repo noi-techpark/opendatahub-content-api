@@ -32,20 +32,21 @@ namespace DIGIWAY
         public static (ODHActivityPoiLinked, GeoShapeJson) ParseToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
             IWFSRoute digiwaydata,
-            string type
+            string type,
+            string srid
         )
         {
             var result = type switch
             {
-                "radrouten_tirol" or "Radrouten_Tirol:TN_WALD_Radrouten_Tirol_CDBD5BC5-8635-418A-BC13-52A99900D008" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as MountainBikeRoute, type),
-                "hikintrail_e5" => ParseHikingRouteE5TODHActivityPoi(odhactivitypoi, digiwaydata as E5TrailRoute, type),
+                "radrouten_tirol" or "Radrouten_Tirol:TN_WALD_Radrouten_Tirol_CDBD5BC5-8635-418A-BC13-52A99900D008" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as MountainBikeRoute, type, srid),
+                "hikintrail_e5" => ParseHikingRouteE5TODHActivityPoi(odhactivitypoi, digiwaydata as E5TrailRoute, type, srid),
                 "_" => (null,null)
             };
 
             return result;
         }
    
-        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IWFSRoute digiwaydata, string name, string identifier, string geoshapetype, string source, int? altitude)
+        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IWFSRoute digiwaydata, string name, string identifier, string geoshapetype, string source, int? altitude, string srid)
         {
             GeoShapeJson geoshape = new GeoShapeJson();
             geoshape.Id = (identifier + "_" + digiwaydata.ObjectId.ToString()).ToLower();
@@ -58,26 +59,48 @@ namespace DIGIWAY
             //get first point of geometry
             var firstCoord = geoshape.Geometry.Coordinates.FirstOrDefault();
 
-            var converter = new EPSG31254ToEPSG4326Converter();
-            var (longitude, latitude) = converter.ConvertToWGS84(firstCoord.X, firstCoord.Y);
-
-            var gpsinfo = new GpsInfo()
+            if(srid == "31254")
             {
-                Altitude = altitude,
-                AltitudeUnitofMeasure = "m",
-                Gpstype = "position",
-                //Use only first digits otherwise point and track will differ
-                Latitude = latitude,
-                Longitude = longitude
-            };
+                var converter = new EPSG31254ToEPSG4326Converter();
+                var (longitude, latitude) = converter.ConvertToWGS84(firstCoord.X, firstCoord.Y);
 
-            return (geoshape, gpsinfo);
+                var gpsinfo = new GpsInfo()
+                {
+                    Altitude = altitude,
+                    AltitudeUnitofMeasure = "m",
+                    Gpstype = "position",
+                    //Use only first digits otherwise point and track will differ
+                    Latitude = latitude,
+                    Longitude = longitude
+                };
+
+                return (geoshape, gpsinfo);
+            }
+            else if (srid == "3857")
+            {
+                var wsg84coordinate = EPSG3857ToEPSG4326Converter.ConvertWebMercatorToWGS84(firstCoord.X, firstCoord.Y);
+
+                var gpsinfo = new GpsInfo()
+                {
+                    Altitude = altitude,
+                    AltitudeUnitofMeasure = "m",
+                    Gpstype = "position",
+                    //Use only first digits otherwise point and track will differ
+                    Latitude = wsg84coordinate.Latitude,
+                    Longitude = wsg84coordinate.Longitude
+                };
+
+                return (geoshape, gpsinfo);
+            }
+            else
+                return (geoshape, new GpsInfo());
         }
         
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseCyclingRoutesTyrolToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
             MountainBikeRoute digiwaydata,
-            string type
+            string type,
+            string srid
         )
         {
             if(odhactivitypoi == null)
@@ -170,7 +193,8 @@ namespace DIGIWAY
                 type,
                 "mountainbikeroute",
                 "dservices3.arcgis.com",
-                digiwaydata.StartElevation
+                digiwaydata.StartElevation,
+                srid
                 );
 
             odhactivitypoi.Mapping.TryAddOrUpdate("dservices3.arcgis.com", additionalvalues);
@@ -184,7 +208,8 @@ namespace DIGIWAY
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseHikingRouteE5TODHActivityPoi(
            ODHActivityPoiLinked? odhactivitypoi,
            E5TrailRoute digiwaydata,
-           string type
+           string type,
+           string srid
        )
         {
             if (odhactivitypoi == null)
@@ -260,7 +285,8 @@ namespace DIGIWAY
                 type,
                 "hikingpathe5route",
                 "dservices3.arcgis.com",
-                0
+                0,
+                srid
                 );
 
             odhactivitypoi.Mapping.TryAddOrUpdate("dservices3.arcgis.com", additionalvalues);

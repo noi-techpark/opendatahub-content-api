@@ -167,7 +167,7 @@ namespace DIGIWAY.Model
                     foreach (var myroute in routes)
                     {
                         // Create LineString geometry from coordinates
-                        route.Geometry = GeometryHelper.CreateLineString(myroute.Coordinates);
+                        route.Geometry = GeometryHelper.CreateLineString(myroute.Coordinates, GeometryHelper.CommonSRID.AustriaLambert);
                     }
                 }
             }
@@ -304,7 +304,7 @@ namespace DIGIWAY.Model
                     foreach (var myroute in routes)
                     {
                         // Create LineString geometry from coordinates
-                        route.Geometry = GeometryHelper.CreateLineString(myroute.Coordinates);
+                        route.Geometry = GeometryHelper.CreateLineString(myroute.Coordinates, GeometryHelper.CommonSRID.WebMercator);
                     }
                 }
             }
@@ -370,52 +370,77 @@ namespace DIGIWAY.Model
     // Geometry factory and helper methods
     public static class GeometryHelper
     {
-        // Create a geometry factory (you might want to specify SRID if known)
-        private static readonly GeometryFactory GeometryFactory = new GeometryFactory(new PrecisionModel(), 31254); // EPSG:31254 from your XML
+        // Default SRID (EPSG:31254 from your original XML)
+        private const int DefaultSRID = 31254;
 
         /// <summary>
-        /// Creates a LineString geometry from a list of MtbCoordinates
+        /// Creates a geometry factory with specified SRID
         /// </summary>
-        public static LineString CreateLineString(List<WFSCoordinate> coordinates)
+        /// <param name="srid">Spatial Reference System Identifier (EPSG code)</param>
+        /// <returns>GeometryFactory configured with the specified SRID</returns>
+        private static GeometryFactory CreateGeometryFactory(int srid = DefaultSRID)
+        {
+            return new GeometryFactory(new PrecisionModel(), srid);
+        }
+
+        /// <summary>
+        /// Creates a LineString geometry from a list of WFSCoordinates
+        /// </summary>
+        /// <param name="coordinates">List of coordinates</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>LineString geometry or null if invalid input</returns>
+        public static LineString CreateLineString(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
             if (coordinates == null || coordinates.Count < 2)
                 return null;
 
+            var geometryFactory = CreateGeometryFactory(srid);
             var coordinateArray = coordinates.Select(c => new Coordinate(c.X, c.Y)).ToArray();
-            return GeometryFactory.CreateLineString(coordinateArray);
+            return geometryFactory.CreateLineString(coordinateArray);
         }
-
         /// <summary>
-        /// Creates a Point geometry from a single MtbCoordinate
+        /// Creates a Point geometry from a single WFSCoordinate
         /// </summary>
-        public static Point CreatePoint(WFSCoordinate coordinate)
+        /// <param name="coordinate">Single coordinate</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>Point geometry or null if invalid input</returns>
+        public static Point CreatePoint(WFSCoordinate coordinate, int srid = DefaultSRID)
         {
             if (coordinate == null)
                 return null;
 
-            return GeometryFactory.CreatePoint(new Coordinate(coordinate.X, coordinate.Y));
+            var geometryFactory = CreateGeometryFactory(srid);
+            return geometryFactory.CreatePoint(new Coordinate(coordinate.X, coordinate.Y));
         }
 
         /// <summary>
-        /// Creates a MultiPoint geometry from a list of MtbCoordinates
+        /// Creates a MultiPoint geometry from a list of WFSCoordinates
         /// </summary>
-        public static MultiPoint CreateMultiPoint(List<WFSCoordinate> coordinates)
+        /// <param name="coordinates">List of coordinates</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>MultiPoint geometry or null if invalid input</returns>
+        public static MultiPoint CreateMultiPoint(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
             if (coordinates == null || coordinates.Count == 0)
                 return null;
 
-            var points = coordinates.Select(c => CreatePoint(c)).ToArray();
-            return GeometryFactory.CreateMultiPoint(points);
+            var geometryFactory = CreateGeometryFactory(srid);
+            var points = coordinates.Select(c => CreatePoint(c, srid)).ToArray();
+            return geometryFactory.CreateMultiPoint(points);
         }
 
         /// <summary>
-        /// Creates a Polygon geometry from a list of MtbCoordinates (if they form a closed ring)
+        /// Creates a Polygon geometry from a list of WFSCoordinates (if they form a closed ring)
         /// </summary>
-        public static Polygon CreatePolygon(List<WFSCoordinate> coordinates)
+        /// <param name="coordinates">List of coordinates forming the polygon boundary</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>Polygon geometry or null if invalid input</returns>
+        public static Polygon CreatePolygon(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
             if (coordinates == null || coordinates.Count < 4)
                 return null;
 
+            var geometryFactory = CreateGeometryFactory(srid);
             var coordinateArray = coordinates.Select(c => new Coordinate(c.X, c.Y)).ToArray();
 
             // Ensure the ring is closed
@@ -427,24 +452,88 @@ namespace DIGIWAY.Model
                 coordinateArray = closedArray;
             }
 
-            var linearRing = GeometryFactory.CreateLinearRing(coordinateArray);
-            return GeometryFactory.CreatePolygon(linearRing);
+            var linearRing = geometryFactory.CreateLinearRing(coordinateArray);
+            return geometryFactory.CreatePolygon(linearRing);
         }
 
         /// <summary>
         /// Gets the start point of a route
         /// </summary>
-        public static Point GetStartPoint(List<WFSCoordinate> coordinates)
+        /// <param name="coordinates">List of route coordinates</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>Point geometry representing the start point or null if invalid input</returns>
+        public static Point GetStartPoint(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
-            return coordinates?.Count > 0 ? CreatePoint(coordinates.First()) : null;
+            return coordinates?.Count > 0 ? CreatePoint(coordinates.First(), srid) : null;
         }
 
         /// <summary>
         /// Gets the end point of a route
         /// </summary>
-        public static Point GetEndPoint(List<WFSCoordinate> coordinates)
+        /// <param name="coordinates">List of route coordinates</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>Point geometry representing the end point or null if invalid input</returns>
+        public static Point GetEndPoint(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
-            return coordinates?.Count > 0 ? CreatePoint(coordinates.Last()) : null;
+            return coordinates?.Count > 0 ? CreatePoint(coordinates.Last(), srid) : null;
+        }
+
+        /// <summary>
+        /// Creates a geometry collection from multiple geometries with the same SRID
+        /// </summary>
+        /// <param name="geometries">Array of geometries to combine</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>GeometryCollection or null if invalid input</returns>
+        public static GeometryCollection CreateGeometryCollection(Geometry[] geometries, int srid = DefaultSRID)
+        {
+            if (geometries == null || geometries.Length == 0)
+                return null;
+
+            var geometryFactory = CreateGeometryFactory(srid);
+            return geometryFactory.CreateGeometryCollection(geometries);
+        }
+
+        /// <summary>
+        /// Transforms geometry from one SRID to another (requires additional transformation logic)
+        /// </summary>
+        /// <param name="geometry">Source geometry</param>
+        /// <param name="targetSrid">Target SRID</param>
+        /// <returns>Transformed geometry with new SRID</returns>
+        /// <remarks>This is a placeholder - actual coordinate transformation requires additional libraries like ProjNet</remarks>
+        public static Geometry TransformSRID(Geometry geometry, int targetSrid)
+        {
+            if (geometry == null || geometry.SRID == targetSrid)
+                return geometry;
+
+            // TODO: Implement actual coordinate transformation using ProjNet or similar
+            // For now, just update the SRID (coordinates remain unchanged)
+            var newGeometry = geometry.Copy();
+            newGeometry.SRID = targetSrid;
+            return newGeometry;
+        }
+
+        /// <summary>
+        /// Gets common EPSG codes for reference
+        /// </summary>
+        public static class CommonSRID
+        {
+            /// <summary>WGS84 Geographic (Latitude/Longitude)</summary>
+            public const int WGS84 = 4326;
+
+            /// <summary>WGS84 Web Mercator (Google Maps, OSM)</summary>
+            public const int WebMercator = 3857;
+
+            /// <summary>Austria MGI / Austria Lambert</summary>
+            public const int AustriaLambert = 31254;
+
+            /// <summary>UTM Zone 33N (Central Europe)</summary>
+            public const int UTM33N = 32633;
+
+            /// <summary>ETRS89 / UTM Zone 33N</summary>
+            public const int ETRS89_UTM33N = 25833;
+
+            /// <summary>ETRS89 / UTM Zone 32N</summary>
+            public const int ETRS89_UTM32N = 25832;
         }
     }
 
