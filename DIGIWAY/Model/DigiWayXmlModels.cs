@@ -243,12 +243,12 @@ namespace DIGIWAY.Model
         public double? ObjectIdGip { get; set; }
         public string GlobalId { get; set; }
         public double? ShapeLength { get; set; }
-        public List<WFSCoordinate> Coordinates { get; set; }
+        public List<List<WFSCoordinate>> Coordinates { get; set; }
         public Geometry Geometry { get; set; }
 
         public E5TrailRoute()
         {
-            Coordinates = new List<WFSCoordinate>();
+            Coordinates = new List<List<WFSCoordinate>>();
         }
     }
 
@@ -296,15 +296,15 @@ namespace DIGIWAY.Model
                     var shapeElement = routeElement.Element(routeNamespace + "Shape");
                     if (shapeElement != null)
                     {
-                        route.Coordinates = ParseTrailCoordinates(shapeElement, gmlNamespace);
+                        route.Coordinates = ParseTrailCoordinatesGrouped(shapeElement, gmlNamespace);
                     }
 
                     routes.Add(route);
 
                     foreach (var myroute in routes)
                     {
-                        // Create LineString geometry from coordinates
-                        route.Geometry = GeometryHelper.CreateLineString(myroute.Coordinates, GeometryHelper.CommonSRID.WebMercator);
+                        // Create MultiLineString geometry from coordinates
+                        route.Geometry = GeometryHelper.CreateMultiLineString(myroute.Coordinates, GeometryHelper.CommonSRID.WebMercator);
                     }
                 }
             }
@@ -316,6 +316,7 @@ namespace DIGIWAY.Model
             return routes;
         }
 
+        
         private List<WFSCoordinate> ParseTrailCoordinates(XElement shapeElement, XNamespace gmlNamespace)
         {
             var coordinates = new List<WFSCoordinate>();
@@ -343,7 +344,7 @@ namespace DIGIWAY.Model
                                     if (double.TryParse(posValues[i], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) &&
                                         double.TryParse(posValues[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
                                     {
-                                        coordinates.Add(new WFSCoordinate(y, x));
+                                        coordinates.Add(new WFSCoordinate(x, y));
                                     }
                                 }
                             }
@@ -361,6 +362,79 @@ namespace DIGIWAY.Model
         }
 
        
+        /// <summary>
+        /// Alternative version that returns coordinates grouped by curveMember
+        /// </summary>
+        /// <param name="shapeElement">The shape element containing the MultiCurve</param>
+        /// <param name="gmlNamespace">GML namespace</param>
+        /// <returns>List of coordinate lists, one per curveMember</returns>
+        private List<List<WFSCoordinate>> ParseTrailCoordinatesGrouped(XElement shapeElement, XNamespace gmlNamespace)
+        {
+            var coordinateGroups = new List<List<WFSCoordinate>>();
+
+            try
+            {
+                var multiCurve = shapeElement.Element(gmlNamespace + "MultiCurve");
+                if (multiCurve != null)
+                {
+                    var curveMembers = multiCurve.Elements(gmlNamespace + "curveMember");
+
+                    foreach (var curveMember in curveMembers)
+                    {
+                        var coordinates = new List<WFSCoordinate>();
+
+                        var lineString = curveMember.Element(gmlNamespace + "LineString");
+                        if (lineString != null)
+                        {
+                            var posList = lineString.Element(gmlNamespace + "posList");
+                            if (posList != null)
+                            {
+                                coordinates = ParsePosListCoordinates(posList.Value);
+                            }
+                        }
+
+                        if (coordinates.Count > 0)
+                        {
+                            coordinateGroups.Add(coordinates);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing grouped coordinates: {ex.Message}");
+            }
+
+            return coordinateGroups;
+        }
+
+        /// <summary>
+        /// Helper method to parse coordinates from a posList value
+        /// </summary>
+        /// <param name="posListValue">The posList text content</param>
+        /// <returns>List of coordinates parsed from the text</returns>
+        private List<WFSCoordinate> ParsePosListCoordinates(string posListValue)
+        {
+            var coordinates = new List<WFSCoordinate>();
+
+            if (string.IsNullOrWhiteSpace(posListValue))
+                return coordinates;
+
+            var posValues = posListValue.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Coordinates come in pairs (X, Y)
+            for (int i = 0; i < posValues.Length - 1; i += 2)
+            {
+                if (double.TryParse(posValues[i], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) &&
+                    double.TryParse(posValues[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
+                {
+                    coordinates.Add(new WFSCoordinate(x, y));
+                }
+            }
+
+            return coordinates;
+        }
+
     }
 
     #endregion
@@ -398,6 +472,40 @@ namespace DIGIWAY.Model
             var coordinateArray = coordinates.Select(c => new Coordinate(c.X, c.Y)).ToArray();
             return geometryFactory.CreateLineString(coordinateArray);
         }
+
+        /// <summary>
+        /// Creates a MultiLineString geometry from a list of coordinate lists
+        /// Each inner list represents one LineString segment
+        /// </summary>
+        /// <param name="coordinateLists">List of coordinate lists, each representing a LineString</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to DefaultSRID)</param>
+        /// <returns>MultiLineString geometry or null if invalid input</returns>
+        public static MultiLineString CreateMultiLineString(List<List<WFSCoordinate>> coordinateLists, int srid = DefaultSRID)
+        {
+            if (coordinateLists == null || coordinateLists.Count == 0)
+                return null;
+
+            var geometryFactory = CreateGeometryFactory(srid);
+            var lineStrings = new List<LineString>();
+
+            foreach (var coordinates in coordinateLists)
+            {
+                // Only create LineString if we have at least 2 points
+                if (coordinates != null && coordinates.Count >= 2)
+                {
+                    var coordinateArray = coordinates.Select(c => new Coordinate(c.X, c.Y)).ToArray();
+                    var lineString = geometryFactory.CreateLineString(coordinateArray);
+                    lineStrings.Add(lineString);
+                }
+            }
+
+            // Return null if no valid LineStrings were created
+            if (lineStrings.Count == 0)
+                return null;
+
+            return geometryFactory.CreateMultiLineString(lineStrings.ToArray());
+        }
+
         /// <summary>
         /// Creates a Point geometry from a single WFSCoordinate
         /// </summary>
