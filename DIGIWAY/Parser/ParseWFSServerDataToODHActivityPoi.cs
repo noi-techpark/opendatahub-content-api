@@ -194,7 +194,7 @@ namespace DIGIWAY
             odhactivitypoi.Active = true;
             odhactivitypoi.FirstImport = odhactivitypoi.FirstImport != null ? DateTime.Now : odhactivitypoi.FirstImport;
             odhactivitypoi.LastChange = DateTime.Now;
-            odhactivitypoi.HasLanguage = new List<string>() { "de", "en" };
+            odhactivitypoi.HasLanguage = new List<string>() { "de", "it", "es" };
             odhactivitypoi.Shortname = digiwaydata.PathDe != null ? digiwaydata.PathDe : null;
             odhactivitypoi.Detail = new Dictionary<string, Detail>();
 
@@ -237,10 +237,11 @@ namespace DIGIWAY
 
             //Add Tags
             odhactivitypoi.TagIds = new List<string>();
-            odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag
-            odhactivitypoi.TagIds.Add("cycling");
-            odhactivitypoi.TagIds.Add("mountain bike");
-            odhactivitypoi.TagIds.Add("mountain bikes");
+            odhactivitypoi.TagIds.Add("978F89296ACB4DB4B6BD1C269341802F"); //LTS Hiking Tag
+            odhactivitypoi.TagIds.Add("hiking");
+            odhactivitypoi.TagIds.Add("C99701BC34C4659B4A82F320E48CFAE"); //LTS Long-distance hiking trails
+            odhactivitypoi.TagIds.Add("longdistance hiking paths");
+
 
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             if (digiwaydata.ObjectId != null)
