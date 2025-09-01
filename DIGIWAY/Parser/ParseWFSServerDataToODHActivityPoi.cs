@@ -38,14 +38,14 @@ namespace DIGIWAY
             var result = type switch
             {
                 "radrouten_tirol" or "Radrouten_Tirol:TN_WALD_Radrouten_Tirol_CDBD5BC5-8635-418A-BC13-52A99900D008" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as MountainBikeRoute, type),
-                "hikintrail_e5" => ParseHikingRouteE5TODHActivityPoi(odhactivitypoi, digiwaydata as MountainBikeRoute, type),
+                "hikintrail_e5" => ParseHikingRouteE5TODHActivityPoi(odhactivitypoi, digiwaydata as E5TrailRoute, type),
                 "_" => (null,null)
             };
 
             return result;
         }
    
-        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(MountainBikeRoute digiwaydata, string name, string identifier, string geoshapetype, string source, int? altitude)
+        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IWFSRoute digiwaydata, string name, string identifier, string geoshapetype, string source, int? altitude)
         {
             GeoShapeJson geoshape = new GeoShapeJson();
             geoshape.Id = (identifier + "_" + digiwaydata.ObjectId.ToString()).ToLower();
@@ -183,7 +183,7 @@ namespace DIGIWAY
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseHikingRouteE5TODHActivityPoi(
            ODHActivityPoiLinked? odhactivitypoi,
-           MountainBikeRoute digiwaydata,
+           E5TrailRoute digiwaydata,
            string type
        )
         {
@@ -192,56 +192,48 @@ namespace DIGIWAY
 
             odhactivitypoi.Id = type + "_" + digiwaydata.ObjectId.ToString();
             odhactivitypoi.Active = true;
-            odhactivitypoi.FirstImport = odhactivitypoi.FirstImport != null ? digiwaydata.UpdateTimestamp : odhactivitypoi.FirstImport;
-            odhactivitypoi.LastChange = Convert.ToDateTime(digiwaydata.UpdateTimestamp);
+            odhactivitypoi.FirstImport = odhactivitypoi.FirstImport != null ? DateTime.Now : odhactivitypoi.FirstImport;
+            odhactivitypoi.LastChange = DateTime.Now;
             odhactivitypoi.HasLanguage = new List<string>() { "de", "en" };
-            odhactivitypoi.Shortname = digiwaydata.RouteName != null ? digiwaydata.RouteName : null;
+            odhactivitypoi.Shortname = digiwaydata.PathDe != null ? digiwaydata.PathDe : null;
             odhactivitypoi.Detail = new Dictionary<string, Detail>();
 
             List<string> keywords = new List<string>();
-            if (digiwaydata.RouteType != null)
-                keywords.Add(digiwaydata.RouteType);
-            if (digiwaydata.RouteNumber != null)
-                keywords.Add(digiwaydata.RouteNumber);
-            if (digiwaydata.SectionType != null)
-                keywords.Add(digiwaydata.SectionType);
+            if (digiwaydata.PathCode != null)
+                keywords.Add(digiwaydata.PathCode);
+            if (digiwaydata.ResporgDigiwayCode != null)
+                keywords.Add(digiwaydata.ResporgDigiwayCode);
 
             odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("de", new Detail()
             {
-                Title = digiwaydata.RouteName != null ? digiwaydata.RouteName : null,
-                BaseText = digiwaydata.RouteDescription != null ? digiwaydata.RouteDescription : null,
-                Header = digiwaydata.RouteType != null ? digiwaydata.RouteType : null,
-                AdditionalText = "Start: " + digiwaydata.RouteStart + " Ende: " + digiwaydata.RouteEnd,
+                Title = digiwaydata.PathDe != null ? digiwaydata.PathDe : null,
+                BaseText = digiwaydata.ResporgDigiwayDe != null ? digiwaydata.ResporgDigiwayDe : null,
                 Keywords = keywords,
                 Language = "de"
             });
-            odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("en", new Detail()
+            odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
             {
-                Title = digiwaydata.RouteName != null ? digiwaydata.RouteName : null,
-                BaseText = digiwaydata.RouteDescriptionEn != null ? digiwaydata.RouteDescriptionEn : null,
-                Header = digiwaydata.RouteType != null ? digiwaydata.RouteType : null,
-                AdditionalText = "start: " + digiwaydata.RouteStartEn + " end: " + digiwaydata.RouteEndEn,
+                Title = digiwaydata.PathIt != null ? digiwaydata.PathIt : null,
+                BaseText = digiwaydata.ResporgDigiwayIt != null ? digiwaydata.ResporgDigiwayIt : null,
                 Keywords = keywords,
-                Language = "en"
+                Language = "it"
+            });
+            odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("es", new Detail()
+            {
+                Title = digiwaydata.PathEs != null ? digiwaydata.PathEs : null,
+                BaseText = digiwaydata.ResporgDigiwayEs != null ? digiwaydata.ResporgDigiwayEs : null,
+                Keywords = keywords,
+                Language = "es"
             });
 
-
-            odhactivitypoi.DistanceDuration = digiwaydata.RidingTime != null ? TransformDuration(digiwaydata.RidingTime) : null;
-            odhactivitypoi.Difficulty = digiwaydata.Difficulty != null ? TransformMTBDifficulty(digiwaydata.Difficulty) : null;
-
-            odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
-
-            odhactivitypoi.AltitudeSumDown = digiwaydata.ElevationDown != null ? Convert.ToDouble(digiwaydata.ElevationDown) : null;
-            odhactivitypoi.AltitudeSumUp = digiwaydata.ElevationUp != null ? Convert.ToDouble(digiwaydata.ElevationUp) : null;
             odhactivitypoi.Source = "dservices3.arcgis.com";
             odhactivitypoi.SyncSourceInterface = "dservices3.arcgis.com." + type.ToLower();
-            odhactivitypoi.DistanceLength = digiwaydata.LengthKm != null ? digiwaydata.LengthKm : null;
-
+            
             //Number
-            odhactivitypoi.Number = digiwaydata.RouteNumber;
+            odhactivitypoi.Number = digiwaydata.PathCode;
 
             //Status
-            odhactivitypoi.IsOpen = TransformStatus(digiwaydata.Status);
+            //odhactivitypoi.IsOpen = TransformStatus(digiwaydata.Status);
 
             //Add Tags
             odhactivitypoi.TagIds = new List<string>();
@@ -253,31 +245,21 @@ namespace DIGIWAY
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             if (digiwaydata.ObjectId != null)
                 additionalvalues.Add("objectid", digiwaydata.ObjectId.ToString());
-            if (digiwaydata.Object != null)
-                additionalvalues.Add("object", digiwaydata.Object);
-            if (digiwaydata.RouteNumber != null)
-                additionalvalues.Add("routenumber", digiwaydata.RouteNumber);
-            if (digiwaydata.SectionType != null)
-                additionalvalues.Add("sectiontype", digiwaydata.SectionType);
-            if (digiwaydata.RouteType != null)
-                additionalvalues.Add("route_type", digiwaydata.RouteType);
-            if (digiwaydata.EndElevation != null)
-                additionalvalues.Add("elevation_start", digiwaydata.EndElevation.ToString());
-            if (digiwaydata.StartElevation != null)
-                additionalvalues.Add("elevation_end", digiwaydata.StartElevation.ToString());
-
-
-            if (digiwaydata.Status != null)
-                additionalvalues.Add("status", digiwaydata.Status);
-
+            if (digiwaydata.PathCode != null)
+                additionalvalues.Add("pathcode", digiwaydata.PathCode);
+            if (digiwaydata.ResporgDigiwayCode != null)
+                additionalvalues.Add("resporgdigiwaycode", digiwaydata.ResporgDigiwayCode);
+            if (digiwaydata.GlobalId != null)
+                additionalvalues.Add("globalid", digiwaydata.GlobalId);
+          
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata,
-                digiwaydata.RouteName,
+                digiwaydata.PathDe,
                 type,
-                "mountainbikeroute",
+                "hikingpathe5route",
                 "dservices3.arcgis.com",
-                digiwaydata.StartElevation
+                0
                 );
 
             odhactivitypoi.Mapping.TryAddOrUpdate("dservices3.arcgis.com", additionalvalues);

@@ -23,6 +23,8 @@ namespace DIGIWAY.Model
     public interface IWFSRoute
     {
         int? ObjectId { get; set; }
+        Geometry Geometry { get; set; }
+
     }
 
     // Coordinate data model
