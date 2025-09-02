@@ -28,6 +28,8 @@ namespace OdhApiImporter.Helpers
         public string? identifier { get; set; }
         public string? source { get; set; }
 
+        public string? srid { get; set; }
+
         public DigiWayWFSXmlImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
@@ -45,8 +47,8 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken = default
         )
         {
-            if (identifier == null || source == null)
-                throw new Exception("no identifier|source defined");
+            if (identifier == null || source == null || srid == null)
+                throw new Exception("no identifier|source|srid defined");
 
             var data = await GetData(cancellationToken);
 
@@ -125,7 +127,7 @@ namespace OdhApiImporter.Helpers
                 if (parsedobject.Item1 == null || parsedobject.Item2 == null)
                     throw new Exception();
 
-                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, "31254");
+                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, srid);
 
                 //Create GPX Info
                 GpsTrack gpstrack = new GpsTrack()
@@ -254,7 +256,7 @@ namespace OdhApiImporter.Helpers
 
             var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
-            var result = ParseWFSServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier);
+            var result = ParseWFSServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, srid);
 
             return result;
         }

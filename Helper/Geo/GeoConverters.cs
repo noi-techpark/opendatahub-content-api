@@ -102,4 +102,174 @@ namespace Helper.Geo
             return results;
         }
     }
+
+    // <summary>
+    /// Coordinate converter for transforming between EPSG:3857 (Web Mercator) and EPSG:4326 (WGS84)
+    /// </summary>
+    public static class EPSG3857ToEPSG4326Converter
+    {
+        // Earth's radius in meters (WGS84 semi-major axis)
+        private const double EarthRadius = 6378137.0;
+
+        // Maximum latitude in Web Mercator projection (approximately 85.0511 degrees)
+        private const double MaxLatitude = 85.05112877980659;
+
+        /// <summary>
+        /// Coordinate structure for EPSG:4326 (WGS84) coordinates
+        /// </summary>
+        public struct WGS84Coordinate
+        {
+            public double Latitude { get; set; }
+            public double Longitude { get; set; }
+
+            public WGS84Coordinate(double latitude, double longitude)
+            {
+                Latitude = latitude;
+                Longitude = longitude;
+            }
+
+            /// <summary>
+            /// Returns coordinates in the format "46.234234 11.334223"
+            /// </summary>
+            public override string ToString()
+            {
+                return $"{Latitude:F6} {Longitude:F6}";
+            }
+
+            /// <summary>
+            /// Returns coordinates with custom precision
+            /// </summary>
+            public string ToString(int decimals)
+            {
+                var format = $"F{decimals}";
+                return $"{Latitude.ToString(format)} {Longitude.ToString(format)}";
+            }
+        }
+
+        /// <summary>
+        /// Coordinate structure for EPSG:3857 (Web Mercator) coordinates
+        /// </summary>
+        public struct WebMercatorCoordinate
+        {
+            public double X { get; set; }
+            public double Y { get; set; }
+
+            public WebMercatorCoordinate(double x, double y)
+            {
+                X = x;
+                Y = y;
+            }
+
+            public override string ToString()
+            {
+                return $"X: {X:F2}, Y: {Y:F2}";
+            }
+        }
+
+        /// <summary>
+        /// Converts EPSG:3857 (Web Mercator) coordinates to EPSG:4326 (WGS84)
+        /// </summary>
+        /// <param name="x">X coordinate in Web Mercator (meters)</param>
+        /// <param name="y">Y coordinate in Web Mercator (meters)</param>
+        /// <returns>WGS84 coordinate with latitude and longitude in decimal degrees</returns>
+        public static WGS84Coordinate ConvertWebMercatorToWGS84(double x, double y)
+        {
+            // Convert X to longitude
+            double longitude = x / EarthRadius * (180.0 / Math.PI);
+
+            // Convert Y to latitude
+            double latitude = Math.Atan(Math.Sinh(y / EarthRadius)) * (180.0 / Math.PI);
+
+            // Clamp latitude to valid range
+            latitude = Math.Max(-MaxLatitude, Math.Min(MaxLatitude, latitude));
+
+            return new WGS84Coordinate(latitude, longitude);
+        }
+
+        /// <summary>
+        /// Converts EPSG:3857 (Web Mercator) coordinates to EPSG:4326 (WGS84)
+        /// </summary>
+        /// <param name="webMercatorCoord">Web Mercator coordinate</param>
+        /// <returns>WGS84 coordinate</returns>
+        public static WGS84Coordinate ConvertWebMercatorToWGS84(WebMercatorCoordinate webMercatorCoord)
+        {
+            return ConvertWebMercatorToWGS84(webMercatorCoord.X, webMercatorCoord.Y);
+        }
+
+        /// <summary>
+        /// Converts EPSG:4326 (WGS84) coordinates to EPSG:3857 (Web Mercator)
+        /// </summary>
+        /// <param name="latitude">Latitude in decimal degrees</param>
+        /// <param name="longitude">Longitude in decimal degrees</param>
+        /// <returns>Web Mercator coordinate in meters</returns>
+        public static WebMercatorCoordinate ConvertWGS84ToWebMercator(double latitude, double longitude)
+        {
+            // Clamp latitude to valid range for Web Mercator
+            latitude = Math.Max(-MaxLatitude, Math.Min(MaxLatitude, latitude));
+
+            // Convert longitude to X
+            double x = longitude * (Math.PI / 180.0) * EarthRadius;
+
+            // Convert latitude to Y
+            double latRadians = latitude * (Math.PI / 180.0);
+            double y = Math.Log(Math.Tan((Math.PI / 4.0) + (latRadians / 2.0))) * EarthRadius;
+
+            return new WebMercatorCoordinate(x, y);
+        }
+
+        /// <summary>
+        /// Converts EPSG:4326 (WGS84) coordinates to EPSG:3857 (Web Mercator)
+        /// </summary>
+        /// <param name="wgs84Coord">WGS84 coordinate</param>
+        /// <returns>Web Mercator coordinate</returns>
+        public static WebMercatorCoordinate ConvertWGS84ToWebMercator(WGS84Coordinate wgs84Coord)
+        {
+            return ConvertWGS84ToWebMercator(wgs84Coord.Latitude, wgs84Coord.Longitude);
+        }
+
+        /// <summary>
+        /// Batch converts multiple EPSG:3857 coordinates to EPSG:4326
+        /// </summary>
+        /// <param name="webMercatorCoords">Array of Web Mercator coordinates</param>
+        /// <returns>Array of WGS84 coordinates</returns>
+        public static WGS84Coordinate[] ConvertWebMercatorToWGS84Batch(WebMercatorCoordinate[] webMercatorCoords)
+        {
+            if (webMercatorCoords == null)
+                return null;
+
+            var results = new WGS84Coordinate[webMercatorCoords.Length];
+            for (int i = 0; i < webMercatorCoords.Length; i++)
+            {
+                results[i] = ConvertWebMercatorToWGS84(webMercatorCoords[i]);
+            }
+            return results;
+        }
+
+        /// <summary>
+        /// Validates if coordinates are within valid Web Mercator bounds
+        /// </summary>
+        /// <param name="x">X coordinate in meters</param>
+        /// <param name="y">Y coordinate in meters</param>
+        /// <returns>True if coordinates are valid for Web Mercator projection</returns>
+        public static bool IsValidWebMercatorCoordinate(double x, double y)
+        {
+            // Web Mercator bounds
+            double maxX = Math.PI * EarthRadius;  // ~20037508.34 meters
+            double maxY = Math.Log(Math.Tan(Math.PI * (0.25 + MaxLatitude / 360.0))) * EarthRadius;
+
+            return Math.Abs(x) <= maxX && Math.Abs(y) <= maxY;
+        }
+
+        /// <summary>
+        /// Validates if WGS84 coordinates are within valid bounds
+        /// </summary>
+        /// <param name="latitude">Latitude in decimal degrees</param>
+        /// <param name="longitude">Longitude in decimal degrees</param>
+        /// <returns>True if coordinates are valid WGS84 coordinates</returns>
+        public static bool IsValidWGS84Coordinate(double latitude, double longitude)
+        {
+            return latitude >= -90.0 && latitude <= 90.0 &&
+                   longitude >= -180.0 && longitude <= 180.0;
+        }
+    }
 }

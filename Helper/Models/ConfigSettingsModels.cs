@@ -495,7 +495,8 @@ namespace Helper
             string username,
             string password,
             string source,
-            string format
+            string format,
+            string srid
         )
         {
             this.ServiceUrl = serviceurl;
@@ -503,6 +504,7 @@ namespace Helper
             this.Username = username;
             this.Password = password;
             this.Format = format;
+            this.SRid = srid;
         }
 
         public string ServiceUrl { get; set; }
@@ -510,6 +512,8 @@ namespace Helper
         public string Username { get; set; }
         public string Password { get; set; }
         public string Format { get; set; }
+
+        public string SRid { get; set; }
     }
 
     public class GTFSApiConfig

@@ -68,12 +68,23 @@ namespace DIGIWAY
 
             if (responsetask != null && !String.IsNullOrEmpty(identifier))
             {
-                var parser = new WfsMountainBikeRouteParser();
+                switch(identifier)
+                {
+                    case "radrouten_tirol":
+                        var rparser = new WfsMountainBikeRouteParser();
 
-                var mtblist = parser.ParseXml(responsetask);
+                        var mtblist = rparser.ParseXml(responsetask);
 
-                return new WFSResult() { Results = mtblist };
+                        return new WFSResult() { Results = mtblist };
+                    case "hikintrail_e5":
+                        var e5parser = new WfsE5TrailParser();
 
+                        var e5list = e5parser.ParseXml(responsetask);
+
+                        return new WFSResult() { Results = e5list };
+                    default:
+                        return null;
+                }
             }
             else
                 return null;

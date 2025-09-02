@@ -2888,6 +2888,7 @@ namespace OdhApiImporter.Controllers
 
                     digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,

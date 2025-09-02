@@ -13,6 +13,8 @@ using System.Xml.Linq;
 
 namespace DIGIWAY.Model
 {
+    #region Common
+
     public class WFSResult
     {
         public IEnumerable<IWFSRoute> Results { get; set; }
@@ -20,8 +22,54 @@ namespace DIGIWAY.Model
 
     public interface IWFSRoute
     {
-        int? ObjectId { get; set;}
+        int? ObjectId { get; set; }
+        Geometry Geometry { get; set; }
+
     }
+
+    // Coordinate data model
+    public class WFSCoordinate
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+
+        public WFSCoordinate(double x, double y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
+    public class XmlDataHelper
+    {
+        public static string GetStringValue(XElement parent, XName elementName)
+        {
+            return parent.Element(elementName)?.Value ?? string.Empty;
+        }
+
+        public static int? GetIntValue(XElement parent, XName elementName)
+        {
+            var value = parent.Element(elementName)?.Value;
+            return int.TryParse(value, out int result) ? result : null;
+        }
+
+        public static double? GetDoubleValue(XElement parent, XName elementName)
+        {
+            var value = parent.Element(elementName)?.Value;
+            return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result) ? result : null;
+        }
+
+        public static DateTime GetDateTimeValue(XElement parent, XName elementName)
+        {
+            var value = parent.Element(elementName)?.Value;
+            return DateTime.TryParse(value, out DateTime result) ? result : DateTime.MinValue;
+        }
+    }
+
+    #endregion
+
+
+    #region MTB Routes
 
     // Data model for mountain bike routes
     public class MountainBikeRoute : IWFSRoute
@@ -48,25 +96,12 @@ namespace DIGIWAY.Model
         public double? LengthKm { get; set; }
         public string RouteDescriptionEn { get; set; }
         public double? ShapeLength { get; set; }
-        public List<MtbCoordinate> Coordinates { get; set; }
+        public List<WFSCoordinate> Coordinates { get; set; }
         public Geometry Geometry { get; set; }
 
         public MountainBikeRoute()
         {
-            Coordinates = new List<MtbCoordinate>();
-        }
-    }
-
-    // Coordinate data model
-    public class MtbCoordinate
-    {
-        public double X { get; set; }
-        public double Y { get; set; }
-
-        public MtbCoordinate(double x, double y)
-        {
-            X = x;
-            Y = y;
+            Coordinates = new List<WFSCoordinate>();
         }
     }
 
@@ -97,34 +132,34 @@ namespace DIGIWAY.Model
                     var route = new MountainBikeRoute();
 
                     // Parse basic route information
-                    route.ObjectId = GetIntValue(routeElement, routeNamespace + "OBJECTID");
-                    route.Object = GetStringValue(routeElement, routeNamespace + "OBJEKT");
-                    route.RouteType = GetStringValue(routeElement, routeNamespace + "ROUTEN_TYP");
-                    route.RouteNumber = GetStringValue(routeElement, routeNamespace + "ROUTENNUMMER");
-                    route.RouteName = GetStringValue(routeElement, routeNamespace + "ROUTENNAME");
-                    route.RouteStart = GetStringValue(routeElement, routeNamespace + "ROUTENSTART");
-                    route.RouteEnd = GetStringValue(routeElement, routeNamespace + "ROUTENZIEL");
-                    route.StartElevation = GetIntValue(routeElement, routeNamespace + "HOEHE_START");
-                    route.EndElevation = GetIntValue(routeElement, routeNamespace + "HOEHE_ZIEL");
-                    route.ElevationUp = GetIntValue(routeElement, routeNamespace + "HM_BERGAUF");
-                    route.ElevationDown = GetIntValue(routeElement, routeNamespace + "HM_BERGAB");
-                    route.RidingTime = GetStringValue(routeElement, routeNamespace + "FAHRZEIT");
-                    route.RouteDescription = GetStringValue(routeElement, routeNamespace + "ROUTENBESCHREIBUNG");
-                    route.Status = GetStringValue(routeElement, routeNamespace + "STATUS");
-                    route.UpdateTimestamp = GetDateTimeValue(routeElement, routeNamespace + "UPDATETIMESTAMP");
-                    route.Difficulty = GetStringValue(routeElement, routeNamespace + "ROUTEN_SCHWIERIGKEIT");
-                    route.SectionType = GetStringValue(routeElement, routeNamespace + "ROUTENSEKTION_TYP");
-                    route.RouteStartEn = GetStringValue(routeElement, routeNamespace + "ROUTENSTART_EN");
-                    route.RouteEndEn = GetStringValue(routeElement, routeNamespace + "ROUTENZIEL_EN");
-                    route.LengthKm = GetDoubleValue(routeElement, routeNamespace + "LAENGE_KM");
-                    route.RouteDescriptionEn = GetStringValue(routeElement, routeNamespace + "ROUTENBESCHREIBUNG_EN");
-                    route.ShapeLength = GetDoubleValue(routeElement, routeNamespace + "Shape__Length");
+                    route.ObjectId = XmlDataHelper.GetIntValue(routeElement, routeNamespace + "OBJECTID");
+                    route.Object = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "OBJEKT");
+                    route.RouteType = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTEN_TYP");
+                    route.RouteNumber = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENNUMMER");
+                    route.RouteName = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENNAME");
+                    route.RouteStart = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENSTART");
+                    route.RouteEnd = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENZIEL");
+                    route.StartElevation = XmlDataHelper.GetIntValue(routeElement, routeNamespace + "HOEHE_START");
+                    route.EndElevation = XmlDataHelper.GetIntValue(routeElement, routeNamespace + "HOEHE_ZIEL");
+                    route.ElevationUp = XmlDataHelper.GetIntValue(routeElement, routeNamespace + "HM_BERGAUF");
+                    route.ElevationDown = XmlDataHelper.GetIntValue(routeElement, routeNamespace + "HM_BERGAB");
+                    route.RidingTime = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "FAHRZEIT");
+                    route.RouteDescription = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENBESCHREIBUNG");
+                    route.Status = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "STATUS");
+                    route.UpdateTimestamp = XmlDataHelper.GetDateTimeValue(routeElement, routeNamespace + "UPDATETIMESTAMP");
+                    route.Difficulty = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTEN_SCHWIERIGKEIT");
+                    route.SectionType = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENSEKTION_TYP");
+                    route.RouteStartEn = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENSTART_EN");
+                    route.RouteEndEn = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENZIEL_EN");
+                    route.LengthKm = XmlDataHelper.GetDoubleValue(routeElement, routeNamespace + "LAENGE_KM");
+                    route.RouteDescriptionEn = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "ROUTENBESCHREIBUNG_EN");
+                    route.ShapeLength = XmlDataHelper.GetDoubleValue(routeElement, routeNamespace + "Shape__Length");
 
                     // Parse coordinates from Shape element
                     var shapeElement = routeElement.Element(routeNamespace + "Shape");
                     if (shapeElement != null)
                     {
-                        route.Coordinates = ParseCoordinates(shapeElement, gmlNamespace);
+                        route.Coordinates = ParseMTBCoordinates(shapeElement, gmlNamespace);
                     }
 
                     routes.Add(route);
@@ -132,7 +167,7 @@ namespace DIGIWAY.Model
                     foreach (var myroute in routes)
                     {
                         // Create LineString geometry from coordinates
-                        route.Geometry = GeometryHelper.CreateLineString(myroute.Coordinates);
+                        route.Geometry = GeometryHelper.CreateLineString(myroute.Coordinates, GeometryHelper.CommonSRID.AustriaLambert);
                     }
                 }
             }
@@ -144,9 +179,9 @@ namespace DIGIWAY.Model
             return routes;
         }
 
-        private List<MtbCoordinate> ParseCoordinates(XElement shapeElement, XNamespace gmlNamespace)
+        private List<WFSCoordinate> ParseMTBCoordinates(XElement shapeElement, XNamespace gmlNamespace)
         {
-            var coordinates = new List<MtbCoordinate>();
+            var coordinates = new List<WFSCoordinate>();
 
             try
             {
@@ -171,7 +206,145 @@ namespace DIGIWAY.Model
                                     if (double.TryParse(posValues[i], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) &&
                                         double.TryParse(posValues[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
                                     {
-                                        coordinates.Add(new MtbCoordinate(y, x));
+                                        coordinates.Add(new WFSCoordinate(y, x));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error but don't fail the entire parsing process
+                Console.WriteLine($"Error parsing coordinates: {ex.Message}");
+            }
+
+            return coordinates;
+        }
+    }
+
+    #endregion
+
+    #region E5 Routes
+
+    // Data model for mountain bike routes
+    public class E5TrailRoute : IWFSRoute
+    {
+        public int? ObjectId { get; set; }
+        public string PathCode { get; set; }
+        public string PathDe { get; set; }
+        public string PathIt { get; set; }
+        public string PathEs { get; set; }
+        public string ResporgDigiwayCode { get; set; }
+        public string ResporgDigiwayDe { get; set; }
+        public string ResporgDigiwayIt { get; set; }
+        public string ResporgDigiwayEs { get; set; }
+        public double? ObjectIdGip { get; set; }
+        public string GlobalId { get; set; }
+        public double? ShapeLength { get; set; }
+        public List<List<WFSCoordinate>> Coordinates { get; set; }
+        public Geometry Geometry { get; set; }
+
+        public E5TrailRoute()
+        {
+            Coordinates = new List<List<WFSCoordinate>>();
+        }
+    }
+
+    // Parser class
+    public class WfsE5TrailParser
+    {
+        public List<E5TrailRoute> ParseXml(string xmlContent)
+        {
+            var routes = new List<E5TrailRoute>();
+
+            try
+            {
+                var doc = XDocument.Parse(xmlContent);
+
+                // Define namespaces
+                var wfsNamespace = XNamespace.Get("http://www.opengis.net/wfs/2.0");
+                var gmlNamespace = XNamespace.Get("http://www.opengis.net/gml/3.2");
+                var routeNamespace = XNamespace.Get("https://dservices3.arcgis.com/hG7UfxX49PQ8XkXh/arcgis/services/E5_Hiking_Route/WFSServer");
+
+                // Find all wfs:member elements
+                var members = doc.Descendants(wfsNamespace + "member");
+
+                foreach (var member in members)
+                {
+                    var routeElement = member.Elements().FirstOrDefault();
+                    if (routeElement == null) continue;
+
+                    var route = new E5TrailRoute();
+
+                    // Parse basic route information
+                    route.ObjectId = XmlDataHelper.GetIntValue(routeElement, routeNamespace + "OBJECTID");
+                    route.PathCode = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "PATH_CODE");
+                    route.PathDe = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "PATH_D");
+                    route.PathIt = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "PATH_I");
+                    route.PathEs = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "PATH_E");
+                    route.ResporgDigiwayCode = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "RESPORGDIGIWAY_CODE");
+                    route.ResporgDigiwayDe = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "RESPORGDIGIWAY_D");
+                    route.ResporgDigiwayIt = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "RESPORGDIGIWAY_I");
+                    route.ResporgDigiwayEs = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "RESPORGDIGIWAY_E");
+                    route.ObjectIdGip = XmlDataHelper.GetDoubleValue(routeElement, routeNamespace + "OBJECTID_GIP");
+                    route.GlobalId = XmlDataHelper.GetStringValue(routeElement, routeNamespace + "GlobalID");
+                    route.ShapeLength = XmlDataHelper.GetDoubleValue(routeElement, routeNamespace + "Shape__Length");
+
+                    // Parse coordinates from Shape element
+                    var shapeElement = routeElement.Element(routeNamespace + "Shape");
+                    if (shapeElement != null)
+                    {
+                        route.Coordinates = ParseTrailCoordinatesGrouped(shapeElement, gmlNamespace);
+                    }
+
+                    routes.Add(route);
+
+                    foreach (var myroute in routes)
+                    {
+                        // Create MultiLineString geometry from coordinates
+                        route.Geometry = GeometryHelper.CreateMultiLineString(myroute.Coordinates, GeometryHelper.CommonSRID.WebMercator);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error parsing XML: {ex.Message}", ex);
+            }
+
+            return routes;
+        }
+
+        
+        private List<WFSCoordinate> ParseTrailCoordinates(XElement shapeElement, XNamespace gmlNamespace)
+        {
+            var coordinates = new List<WFSCoordinate>();
+
+            try
+            {
+                // Navigate through the GML structure: MultiCurve -> curveMember -> LineString -> posList
+                var multiCurve = shapeElement.Element(gmlNamespace + "MultiCurve");
+                if (multiCurve != null)
+                {
+                    var curveMember = multiCurve.Element(gmlNamespace + "curveMember");
+                    if (curveMember != null)
+                    {
+                        var lineString = curveMember.Element(gmlNamespace + "LineString");
+                        if (lineString != null)
+                        {
+                            var posList = lineString.Element(gmlNamespace + "posList");
+                            if (posList != null)
+                            {
+                                var posValues = posList.Value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                                // Coordinates come in pairs (X, Y)
+                                for (int i = 0; i < posValues.Length - 1; i += 2)
+                                {
+                                    if (double.TryParse(posValues[i], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) &&
+                                        double.TryParse(posValues[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
+                                    {
+                                        coordinates.Add(new WFSCoordinate(x, y));
                                     }
                                 }
                             }
@@ -188,80 +361,194 @@ namespace DIGIWAY.Model
             return coordinates;
         }
 
-        private string GetStringValue(XElement parent, XName elementName)
+       
+        /// <summary>
+        /// Alternative version that returns coordinates grouped by curveMember
+        /// </summary>
+        /// <param name="shapeElement">The shape element containing the MultiCurve</param>
+        /// <param name="gmlNamespace">GML namespace</param>
+        /// <returns>List of coordinate lists, one per curveMember</returns>
+        private List<List<WFSCoordinate>> ParseTrailCoordinatesGrouped(XElement shapeElement, XNamespace gmlNamespace)
         {
-            return parent.Element(elementName)?.Value ?? string.Empty;
+            var coordinateGroups = new List<List<WFSCoordinate>>();
+
+            try
+            {
+                var multiCurve = shapeElement.Element(gmlNamespace + "MultiCurve");
+                if (multiCurve != null)
+                {
+                    var curveMembers = multiCurve.Elements(gmlNamespace + "curveMember");
+
+                    foreach (var curveMember in curveMembers)
+                    {
+                        var coordinates = new List<WFSCoordinate>();
+
+                        var lineString = curveMember.Element(gmlNamespace + "LineString");
+                        if (lineString != null)
+                        {
+                            var posList = lineString.Element(gmlNamespace + "posList");
+                            if (posList != null)
+                            {
+                                coordinates = ParsePosListCoordinates(posList.Value);
+                            }
+                        }
+
+                        if (coordinates.Count > 0)
+                        {
+                            coordinateGroups.Add(coordinates);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing grouped coordinates: {ex.Message}");
+            }
+
+            return coordinateGroups;
         }
 
-        private int? GetIntValue(XElement parent, XName elementName)
+        /// <summary>
+        /// Helper method to parse coordinates from a posList value
+        /// </summary>
+        /// <param name="posListValue">The posList text content</param>
+        /// <returns>List of coordinates parsed from the text</returns>
+        private List<WFSCoordinate> ParsePosListCoordinates(string posListValue)
         {
-            var value = parent.Element(elementName)?.Value;
-            return int.TryParse(value, out int result) ? result : null;
+            var coordinates = new List<WFSCoordinate>();
+
+            if (string.IsNullOrWhiteSpace(posListValue))
+                return coordinates;
+
+            var posValues = posListValue.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            // Coordinates come in pairs (X, Y)
+            for (int i = 0; i < posValues.Length - 1; i += 2)
+            {
+                if (double.TryParse(posValues[i], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) &&
+                    double.TryParse(posValues[i + 1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
+                {
+                    coordinates.Add(new WFSCoordinate(x, y));
+                }
+            }
+
+            return coordinates;
         }
 
-        private double? GetDoubleValue(XElement parent, XName elementName)
-        {
-            var value = parent.Element(elementName)?.Value;
-            return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double result) ? result : null;
-        }
-
-        private DateTime GetDateTimeValue(XElement parent, XName elementName)
-        {
-            var value = parent.Element(elementName)?.Value;
-            return DateTime.TryParse(value, out DateTime result) ? result : DateTime.MinValue;
-        }
     }
 
+    #endregion
+
+    #region Geometry
 
     // Geometry factory and helper methods
     public static class GeometryHelper
     {
-        // Create a geometry factory (you might want to specify SRID if known)
-        private static readonly GeometryFactory GeometryFactory = new GeometryFactory(new PrecisionModel(), 31254); // EPSG:31254 from your XML
+        // Default SRID (EPSG:31254 from your original XML)
+        private const int DefaultSRID = 31254;
 
         /// <summary>
-        /// Creates a LineString geometry from a list of MtbCoordinates
+        /// Creates a geometry factory with specified SRID
         /// </summary>
-        public static LineString CreateLineString(List<MtbCoordinate> coordinates)
+        /// <param name="srid">Spatial Reference System Identifier (EPSG code)</param>
+        /// <returns>GeometryFactory configured with the specified SRID</returns>
+        private static GeometryFactory CreateGeometryFactory(int srid = DefaultSRID)
+        {
+            return new GeometryFactory(new PrecisionModel(), srid);
+        }
+
+        /// <summary>
+        /// Creates a LineString geometry from a list of WFSCoordinates
+        /// </summary>
+        /// <param name="coordinates">List of coordinates</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>LineString geometry or null if invalid input</returns>
+        public static LineString CreateLineString(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
             if (coordinates == null || coordinates.Count < 2)
                 return null;
 
+            var geometryFactory = CreateGeometryFactory(srid);
             var coordinateArray = coordinates.Select(c => new Coordinate(c.X, c.Y)).ToArray();
-            return GeometryFactory.CreateLineString(coordinateArray);
+            return geometryFactory.CreateLineString(coordinateArray);
         }
 
         /// <summary>
-        /// Creates a Point geometry from a single MtbCoordinate
+        /// Creates a MultiLineString geometry from a list of coordinate lists
+        /// Each inner list represents one LineString segment
         /// </summary>
-        public static Point CreatePoint(MtbCoordinate coordinate)
+        /// <param name="coordinateLists">List of coordinate lists, each representing a LineString</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to DefaultSRID)</param>
+        /// <returns>MultiLineString geometry or null if invalid input</returns>
+        public static MultiLineString CreateMultiLineString(List<List<WFSCoordinate>> coordinateLists, int srid = DefaultSRID)
+        {
+            if (coordinateLists == null || coordinateLists.Count == 0)
+                return null;
+
+            var geometryFactory = CreateGeometryFactory(srid);
+            var lineStrings = new List<LineString>();
+
+            foreach (var coordinates in coordinateLists)
+            {
+                // Only create LineString if we have at least 2 points
+                if (coordinates != null && coordinates.Count >= 2)
+                {
+                    var coordinateArray = coordinates.Select(c => new Coordinate(c.X, c.Y)).ToArray();
+                    var lineString = geometryFactory.CreateLineString(coordinateArray);
+                    lineStrings.Add(lineString);
+                }
+            }
+
+            // Return null if no valid LineStrings were created
+            if (lineStrings.Count == 0)
+                return null;
+
+            return geometryFactory.CreateMultiLineString(lineStrings.ToArray());
+        }
+
+        /// <summary>
+        /// Creates a Point geometry from a single WFSCoordinate
+        /// </summary>
+        /// <param name="coordinate">Single coordinate</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>Point geometry or null if invalid input</returns>
+        public static Point CreatePoint(WFSCoordinate coordinate, int srid = DefaultSRID)
         {
             if (coordinate == null)
                 return null;
 
-            return GeometryFactory.CreatePoint(new Coordinate(coordinate.X, coordinate.Y));
+            var geometryFactory = CreateGeometryFactory(srid);
+            return geometryFactory.CreatePoint(new Coordinate(coordinate.X, coordinate.Y));
         }
 
         /// <summary>
-        /// Creates a MultiPoint geometry from a list of MtbCoordinates
+        /// Creates a MultiPoint geometry from a list of WFSCoordinates
         /// </summary>
-        public static MultiPoint CreateMultiPoint(List<MtbCoordinate> coordinates)
+        /// <param name="coordinates">List of coordinates</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>MultiPoint geometry or null if invalid input</returns>
+        public static MultiPoint CreateMultiPoint(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
             if (coordinates == null || coordinates.Count == 0)
                 return null;
 
-            var points = coordinates.Select(c => CreatePoint(c)).ToArray();
-            return GeometryFactory.CreateMultiPoint(points);
+            var geometryFactory = CreateGeometryFactory(srid);
+            var points = coordinates.Select(c => CreatePoint(c, srid)).ToArray();
+            return geometryFactory.CreateMultiPoint(points);
         }
 
         /// <summary>
-        /// Creates a Polygon geometry from a list of MtbCoordinates (if they form a closed ring)
+        /// Creates a Polygon geometry from a list of WFSCoordinates (if they form a closed ring)
         /// </summary>
-        public static Polygon CreatePolygon(List<MtbCoordinate> coordinates)
+        /// <param name="coordinates">List of coordinates forming the polygon boundary</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>Polygon geometry or null if invalid input</returns>
+        public static Polygon CreatePolygon(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
             if (coordinates == null || coordinates.Count < 4)
                 return null;
 
+            var geometryFactory = CreateGeometryFactory(srid);
             var coordinateArray = coordinates.Select(c => new Coordinate(c.X, c.Y)).ToArray();
 
             // Ensure the ring is closed
@@ -273,24 +560,90 @@ namespace DIGIWAY.Model
                 coordinateArray = closedArray;
             }
 
-            var linearRing = GeometryFactory.CreateLinearRing(coordinateArray);
-            return GeometryFactory.CreatePolygon(linearRing);
+            var linearRing = geometryFactory.CreateLinearRing(coordinateArray);
+            return geometryFactory.CreatePolygon(linearRing);
         }
 
         /// <summary>
         /// Gets the start point of a route
         /// </summary>
-        public static Point GetStartPoint(List<MtbCoordinate> coordinates)
+        /// <param name="coordinates">List of route coordinates</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>Point geometry representing the start point or null if invalid input</returns>
+        public static Point GetStartPoint(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
-            return coordinates?.Count > 0 ? CreatePoint(coordinates.First()) : null;
+            return coordinates?.Count > 0 ? CreatePoint(coordinates.First(), srid) : null;
         }
 
         /// <summary>
         /// Gets the end point of a route
         /// </summary>
-        public static Point GetEndPoint(List<MtbCoordinate> coordinates)
+        /// <param name="coordinates">List of route coordinates</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>Point geometry representing the end point or null if invalid input</returns>
+        public static Point GetEndPoint(List<WFSCoordinate> coordinates, int srid = DefaultSRID)
         {
-            return coordinates?.Count > 0 ? CreatePoint(coordinates.Last()) : null;
+            return coordinates?.Count > 0 ? CreatePoint(coordinates.Last(), srid) : null;
+        }
+
+        /// <summary>
+        /// Creates a geometry collection from multiple geometries with the same SRID
+        /// </summary>
+        /// <param name="geometries">Array of geometries to combine</param>
+        /// <param name="srid">Spatial Reference System Identifier (optional, defaults to 31254)</param>
+        /// <returns>GeometryCollection or null if invalid input</returns>
+        public static GeometryCollection CreateGeometryCollection(Geometry[] geometries, int srid = DefaultSRID)
+        {
+            if (geometries == null || geometries.Length == 0)
+                return null;
+
+            var geometryFactory = CreateGeometryFactory(srid);
+            return geometryFactory.CreateGeometryCollection(geometries);
+        }
+
+        /// <summary>
+        /// Transforms geometry from one SRID to another (requires additional transformation logic)
+        /// </summary>
+        /// <param name="geometry">Source geometry</param>
+        /// <param name="targetSrid">Target SRID</param>
+        /// <returns>Transformed geometry with new SRID</returns>
+        /// <remarks>This is a placeholder - actual coordinate transformation requires additional libraries like ProjNet</remarks>
+        public static Geometry TransformSRID(Geometry geometry, int targetSrid)
+        {
+            if (geometry == null || geometry.SRID == targetSrid)
+                return geometry;
+
+            // TODO: Implement actual coordinate transformation using ProjNet or similar
+            // For now, just update the SRID (coordinates remain unchanged)
+            var newGeometry = geometry.Copy();
+            newGeometry.SRID = targetSrid;
+            return newGeometry;
+        }
+
+        /// <summary>
+        /// Gets common EPSG codes for reference
+        /// </summary>
+        public static class CommonSRID
+        {
+            /// <summary>WGS84 Geographic (Latitude/Longitude)</summary>
+            public const int WGS84 = 4326;
+
+            /// <summary>WGS84 Web Mercator (Google Maps, OSM)</summary>
+            public const int WebMercator = 3857;
+
+            /// <summary>Austria MGI / Austria Lambert</summary>
+            public const int AustriaLambert = 31254;
+
+            /// <summary>UTM Zone 33N (Central Europe)</summary>
+            public const int UTM33N = 32633;
+
+            /// <summary>ETRS89 / UTM Zone 33N</summary>
+            public const int ETRS89_UTM33N = 25833;
+
+            /// <summary>ETRS89 / UTM Zone 32N</summary>
+            public const int ETRS89_UTM32N = 25832;
         }
     }
+
+    #endregion
 }
