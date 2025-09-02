@@ -22,25 +22,25 @@ namespace DIGIWAY.Model
         public string Type { get; set; }
 
         [JsonProperty("crs", NullValueHandling = NullValueHandling.Ignore)]
-        public CoordinateReferenceSystem Crs { get; set; }
+        public DWGeoJsonCoordinateReferenceSystem Crs { get; set; }
     }
 
     /// <summary>
     /// GeoJSON FeatureCollection with dynamic properties
     /// </summary>
-    public class FeatureCollection : DWGeoJson
+    public class DWGeoJsonFeatureCollection : DWGeoJson
     {
         [JsonProperty("type")]
         public new string Type => "FeatureCollection";
 
         [JsonProperty("features")]
-        public List<Feature> Features { get; set; } = new List<Feature>();
+        public List<DWGeoJsonFeature> Features { get; set; } = new List<DWGeoJsonFeature>();
 
         // Dynamic properties for custom FeatureCollection metadata
         [JsonExtensionData]
         public Dictionary<string, object> AdditionalProperties { get; set; } = new Dictionary<string, object>();
 
-        public FeatureCollection()
+        public DWGeoJsonFeatureCollection()
         {
             base.Type = "FeatureCollection";
         }
@@ -49,7 +49,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// GeoJSON Feature with dynamic properties
     /// </summary>
-    public class Feature : DWGeoJson
+    public class DWGeoJsonFeature : DWGeoJson
     {
         [JsonProperty("type")]
         public new string Type => "Feature";
@@ -67,12 +67,12 @@ namespace DIGIWAY.Model
         [JsonExtensionData]
         public Dictionary<string, object> AdditionalProperties { get; set; } = new Dictionary<string, object>();
 
-        public Feature()
+        public DWGeoJsonFeature()
         {
             base.Type = "Feature";
         }
 
-        public Feature(DWGeometry geometry, dynamic properties = null, object id = null)
+        public DWGeoJsonFeature(DWGeometry geometry, dynamic properties = null, object id = null)
         {
             base.Type = "Feature";
             Geometry = geometry;
@@ -93,7 +93,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// Point geometry
     /// </summary>
-    public class Point : DWGeometry
+    public class DWGeoJsonPoint : DWGeometry
     {
         [JsonProperty("type")]
         public new string Type => "Point";
@@ -101,18 +101,18 @@ namespace DIGIWAY.Model
         [JsonProperty("coordinates")]
         public override object Coordinates { get; set; } // [longitude, latitude] or [x, y]
 
-        public Point()
+        public DWGeoJsonPoint()
         {
             base.Type = "Point";
         }
 
-        public Point(double longitude, double latitude)
+        public DWGeoJsonPoint(double longitude, double latitude)
         {
             base.Type = "Point";
             Coordinates = new[] { longitude, latitude };
         }
 
-        public Point(double x, double y, double z)
+        public DWGeoJsonPoint(double x, double y, double z)
         {
             base.Type = "Point";
             Coordinates = new[] { x, y, z };
@@ -122,7 +122,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// LineString geometry
     /// </summary>
-    public class LineString : DWGeometry
+    public class DWGeoJsonLineString : DWGeometry
     {
         [JsonProperty("type")]
         public new string Type => "LineString";
@@ -130,12 +130,12 @@ namespace DIGIWAY.Model
         [JsonProperty("coordinates")]
         public override object Coordinates { get; set; } // Array of [longitude, latitude] arrays
 
-        public LineString()
+        public DWGeoJsonLineString()
         {
             base.Type = "LineString";
         }
 
-        public LineString(double[][] coordinates)
+        public DWGeoJsonLineString(double[][] coordinates)
         {
             base.Type = "LineString";
             Coordinates = coordinates;
@@ -145,7 +145,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// Polygon geometry
     /// </summary>
-    public class Polygon : DWGeometry
+    public class DWGeoJsonPolygon : DWGeometry
     {
         [JsonProperty("type")]
         public new string Type => "Polygon";
@@ -153,12 +153,12 @@ namespace DIGIWAY.Model
         [JsonProperty("coordinates")]
         public override object Coordinates { get; set; } // Array of LinearRing coordinate arrays
 
-        public Polygon()
+        public DWGeoJsonPolygon()
         {
             base.Type = "Polygon";
         }
 
-        public Polygon(double[][][] coordinates)
+        public DWGeoJsonPolygon(double[][][] coordinates)
         {
             base.Type = "Polygon";
             Coordinates = coordinates;
@@ -168,7 +168,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// MultiPoint geometry
     /// </summary>
-    public class MultiPoint : DWGeometry
+    public class DWGeoJsonMultiPoint : DWGeometry
     {
         [JsonProperty("type")]
         public new string Type => "MultiPoint";
@@ -176,7 +176,7 @@ namespace DIGIWAY.Model
         [JsonProperty("coordinates")]
         public override object Coordinates { get; set; }
 
-        public MultiPoint()
+        public DWGeoJsonMultiPoint()
         {
             base.Type = "MultiPoint";
         }
@@ -185,7 +185,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// MultiLineString geometry
     /// </summary>
-    public class MultiLineString : DWGeometry
+    public class DWGeoJsonMultiLineString : DWGeometry
     {
         [JsonProperty("type")]
         public new string Type => "MultiLineString";
@@ -193,7 +193,7 @@ namespace DIGIWAY.Model
         [JsonProperty("coordinates")]
         public override object Coordinates { get; set; }
 
-        public MultiLineString()
+        public DWGeoJsonMultiLineString()
         {
             base.Type = "MultiLineString";
         }
@@ -202,7 +202,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// MultiPolygon geometry
     /// </summary>
-    public class MultiPolygon : DWGeometry
+    public class DWGeoJsonMultiPolygon : DWGeometry
     {
         [JsonProperty("type")]
         public new string Type => "MultiPolygon";
@@ -210,7 +210,7 @@ namespace DIGIWAY.Model
         [JsonProperty("coordinates")]
         public override object Coordinates { get; set; }
 
-        public MultiPolygon()
+        public DWGeoJsonMultiPolygon()
         {
             base.Type = "MultiPolygon";
         }
@@ -219,7 +219,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// GeometryCollection
     /// </summary>
-    public class GeometryCollection : DWGeometry
+    public class DWGeoJsonGeometryCollection : DWGeometry
     {
         [JsonProperty("type")]
         public new string Type => "GeometryCollection";
@@ -230,7 +230,7 @@ namespace DIGIWAY.Model
         [JsonProperty("coordinates")]
         public override object Coordinates { get; set; } = null; // Not used in GeometryCollection
 
-        public GeometryCollection()
+        public DWGeoJsonGeometryCollection()
         {
             base.Type = "GeometryCollection";
         }
@@ -239,7 +239,7 @@ namespace DIGIWAY.Model
     /// <summary>
     /// Coordinate Reference System
     /// </summary>
-    public class CoordinateReferenceSystem
+    public class DWGeoJsonCoordinateReferenceSystem
     {
         [JsonProperty("type")]
         public string Type { get; set; }
@@ -260,9 +260,9 @@ namespace DIGIWAY.Model
         /// <summary>
         /// Creates a feature with dynamic properties from a dictionary
         /// </summary>
-        public static Feature CreateFeature(DWGeometry geometry, Dictionary<string, object> properties, object id = null)
+        public static DWGeoJsonFeature CreateFeature(DWGeometry geometry, Dictionary<string, object> properties, object id = null)
         {
-            var feature = new Feature(geometry, null, id);
+            var feature = new DWGeoJsonFeature(geometry, null, id);
 
             // Convert dictionary to ExpandoObject for dynamic access
             var expando = new ExpandoObject();
@@ -283,9 +283,9 @@ namespace DIGIWAY.Model
         /// <summary>
         /// Creates a feature with dynamic properties from an anonymous object
         /// </summary>
-        public static Feature CreateFeature(DWGeometry geometry, object properties, object id = null)
+        public static DWGeoJsonFeature CreateFeature(DWGeometry geometry, object properties, object id = null)
         {
-            var feature = new Feature(geometry, null, id);
+            var feature = new DWGeoJsonFeature(geometry, null, id);
 
             if (properties != null)
             {
@@ -299,7 +299,7 @@ namespace DIGIWAY.Model
         /// <summary>
         /// Gets a property value from dynamic properties (with type conversion)
         /// </summary>
-        public static T GetProperty<T>(Feature feature, string propertyName, T defaultValue = default(T))
+        public static T GetProperty<T>(DWGeoJsonFeature feature, string propertyName, T defaultValue = default(T))
         {
             try
             {
@@ -330,7 +330,7 @@ namespace DIGIWAY.Model
         /// <summary>
         /// Sets a property value in dynamic properties
         /// </summary>
-        public static void SetProperty(Feature feature, string propertyName, object value)
+        public static void SetProperty(DWGeoJsonFeature feature, string propertyName, object value)
         {
             if (feature.Properties == null)
                 feature.Properties = new ExpandoObject();
@@ -342,7 +342,7 @@ namespace DIGIWAY.Model
         /// <summary>
         /// Gets all property names from a feature
         /// </summary>
-        public static List<string> GetPropertyNames(Feature feature)
+        public static List<string> GetPropertyNames(DWGeoJsonFeature feature)
         {
             var names = new List<string>();
 
@@ -358,7 +358,7 @@ namespace DIGIWAY.Model
         /// <summary>
         /// Converts properties to a regular dictionary
         /// </summary>
-        public static Dictionary<string, object> GetPropertiesAsDictionary(Feature feature)
+        public static Dictionary<string, object> GetPropertiesAsDictionary(DWGeoJsonFeature feature)
         {
             var result = new Dictionary<string, object>();
 
@@ -392,19 +392,19 @@ namespace DIGIWAY.Model
             switch (type?.ToLower())
             {
                 case "point":
-                    return JsonConvert.DeserializeObject<Point>(obj.ToString());
+                    return JsonConvert.DeserializeObject<DWGeoJsonPoint>(obj.ToString());
                 case "linestring":
-                    return JsonConvert.DeserializeObject<LineString>(obj.ToString());
+                    return JsonConvert.DeserializeObject<DWGeoJsonLineString>(obj.ToString());
                 case "polygon":
-                    return JsonConvert.DeserializeObject<Polygon>(obj.ToString());
+                    return JsonConvert.DeserializeObject<DWGeoJsonPolygon>(obj.ToString());
                 case "multipoint":
-                    return JsonConvert.DeserializeObject<MultiPoint>(obj.ToString());
+                    return JsonConvert.DeserializeObject<DWGeoJsonMultiPoint>(obj.ToString());
                 case "multilinestring":
-                    return JsonConvert.DeserializeObject<MultiLineString>(obj.ToString());
+                    return JsonConvert.DeserializeObject<DWGeoJsonMultiLineString>(obj.ToString());
                 case "multipolygon":
-                    return JsonConvert.DeserializeObject<MultiPolygon>(obj.ToString());
+                    return JsonConvert.DeserializeObject<DWGeoJsonMultiPolygon>(obj.ToString());
                 case "geometrycollection":
-                    return JsonConvert.DeserializeObject<GeometryCollection>(obj.ToString());
+                    return JsonConvert.DeserializeObject<DWGeoJsonGeometryCollection>(obj.ToString());
                 default:
                     throw new JsonSerializationException($"Unknown geometry type: {type}");
             }
