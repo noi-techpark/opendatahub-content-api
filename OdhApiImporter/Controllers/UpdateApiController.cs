@@ -2895,6 +2895,24 @@ namespace OdhApiImporter.Controllers
                                             null,
                                             cancellationToken);
                 }
+                else if (digiwayconfig.Source == "siat.provincia.tn.it")
+                {
+                    DigiWayGeoJsonImportHelper digiwayimporthelper = new DigiWayGeoJsonImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
 
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(

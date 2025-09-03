@@ -17,9 +17,6 @@ using NetTopologySuite.IO;
 using NetTopologySuite.Algorithm;
 using Newtonsoft.Json;
 using CoordinateSharp;
-using MongoDB.Bson.Serialization.IdGenerators;
-//using ProjNet.CoordinateSystems;
-//using NetTopologySuite.CoordinateSystems.Transformations
 
 namespace DIGIWAY
 {
