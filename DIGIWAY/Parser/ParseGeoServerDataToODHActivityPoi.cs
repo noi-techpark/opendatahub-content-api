@@ -41,12 +41,12 @@ namespace DIGIWAY
             return result;
         }
    
-        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IGeoServerCivisData digiwaydata, string name, string type, string source, int? altitude)
+        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IGeoServerCivisData digiwaydata, string name, string identifier, string geoshapetype, string source, int? altitude)
         {
             GeoShapeJson geoshape = new GeoShapeJson();
             geoshape.Id = digiwaydata.id.ToLower();
             geoshape.Name = name;
-            geoshape.Type = type;
+            geoshape.Type = geoshapetype;
             geoshape.Source = source;
             geoshape.Geometry = digiwaydata.geometry;
             
@@ -153,6 +153,7 @@ namespace DIGIWAY
                 digiwaydata,                
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToString(digiwaydata.properties.ROUTE_NAME) : null,
                 identifier,
+                "cycleway",
                 source,
                 digiwaydata.properties.START_HEIGHT != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
                 );
@@ -264,6 +265,7 @@ namespace DIGIWAY
                 digiwaydata,                
                 name,
                 identifier,
+                 "mountainbikeroute",
                 source,
                 null
                 );
@@ -305,8 +307,6 @@ namespace DIGIWAY
                 Language = "de"
             });
            
-
-
             //odhactivitypoi.ContactInfos = new Dictionary<string, ContactInfos>();
             //odhactivitypoi.ContactInfos.TryAddOrUpdate<string, ContactInfos>("de", new ContactInfos()
             //{
@@ -349,6 +349,7 @@ namespace DIGIWAY
                 digiwaydata,                
                 name,
                 identifier,
+                "hikingtrail",
                 source,
                 null
                 );
@@ -440,6 +441,7 @@ namespace DIGIWAY
                 digiwaydata,                
                 name,
                 identifier,
+                "intermunicipalcycleway",
                 source,
                 null
                 );
