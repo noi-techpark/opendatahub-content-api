@@ -286,24 +286,24 @@ namespace DIGIWAY
             odhactivitypoi.FirstImport = digiwaydata.Attributes["dataagg"] != null ? Convert.ToDateTime(digiwaydata.Attributes["dataagg"].ToString()) : odhactivitypoi == null ? DateTime.Now : odhactivitypoi.FirstImport;
             odhactivitypoi.LastChange = digiwaydata.Attributes["dataagg"] != null ? Convert.ToDateTime(digiwaydata.Attributes["dataagg"].ToString()) : DateTime.Now;
             odhactivitypoi.HasLanguage = new List<string>() { "it" };
-            odhactivitypoi.Shortname = digiwaydata.Attributes["denominazi"] != null ? digiwaydata.Attributes["denominazi"].ToString() : null;
+            odhactivitypoi.Shortname = digiwaydata.Attributes["tratto"] != null ? digiwaydata.Attributes["tratto"].ToString() : null;
             odhactivitypoi.Detail = new Dictionary<string, Detail>();
 
-            string gettheretext = digiwaydata.Attributes["loc_ini"] != null ? "inizio: " + digiwaydata.Attributes["loc_ini"].ToString() + " " : "" +
-                                        digiwaydata.Attributes["loc_fine"] != null ? "fine: " + digiwaydata.Attributes["loc_fine"].ToString() : "";
+            string additionaltext = digiwaydata.Attributes["pavimentaz"] != null ? "pavimentaz: " + digiwaydata.Attributes["pavimentaz"].ToString() + " " : "" +
+                                    digiwaydata.Attributes["eurovelo"] != null ? "eurovelo: " + digiwaydata.Attributes["eurovelo"].ToString() + " " : "" +
+                                    digiwaydata.Attributes["livello"] != null ? "livello: " + digiwaydata.Attributes["livello"].ToString() + " " : "" +
+                                    digiwaydata.Attributes["scala"] != null ? "scala: " + digiwaydata.Attributes["scala"].ToString() + " " : "" +
+                                    digiwaydata.Attributes["posizione"] != null ? "posizione: " + digiwaydata.Attributes["posizione"].ToString() + " " : "" +
+                                    digiwaydata.Attributes["sede"] != null ? "sede: " + digiwaydata.Attributes["sede"].ToString() + " " : "" +
+                                    digiwaydata.Attributes["gestione"] != null ? "gestione: " + digiwaydata.Attributes["gestione"].ToString() + " " : "" +                                    
+                                    digiwaydata.Attributes["fonte"] != null ? "fonte: " + digiwaydata.Attributes["fonte"].ToString() + " " : "";
 
             odhactivitypoi.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
             {
-                Title = digiwaydata.Attributes["denominazi"].ToString() != null ? digiwaydata.Attributes["denominazi"].ToString() : null,
-                AdditionalText = digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null,
-                GetThereText = gettheretext,
+                Title = digiwaydata.Attributes["tratto"].ToString() != null ? digiwaydata.Attributes["tratto"].ToString() : null,
+                AdditionalText = digiwaydata.Attributes["pista"] != null ? digiwaydata.Attributes["pista"].ToString() : null + additionaltext,                 
                 Language = "it"
             });
-
-            odhactivitypoi.Number = digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null;
-            odhactivitypoi.WayNumber = digiwaydata.Attributes["numero"] != null ? Convert.ToInt16(digiwaydata.Attributes["numero"]) : null;
-
-            odhactivitypoi.DistanceLength = digiwaydata.Attributes["lunghezza"] != null ? Convert.ToDouble(digiwaydata.Attributes["lunghezza"]) : null;
 
             odhactivitypoi.Source = source;
             odhactivitypoi.SyncSourceInterface = source + "." + identifier;
@@ -318,14 +318,30 @@ namespace DIGIWAY
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             if (digiwaydata.Attributes["classid"] != null)
                 additionalvalues.Add("classid", Convert.ToString(digiwaydata.Attributes["classid"]));
-            if (digiwaydata.Attributes["numero"] != null)
-                additionalvalues.Add("numero", Convert.ToString(digiwaydata.Attributes["numero"]));
-            if (digiwaydata.Attributes["tipo"] != null)
-                additionalvalues.Add("tipo", Convert.ToString(digiwaydata.Attributes["tipo"]));
-            if (digiwaydata.Attributes["id_ambito"] != null)
-                additionalvalues.Add("id_ambito", Convert.ToString(digiwaydata.Attributes["id_ambito"]));
             if (digiwaydata.Attributes["objectid"] != null)
                 additionalvalues.Add("objectid", Convert.ToString(digiwaydata.Attributes["objectid"]));
+            if (digiwaydata.Attributes["id"] != null)
+                additionalvalues.Add("id", Convert.ToString(digiwaydata.Attributes["id"]));
+            if (digiwaydata.Attributes["livello"] != null)
+                additionalvalues.Add("livello", Convert.ToString(digiwaydata.Attributes["livello"]));
+            if (digiwaydata.Attributes["scala"] != null)
+                additionalvalues.Add("scala", Convert.ToString(digiwaydata.Attributes["scala"]));
+            if (digiwaydata.Attributes["posizione"] != null)
+                additionalvalues.Add("posizione", Convert.ToString(digiwaydata.Attributes["posizione"]));
+            if (digiwaydata.Attributes["fonte"] != null)
+                additionalvalues.Add("fonte", Convert.ToString(digiwaydata.Attributes["fonte"]));
+            if (digiwaydata.Attributes["sede"] != null)
+                additionalvalues.Add("sede", Convert.ToString(digiwaydata.Attributes["sede"]));
+            if (digiwaydata.Attributes["gestione"] != null)
+                additionalvalues.Add("gestione", Convert.ToString(digiwaydata.Attributes["igestioned"]));
+            if (digiwaydata.Attributes["pavimentaz"] != null)
+                additionalvalues.Add("pavimentaz", Convert.ToString(digiwaydata.Attributes["pavimentaz"]));
+            if (digiwaydata.Attributes["eurovelo"] != null)
+                additionalvalues.Add("eurovelo", Convert.ToString(digiwaydata.Attributes["eurovelo"]));
+            if (digiwaydata.Attributes["datafine"] != null)
+                additionalvalues.Add("datafine", Convert.ToString(digiwaydata.Attributes["datafine"]));
+            if (digiwaydata.Attributes["dataini"] != null)
+                additionalvalues.Add("dataini", Convert.ToString(digiwaydata.Attributes["dataini"]));
 
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata,
