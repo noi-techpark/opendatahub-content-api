@@ -333,7 +333,7 @@ namespace DIGIWAY
             if (digiwaydata.Attributes["sede"] != null)
                 additionalvalues.Add("sede", Convert.ToString(digiwaydata.Attributes["sede"]));
             if (digiwaydata.Attributes["gestione"] != null)
-                additionalvalues.Add("gestione", Convert.ToString(digiwaydata.Attributes["igestioned"]));
+                additionalvalues.Add("gestione", Convert.ToString(digiwaydata.Attributes["gestione"]));
             if (digiwaydata.Attributes["pavimentaz"] != null)
                 additionalvalues.Add("pavimentaz", Convert.ToString(digiwaydata.Attributes["pavimentaz"]));
             if (digiwaydata.Attributes["eurovelo"] != null)

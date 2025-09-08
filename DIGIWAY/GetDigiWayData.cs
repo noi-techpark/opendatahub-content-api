@@ -109,13 +109,13 @@ namespace DIGIWAY
             string user,
             string pass,
             string serviceurl,
-            bool createfromurl
+            bool createfromurl = true
         )
         {
             if (createfromurl)
             {
                 //Request
-                HttpResponseMessage response = await GetDigiwayDataFromService(user, pass, serviceurl);
+                HttpResponseMessage response = await GetDigiwayDataFromService(user, pass, serviceurl);                
 
                 //Unzip File
                 using (var zipstream = await response.Content.ReadAsStreamAsync())
