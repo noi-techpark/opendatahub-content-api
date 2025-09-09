@@ -101,7 +101,7 @@ namespace DIGIWAY
             });
 
             odhactivitypoi.Number = digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null;
-            odhactivitypoi.WayNumber = digiwaydata.Attributes["numero"] != null ? Convert.ToInt16(digiwaydata.Attributes["numero"]) : null;
+            //odhactivitypoi.WayNumber = digiwaydata.Attributes["numero"] != null ? Convert.ToInt16(digiwaydata.Attributes["numero"]) : null;
 
             odhactivitypoi.DistanceLength = digiwaydata.Attributes["lunghezza"] != null ? Convert.ToDouble(digiwaydata.Attributes["lunghezza"]) : null;
 
