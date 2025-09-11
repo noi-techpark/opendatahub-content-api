@@ -159,6 +159,18 @@ jobs:
           X_DIGIWAY_HIKINGTRAILE5_SOURCE: "dservices3.arcgis.com"
           X_DIGIWAY_HIKINGTRAILE5_FORMAT: "xml"
           X_DIGIWAY_HIKINGTRAILE5_SRID: "3857"
+          X_DIGIWAY_TNMTB_URL: ${{ secrets.DIGIWAY_TNMTB_URL }}
+          X_DIGIWAY_TNMTB_SOURCE: "siat.provincia.tn.it"
+          X_DIGIWAY_TNMTB_FORMAT: "geojson"
+          X_DIGIWAY_TNMTB_SRID: "4326"
+          X_DIGIWAY_TNCYCLINGROUTE_URL: ${{ secrets.DIGIWAY_TNCYCLINGROUTE_URL }}
+          X_DIGIWAY_TNCYCLINGROUTE_SOURCE: "siat.provincia.tn.it"
+          X_DIGIWAY_TNCYCLINGROUTE_FORMAT: "geojson"
+          X_DIGIWAY_TNCYCLINGROUTE_SRID: "4326"
+          X_DIGIWAY_TNHIKINGTRAIL_URL: ${{ secrets.DIGIWAY_TNHIKINGTRAIL_URL }}
+          X_DIGIWAY_TNHIKINGTRAIL_SOURCE: "siat.provincia.tn.it"
+          X_DIGIWAY_TNHIKINGTRAIL_FORMAT: "geojson"
+          X_DIGIWAY_TNHIKINGTRAIL_SRID: "4326"
           X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
 
       - name: Setup config
@@ -323,6 +335,18 @@ jobs:
           X_DIGIWAY_HIKINGTRAILE5_SOURCE: "dservices3.arcgis.com"
           X_DIGIWAY_HIKINGTRAILE5_FORMAT: "xml"
           X_DIGIWAY_HIKINGTRAILE5_SRID: "3857"
+          X_DIGIWAY_TNMTB_URL: ${{ secrets.DIGIWAY_TNMTB_URL }}
+          X_DIGIWAY_TNMTB_SOURCE: "siat.provincia.tn.it"
+          X_DIGIWAY_TNMTB_FORMAT: "geojson"
+          X_DIGIWAY_TNMTB_SRID: "4326"
+          X_DIGIWAY_TNCYCLINGROUTE_URL: ${{ secrets.DIGIWAY_TNCYCLINGROUTE_URL }}
+          X_DIGIWAY_TNCYCLINGROUTE_SOURCE: "siat.provincia.tn.it"
+          X_DIGIWAY_TNCYCLINGROUTE_FORMAT: "geojson"
+          X_DIGIWAY_TNCYCLINGROUTE_SRID: "4326"
+          X_DIGIWAY_TNHIKINGTRAIL_URL: ${{ secrets.DIGIWAY_TNHIKINGTRAIL_URL }}
+          X_DIGIWAY_TNHIKINGTRAIL_SOURCE: "siat.provincia.tn.it"
+          X_DIGIWAY_TNHIKINGTRAIL_FORMAT: "geojson"
+          X_DIGIWAY_TNHIKINGTRAIL_SRID: "4326"
           X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
           
       - name: Setup config

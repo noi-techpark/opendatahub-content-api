@@ -110,6 +110,20 @@ services:
       ASPNETCORE_DigiWayConfig__hikintrail_e5__Source: ${DIGIWAY_HIKINGTRAILE5_SOURCE}
       ASPNETCORE_DigiWayConfig__hikintrail_e5__Format: ${DIGIWAY_HIKINGTRAILE5_FORMAT}
       ASPNETCORE_DigiWayConfig__hikintrail_e5__SRid: ${DIGIWAY_HIKINGTRAILE5_SRID}
+      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__ServiceUrl: ${DIGIWAY_TNMTB_URL}
+      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__Source: ${DIGIWAY_TNMTB_SOURCE}
+      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__Format: ${DIGIWAY_TNMTB_FORMAT}
+      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__SRid: ${DIGIWAY_TNMTB_SRID}
+      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__ServiceUrl: ${DIGIWAY_TNCYCLINGROUTE_URL}
+      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__Source: ${DIGIWAY_TNCYCLINGROUTE_SOURCE}
+      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__Format: ${DIGIWAY_TNCYCLINGROUTE_FORMAT}
+      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__SRid: ${DIGIWAY_TNCYCLINGROUTE_SRID}
+      ASPNETCORE_DigiWayConfig__sentieri_della_sat__ServiceUrl: ${DIGIWAY_TNHIKINGTRAIL_URL}
+      ASPNETCORE_DigiWayConfig__sentieri_della_sat__Source: ${DIGIWAY_TNHIKINGTRAIL_SOURCE}
+      ASPNETCORE_DigiWayConfig__sentieri_della_sat__Format: ${DIGIWAY_TNHIKINGTRAIL_FORMAT}
+      ASPNETCORE_DigiWayConfig__sentieri_della_sat__SRid: ${DIGIWAY_TNHIKINGTRAIL_SRID}
+
+
       ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl: ${GTFSAPI_STATIMETABLES_URL}
     ports:
       - "8002:80"
