@@ -494,19 +494,26 @@ namespace Helper
             string serviceurl,
             string username,
             string password,
-            string identifier            
+            string source,
+            string format,
+            string srid
         )
         {
             this.ServiceUrl = serviceurl;
-            this.Identifier = identifier;
+            this.Source = source;
             this.Username = username;
-            this.Password = password;            
+            this.Password = password;
+            this.Format = format;
+            this.SRid = srid;
         }
 
         public string ServiceUrl { get; set; }
-        public string Identifier { get; set; }
+        public string Source { get; set; }
         public string Username { get; set; }
-        public string Password { get; set; }        
+        public string Password { get; set; }
+        public string Format { get; set; }
+
+        public string SRid { get; set; }
     }
 
     public class GTFSApiConfig

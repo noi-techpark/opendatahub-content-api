@@ -93,6 +93,8 @@ namespace MSS
                                     myroomtosave.Roomtype = "room";
                                 else if (roomtyp == "2")
                                     myroomtosave.Roomtype = "apartment";
+                                else if (roomtyp == "4")
+                                    myroomtosave.Roomtype = "pitch";
                                 else
                                     myroomtosave.Roomtype = "undefined";
 

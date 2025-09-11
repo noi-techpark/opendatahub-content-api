@@ -17,9 +17,6 @@ using NetTopologySuite.IO;
 using NetTopologySuite.Algorithm;
 using Newtonsoft.Json;
 using CoordinateSharp;
-using MongoDB.Bson.Serialization.IdGenerators;
-//using ProjNet.CoordinateSystems;
-//using NetTopologySuite.CoordinateSystems.Transformations
 
 namespace DIGIWAY
 {
@@ -28,110 +25,29 @@ namespace DIGIWAY
         public static (ODHActivityPoiLinked, GeoShapeJson) ParseToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
             IGeoServerCivisData digiwaydata,
-            string type
+            string identifier,
+            string source
         )
         {
-            var result = type switch
+            var result = identifier switch
             {
-                "cyclewaystyrol" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as GeoServerCivisData),
-                "mountainbikeroutes" => ParseMTBRoutesToODHActivityPoi(odhactivitypoi, digiwaydata as GeoServerCivisData),
-                "hikingtrails" => ParseHikingTrailsToODHActivityPoi(odhactivitypoi, digiwaydata as GeoServerCivisData),
-                "intermunicipalcyclingroutes" => ParseInterMunicipalCyclingRoutesToODHActivityPoi(odhactivitypoi, digiwaydata as GeoServerCivisData),
+                "cyclewaystyrol" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata as GeoServerCivisData, identifier, source),
+                "mountainbikeroutes" => ParseMTBRoutesToODHActivityPoi(odhactivitypoi, digiwaydata as GeoServerCivisData, identifier, source),
+                "hikingtrails" => ParseHikingTrailsToODHActivityPoi(odhactivitypoi, digiwaydata as GeoServerCivisData, identifier, source),
+                "intermunicipalcyclingroutes" => ParseInterMunicipalCyclingRoutesToODHActivityPoi(odhactivitypoi, digiwaydata as GeoServerCivisData, identifier, source),
                 "_" => (null,null)
             };
 
             return result;
         }
-
-        //private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IGeoServerCivisDataMultilineString digiwaydata, string name, string type, int? altitude)
-        //{
-        //    GeoShapeJson geoshape = new GeoShapeJson();
-        //    geoshape.Id = digiwaydata.id.ToLower();
-        //    geoshape.Name = name;
-        //    geoshape.Type = type;
-        //    geoshape.Source = "civis.geoserver";
-
-        //    //Transform to geometry
-        //    var geoJson = JsonConvert.SerializeObject(digiwaydata.geometry);
-
-        //    var serializer = GeoJsonSerializer.Create();
-        //    using (var stringReader = new StringReader(geoJson))
-        //    using (var jsonReader = new JsonTextReader(stringReader))
-        //    {
-        //        geoshape.Geometry = serializer.Deserialize<Geometry>(jsonReader);
-        //    }
-
-        //    using (var stringReader = new StringReader(geoJson))
-        //    using (var jsonReader = new JsonReader(stringReader))
-        //    {
-        //        geoshape.Geometry = serializer.Deserialize<Geometry>(jsonReader);
-        //    }
-
-        //    //get first point of geometry
-        //    var geomfactory = new GeometryFactory();
-        //    var point = geomfactory.WithSRID(32632).CreatePoint(geoshape.Geometry.Coordinates.FirstOrDefault());
-
-        //    UniversalTransverseMercator utm = new UniversalTransverseMercator("32N", point.X, point.Y);
-        //    CoordinateSharp.Coordinate latlong = UniversalTransverseMercator.ConvertUTMtoLatLong(utm);
-
-        //    var gpsinfo = new GpsInfo()
-        //    {
-        //        Altitude = altitude,
-        //        AltitudeUnitofMeasure = "m",
-        //        Gpstype = "position",
-        //        //Use only first digits otherwise point and track will differ
-        //        Latitude = Math.Round(latlong.Latitude.DecimalDegree, 9),
-        //        Longitude = Math.Round(latlong.Longitude.DecimalDegree, 9)
-        //    };
-
-        //    return (geoshape, gpsinfo);
-        //}
-
-        //private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IGeoServerCivisDataLineString digiwaydata, string name, string type, int? altitude)
-        //{
-        //    GeoShapeJson geoshape = new GeoShapeJson();
-        //    geoshape.Id = digiwaydata.id.ToLower();
-        //    geoshape.Name = name;
-        //    geoshape.Type = type;
-        //    geoshape.Source = "civis.geoserver";
-
-        //    //Transform to geometry
-        //    var geoJson = JsonConvert.SerializeObject(digiwaydata.geometry);
-
-        //    var serializer = GeoJsonSerializer.Create();
-        //    using (var stringReader = new StringReader(geoJson))
-        //    using (var jsonReader = new JsonTextReader(stringReader))
-        //    {
-        //        geoshape.Geometry = serializer.Deserialize<Geometry>(jsonReader);
-        //    }
-
-        //    //get first point of geometry
-        //    var geomfactory = new GeometryFactory();
-        //    var point = geomfactory.WithSRID(32632).CreatePoint(geoshape.Geometry.Coordinates.FirstOrDefault());
-
-        //    UniversalTransverseMercator utm = new UniversalTransverseMercator("32N", point.X, point.Y);
-        //    CoordinateSharp.Coordinate latlong = UniversalTransverseMercator.ConvertUTMtoLatLong(utm);
-
-        //    var gpsinfo = new GpsInfo()
-        //    {
-        //        Altitude = altitude,
-        //        AltitudeUnitofMeasure = "m",
-        //        Gpstype = "position",
-        //        //Use only first digits otherwise point and track will differ
-        //        Latitude = Math.Round(latlong.Latitude.DecimalDegree, 9),
-        //        Longitude = Math.Round(latlong.Longitude.DecimalDegree, 9)
-        //    };
-
-        //    return (geoshape, gpsinfo);
-        //}
-
-        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IGeoServerCivisData digiwaydata, string name, string type, int? altitude)
+   
+        private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(IGeoServerCivisData digiwaydata, string name, string identifier, string geoshapetype, string source, int? altitude)
         {
             GeoShapeJson geoshape = new GeoShapeJson();
             geoshape.Id = digiwaydata.id.ToLower();
             geoshape.Name = name;
-            geoshape.Type = type;
-            geoshape.Source = "civis.geoserver";
+            geoshape.Type = geoshapetype;
+            geoshape.Source = source;
             geoshape.Geometry = digiwaydata.geometry;
             
 
@@ -157,8 +73,10 @@ namespace DIGIWAY
 
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseCyclingRoutesTyrolToODHActivityPoi(
-            ODHActivityPoiLinked? odhactivitypoi,
-            IGeoServerCivisData digiwaydata
+            ODHActivityPoiLinked? odhactivitypoi,            
+            IGeoServerCivisData digiwaydata, 
+            string identifier,
+            string source
         )
         {
             if(odhactivitypoi == null)
@@ -188,10 +106,14 @@ namespace DIGIWAY
             });
             odhactivitypoi.DistanceLength = digiwaydata.properties.LENGTH != null ? Convert.ToDouble(digiwaydata.properties.LENGTH) : null;
             odhactivitypoi.Difficulty = digiwaydata.properties.DIFFICULTY != null ? Convert.ToString(digiwaydata.properties.DIFFICULTY) : null;
+
+            if(odhactivitypoi.Difficulty != null)
+                odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
+
             odhactivitypoi.AltitudeSumDown = digiwaydata.properties.DOWNHILL_METERS != null ? Convert.ToDouble(digiwaydata.properties.DOWNHILL_METERS) : null;
             odhactivitypoi.AltitudeSumUp = digiwaydata.properties.UPHILL_METERS != null ? Convert.ToDouble(digiwaydata.properties.UPHILL_METERS) : null;
-            odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "civis.geoserver.cyclewaystyrol";
+            odhactivitypoi.Source = source;
+            odhactivitypoi.SyncSourceInterface = source + "." + identifier;
             odhactivitypoi.DistanceDuration = digiwaydata.properties.RUNNING_TIME != null ? TransformDuration(Convert.ToString(digiwaydata.properties.RUNNING_TIME)) : null;
 
             //Add Tags
@@ -230,11 +152,13 @@ namespace DIGIWAY
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata,                
                 digiwaydata.properties.ROUTE_NAME != null ? Convert.ToString(digiwaydata.properties.ROUTE_NAME) : null,
-                "cyclewaytyrol",
+                identifier,
+                "cycleway",
+                source,
                 digiwaydata.properties.START_HEIGHT != null ? Convert.ToInt16(digiwaydata.properties.START_HEIGHT) : null
                 );
 
-            odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+            odhactivitypoi.Mapping.TryAddOrUpdate(source, additionalvalues);
 
             //Add Starting GPS Coordinate as GPS Point 
             odhactivitypoi.GpsInfo = new List<GpsInfo>() { georesult.Item2 };
@@ -243,8 +167,10 @@ namespace DIGIWAY
         }
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseMTBRoutesToODHActivityPoi(
-            ODHActivityPoiLinked? odhactivitypoi,
-            IGeoServerCivisData digiwaydata
+            ODHActivityPoiLinked? odhactivitypoi,            
+            IGeoServerCivisData digiwaydata,
+            string identifier,
+            string source
         )
         {
             if (odhactivitypoi == null)
@@ -296,8 +222,8 @@ namespace DIGIWAY
             odhactivitypoi.Difficulty = digiwaydata.properties.MTB_NAME_DE != null ? TransformMTBDifficulty(Convert.ToString(digiwaydata.properties.MTB_DIFF)) : null;
             odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
 
-            odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "civis.geoserver.mountainbikeroutes";
+            odhactivitypoi.Source = source;
+            odhactivitypoi.SyncSourceInterface = source + "." + identifier;
             
 
             //Add Tags
@@ -338,11 +264,13 @@ namespace DIGIWAY
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata,                
                 name,
-                "mountainbikeroute",
+                identifier,
+                 "mountainbikeroute",
+                source,
                 null
                 );
 
-            odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+            odhactivitypoi.Mapping.TryAddOrUpdate(source, additionalvalues);
 
             //Add Starting GPS Coordinate as GPS Point 
             odhactivitypoi.GpsInfo = new List<GpsInfo>();
@@ -353,7 +281,9 @@ namespace DIGIWAY
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseHikingTrailsToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
-            IGeoServerCivisData digiwaydata
+            IGeoServerCivisData digiwaydata,
+            string identifier,
+            string source
         )
         {
             if (odhactivitypoi == null)
@@ -377,8 +307,6 @@ namespace DIGIWAY
                 Language = "de"
             });
            
-
-
             //odhactivitypoi.ContactInfos = new Dictionary<string, ContactInfos>();
             //odhactivitypoi.ContactInfos.TryAddOrUpdate<string, ContactInfos>("de", new ContactInfos()
             //{
@@ -391,8 +319,8 @@ namespace DIGIWAY
             //odhactivitypoi.AltitudeSumUp = ((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).UPHILL_METERS;
             //odhactivitypoi.DistanceDuration = TransformDuration(((GeoserverCivisPropertiesMountainBike)digiwaydata.properties).RUNNING_TIME);
             
-            odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "civis.geoserver.hikingtrails";
+            odhactivitypoi.Source = source;
+            odhactivitypoi.SyncSourceInterface = source + "." + identifier;
 
 
             //Add Tags
@@ -420,11 +348,13 @@ namespace DIGIWAY
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata,                
                 name,
+                identifier,
                 "hikingtrail",
+                source,
                 null
                 );
 
-            odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+            odhactivitypoi.Mapping.TryAddOrUpdate(source, additionalvalues);
 
             //Add Starting GPS Coordinate as GPS Point 
             odhactivitypoi.GpsInfo = new List<GpsInfo>() { georesult.Item2 };            
@@ -433,9 +363,11 @@ namespace DIGIWAY
         }
 
         private static (ODHActivityPoiLinked, GeoShapeJson) ParseInterMunicipalCyclingRoutesToODHActivityPoi(
-        ODHActivityPoiLinked? odhactivitypoi,
-        IGeoServerCivisData digiwaydata
-    )
+            ODHActivityPoiLinked? odhactivitypoi,
+            IGeoServerCivisData digiwaydata, 
+            string identifier,
+            string source
+        )
         {
             if (odhactivitypoi == null)
                 odhactivitypoi = new ODHActivityPoiLinked();
@@ -482,8 +414,8 @@ namespace DIGIWAY
             //odhactivitypoi.Difficulty = TransformMTBDifficulty(digiwaydata.properties.MTB_DIFF);
             //odhactivitypoi.Ratings = new Ratings() { Difficulty = odhactivitypoi.Difficulty };
 
-            odhactivitypoi.Source = "civis.geoserver";
-            odhactivitypoi.SyncSourceInterface = "civis.geoserver.intermunicipalcyclingroutes";
+            odhactivitypoi.Source = source;
+            odhactivitypoi.SyncSourceInterface = source + "." + identifier;
 
 
             //Add Tags
@@ -508,11 +440,13 @@ namespace DIGIWAY
             var georesult = ParseGeoServerGeodataToGeoShapeJson(
                 digiwaydata,                
                 name,
-                "intermunicipalcyclingroute",
+                identifier,
+                "intermunicipalcycleway",
+                source,
                 null
                 );
 
-            odhactivitypoi.Mapping.TryAddOrUpdate("civis.geoserver", additionalvalues);
+            odhactivitypoi.Mapping.TryAddOrUpdate(source, additionalvalues);
 
             //Add Starting GPS Coordinate as GPS Point 
             odhactivitypoi.GpsInfo = new List<GpsInfo>();
@@ -576,55 +510,5 @@ namespace DIGIWAY
                 }
             }
         }
-    }
-
-    #region obsolete code
-
-    //PArsing errors
-    //List<Coordinate> coordinates = new List<Coordinate>();
-
-    //string coordinatesstr = "MULTILINESTRING((";
-    //foreach(var coordinate1 in digiwaydata.geometry.coordinates)
-    //{
-    //    foreach (var coordinate2 in coordinate1)
-    //    {
-    //        //List<Coordinate> coordinates = new List<Coordinate>();
-
-    //        List<double> coords = new List<double>();
-
-    //        foreach (var coordinate in coordinate2)
-    //        {
-    //            coords.Add(coordinate);
-    //            coordinatesstr = coordinatesstr + coordinate.ToString(CultureInfo.InvariantCulture) + " ";
-    //        }
-
-    //        if(coords.Count == 2)
-    //            coordinates.Add(new Coordinate(coords[0], coords[1]));
-
-    //        coordinatesstr = coordinatesstr.Remove(coordinatesstr.Length - 1);
-    //        coordinatesstr = coordinatesstr + ",";                                       
-    //    }
-    //    coordinatesstr = coordinatesstr.Remove(coordinatesstr.Length - 1);
-    //}
-    //coordinatesstr = coordinatesstr + "))";
-
-    //WKTReader reader = new WKTReader();
-    //geoshape.Geometry = reader.Read(coordinatesstr);
-
-    //var geomfactory = new GeometryFactory();
-    //var point = geomfactory.WithSRID(32632).CreatePoint(coordinates.FirstOrDefault());
-    //var SourceCoordSystem = new CoordinateSystemFactory().
-
-    ////Convert the coordinate system to WGS84.
-    //var transform = new ProjNet.CoordinateSystems.Transformations.CoordinateTransformationFactory().CreateFromCoordinateSystems(
-    //          ProjNet.CoordinateSystems.GeocentricCoordinateSystem.WGS84,
-    //       ProjNet.CoordinateSystems.GeographicCoordinateSystem.WGS84);
-
-    //var wgs84Point = transform.MathTransform.Transform(new double[] { point.Coordinate.X, point.Coordinate.Y });
-
-    //var lat = wgs84Point[1];
-    //var lon = wgs84Point[0];
-
-
-    #endregion
+    }   
 }

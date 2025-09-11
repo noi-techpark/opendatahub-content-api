@@ -240,7 +240,9 @@ namespace OdhApiCore
                             digiwaycfg.GetValue<string>("ServiceUrl", ""),
                             digiwaycfg.GetValue<string>("Username", ""),
                             digiwaycfg.GetValue<string>("Password", ""),
-                            digiwaycfg.Key
+                            digiwaycfg.GetValue<string>("Source", ""),
+                            digiwaycfg.GetValue<string>("Format", ""),
+                            digiwaycfg.GetValue<string>("SRid", "")
                         )
                     );
                 }

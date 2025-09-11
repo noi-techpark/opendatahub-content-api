@@ -64,6 +64,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DIGIWAY", "DIGIWAY\DIGIWAY.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTFSAPI", "GTFSAPI\GTFSAPI.csproj", "{5BE4934F-E414-49EC-8B7B-F37851307395}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperTests", "HelperTests\HelperTests.csproj", "{2C84B950-2688-4EB8-B956-8E9F8BAE8532}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -182,6 +184,10 @@ Global
 		{5BE4934F-E414-49EC-8B7B-F37851307395}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5BE4934F-E414-49EC-8B7B-F37851307395}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BE4934F-E414-49EC-8B7B-F37851307395}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C84B950-2688-4EB8-B956-8E9F8BAE8532}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C84B950-2688-4EB8-B956-8E9F8BAE8532}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C84B950-2688-4EB8-B956-8E9F8BAE8532}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C84B950-2688-4EB8-B956-8E9F8BAE8532}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

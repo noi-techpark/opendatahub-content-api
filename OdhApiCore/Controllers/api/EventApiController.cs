@@ -13,6 +13,7 @@ using Helper;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.Location;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -611,7 +612,12 @@ namespace OdhApiCore.Controllers
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
+
                 //TODO DISTANCE Calculation
+
+                //Populate Tags (Id/Source/Type)
+                await odhevent.UpdateTagsExtension(QueryFactory);
+
                 //TRIM all strings
                 odhevent.TrimStringProperties();
 
@@ -651,7 +657,12 @@ namespace OdhApiCore.Controllers
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
+
                 //TODO DISTANCE Calculation
+
+                //Populate Tags (Id/Source/Type)
+                await odhevent.UpdateTagsExtension(QueryFactory);
+
                 //TRIM all strings
                 odhevent.TrimStringProperties();
 
