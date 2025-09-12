@@ -333,16 +333,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await activityparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Activity
-                    var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>(id, IDStyle.lowercase);
+                    var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeActivityTags(activityparsed, activityindb);
               
                     if (!opendata)
                     {
-                        //TO CHECK
-                        //Add the SmgTags for IDM
-                        //await AssignODHTags(poiparsed, poiindb);
+                        //TODO
+                        //Add the SmgTags for IDM                        
+                        await AssignODHTags(activityparsed, activityindb);
 
                         //TO CHECK
                         //await SetODHActiveBasedOnRepresentationMode(poiparsed);
@@ -453,10 +453,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     );               
                 //Set PublishedOn with allowedtaglist
                 objecttosave.CreatePublishedOnList(autopublishtaglist);
-
-                var rawdataid = await InsertInRawDataDB(poilts);
                 
-                objecttosave.Id = objecttosave.Id.ToLower();
+                var rawdataid = await InsertInRawDataDB(poilts);
+
+                //Prefix Activity with "smgpoi" Id
+                objecttosave.Id = "smgpoi" + objecttosave.Id.ToLower();                
 
                 return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                     objecttosave,
@@ -501,7 +502,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (delete)
             {
                 result = await QueryFactory.DeleteData<ODHActivityPoiLinked>(
-                id.ToLower(),
+                "smgpoi" + id.ToLower(),
                 new DataInfo("smgpois", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
@@ -526,7 +527,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
+                var query = QueryFactory.Query(table).Select("data").Where("id", "smgpoi" + id.ToLower());
 
                 var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
@@ -596,15 +597,18 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         //TODO Pois ODHTags assignment
-        //private async Task AssignODHTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
-        //{
-        //    List<string> tagstopreserve = new List<string>();
-        //    //Remove all ODHTags that where automatically assigned         
-        //    if(gastroOld != null && gastroOld.SmgTags != null)
-        //        tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
+        private async Task AssignODHTags(ODHActivityPoiLinked activityNew, ODHActivityPoiLinked activityOld)
+        {
+            List<string> tagstopreserve = new List<string>();
+            //Remove all ODHTags that where automatically assigned         
+            if (activityNew != null && activityOld.SmgTags != null)
+                activityNew.SmgTags = activityOld.SmgTags;
+                //tagstopreserve = activityOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
 
-        //    gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
-        //}
+
+
+                //activityNew.SmgTags = GetODHTagListActivity(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
+        }
 
         //TODO Metatitle + metadesc
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
