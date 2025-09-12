@@ -332,7 +332,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await poiparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Poi
-                    var poiindb = await LoadDataFromDB<ODHActivityPoiLinked>(id, IDStyle.lowercase);
+                    var poiindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase); ;
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergePoiTags(poiparsed, poiindb);
@@ -454,8 +454,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 objecttosave.CreatePublishedOnList(autopublishtaglist);
 
                 var rawdataid = await InsertInRawDataDB(poilts);
-                
-                objecttosave.Id = objecttosave.Id.ToLower();
+
+                //Prefix Poi with "smgpoi" Id
+                objecttosave.Id = "smgpoi" + objecttosave.Id.ToLower();
 
                 return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                     objecttosave,
@@ -500,7 +501,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (delete)
             {
                 result = await QueryFactory.DeleteData<ODHActivityPoiLinked>(
-                id.ToLower(),
+                "smgpoi" + id.ToLower(),
                 new DataInfo("smgpois", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
@@ -525,7 +526,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
+                var query = QueryFactory.Query(table).Select("data").Where("id", "smgpoi" + id.ToLower());
 
                 var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
