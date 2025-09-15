@@ -108,6 +108,16 @@ namespace Helper
             }
         }
 
+        public static async Task<List<ODHTagLinked>> GetAllGeneratedOdhTagsfromJson(string jsondir)
+        {
+            using (StreamReader r = new StreamReader(Path.Combine(jsondir, $"ODHTagsSourceIDMLTS.json")))
+            {
+                string json = await r.ReadToEndAsync();
+
+                return JsonConvert.DeserializeObject<List<ODHTagLinked>>(json) ?? new();
+            }
+        }
+
         //Translates OLD Tags with german keys to new English Tags
         public static List<Tags> GenerateNewTags(
             ICollection<string> currenttags,

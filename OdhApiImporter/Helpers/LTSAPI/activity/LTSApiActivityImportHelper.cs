@@ -70,7 +70,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //Check if Data is accessible on LTS
             if (activitylts != null && activitylts.FirstOrDefault().ContainsKey("success") && (Boolean)activitylts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
             {     //Import Single Data & Deactivate Data
-                var result = await SavePoisToPG(activitylts);
+                var result = await SaveActivitiesToPG(activitylts);
                 return result;
             }
             //If data is not accessible on LTS Side, delete or disable it
@@ -282,7 +282,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<UpdateDetail> SavePoisToPG(List<JObject> ltsdata)
+        private async Task<UpdateDetail> SaveActivitiesToPG(List<JObject> ltsdata)
         {
             //var newimportcounter = 0;
             //var updateimportcounter = 0;
@@ -304,19 +304,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     );
                 }
 
-                //TO CHECK ???? Load the json Data
-                //IDictionary<string,JArray> jsondata = default(Dictionary<string, JArray>);
-
-                //if (!opendata)
-                //{
-                //    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
-                //    settings.JsonConfig.Jsondir,
-                //    new List<string>()
-                //        {
-                //            "LTSTags"
-                //        }
-                //    );
-                //}
+                //Exception here all Tags with autopublish has to be passed
+                var tagliststoremove =
+                    await GenericTaggingHelper.GetAllGeneratedOdhTagsfromJson(
+                        settings.JsonConfig.Jsondir
+                    );
 
                 foreach (var data in activitydata)
                 {
@@ -342,17 +334,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     {
                         //TODO
                         //Add the SmgTags for IDM                        
-                        await AssignODHTags(activityparsed, activityindb);
-
-                        //TO CHECK
-                        //await SetODHActiveBasedOnRepresentationMode(poiparsed);
-
+                        await AssignODHTags(activityparsed, activityindb, tagliststoremove);
+                        
                         //TO CHECK
                         //Add the MetaTitle for IDM
-                        //await AddMetaTitle(poiparsed);
-
-                        //Add the values to Tags (TagEntry) not needed anymore?
-                        //await AddTagEntryToTags(poiparsed);
+                        //await AddMetaTitle(poiparsed);                        
 
                         //Traduce all Tags with Source IDM to english tags
                         await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
@@ -363,7 +349,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //Create Tags and preserve the old TagEntries
                     await activityparsed.UpdateTagsExtension(QueryFactory, null);
-
 
                     var result = await InsertDataToDB(activityparsed, data.data);
 
@@ -436,10 +421,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             try
-            {
-                //TODO!
+            {                
                 //Set LicenseInfo
-                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(objecttosave, opendata);
+                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(objecttosave, opendata);
 
                 //TODO!
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
@@ -597,17 +581,46 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         //TODO Pois ODHTags assignment
-        private async Task AssignODHTags(ODHActivityPoiLinked activityNew, ODHActivityPoiLinked activityOld)
+        private async Task AssignODHTags(ODHActivityPoiLinked activityNew, ODHActivityPoiLinked activityOld, List<ODHTagLinked> tagstoremove)
         {
             List<string> tagstopreserve = new List<string>();
-            //Remove all ODHTags that where automatically assigned         
+            if (activityNew.SmgTags == null)
+                activityNew.SmgTags = new List<string>();
+
+            //Remove all ODHTags that where automatically assigned
             if (activityNew != null && activityOld.SmgTags != null)
-                activityNew.SmgTags = activityOld.SmgTags;
-                //tagstopreserve = activityOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
+                tagstopreserve = activityOld.SmgTags.Except(tagstoremove.Select(x => x.Id)).ToList();
 
+            //Readd all mapped Tags
+            foreach(var ltstag in activityNew.TagIds)
+            {
+                //load
+                var ltstagsinlist = tagstoremove.Where(x => x.LTSTaggingInfo.LTSRID == ltstag);
 
-
-                //activityNew.SmgTags = GetODHTagListActivity(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
+                if (ltstagsinlist != null)
+                {
+                    foreach (var ltstaginlist in ltstagsinlist)
+                    {
+                        //Add LTS Tag id
+                        if(!activityNew.SmgTags.Contains(ltstaginlist.Id))
+                            activityNew.SmgTags.Add(ltstaginlist.Id);
+                        //Add the mapped Tags
+                        foreach (var mappedtag in ltstaginlist.MappedTagIds)
+                        {
+                            if (!activityNew.SmgTags.Contains(mappedtag))
+                                activityNew.SmgTags.Add(mappedtag);
+                        }
+                    }
+                }
+            }
+            
+            //Readd Tags to preserve
+            foreach (var tagtopreserve in tagstopreserve)
+            {
+                activityNew.SmgTags.Add(tagtopreserve);
+            }
+            
+            //activityNew.SmgTags = GetODHTagListActivity(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
         }
 
         //TODO Metatitle + metadesc
@@ -659,6 +672,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
         //    }
         //}
 
+        #region OLD Compatibility Stufff
+
+
+
+        #endregion
 
     }
 }

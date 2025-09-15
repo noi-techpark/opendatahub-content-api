@@ -174,6 +174,35 @@ namespace Helper
             }
         }
 
+        public static async Task GenerateJSONODHTagSourceIDMLTSList(
+            QueryFactory queryFactory,
+            string jsondir,
+            string jsonName
+        )
+        {
+            var serializer = new JsonSerializer();
+
+            var query = queryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("smgtags")
+                .ODHTagValidForEntityFilter(new List<string>() { "odhactivitypoi" })
+                .ODHTagSourcesFilter_GeneratedColumn(new List<string>() { "ODHCategory", "LTSCategory" });
+
+            var datafirst = await query.GetObjectListAsync<ODHTagLinked>();
+
+            var data = datafirst
+                .Select(x => new CategoriesTags() { Id = x.Id, TagName = x.TagName })
+                .ToList();
+
+            //Save json
+            string fileName = Path.Combine(jsondir, $"{jsonName}.json");
+            using (var writer = File.CreateText(fileName))
+            {
+                serializer.Serialize(writer, data);
+            }
+        }
+
         public static async Task GenerateJSONLocationlist(
             QueryFactory queryFactory,
             string jsondir,
