@@ -595,7 +595,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             foreach(var ltstag in activityNew.TagIds)
             {
                 //load
-                var ltstagsinlist = tagstoremove.Where(x => x.LTSTaggingInfo.LTSRID == ltstag);
+                var ltstagsinlist = tagstoremove.Where(x => x.LTSTaggingInfo != null && x.LTSTaggingInfo.LTSRID == ltstag);
 
                 if (ltstagsinlist != null)
                 {
@@ -613,6 +613,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
+
+            //To check, what about the LTS parent Tags?
             
             //Readd Tags to preserve
             foreach (var tagtopreserve in tagstopreserve)

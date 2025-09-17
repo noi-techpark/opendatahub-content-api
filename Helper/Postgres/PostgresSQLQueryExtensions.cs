@@ -1614,6 +1614,20 @@ namespace Helper
                 return q;
             });
 
+        //public static Query ODHTagSourcesFilter_GeneratedColumnOLD(
+        //    this Query query,
+        //    IReadOnlyCollection<string> sourcelist
+        //) =>
+        //    query.Where(q =>
+        //    {
+        //        foreach (var item in sourcelist)
+        //        {
+        //            q = q.OrWhereRaw("gen_sources @> array\\[$$\\]", item)
+        //                .OrWhere("gen_source", "ILIKE", item);
+        //        }
+        //        return q;
+        //    });
+
         public static Query ODHTagSourcesFilter_GeneratedColumn(
             this Query query,
             IReadOnlyCollection<string> sourcelist
@@ -1622,7 +1636,7 @@ namespace Helper
             {
                 foreach (var item in sourcelist)
                 {
-                    q = q.OrWhereRaw("gen_sources @> array\\[$$\\]", item)
+                    q = q.OrWhereRaw("$$ ILIKE ANY(gen_sources)", item)
                         .OrWhere("gen_source", "ILIKE", item);
                 }
                 return q;
