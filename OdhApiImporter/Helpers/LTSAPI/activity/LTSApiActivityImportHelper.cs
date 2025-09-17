@@ -5,6 +5,7 @@
 using DataModel;
 using Helper;
 using Helper.Generic;
+using Helper.IDM;
 using Helper.Location;
 using Helper.Tagging;
 using LTSAPI;
@@ -310,6 +311,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         settings.JsonConfig.Jsondir
                     );
 
+                var metainfosidm = await QueryFactory
+                    .Query("odhactivitypoimetainfos")
+                    .Select("data")                    
+                    .Where("id", "metainfoexcelsmgpoi")
+                    .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
+
                 foreach (var data in activitydata)
                 {
                     string id = data.data.rid.ToLower();
@@ -331,14 +338,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await MergeActivityTags(activityparsed, activityindb);
               
                     if (!opendata)
-                    {
-                        //TODO
+                    {                        
                         //Add the SmgTags for IDM                        
                         await AssignODHTags(activityparsed, activityindb, tagliststoremove);
-                        
-                        //TO CHECK
+
                         //Add the MetaTitle for IDM
-                        //await AddMetaTitle(poiparsed);                        
+                        await AddIDMMetaTitleAndDescription(activityparsed, metainfosidm);
 
                         //Traduce all Tags with Source IDM to english tags
                         await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
@@ -574,9 +579,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-
             //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
-
             //TODO import the Redactional Tags from SmgTags into Tags?
         }
 
@@ -591,8 +594,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (activityNew != null && activityOld.SmgTags != null)
                 tagstopreserve = activityOld.SmgTags.Except(tagstoremove.Select(x => x.Id)).ToList();
 
+            //Add the activity Tag
+            if (!activityNew.SmgTags.Contains("activity"))
+                activityNew.SmgTags.Add("activity");
+
             //Readd all mapped Tags
-            foreach(var ltstag in activityNew.TagIds)
+            foreach (var ltstag in activityNew.TagIds)
             {
                 //load
                 var ltstagsinlist = tagstoremove.Where(x => x.LTSTaggingInfo != null && x.LTSTaggingInfo.LTSRID == ltstag);
@@ -610,69 +617,32 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             if (!activityNew.SmgTags.Contains(mappedtag))
                                 activityNew.SmgTags.Add(mappedtag);
                         }
+
+                        //Handle also the LTS Parent Tags
+                        if (ltstaginlist.Mapping != null && ltstaginlist.Mapping.ContainsKey("lts"))
+                        {
+                            if (ltstaginlist.Mapping["lts"].ContainsKey("parent_id"))
+                            {
+                                if (!activityNew.SmgTags.Contains(ltstaginlist.Mapping["lts"]["parent_id"]))
+                                    activityNew.SmgTags.Add(ltstaginlist.Mapping["lts"]["parent_id"]);
+                            }
+                        }
                     }
                 }
             }
-
-            //To check, what about the LTS parent Tags?
             
             //Readd Tags to preserve
             foreach (var tagtopreserve in tagstopreserve)
             {
                 activityNew.SmgTags.Add(tagtopreserve);
-            }
-            
-            //activityNew.SmgTags = GetODHTagListActivity(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
+            }            
         }
 
-        //TODO Metatitle + metadesc
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
-        //private async Task AddMetaTitle(ODHActivityPoiLinked gastroNew)
-        //{
-        //    if (gastroNew != null && gastroNew.Detail != null)
-        //    {
-        //        if (gastroNew.Detail.ContainsKey("de"))
-        //        {
-        //            string city = GetCityForGastroSeo("de", gastroNew);
-
-        //            gastroNew.Detail["de"].MetaTitle = gastroNew.Detail["de"].Title + " • " + city + " (Südtirol)";
-        //            gastroNew.Detail["de"].MetaDesc = "Kontakt •  Reservierung •  Öffnungszeiten → " + gastroNew.Detail["de"].Title + ", " + city + ". Hier finden Feinschmecker das passende Restaurant, Cafe, Almhütte, uvm.";
-        //        }
-        //        if (gastroNew.Detail.ContainsKey("it"))
-        //        {
-        //            string city = GetCityForGastroSeo("it", gastroNew);
-
-        //            gastroNew.Detail["it"].MetaTitle = gastroNew.Detail["it"].Title + " • " + city + " (Alto Adige)";
-        //            gastroNew.Detail["it"].MetaDesc = "Contatto • prenotazione • orari d'apertura → " + gastroNew.Detail["it"].Title + ", " + city + ". Il posto giusto per i buongustai: ristorante, cafè, baita, e tanto altro.";
-        //        }
-        //        if (gastroNew.Detail.ContainsKey("en"))
-        //        {
-        //            string city = GetCityForGastroSeo("en", gastroNew);
-
-        //            gastroNew.Detail["en"].MetaTitle = gastroNew.Detail["en"].Title + " • " + city + " (South Tyrol)";
-        //            gastroNew.Detail["en"].MetaDesc = "•  Contact •  reservation •  opening times →  " + gastroNew.Detail["en"].Title + ". Find the perfect restaurant, cafe, alpine chalet in South Tyrol.";
-        //        }
-
-        //        //foreach (var detail in gastroNew.Detail)
-        //        //{
-        //        //    //Check this
-        //        //    detail.Value.MetaTitle = detail.Value.Title + " | suedtirol.info";
-        //        //}
-        //    }
-        //}
-
-        //to check
-        //private async Task SetODHActiveBasedOnRepresentationMode(ODHActivityPoiLinked gastroNew)
-        //{
-        //    if(gastroNew.Mapping != null && gastroNew.Mapping.ContainsKey("lts") && gastroNew.Mapping["lts"].ContainsKey("representationMode"))
-        //    {                
-        //            var representationmode = gastroNew.Mapping["lts"]["representationMode"];
-        //        if (representationmode == "full")
-        //        {
-        //            gastroNew.SmgActive = true;
-        //        }
-        //    }
-        //}
+        private async Task AddIDMMetaTitleAndDescription(ODHActivityPoiLinked activityNew, MetaInfosOdhActivityPoi metainfo)
+        {
+            IDMCustomHelper.SetMetaInfoForActivityPoi(activityNew, metainfo);
+        }
 
         #region OLD Compatibility Stufff
 

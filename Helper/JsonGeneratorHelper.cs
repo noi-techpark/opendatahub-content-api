@@ -192,7 +192,7 @@ namespace Helper
             var datafirst = await query.GetObjectListAsync<ODHTagLinked>();
 
             var data = datafirst
-                .Select(x => new { Id = x.Id, TagName = x.TagName, Source = x.Source, MappedTagIds = x.MappedTagIds, LTSTaggingInfo = x.LTSTaggingInfo })
+                .Select(x => new { Id = x.Id, TagName = x.TagName, Source = x.Source, MappedTagIds = x.MappedTagIds, LTSTaggingInfo = x.LTSTaggingInfo, Mapping = x.Mapping })
                 .ToList();
 
             //Save json
