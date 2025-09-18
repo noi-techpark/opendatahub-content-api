@@ -10,6 +10,7 @@ using Helper.Location;
 using Helper.Tagging;
 using LTSAPI;
 using LTSAPI.Parser;
+using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -206,7 +207,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             return activeList;
         }
-
     
         private async Task<List<JObject>> GetActivitiesFromLTSV2(string poiid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
@@ -305,11 +305,27 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     );
                 }
 
-                //Exception here all Tags with autopublish has to be passed
-                var tagliststoremove =
-                    await GenericTaggingHelper.GetAllGeneratedOdhTagsfromJson(
-                        settings.JsonConfig.Jsondir
+                //Load the json Data
+                IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
+
+                if (!opendata)
+                {
+                    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                    settings.JsonConfig.Jsondir,
+                    new List<string>()
+                        {
+                            "ODHTagsSourceIDMLTS",
+                            "LTSTagsAndTins",                            
+                            "ActivityDisplayAsCategory",
+                        }
                     );
+                }
+
+                //Exception here all Tags with autopublish has to be passed
+                //var tagliststoremove =
+                //    await GenericTaggingHelper.GetAllGeneratedOdhTagsfromJson(
+                //        settings.JsonConfig.Jsondir
+                //    );
 
                 var metainfosidm = await QueryFactory
                     .Query("odhactivitypoimetainfos")
@@ -331,6 +347,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //DistanceCalculation
                     await activityparsed.UpdateDistanceCalculation(QueryFactory);
 
+                    await CompleteLTSTagsAndAddLTSParentAsTag(activityparsed, jsondata);
+
                     //GET OLD Activity
                     var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
@@ -343,7 +361,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         await ReassignOutdooractiveMapping(activityparsed, activityindb);
 
                         //Add the SmgTags for IDM                        
-                        await AssignODHTags(activityparsed, activityindb, tagliststoremove);
+                        await AssignODHTags(activityparsed, activityindb, jsondata);
 
                         //Add the MetaTitle for IDM
                         await AddIDMMetaTitleAndDescription(activityparsed, metainfosidm);
@@ -354,6 +372,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             settings.JsonConfig.Jsondir
                         );
                     }
+
+                    //When requested with opendata Interface does not return isActive field
+                    //All data returned by opendata interface are active by default
+                    if (opendata)
+                    {
+                        activityparsed.Active = true;
+                        activityparsed.SmgActive = true;
+                    }
+
+                    SetAdditionalInfosCategoriesByODHTags(activityparsed, jsondata);
+
 
                     //Create Tags and preserve the old TagEntries
                     await activityparsed.UpdateTagsExtension(QueryFactory, null);
@@ -408,17 +437,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     pushchannels = null,
                     changes = null                    
                 });
-            }
-
-
-            //To check, this works only for single updates             
-            //return new UpdateDetail()
-            //{
-            //    updated = updateimportcounter,
-            //    created = newimportcounter,
-            //    deleted = deleteimportcounter,
-            //    error = errorimportcounter,
-            //};
+            }            
 
             return updatedetails.FirstOrDefault();
         }
@@ -586,14 +605,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         //TODO Pois ODHTags assignment
-        private async Task AssignODHTags(ODHActivityPoiLinked activityNew, ODHActivityPoiLinked activityOld, List<ODHTagLinked> tagstoremove)
+        private async Task AssignODHTags(ODHActivityPoiLinked activityNew, ODHActivityPoiLinked activityOld, IDictionary<string, JArray>? jsonfiles)
         {
+            List<ODHTagLinked> tagstoremove = jsonfiles != null && jsonfiles["ODHTagsSourceIDMLTS"] != null ? jsonfiles["ODHTagsSourceIDMLTS"].ToObject<List<ODHTagLinked>>() : null;
+
             List<string> tagstopreserve = new List<string>();
             if (activityNew.SmgTags == null)
                 activityNew.SmgTags = new List<string>();
 
             //Remove all ODHTags that where automatically assigned
-            if (activityNew != null && activityOld.SmgTags != null)
+            if (activityNew != null && activityOld.SmgTags != null && tagstoremove != null)
                 tagstopreserve = activityOld.SmgTags.Except(tagstoremove.Select(x => x.Id)).ToList();
 
             //Add the activity Tag
@@ -603,30 +624,33 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //Readd all mapped Tags
             foreach (var ltstag in activityNew.TagIds)
             {
-                //load
-                var ltstagsinlist = tagstoremove.Where(x => x.LTSTaggingInfo != null && x.LTSTaggingInfo.LTSRID == ltstag);
-
-                if (ltstagsinlist != null)
+                if (tagstoremove != null)
                 {
-                    foreach (var ltstaginlist in ltstagsinlist)
-                    {
-                        //Add LTS Tag id
-                        if(!activityNew.SmgTags.Contains(ltstaginlist.Id))
-                            activityNew.SmgTags.Add(ltstaginlist.Id);
-                        //Add the mapped Tags
-                        foreach (var mappedtag in ltstaginlist.MappedTagIds)
-                        {
-                            if (!activityNew.SmgTags.Contains(mappedtag))
-                                activityNew.SmgTags.Add(mappedtag);
-                        }
+                    //load
+                    var ltstagsinlist = tagstoremove.Where(x => x.LTSTaggingInfo != null && x.LTSTaggingInfo.LTSRID == ltstag);
 
-                        //Handle also the LTS Parent Tags
-                        if (ltstaginlist.Mapping != null && ltstaginlist.Mapping.ContainsKey("lts"))
+                    if (ltstagsinlist != null)
+                    {
+                        foreach (var ltstaginlist in ltstagsinlist)
                         {
-                            if (ltstaginlist.Mapping["lts"].ContainsKey("parent_id"))
+                            //Add LTS Tag id
+                            if (!activityNew.SmgTags.Contains(ltstaginlist.Id))
+                                activityNew.SmgTags.Add(ltstaginlist.Id);
+                            //Add the mapped Tags
+                            foreach (var mappedtag in ltstaginlist.MappedTagIds)
                             {
-                                if (!activityNew.SmgTags.Contains(ltstaginlist.Mapping["lts"]["parent_id"]))
-                                    activityNew.SmgTags.Add(ltstaginlist.Mapping["lts"]["parent_id"]);
+                                if (!activityNew.SmgTags.Contains(mappedtag))
+                                    activityNew.SmgTags.Add(mappedtag);
+                            }
+
+                            //Handle also the LTS Parent Tags
+                            if (ltstaginlist.Mapping != null && ltstaginlist.Mapping.ContainsKey("lts"))
+                            {
+                                if (ltstaginlist.Mapping["lts"].ContainsKey("parent_id"))
+                                {
+                                    if (!activityNew.SmgTags.Contains(ltstaginlist.Mapping["lts"]["parent_id"]))
+                                        activityNew.SmgTags.Add(ltstaginlist.Mapping["lts"]["parent_id"]);
+                                }
                             }
                         }
                     }
@@ -640,13 +664,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }            
         }
 
+
+        #region OLD Compatibility Stufff
+
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
         private async Task AddIDMMetaTitleAndDescription(ODHActivityPoiLinked activityNew, MetaInfosOdhActivityPoi metainfo)
         {
             IDMCustomHelper.SetMetaInfoForActivityPoi(activityNew, metainfo);
         }
-
-        #region OLD Compatibility Stufff
 
         private async Task ReassignOutdooractiveMapping(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
         {
@@ -667,12 +692,103 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //Add to Mapping
             if (oamapping.Count > 0)
                 poiNew.Mapping.Add("outdooractive", oamapping);
-        }
+        }        
 
-        private async Task FillLTSTags()
+        private async Task CompleteLTSTagsAndAddLTSParentAsTag(ODHActivityPoiLinked poiNew, IDictionary<string, JArray>? jsonfiles)
         {
+            var ltstagsandtins = jsonfiles != null && jsonfiles["LTSTagsAndTins"] != null ? jsonfiles["LTSTagsAndTins"].ToObject<List<TagLinked>>() : null;
+
+            var tagstoadd = new List<string>();
+
+            //TO TEST
+            if (ltstagsandtins != null)
+            {
+                foreach(var tag in poiNew.TagIds)
+                {
+                    GetAllLTSParentTagsRecursively(tag, tagstoadd, ltstagsandtins);
+                }
+            }
+
+            foreach (var tag in tagstoadd)
+            {
+                poiNew.TagIds.Add(tag);
+            }
+
+            //Complete LTSTags
+            foreach(var tag in poiNew.LTSTags)
+            {
+                //Search the Tag and check if it has a Parent
+                var ltstag = ltstagsandtins.Where(x => x.Id == tag.LTSRID).FirstOrDefault();
+                if(ltstag != null)
+                {
+                    tag.TagName = ltstag.TagName;
+                    tag.Level = ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && int.TryParse(ltstag.Mapping["lts"]["level"], out int taglevel) ? taglevel : 0;
+                    tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"] : "";
+                }
+            }
 
         }
+
+        private static void GetAllLTSParentTagsRecursively(string ltstagid, List<string> parenttags, List<TagLinked>? ltstagsandtins)
+        {            
+            //Search the Tag and check if it has a Parent
+            var ltstag = ltstagsandtins.Where(x => x.Id == ltstagid).FirstOrDefault();
+
+            if (ltstag != null)
+            {
+                if (ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("parentTagRid") && ltstag.Mapping["lts"]["parentTagRid"] != null)
+                {
+                    parenttags.Add(ltstag.Mapping["lts"]["parentTagRid"]);
+
+                    if (ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && ltstag.Mapping["lts"]["level"] == "2")
+                    {
+                        GetAllLTSParentTagsRecursively(ltstag.Mapping["lts"]["parentTagRid"], parenttags, ltstagsandtins);
+                    }
+                }
+            }
+        }
+
+        private static void SetAdditionalInfosCategoriesByODHTags(ODHActivityPoiLinked activityNew, IDictionary<string, JArray>? jsonfiles)
+        {
+            //If a Tag is found in 
+            //SET ADDITIONALINFOS
+            //Setting Categorization by Valid Tags
+            var validcategorylist = jsonfiles != null && jsonfiles["ActivityDisplayAsCategory"] != null ? jsonfiles["ActivityDisplayAsCategory"].ToObject<List<CategoriesTags>>() : null;
+
+            if (validcategorylist != null && activityNew.SmgTags != null)
+            {
+                var currentcategories = validcategorylist.Where(x => activityNew.SmgTags.Select(y => y.ToLower()).Contains(x.Id.ToLower())).ToList();
+
+                if (currentcategories != null)
+                {
+                    if (activityNew.AdditionalPoiInfos == null)
+                        activityNew.AdditionalPoiInfos = new Dictionary<string, AdditionalPoiInfos>();
+
+                    foreach (var languagecategory in new List<string>() { "de", "it", "en", "nl", "cs", "pl", "fr", "ru" })
+                    {
+                        //Do not overwrite Novelty
+                        string? novelty = null;
+                        if (activityNew.AdditionalPoiInfos.ContainsKey(languagecategory) && !String.IsNullOrEmpty(activityNew.AdditionalPoiInfos[languagecategory].Novelty))
+                            novelty = activityNew.AdditionalPoiInfos[languagecategory].Novelty;
+
+
+                        AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string>(), Novelty = novelty };
+
+                        //Reassigning Categories
+                        foreach (var smgtagtotranslate in currentcategories)
+                        {
+                            if (smgtagtotranslate.TagName.ContainsKey(languagecategory))
+                            {
+                                additionalPoiInfos.Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
+                            }
+                        }
+
+                        activityNew.AdditionalPoiInfos.Add(languagecategory, additionalPoiInfos);
+                    }
+                }
+            }
+        }
+
 
         #endregion
 

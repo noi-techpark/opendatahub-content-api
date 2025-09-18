@@ -72,7 +72,7 @@ namespace OdhApiImporter.Controllers
                 return BadRequest(result);
             }
         }
-
+        
         [HttpGet, Route("ODH/OdhTagAutoPublishlist")]
         public async Task<IActionResult> ProduceOdhTagAutoPublishListJson(
             CancellationToken cancellationToken
@@ -145,7 +145,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        [HttpGet, Route("ODH/OdhTagGeneratedlist")]
+        [HttpGet, Route("ODH/OdhTagSourceLTSIDMlist")]
         public async Task<IActionResult> ProduceOdhTagGeneratedListJson(
             CancellationToken cancellationToken
         )
@@ -161,7 +161,7 @@ namespace OdhApiImporter.Controllers
                 var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
                     "Json Generation",
                     "ODHTagGeneratedList",
-                    "Generate Json ODHTagGeneratedList succeeded",
+                    "Generate Json OdhTagSourceLTSIDMlist succeeded",
                     true
                 );
 
@@ -172,7 +172,7 @@ namespace OdhApiImporter.Controllers
                 var result = GenericResultsHelper.GetErrorJsonGenerateResult(
                     "Json Generation",
                     "ODHTagCategoriesList",
-                    "Generate Json ODHTagCategoriesList failed",
+                    "Generate Json OdhTagSourceLTSIDMlist failed",
                     ex,
                     true
                 );
@@ -253,8 +253,8 @@ namespace OdhApiImporter.Controllers
                 await JsonGeneratorHelper.GenerateJSONLTSTagsList(
                     QueryFactory,
                     settings.JsonConfig.Jsondir,
-                    "CapacityCeremonies",
-                     new List<string>() { "gastronomyceremonycodes" }
+                    "LTSTagsAndTins",
+                     new List<string>() { "tagsactivity", "tagproperties" }
                 );                
                 await JsonGeneratorHelper.GenerateJSONODHTagsDisplayAsCategoryList(
                     QueryFactory,
@@ -276,8 +276,8 @@ namespace OdhApiImporter.Controllers
             {
                 var result = GenericResultsHelper.GetErrorJsonGenerateResult(
                     "Json Generation",
-                    "GastronomyCategorieslist",
-                    "Generate Json GastronomyCategorieslist failed",
+                    "ActivityDatalist",
+                    "Generate Json ActivityDatalist failed",
                     ex,
                     true
                 );

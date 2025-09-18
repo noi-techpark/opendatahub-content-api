@@ -225,7 +225,9 @@ jobs:
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagAutoPublishlist"
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagCategorieslist"
           curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
-
+          curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/ActivityDatalist"
+          
   deploy-prod-importer:
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/prod'
@@ -402,3 +404,5 @@ jobs:
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagAutoPublishlist"
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagCategorieslist"
           curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/ActivityDatalist"
