@@ -338,7 +338,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await MergeActivityTags(activityparsed, activityindb);
               
                     if (!opendata)
-                    {                        
+                    {
+                        //Reassign Outdooractive Sync Values
+                        await ReassignOutdooractiveMapping(activityparsed, activityindb);
+
                         //Add the SmgTags for IDM                        
                         await AssignODHTags(activityparsed, activityindb, tagliststoremove);
 
@@ -563,7 +566,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             return deletedisableresult;
         }
-
      
         private async Task MergeActivityTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
         {
@@ -646,7 +648,31 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         #region OLD Compatibility Stufff
 
+        private async Task ReassignOutdooractiveMapping(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        {
+            var oamapping = new Dictionary<string, string>() {  };
 
+            if (poiOld.OutdooractiveElevationID != null)
+            {
+                poiNew.OutdooractiveElevationID = poiOld.OutdooractiveElevationID;
+                oamapping.Add("elevationid", poiOld.OutdooractiveElevationID);
+            }
+                
+            if (poiOld.OutdooractiveElevationID != null)
+            {
+                poiNew.OutdooractiveID = poiOld.OutdooractiveID;
+                oamapping.Add("id", poiOld.OutdooractiveID);
+            }                
+
+            //Add to Mapping
+            if (oamapping.Count > 0)
+                poiNew.Mapping.Add("outdooractive", oamapping);
+        }
+
+        private async Task FillLTSTags()
+        {
+
+        }
 
         #endregion
 

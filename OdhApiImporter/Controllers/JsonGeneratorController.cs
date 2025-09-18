@@ -183,8 +183,8 @@ namespace OdhApiImporter.Controllers
 
         [HttpGet, Route("ODH/GastronomyCategorieslist")]
         public async Task<IActionResult> ProduceGastronomyCategoriesListJson(
-    CancellationToken cancellationToken
-)
+            CancellationToken cancellationToken
+        )
         {
             try
             {
@@ -224,6 +224,49 @@ namespace OdhApiImporter.Controllers
                     "Json Generation",
                     "GastronomyCategorieslist",
                     "Generate Json GastronomyCategorieslist succeeded",
+                    true
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var result = GenericResultsHelper.GetErrorJsonGenerateResult(
+                    "Json Generation",
+                    "GastronomyCategorieslist",
+                    "Generate Json GastronomyCategorieslist failed",
+                    ex,
+                    true
+                );
+
+                return BadRequest(result);
+            }
+        }
+
+        [HttpGet, Route("ODH/ActivityDatalist")]
+        public async Task<IActionResult> ProduceActivityDataListJson(
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {                
+                await JsonGeneratorHelper.GenerateJSONLTSTagsList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "CapacityCeremonies",
+                     new List<string>() { "gastronomyceremonycodes" }
+                );                
+                await JsonGeneratorHelper.GenerateJSONODHTagsDisplayAsCategoryList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "ActivityDisplayAsCategory",
+                     new List<string>() { "activity" }
+                );
+
+                var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
+                    "Json Generation",
+                    "ActivityDatalist",
+                    "Generate Json ActivityDatalist succeeded",
                     true
                 );
 
