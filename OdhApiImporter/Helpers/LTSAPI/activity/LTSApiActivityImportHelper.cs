@@ -307,29 +307,20 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 //Load the json Data
                 IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
-
-                if (!opendata)
-                {
-                    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
-                    settings.JsonConfig.Jsondir,
-                    new List<string>()
-                        {
-                            "ODHTagsSourceIDMLTS",
-                            "LTSTagsAndTins",                            
-                            "ActivityDisplayAsCategory",
-                        }
-                    );
-                }
-
-                //Exception here all Tags with autopublish has to be passed
-                //var tagliststoremove =
-                //    await GenericTaggingHelper.GetAllGeneratedOdhTagsfromJson(
-                //        settings.JsonConfig.Jsondir
-                //    );
+                
+                jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                settings.JsonConfig.Jsondir,
+                new List<string>()
+                    {
+                        "ODHTagsSourceIDMLTS",
+                        "LTSTagsAndTins",                            
+                        "ActivityPoiDisplayAsCategory",
+                    }
+                );                              
 
                 var metainfosidm = await QueryFactory
                     .Query("odhactivitypoimetainfos")
-                    .Select("data")                    
+                    .Select("data")
                     .Where("id", "metainfoexcelsmgpoi")
                     .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
 
@@ -339,7 +330,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var activityparsed = ActivityParser.ParseLTSActivity(data.data, false);
 
-                    //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
+                    //POPULATE LocationInfo TO CHECK if this works for new activities...
                     activityparsed.LocationInfo = await activityparsed.UpdateLocationInfoExtension(
                         QueryFactory
                     );
@@ -347,30 +338,34 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //DistanceCalculation
                     await activityparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    await CompleteLTSTagsAndAddLTSParentAsTag(activityparsed, jsondata);
-
                     //GET OLD Activity
                     var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
+                    await CompleteLTSTagsAndAddLTSParentAsTag(activityparsed, jsondata);
+
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeActivityTags(activityparsed, activityindb);
-              
+
+                    //**BEGIN If on opendata IDM Categorization is no more wanted move this to the if(!opendata) section
+
+                    //Preserves all manually assigned ODHTags, and adds tall Mapped ODHTags
+                    await AssignODHTags(activityparsed, activityindb, jsondata);
+
+                    //Traduce all Tags with Source IDM to english tags
+                    await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                        activityparsed,
+                        settings.JsonConfig.Jsondir
+                    );
+
+                    //**END
+
                     if (!opendata)
                     {
                         //Reassign Outdooractive Sync Values
                         await ReassignOutdooractiveMapping(activityparsed, activityindb);
 
-                        //Add the SmgTags for IDM                        
-                        await AssignODHTags(activityparsed, activityindb, jsondata);
-
                         //Add the MetaTitle for IDM
                         await AddIDMMetaTitleAndDescription(activityparsed, metainfosidm);
-
-                        //Traduce all Tags with Source IDM to english tags
-                        await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                            activityparsed,
-                            settings.JsonConfig.Jsondir
-                        );
                     }
 
                     //When requested with opendata Interface does not return isActive field
@@ -382,7 +377,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
 
                     SetAdditionalInfosCategoriesByODHTags(activityparsed, jsondata);
-
 
                     //Create Tags and preserve the old TagEntries
                     await activityparsed.UpdateTagsExtension(QueryFactory, null);
@@ -456,15 +450,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-                //Add the PublishedOn Logic
-                //Exception here all Tags with autopublish has to be passed
-                var autopublishtaglist =
-                    await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
-                        settings.JsonConfig.Jsondir
-                    );               
-                //Set PublishedOn with allowedtaglist
-                objecttosave.CreatePublishedOnList(autopublishtaglist);
-                
+                if (!opendata)
+                {
+                    //Add the PublishedOn Logic
+                    //Exception here all Tags with autopublish has to be passed
+                    var autopublishtaglist =
+                        await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
+                            settings.JsonConfig.Jsondir
+                        );
+                    //Set PublishedOn with allowedtaglist
+                    objecttosave.CreatePublishedOnList(autopublishtaglist);
+                }
                 var rawdataid = await InsertInRawDataDB(poilts);
 
                 //Prefix Activity with "smgpoi" Id
@@ -574,8 +570,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             error = result.error,
                             objectchanged = result.objectchanged,
                             objectimagechanged = result.objectimagechanged,
-                            comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            comparedobjects = result.compareobject != null && result.compareobject.Value ? 1 : 0,
                             pushchannels = result.pushchannels,
                             changes = result.changes,
                         };
@@ -603,6 +598,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
             //TODO import the Redactional Tags from SmgTags into Tags?
         }
+
+        #region OLD Compatibility Stufff
 
         //TODO Pois ODHTags assignment
         private async Task AssignODHTags(ODHActivityPoiLinked activityNew, ODHActivityPoiLinked activityOld, IDictionary<string, JArray>? jsonfiles)
@@ -656,16 +653,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-            
+
             //Readd Tags to preserve
             foreach (var tagtopreserve in tagstopreserve)
             {
                 activityNew.SmgTags.Add(tagtopreserve);
-            }            
+            }
         }
 
-
-        #region OLD Compatibility Stufff
 
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
         private async Task AddIDMMetaTitleAndDescription(ODHActivityPoiLinked activityNew, MetaInfosOdhActivityPoi metainfo)
@@ -727,9 +722,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     var ltstag = ltstagsandtins.Where(x => x.Id == tag.LTSRID).FirstOrDefault();
                     if (ltstag != null)
                     {
-                        tag.TagName = ltstag.TagName;
+                        tag.TagName = ltstag.TagName
+                            .Where(kvp => poiNew.HasLanguage != null ? poiNew.HasLanguage.Contains(kvp.Key) : !String.IsNullOrEmpty(kvp.Key))
+                            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                         tag.Level = ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && int.TryParse(ltstag.Mapping["lts"]["level"], out int taglevel) ? taglevel : 0;
-                        tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"] : "";
+                        tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
                     }
                 }
             }
@@ -757,10 +754,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         private static void SetAdditionalInfosCategoriesByODHTags(ODHActivityPoiLinked activityNew, IDictionary<string, JArray>? jsonfiles)
         {
-            //If a Tag is found in 
+            //TO CHECK
             //SET ADDITIONALINFOS
             //Setting Categorization by Valid Tags
-            var validcategorylist = jsonfiles != null && jsonfiles["ActivityDisplayAsCategory"] != null ? jsonfiles["ActivityDisplayAsCategory"].ToObject<List<CategoriesTags>>() : null;
+            var validcategorylist = jsonfiles != null && jsonfiles["ActivityPoiDisplayAsCategory"] != null ? jsonfiles["ActivityPoiDisplayAsCategory"].ToObject<List<CategoriesTags>>() : null;
 
             if (validcategorylist != null && activityNew.SmgTags != null)
             {
@@ -795,7 +792,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
             }
         }
-
 
         #endregion
 

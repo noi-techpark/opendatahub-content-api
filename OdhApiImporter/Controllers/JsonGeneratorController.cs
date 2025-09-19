@@ -39,6 +39,7 @@ namespace OdhApiImporter.Controllers
 
         #region Tags
 
+        //Generates Taglist used to generated translated Tags from ODHTags
         [HttpGet, Route("ODH/Taglist")]
         public async Task<IActionResult> ProduceTagJson(CancellationToken cancellationToken)
         {
@@ -73,6 +74,7 @@ namespace OdhApiImporter.Controllers
             }
         }
         
+        //Generates list with ODHTags that have an autopublish option set
         [HttpGet, Route("ODH/OdhTagAutoPublishlist")]
         public async Task<IActionResult> ProduceOdhTagAutoPublishListJson(
             CancellationToken cancellationToken
@@ -109,6 +111,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Generates list with ODHTags with DisplayasCategory true used to create the AdditionalPoiInfos Categories OBOLETE?
         [HttpGet, Route("ODH/OdhTagCategorieslist")]
         public async Task<IActionResult> ProduceOdhTagCategoriesListJson(
             CancellationToken cancellationToken
@@ -145,6 +148,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Generates list with ODHTags with Tags for activities & pois from idm and lts, used for LTSTag<->ODHTag
         [HttpGet, Route("ODH/OdhTagSourceLTSIDMlist")]
         public async Task<IActionResult> ProduceOdhTagGeneratedListJson(
             CancellationToken cancellationToken
@@ -181,6 +185,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Generates lists of Tags/ODHTags? used in Gastronomy Sync
         [HttpGet, Route("ODH/GastronomyCategorieslist")]
         public async Task<IActionResult> ProduceGastronomyCategoriesListJson(
             CancellationToken cancellationToken
@@ -243,7 +248,8 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        [HttpGet, Route("ODH/ActivityDatalist")]
+        //Generates lits of Tags/ODHTags? used in Activity Sync
+        [HttpGet, Route("ODH/ActivityPoiDatalist")]
         public async Task<IActionResult> ProduceActivityDataListJson(
             CancellationToken cancellationToken
         )
@@ -259,13 +265,13 @@ namespace OdhApiImporter.Controllers
                 await JsonGeneratorHelper.GenerateJSONODHTagsDisplayAsCategoryList(
                     QueryFactory,
                     settings.JsonConfig.Jsondir,
-                    "ActivityDisplayAsCategory",
-                     new List<string>() { "activity" }
+                    "ActivityPoiDisplayAsCategory",
+                     new List<string>() { "odhactivitypoi" }
                 );
 
                 var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
                     "Json Generation",
-                    "ActivityDatalist",
+                    "ActivityPoiDatalist",
                     "Generate Json ActivityDatalist succeeded",
                     true
                 );

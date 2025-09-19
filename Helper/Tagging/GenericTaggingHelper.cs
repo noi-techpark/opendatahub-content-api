@@ -250,17 +250,5 @@ namespace Helper
                 return JsonConvert.DeserializeObject<List<AllowedTags>>(json) ?? new();
             }
         }
-
-        //public static async Task<List<CategoriesTags>> GetAllGastronomyTagsfromJson(string jsondir)
-        //{
-        //    using (
-        //        StreamReader r = new StreamReader(Path.Combine(jsondir, $"TagsForGastronomy.json"))
-        //    )
-        //    {
-        //        string json = await r.ReadToEndAsync();
-
-        //        return JsonConvert.DeserializeObject<List<CategoriesTags>>(json) ?? new();
-        //    }
-        //}
     }
 }
