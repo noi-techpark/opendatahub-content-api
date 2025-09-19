@@ -513,6 +513,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Set PublishedOn (only full data)
                 if(!opendata)
                     objecttosave.CreatePublishedOnList();
+                else
+                    objecttosave.PublishedOn = new List<string>();
 
                 var rawdataid = await InsertInRawDataDB(eventlts);
 

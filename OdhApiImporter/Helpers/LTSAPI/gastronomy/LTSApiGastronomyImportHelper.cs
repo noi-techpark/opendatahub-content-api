@@ -477,6 +477,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     objecttosave.CreatePublishedOnList(autopublishtaglist);
                 }
+                else
+                    objecttosave.PublishedOn = new List<string>();
 
                 var rawdataid = await InsertInRawDataDB(gastrolts);
 

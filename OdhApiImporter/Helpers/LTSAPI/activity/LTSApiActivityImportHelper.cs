@@ -462,6 +462,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Set PublishedOn with allowedtaglist
                     objecttosave.CreatePublishedOnList(autopublishtaglist);
                 }
+                else
+                    objecttosave.PublishedOn = new List<string>();
+
                 var rawdataid = await InsertInRawDataDB(poilts);
 
                 //Prefix Activity with "smgpoi" Id
