@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgis/postgis:16-3.5-alpine
+    environment:
+      POSTGRES_DB: timeseries
+      POSTGRES_USER: bdp
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5556:5432"

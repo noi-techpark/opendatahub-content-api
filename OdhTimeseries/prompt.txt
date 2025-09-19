@@ -1,0 +1,6 @@
+I want you to implement the application layer satisfying the @requirements.md
+I want it to be a golang reset server using gin and no ORM.
+The schema is defined @sql/init-new.sql.
+
+I want to create md files describing the approach, expected inputs and expected outputs for each endpoint, we will use that to validate your work.
+Write clean reusable maintanable and configurable code

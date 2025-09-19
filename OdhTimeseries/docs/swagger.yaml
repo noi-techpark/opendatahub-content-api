@@ -1,0 +1,737 @@
+basePath: /api/v1
+definitions:
+  filter.MeasurementFilter:
+    properties:
+      expression:
+        description: Filter expression using legacy syntax (e.g., "or(o2.eq.2, and(temp.gteq.20,
+          temp.lteq.30))")
+        type: string
+      latest_only:
+        description: Only consider latest measurements for each timeseries
+        type: boolean
+      time_range:
+        allOf:
+        - $ref: '#/definitions/filter.TimeRange'
+        description: Time constraints for measurements
+    type: object
+  filter.SensorDiscoveryRequest:
+    properties:
+      limit:
+        description: Result options
+        type: integer
+      measurement_filter:
+        allOf:
+        - $ref: '#/definitions/filter.MeasurementFilter'
+        description: Filter sensors by their measurement values
+      timeseries_filter:
+        allOf:
+        - $ref: '#/definitions/filter.TimeseriesFilter'
+        description: Filter sensors by the timeseries types they "own"
+    type: object
+  filter.TimeRange:
+    properties:
+      end_time:
+        type: string
+      start_time:
+        type: string
+    type: object
+  filter.TimeseriesFilter:
+    properties:
+      dataset_ids:
+        description: Dataset membership filter
+        items:
+          type: string
+        type: array
+      optional_types:
+        description: Optional timeseries types - sensors may have ANY of these types
+        items:
+          type: string
+        type: array
+      required_types:
+        description: Required timeseries types - sensors must have ALL of these types
+        items:
+          type: string
+        type: array
+    type: object
+  models.AddTypesToDatasetRequest:
+    properties:
+      is_required:
+        type: boolean
+      type_names:
+        items:
+          type: string
+        type: array
+    type: object
+  models.BatchDataRequest:
+    properties:
+      measurements:
+        items:
+          $ref: '#/definitions/models.MeasurementWithMeta'
+        type: array
+      provenance:
+        $ref: '#/definitions/models.Provenance'
+    type: object
+  models.CreateDatasetRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      type_names:
+        items:
+          type: string
+        type: array
+    type: object
+  models.DataType:
+    enum:
+    - numeric
+    - string
+    - json
+    - geoposition
+    - geoshape
+    - boolean
+    type: string
+    x-enum-varnames:
+    - DataTypeNumeric
+    - DataTypeString
+    - DataTypeJSON
+    - DataTypeGeoposition
+    - DataTypeGeoshape
+    - DataTypeBoolean
+  models.Dataset:
+    properties:
+      created_on:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  models.DatasetResponse:
+    properties:
+      dataset:
+        $ref: '#/definitions/models.Dataset'
+      types:
+        items:
+          $ref: '#/definitions/models.TypeInDataset'
+        type: array
+    type: object
+  models.DeleteMeasurementsRequest:
+    properties:
+      end_time:
+        type: string
+      sensor_names:
+        items:
+          type: string
+        type: array
+      start_time:
+        type: string
+      type_names:
+        items:
+          type: string
+        type: array
+    type: object
+  models.HistoricalMeasurementsRequest:
+    properties:
+      end_time:
+        type: string
+      limit:
+        type: integer
+      sensor_names:
+        items:
+          type: string
+        type: array
+      start_time:
+        type: string
+      type_names:
+        items:
+          type: string
+        type: array
+    type: object
+  models.LatestMeasurementsRequest:
+    properties:
+      sensor_names:
+        items:
+          type: string
+        type: array
+      type_names:
+        items:
+          type: string
+        type: array
+    type: object
+  models.MeasurementWithMeta:
+    properties:
+      sensor_name:
+        type: string
+      timestamp:
+        type: string
+      type_name:
+        type: string
+      value: {}
+    type: object
+  models.Provenance:
+    properties:
+      data_collector:
+        type: string
+      data_collector_version:
+        type: string
+      id:
+        type: integer
+      lineage:
+        type: string
+      uuid:
+        type: string
+    type: object
+  models.Type:
+    properties:
+      data_type:
+        $ref: '#/definitions/models.DataType'
+      description:
+        type: string
+      id:
+        type: integer
+      metadata:
+        example: '{"category":"environmental"}'
+        type: string
+      name:
+        type: string
+      unit:
+        type: string
+    type: object
+  models.TypeInDataset:
+    properties:
+      is_required:
+        type: boolean
+      type:
+        $ref: '#/definitions/models.Type'
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: A Go REST API server for managing timeseries data using Gin framework
+    and PostgreSQL with a simplified, performance-optimized schema.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Timeseries API
+  version: 1.0.0
+paths:
+  /datasets:
+    post:
+      consumes:
+      - application/json
+      description: Create a new dataset with optional measurement type associations
+      parameters:
+      - description: Create dataset request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateDatasetRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Dataset created successfully
+          schema:
+            $ref: '#/definitions/models.DatasetResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create new dataset
+      tags:
+      - datasets
+  /datasets/{id}:
+    get:
+      description: Retrieve dataset details with all associated measurement types
+      parameters:
+      - description: Dataset ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dataset details with types
+          schema:
+            $ref: '#/definitions/models.DatasetResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dataset not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get dataset details
+      tags:
+      - datasets
+  /datasets/{id}/sensors:
+    get:
+      description: Retrieve all sensors that have timeseries associated with a specific
+        dataset
+      parameters:
+      - description: Dataset ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sensors in the dataset
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dataset not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all sensors that have timeseries in dataset
+      tags:
+      - datasets
+  /datasets/{id}/types:
+    delete:
+      consumes:
+      - application/json
+      description: Remove measurement types from an existing dataset
+      parameters:
+      - description: Dataset ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Comma-separated list of type names to remove
+        in: query
+        name: type_names
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Types removed successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dataset not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Remove measurement types from dataset
+      tags:
+      - datasets
+    post:
+      consumes:
+      - application/json
+      description: Add measurement types to an existing dataset with required/optional
+        flag
+      parameters:
+      - description: Dataset ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Add types request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddTypesToDatasetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Types added successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dataset not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add measurement types to dataset
+      tags:
+      - datasets
+  /health:
+    get:
+      description: Check the health status of the API
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: API is healthy
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - system
+  /measurements:
+    delete:
+      consumes:
+      - application/json
+      description: Delete measurements based on sensor names, type names, and time
+        range filters
+      parameters:
+      - description: Delete measurements request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.DeleteMeasurementsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Measurements deleted successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete measurements by filters
+      tags:
+      - measurements
+  /measurements/batch:
+    post:
+      consumes:
+      - application/json
+      description: Insert multiple measurements in batch for optimal performance with
+        configurable batch sizes
+      parameters:
+      - description: Batch measurements request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.BatchDataRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Batch insert successful
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Batch insert measurements
+      tags:
+      - measurements
+  /measurements/historical:
+    get:
+      description: Retrieve historical measurements for specified sensors and measurement
+        types with time range filtering using query parameters
+      parameters:
+      - description: Comma-separated list of sensor names
+        in: query
+        name: sensor_names
+        required: true
+        type: string
+      - description: Comma-separated list of measurement type names
+        in: query
+        name: type_names
+        type: string
+      - description: Start time in RFC3339 format
+        in: query
+        name: start_time
+        type: string
+      - description: End time in RFC3339 format
+        in: query
+        name: end_time
+        type: string
+      - description: Maximum number of results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Historical measurements data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get historical measurements (query params)
+      tags:
+      - measurements
+    post:
+      consumes:
+      - application/json
+      description: Retrieve historical measurements for specified sensors and measurement
+        types with time range filtering using JSON request body
+      parameters:
+      - description: Historical measurements request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.HistoricalMeasurementsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Historical measurements data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get historical measurements (JSON body)
+      tags:
+      - measurements
+  /measurements/latest:
+    get:
+      description: Retrieve the latest measurements for specified sensors and measurement
+        types using query parameters
+      parameters:
+      - description: Comma-separated list of sensor names
+        in: query
+        name: sensor_names
+        required: true
+        type: string
+      - description: Comma-separated list of measurement type names
+        in: query
+        name: type_names
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Latest measurements data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get latest measurements (query params)
+      tags:
+      - measurements
+    post:
+      consumes:
+      - application/json
+      description: Retrieve the latest measurements for specified sensors and measurement
+        types using JSON request body
+      parameters:
+      - description: Latest measurements request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LatestMeasurementsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Latest measurements data
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get latest measurements (JSON body)
+      tags:
+      - measurements
+  /sensors:
+    post:
+      consumes:
+      - application/json
+      description: Find sensors that satisfy conditions over their timeseries measurements
+      parameters:
+      - description: Sensor discovery criteria
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/filter.SensorDiscoveryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Discovered sensors
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Discover sensors by measurement conditions
+      tags:
+      - sensors
+  /sensors/discover:
+    get:
+      description: Find sensors using query parameters for backward compatibility
+      parameters:
+      - description: Required types (comma-separated)
+        in: query
+        name: type_names
+        type: string
+      - description: Optional types (comma-separated)
+        in: query
+        name: optional_types
+        type: string
+      - description: Dataset IDs (comma-separated)
+        in: query
+        name: dataset_ids
+        type: string
+      - description: Value filter expression (type.operator.value)
+        in: query
+        name: value_filter
+        type: string
+      - description: Start time (RFC3339)
+        in: query
+        name: start_time
+        type: string
+      - description: End time (RFC3339)
+        in: query
+        name: end_time
+        type: string
+      - description: Only consider latest measurements
+        in: query
+        name: latest_only
+        type: boolean
+      - description: Maximum results
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Discovered sensors
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Discover sensors (legacy query params)
+      tags:
+      - sensors
+produces:
+- application/json
+schemes:
+- http
+- https
+swagger: "2.0"
