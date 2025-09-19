@@ -384,7 +384,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         );
 
                     //Create Tags and preserve the old TagEntries
-                    await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroparsed) : null);
+                    await gastroparsed.UpdateTagsExtension(QueryFactory,await FillTagsObject.GetTagEntrysToPreserve(gastroparsed));
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
 

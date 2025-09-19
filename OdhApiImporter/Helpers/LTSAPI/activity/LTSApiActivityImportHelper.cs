@@ -380,7 +380,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     SetAdditionalInfosCategoriesByODHTags(activityparsed, jsondata);
 
                     //Create Tags and preserve the old TagEntries
-                    await activityparsed.UpdateTagsExtension(QueryFactory, null);
+                    await activityparsed.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(activityparsed));
 
                     var result = await InsertDataToDB(activityparsed, data.data);
 
@@ -725,9 +725,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     var ltstag = ltstagsandtins.Where(x => x.Id == tag.LTSRID).FirstOrDefault();
                     if (ltstag != null)
                     {
-                        tag.TagName = ltstag.TagName
-                            .Where(kvp => poiNew.HasLanguage != null ? poiNew.HasLanguage.Contains(kvp.Key) : !String.IsNullOrEmpty(kvp.Key))
-                            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                        tag.TagName = ltstag.TagName?.Where(kvp => poiNew.HasLanguage?.Contains(kvp.Key) == true)
+                                      .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+                                      ?? new Dictionary<string, string>();
                         tag.Level = ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && int.TryParse(ltstag.Mapping["lts"]["level"], out int taglevel) ? taglevel : 0;
                         tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
 
@@ -739,9 +739,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                 var ltstin = ltstagsandtins.Where(x => x.Id == tin.LTSRID).FirstOrDefault();
                                 if (ltstin != null)
                                 {
-                                    tin.TinName = ltstin.TagName
-                                        .Where(kvp => poiNew.HasLanguage != null ? poiNew.HasLanguage.Contains(kvp.Key) : !String.IsNullOrEmpty(kvp.Key))
-                                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                                    tin.TinName = ltstin.TagName?.Where(kvp => poiNew.HasLanguage?.Contains(kvp.Key) == true)
+                                      .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+                                      ?? new Dictionary<string, string>();
                                     tin.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
                                 }
                             }

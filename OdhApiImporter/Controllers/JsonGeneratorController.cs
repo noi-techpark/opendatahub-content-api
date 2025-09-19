@@ -260,7 +260,7 @@ namespace OdhApiImporter.Controllers
                     QueryFactory,
                     settings.JsonConfig.Jsondir,
                     "LTSTagsAndTins",
-                     new List<string>() { "tagsactivity", "tagproperties" }
+                     new List<string>() { "tagsactivity", "ltstagproperties", "tagspointofinterest" }
                 );                
                 await JsonGeneratorHelper.GenerateJSONODHTagsDisplayAsCategoryList(
                     QueryFactory,
