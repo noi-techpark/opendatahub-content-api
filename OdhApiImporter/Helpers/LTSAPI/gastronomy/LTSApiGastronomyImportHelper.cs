@@ -463,15 +463,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-
+                
                 //Set PublishedOn (only full data)
                 if (!opendata)
                 {
+                    //Add the PublishedOn Logic
+                    //Exception here all Tags with autopublish has to be passed
                     var autopublishtaglist =
                     await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
                         settings.JsonConfig.Jsondir
                     );
-                    //Set PublishedOn with allowedtaglist
+
                     objecttosave.CreatePublishedOnList(autopublishtaglist);
                 }
 
