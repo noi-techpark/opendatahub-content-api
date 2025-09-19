@@ -711,22 +711,28 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             foreach (var tag in tagstoadd)
             {
-                poiNew.TagIds.Add(tag);
+                if(!poiNew.TagIds.Contains(tag))
+                    poiNew.TagIds.Add(tag);
+
+                if(poiNew.LTSTags.Where(x => x.LTSRID == tag).Count() == 0)
+                    poiNew.LTSTags.Add(new LTSTagsLinked() { LTSRID = tag });
             }
 
-            //Complete LTSTags
-            foreach(var tag in poiNew.LTSTags)
+            if (ltstagsandtins != null)
             {
-                //Search the Tag and check if it has a Parent
-                var ltstag = ltstagsandtins.Where(x => x.Id == tag.LTSRID).FirstOrDefault();
-                if(ltstag != null)
+                //Complete LTSTags
+                foreach (var tag in poiNew.LTSTags)
                 {
-                    tag.TagName = ltstag.TagName;
-                    tag.Level = ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && int.TryParse(ltstag.Mapping["lts"]["level"], out int taglevel) ? taglevel : 0;
-                    tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"] : "";
+                    //Search the Tag and check if it has a Parent
+                    var ltstag = ltstagsandtins.Where(x => x.Id == tag.LTSRID).FirstOrDefault();
+                    if (ltstag != null)
+                    {
+                        tag.TagName = ltstag.TagName;
+                        tag.Level = ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && int.TryParse(ltstag.Mapping["lts"]["level"], out int taglevel) ? taglevel : 0;
+                        tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"] : "";
+                    }
                 }
             }
-
         }
 
         private static void GetAllLTSParentTagsRecursively(string ltstagid, List<string> parenttags, List<TagLinked>? ltstagsandtins)
@@ -738,7 +744,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 if (ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("parentTagRid") && ltstag.Mapping["lts"]["parentTagRid"] != null)
                 {
-                    parenttags.Add(ltstag.Mapping["lts"]["parentTagRid"]);
+                    if(!parenttags.Contains(ltstag.Mapping["lts"]["parentTagRid"]))
+                        parenttags.Add(ltstag.Mapping["lts"]["parentTagRid"]);
 
                     if (ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && ltstag.Mapping["lts"]["level"] == "2")
                     {

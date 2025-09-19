@@ -367,9 +367,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //Add Event Tag of type eventtag to ODHTags Compatibility
                         await AddEventTagsToODHTags(eventparsed);
 
-                        //PublishedOn Logich
-                        //Add the PublishedOn Logic
-                        eventparsed.CreatePublishedOnList();
                     }
 
                     //When requested with opendata Interface does not return isActive field
@@ -514,8 +511,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-                //Set PublishedOn
-                objecttosave.CreatePublishedOnList();
+                //Set PublishedOn (only full data)
+                if(!opendata)
+                    objecttosave.CreatePublishedOnList();
 
                 var rawdataid = await InsertInRawDataDB(eventlts);
 

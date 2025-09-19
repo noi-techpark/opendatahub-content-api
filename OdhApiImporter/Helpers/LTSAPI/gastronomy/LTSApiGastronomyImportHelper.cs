@@ -469,9 +469,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 var autopublishtaglist =
                     await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
                         settings.JsonConfig.Jsondir
-                    );               
-                //Set PublishedOn with allowedtaglist
-                objecttosave.CreatePublishedOnList(autopublishtaglist);
+                    );
+                //Set PublishedOn (only full data)
+                if (!opendata)
+                    objecttosave.CreatePublishedOnList(autopublishtaglist);
 
                 var rawdataid = await InsertInRawDataDB(gastrolts);
 

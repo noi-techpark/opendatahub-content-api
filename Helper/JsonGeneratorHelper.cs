@@ -357,7 +357,7 @@ namespace Helper
             var datafirst = await query.GetObjectListAsync<TagLinked>();
 
             var data = datafirst
-                .Select(x => new CategoriesTags() { Id = x.Id, TagName = x.TagName })
+                .Select(x => new { Id = x.Id, TagName = x.TagName, Mapping = x.Mapping,  })
                 .ToList();
 
             //Save json

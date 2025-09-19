@@ -321,10 +321,10 @@ namespace Helper
                                             : true;
 
                                 //IF category is white or blacklisted find an intersection
-                                var tagintersection = allowedtags
+                                var tagintersection = (mydata as ODHActivityPoiLinked).SmgTags != null ? allowedtags                                    
                                     .Select(x => x.Id)
                                     .ToList()
-                                    .Intersect((mydata as ODHActivityPoiLinked).SmgTags);
+                                    .Intersect((mydata as ODHActivityPoiLinked).SmgTags) : new List<string>();
 
                                 if (tagintersection.Count() > 0 && tvallowed && ownerallowed)
                                 {
