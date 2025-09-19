@@ -366,10 +366,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Add Event Tag of type eventtag to ODHTags Compatibility
                         await AddEventTagsToODHTags(eventparsed);
-
-                        //PublishedOn Logich
-                        //Add the PublishedOn Logic
-                        eventparsed.CreatePublishedOnList();
                     }
 
                     //When requested with opendata Interface does not return isActive field
@@ -514,8 +510,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-                //Set PublishedOn
-                objecttosave.CreatePublishedOnList();
+                //Set PublishedOn (only full data)
+                if(!opendata)
+                    objecttosave.CreatePublishedOnList();
+                else
+                    objecttosave.PublishedOn = new List<string>();
 
                 var rawdataid = await InsertInRawDataDB(eventlts);
 
@@ -684,7 +683,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
 
                 //Readd all Redactional Tags
-                var redactionalassignedTags = eventOld.Tags != null ? eventOld.Tags.Where(x => x.Source != "lts").ToList() : null;
+                //var redactionalassignedTags = eventOld.Tags != null ? eventOld.Tags.Where(x => x.Source != "lts").ToList() : null;
+                var redactionalassignedTags = eventOld.Tags != null ? eventOld.Tags.Where(x => x.Source != "lts" && (x.Source == "idm" && x.Type != "odhcategory")).ToList() : null;
+
                 if (redactionalassignedTags != null)
                 {
                     foreach (var tag in redactionalassignedTags)
@@ -693,14 +694,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-            //TODO import the Redactional Tags from Events into Tags?
+            //TODO import the Redactional Tags from Events into Tags?            
         }
 
         //Compatibility resons add the Event Tag to ODHTag
         private async Task AddEventTagsToODHTags(EventLinked eventNew)
         {
-
-
             if (eventNew != null && eventNew.Tags != null && eventNew.Tags.Count > 0)
             {               
                 foreach (var eventtag in eventNew.Tags.Where(x => x.Type == "eventtag"))

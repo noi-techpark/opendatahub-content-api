@@ -376,6 +376,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     SetAdditionalInfosCategoriesByODHTags(gastroparsed, jsondata);
 
+                    //TODO Maybe we can disable this withhin the Api Switch
                     //Traduce all Tags with Source IDM to english tags
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                             gastroparsed,
@@ -383,7 +384,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         );
 
                     //Create Tags and preserve the old TagEntries
-                    await gastroparsed.UpdateTagsExtension(QueryFactory, gastroindb != null ? await FillTagsObject.GetTagEntrysToPreserve(gastroparsed) : null);
+                    await gastroparsed.UpdateTagsExtension(QueryFactory,await FillTagsObject.GetTagEntrysToPreserve(gastroparsed));
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
 
@@ -476,6 +477,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     objecttosave.CreatePublishedOnList(autopublishtaglist);
                 }
+                else
+                    objecttosave.PublishedOn = new List<string>();
 
                 var rawdataid = await InsertInRawDataDB(gastrolts);
 
@@ -598,13 +601,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return deletedisableresult;
         }
 
-     
+
         private async Task MergeGastronomyTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
         {
             if (gastroOld != null)
-            {                                
+            {
                 //Readd all Redactional Tags to check if this query fits
-                var redactionalassignedTags = gastroOld.Tags != null ? gastroOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                var redactionalassignedTags = gastroOld.Tags != null ? gastroOld.Tags.Where(x => x.Source != "lts" && (x.Source == "idm" && x.Type != "odhcategory")).ToList() : null;
                 if (redactionalassignedTags != null)
                 {
                     foreach (var tag in redactionalassignedTags)
@@ -613,8 +616,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-
-            //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
 
             //TODO import the Redactional Tags from SmgTags into Tags?
         }
@@ -630,6 +631,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
         }
 
+        //Switched to import logic
         private async Task AddTagEntryToTags(ODHActivityPoiLinked gastroNew)
         {
             //CeremeonyCodes
