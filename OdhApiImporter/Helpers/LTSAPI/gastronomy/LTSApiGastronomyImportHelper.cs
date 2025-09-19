@@ -463,7 +463,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-
+                
                 //Set PublishedOn (only full data)
                 if (!opendata)
                 {
