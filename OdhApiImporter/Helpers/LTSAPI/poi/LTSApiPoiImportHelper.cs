@@ -732,6 +732,22 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                         tag.Level = ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && int.TryParse(ltstag.Mapping["lts"]["level"], out int taglevel) ? taglevel : 0;
                         tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
+
+                        //Add the TIN Info
+                        if (tag.LTSTins != null && tag.LTSTins.Count > 0)
+                        {
+                            foreach (var tin in tag.LTSTins)
+                            {
+                                var ltstin = ltstagsandtins.Where(x => x.Id == tin.LTSRID).FirstOrDefault();
+                                if (ltstin != null)
+                                {
+                                    tin.TinName = ltstin.TagName
+                                        .Where(kvp => poiNew.HasLanguage != null ? poiNew.HasLanguage.Contains(kvp.Key) : !String.IsNullOrEmpty(kvp.Key))
+                                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                                    tin.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
+                                }
+                            }
+                        }
                     }
                 }
             }

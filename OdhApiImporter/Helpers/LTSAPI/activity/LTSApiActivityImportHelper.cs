@@ -348,9 +348,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //**BEGIN If on opendata IDM Categorization is no more wanted move this to the if(!opendata) section
 
-                    //Preserves all manually assigned ODHTags, and adds tall Mapped ODHTags
+                    //Preserves all manually assigned ODHTags, and adds all Mapped ODHTags
                     await AssignODHTags(activityparsed, activityindb, jsondata);
 
+                    //TODO Maybe we can disable this withhin the Api Switch
                     //Traduce all Tags with Source IDM to english tags
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                         activityparsed,
@@ -595,13 +596,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-            //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
+            
             //TODO import the Redactional Tags from SmgTags into Tags?
+
+            //TODO same procedure on Tags? (Remove all Tags that come from the sync and readd the redactional assigned Tags)
         }
 
         #region OLD Compatibility Stufff
 
-        //TODO Pois ODHTags assignment
+        //Activities ODHTags assignment. Removes all automatically added Tags and readds all manual assigned Tags
         private async Task AssignODHTags(ODHActivityPoiLinked activityNew, ODHActivityPoiLinked activityOld, IDictionary<string, JArray>? jsonfiles)
         {
             List<ODHTagLinked> tagstoremove = jsonfiles != null && jsonfiles["ODHTagsSourceIDMLTS"] != null ? jsonfiles["ODHTagsSourceIDMLTS"].ToObject<List<ODHTagLinked>>() : null;
@@ -727,6 +730,22 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                         tag.Level = ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && int.TryParse(ltstag.Mapping["lts"]["level"], out int taglevel) ? taglevel : 0;
                         tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
+
+                        //Add the TIN Info
+                        if(tag.LTSTins != null && tag.LTSTins.Count > 0)
+                        {
+                            foreach(var tin in tag.LTSTins)
+                            {
+                                var ltstin = ltstagsandtins.Where(x => x.Id == tin.LTSRID).FirstOrDefault();
+                                if (ltstin != null)
+                                {
+                                    tin.TinName = ltstin.TagName
+                                        .Where(kvp => poiNew.HasLanguage != null ? poiNew.HasLanguage.Contains(kvp.Key) : !String.IsNullOrEmpty(kvp.Key))
+                                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                                    tin.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
+                                }
+                            }
+                        }
                     }
                 }
             }
