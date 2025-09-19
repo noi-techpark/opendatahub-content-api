@@ -59,3 +59,19 @@ services:
       ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl: ${GTFSAPI_STATIMETABLES_URL}
     ports:
       - "8001:80"
+
+  # The database service for the 'dev' profile.
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: postgres
+    env_file:
+      - ../.env
+    volumes:
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    profiles:
+      - dev

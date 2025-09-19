@@ -405,9 +405,18 @@ namespace OdhApiCore
                 //var xmlPathdatamodel = Path.Combine(AppContext.BaseDirectory, $"DataModel.xml");
                 c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
                 //c.IncludeXmlComments(xmlPathdatamodel, includeControllerXmlComments: true);
-                c.AddSecurityDefinition(
-                    "oauth2",
-                    new OpenApiSecurityScheme
+                // Retrieve the OAuth authority URL from configuration
+                var oauthAuthority = Configuration.GetSection("OauthServerConfig").GetValue<string>("Authority");
+                // Only add security definition if the authority is configured
+                if (!string.IsNullOrEmpty(oauthAuthority))
+                {
+                    // Add a trailing slash if it's missing, to prevent UriFormatException
+                    if (!oauthAuthority.EndsWith("/"))
+                    {
+                        oauthAuthority += "/";
+                    }
+
+                    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                     {
                         In = ParameterLocation.Header,
                         Type = SecuritySchemeType.OAuth2,
@@ -415,27 +424,17 @@ namespace OdhApiCore
                         {
                             Password = new OpenApiOAuthFlow
                             {
-                                TokenUrl = new Uri(
-                                    Configuration
-                                        .GetSection("OauthServerConfig")
-                                        .GetValue<string>("Authority")
-                                        + "protocol/openid-connect/token"
-                                ),
+                                TokenUrl = new Uri(oauthAuthority + "protocol/openid-connect/token")
                             },
                             ClientCredentials = new OpenApiOAuthFlow
                             {
-                                TokenUrl = new Uri(
-                                    Configuration
-                                        .GetSection("OauthServerConfig")
-                                        .GetValue<string>("Authority")
-                                        + "protocol/openid-connect/token"
-                                ),
-                            },
+                                TokenUrl = new Uri(oauthAuthority + "protocol/openid-connect/token")
+                            }
                         },
                         BearerFormat = "JWT",
-                        Scheme = "Bearer",
-                    }
-                );
+                        Scheme = "Bearer"
+                    });
+                }
                 c.OperationFilter<AppendAuthorizeToSummaryOperationFilter>();
                 c.OperationFilter<AuthenticationRequirementsOperationFilter>();
                 c.SchemaFilter<DeprecatedAttributeSchemaFilter>();
@@ -536,10 +535,17 @@ namespace OdhApiCore
                 );
             });
 
-            app.ApplicationServices.SaveSwaggerJson(
-                Configuration.GetSection("ApiConfig").GetValue<string>("Url"),
-                Configuration.GetSection("JsonConfig").GetValue<string>("Jsondir")
-            );
+            // Get the Swagger JSON directory and API URL from configuration.
+            string swaggerJson = Configuration.GetSection("JsonConfig").GetValue<string>("Jsondir");
+            string apiUrl = Configuration.GetSection("ApiConfig").GetValue<string>("Url");
+
+            // Check if both configuration values are set.
+            if (!string.IsNullOrEmpty(swaggerJson) && !string.IsNullOrEmpty(apiUrl))
+            {
+                // Save the Swagger JSON to the specified file path.
+                // The path is constructed by combining the API URL and the JSON directory.
+                app.ApplicationServices.SaveSwaggerJson(apiUrl, swaggerJson);
+            }
             //app.UseSaveSwaggerJson(Configuration);
 
             // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.

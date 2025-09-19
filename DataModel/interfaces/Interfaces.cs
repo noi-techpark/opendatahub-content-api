@@ -186,6 +186,11 @@ namespace DataModel
         IDictionary<string, GpsInfo> GpsPoints { get; }
     }
 
+    public interface IGeometryAware
+    {
+        NetTopologySuite.Geometries.Geometry? Geometry { get; set; }
+    }
+
     public interface IDistanceInfoAware
     {
         DistanceInfo? DistanceInfo { get; set; }

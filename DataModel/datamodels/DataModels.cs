@@ -3273,6 +3273,110 @@ namespace DataModel
 
     #endregion
 
+    #region Traffic Incidents
+
+    public class TrafficIncident
+        : IIdentifiable,
+            IActivateable,
+            IMetaData,
+            ILicenseInfo,
+            ISource,
+            IImportDateassigneable,
+            IGeometryAware,
+            IHasLanguage,
+            ISmgActive,
+            ISmgTags,
+            IHasAdditionalProperties
+    {
+        public TrafficIncident()
+        {
+            Detail = new Dictionary<string, Detail>();
+            AdditionalProperties = new Dictionary<string, dynamic>();
+        }
+
+        [SwaggerSchema("Unique ID for the Traffic Incident")]
+        public string Id { get; set; } = string.Empty;
+
+        [SwaggerSchema("Active status of the Traffic Incident")]
+        public bool Active { get; set; }
+
+        [SwaggerSchema("ODH Active status")]
+        public bool SmgActive { get; set; }
+
+        [SwaggerSchema("Metadata information")]
+        public Metadata _Meta { get; set; } = new Metadata();
+
+        [SwaggerSchema("License information")]
+        public LicenseInfo LicenseInfo { get; set; } = new LicenseInfo();
+
+        [SwaggerSchema("Source of the data")]
+        public string Source { get; set; } = string.Empty;
+
+        [SwaggerSchema("First import date")]
+        public DateTime? FirstImport { get; set; }
+
+        [SwaggerSchema("Last change date")]
+        public DateTime? LastChange { get; set; }
+
+        [SwaggerSchema("Geometry of the traffic incident area")]
+        public NetTopologySuite.Geometries.Geometry? Geometry { get; set; }
+
+        [SwaggerSchema("Type of traffic incident")]
+        public string? IncidentType { get; set; }
+
+        [SwaggerSchema("Severity level (Low, Medium, High, Critical)")]
+        public string? Severity { get; set; }
+
+        [SwaggerSchema("Current status of the incident (Active, Resolved, Investigating)")]
+        public string? Status { get; set; }
+
+        [SwaggerSchema("Start time of the incident")]
+        public DateTime? StartTime { get; set; }
+
+        [SwaggerSchema("End time of the incident")]
+        public DateTime? EndTime { get; set; }
+
+        [SwaggerSchema("Estimated time to resolution")]
+        public DateTime? EstimatedResolution { get; set; }
+
+        [SwaggerSchema("Details about the traffic incident")]
+        public IDictionary<string, Detail> Detail { get; set; }
+
+        [SwaggerSchema("Traffic incident images")]
+        public ICollection<ImageGallery>? ImageGallery { get; set; }
+
+        [SwaggerSchema("Contact information")]
+        public ContactInfos? ContactInfos { get; set; }
+
+        [SwaggerSchema("Related roads or routes affected")]
+        public ICollection<string>? AffectedRoutes { get; set; }
+
+        [SwaggerSchema("Road closure information")]
+        public bool? RoadClosure { get; set; }
+
+        [SwaggerSchema("Detour information")]
+        public IDictionary<string, string>? DetourInfo { get; set; }
+
+        [SwaggerSchema("External ID mappings")]
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+
+        [SwaggerSchema("Has language")]
+        public ICollection<string>? HasLanguage { get; set; }
+
+        [SwaggerSchema("SMG Tags")]
+        public ICollection<string>? SmgTags { get; set; }
+
+        [SwaggerSchema("Additional properties")]
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+    }
+
+    public class TrafficIncidentLinked : TrafficIncident
+    {
+        public TrafficIncidentLinked() : base() { }
+    }
+
+    #endregion
+
     #region CommonInfos
 
     public class Metadata
@@ -3315,6 +3419,7 @@ namespace DataModel
                 "ltsactivity",
                 "ltspoi",
                 "ltsgastronomy",
+                "trafficincident",
             }
         )]
         public string Type { get; set; }

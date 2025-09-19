@@ -1533,6 +1533,116 @@ namespace Helper
                 );
         }
 
+        //Return Where and Parameters for TrafficIncident
+        public static Query TrafficIncidentWhereExpression(
+            this Query query,
+            IReadOnlyCollection<string> idlist,
+            IReadOnlyCollection<string> incidenttypelist,
+            IReadOnlyCollection<string> severitylist,
+            IReadOnlyCollection<string> statuslist,
+            IReadOnlyCollection<string> affectedrouteslist,
+            IReadOnlyCollection<string> smgtaglist,
+            IReadOnlyCollection<string> sourcelist,
+            IReadOnlyCollection<string> languagelist,
+            IReadOnlyCollection<string> publishedonlist,
+            bool? roadclosure,
+            bool? active,
+            bool? smgactive,
+            string? searchfilter,
+            string? language,
+            string? lastchange,
+            DateTime? startdatefrom,
+            DateTime? startdateto,
+            string? additionalfilter,
+            IEnumerable<string> userroles
+        )
+        {
+            LogMethodInfo(
+                System.Reflection.MethodBase.GetCurrentMethod()!,
+                "<query>", // not interested in query
+                idlist,
+                incidenttypelist,
+                severitylist,
+                statuslist,
+                affectedrouteslist,
+                smgtaglist,
+                sourcelist,
+                languagelist,
+                roadclosure,
+                active,
+                smgactive,
+                searchfilter,
+                language,
+                lastchange
+            );
+
+            return query
+                .IdUpperFilter(idlist)
+                .When(
+                    incidenttypelist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var incidenttype in incidenttypelist)
+                        {
+                            sq = sq.OrWhere("gen_string_incidenttype", "ILIKE", incidenttype);
+                        }
+                        return sq;
+                    })
+                )
+                .When(
+                    severitylist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var severity in severitylist)
+                        {
+                            sq = sq.OrWhere("gen_string_severity", "ILIKE", severity);
+                        }
+                        return sq;
+                    })
+                )
+                .When(
+                    statuslist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var status in statuslist)
+                        {
+                            sq = sq.OrWhere("gen_string_status", "ILIKE", status);
+                        }
+                        return sq;
+                    })
+                )
+                .When(roadclosure != null, q => q.WhereRaw("gen_bool_roadclosure = $$", roadclosure))
+                .When(
+                    affectedrouteslist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var route in affectedrouteslist)
+                        {
+                            sq = sq.OrWhereRaw("gen_array_affectedroutes && ARRAY[$$]", route);
+                        }
+                        return sq;
+                    })
+                )
+                .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist))
+                .When(sourcelist.Count > 0, q => q.SourceFilter_GeneratedColumn(sourcelist))
+                .When(
+                    languagelist.Count > 0,
+                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+                )
+                .PublishedOnFilter_GeneratedColumn(publishedonlist)
+                .ActiveFilter_GeneratedColumn(active)
+                .OdhActiveFilter_GeneratedColumn(smgactive)
+                .LastChangedFilter_GeneratedColumn(lastchange)
+                .When(startdatefrom != null, q => q.Where("gen_starttime", ">=", startdatefrom))
+                .When(startdateto != null, q => q.Where("gen_starttime", "<=", startdateto))
+                .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
+                .When(
+                    !String.IsNullOrEmpty(additionalfilter),
+                    q => q.FilterAdditionalDataByCondition(additionalfilter)
+                )
+                .FilterDataByAccessRoles(userroles);
+        }
+
         //Return Where and Parameters for Rawdata
         public static Query RawdataWhereExpression(
             this Query query,
