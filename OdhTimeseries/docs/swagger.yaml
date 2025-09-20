@@ -28,6 +28,42 @@ definitions:
         - $ref: '#/definitions/filter.TimeseriesFilter'
         description: Filter sensors by the timeseries types they "own"
     type: object
+  filter.SensorVerifyRequest:
+    properties:
+      measurement_filter:
+        allOf:
+        - $ref: '#/definitions/filter.MeasurementFilter'
+        description: Filter sensors by their measurement values
+      sensor_names:
+        description: List of sensor names to verify against the filters
+        items:
+          type: string
+        type: array
+      timeseries_filter:
+        allOf:
+        - $ref: '#/definitions/filter.TimeseriesFilter'
+        description: Filter sensors by the timeseries types they "own"
+    type: object
+  filter.SensorVerifyResponse:
+    properties:
+      ok:
+        description: Whether all sensors satisfy the filters
+        type: boolean
+      request:
+        allOf:
+        - $ref: '#/definitions/filter.SensorVerifyRequest'
+        description: Original request for reference
+      unverified:
+        description: List of sensor names that do not satisfy the filters
+        items:
+          type: string
+        type: array
+      verified:
+        description: List of sensor names that satisfy the filters
+        items:
+          type: string
+        type: array
+    type: object
   filter.TimeRange:
     properties:
       end_time:
@@ -727,6 +763,40 @@ paths:
             additionalProperties: true
             type: object
       summary: Discover sensors (legacy query params)
+      tags:
+      - sensors
+  /sensors/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify if a list of sensor names satisfy the same filters used
+        in sensor discovery
+      parameters:
+      - description: Sensor verification request with filters and sensor names
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/filter.SensorVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification results with ok status and verified/unverified
+            lists
+          schema:
+            $ref: '#/definitions/filter.SensorVerifyResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Verify sensors against discovery filters
       tags:
       - sensors
 produces:

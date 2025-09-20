@@ -171,3 +171,51 @@ func (h *SensorDiscoveryHandler) parseCommaSeparated(input string) []string {
 	return result
 }
 
+// VerifySensors verifies if given sensor names match the discovery filters
+// @Summary Verify sensors against discovery filters
+// @Description Verify if a list of sensor names satisfy the same filters used in sensor discovery
+// @Tags sensors
+// @Accept json
+// @Produce json
+// @Param request body filter.SensorVerifyRequest true "Sensor verification request with filters and sensor names"
+// @Success 200 {object} filter.SensorVerifyResponse "Verification results with ok status and verified/unverified lists"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /sensors/verify [post]
+func (h *SensorDiscoveryHandler) VerifySensors(c *gin.Context) {
+	var req filter.SensorVerifyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format", "details": err.Error()})
+		return
+	}
+
+	// Validate that sensor names are provided
+	if len(req.SensorNames) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "sensor_names list cannot be empty"})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"timeseries_filter":  req.TimeseriesFilter != nil,
+		"measurement_filter": req.MeasurementFilter != nil,
+		"sensor_count":      len(req.SensorNames),
+		"sensors":           req.SensorNames,
+	}).Info("Processing sensor verification request")
+
+	// Execute verification using repository method
+	response, err := h.repo.VerifyDiscoveredSensors(&req)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to verify sensors")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify sensors", "details": err.Error()})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"all_ok":           response.OK,
+		"verified_count":   len(response.Verified),
+		"unverified_count": len(response.Unverified),
+	}).Info("Sensor verification completed")
+
+	c.JSON(http.StatusOK, response)
+}
+

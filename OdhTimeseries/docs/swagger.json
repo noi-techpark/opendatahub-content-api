@@ -760,6 +760,54 @@
                     }
                 }
             }
+        },
+        "/sensors/verify": {
+            "post": {
+                "description": "Verify if a list of sensor names satisfy the same filters used in sensor discovery",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sensors"
+                ],
+                "summary": "Verify sensors against discovery filters",
+                "parameters": [
+                    {
+                        "description": "Sensor verification request with filters and sensor names",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/filter.SensorVerifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verification results with ok status and verified/unverified lists",
+                        "schema": {
+                            "$ref": "#/definitions/filter.SensorVerifyResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -806,6 +854,65 @@
                             "$ref": "#/definitions/filter.TimeseriesFilter"
                         }
                     ]
+                }
+            }
+        },
+        "filter.SensorVerifyRequest": {
+            "type": "object",
+            "properties": {
+                "measurement_filter": {
+                    "description": "Filter sensors by their measurement values",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/filter.MeasurementFilter"
+                        }
+                    ]
+                },
+                "sensor_names": {
+                    "description": "List of sensor names to verify against the filters",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "timeseries_filter": {
+                    "description": "Filter sensors by the timeseries types they \"own\"",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/filter.TimeseriesFilter"
+                        }
+                    ]
+                }
+            }
+        },
+        "filter.SensorVerifyResponse": {
+            "type": "object",
+            "properties": {
+                "ok": {
+                    "description": "Whether all sensors satisfy the filters",
+                    "type": "boolean"
+                },
+                "request": {
+                    "description": "Original request for reference",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/filter.SensorVerifyRequest"
+                        }
+                    ]
+                },
+                "unverified": {
+                    "description": "List of sensor names that do not satisfy the filters",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "verified": {
+                    "description": "List of sensor names that satisfy the filters",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

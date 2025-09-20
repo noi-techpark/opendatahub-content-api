@@ -79,6 +79,33 @@ type SensorDiscoveryRequest struct {
 	Limit int `json:"limit,omitempty"`
 }
 
+// SensorVerifyRequest represents a request to verify sensors against discovery filters
+type SensorVerifyRequest struct {
+	// Filter sensors by the timeseries types they "own"
+	TimeseriesFilter *TimeseriesFilter `json:"timeseries_filter,omitempty"`
+
+	// Filter sensors by their measurement values
+	MeasurementFilter *MeasurementFilter `json:"measurement_filter,omitempty"`
+
+	// List of sensor names to verify against the filters
+	SensorNames []string `json:"sensor_names"`
+}
+
+// SensorVerifyResponse represents the response from sensor verification
+type SensorVerifyResponse struct {
+	// Whether all sensors satisfy the filters
+	OK bool `json:"ok"`
+
+	// List of sensor names that satisfy the filters
+	Verified []string `json:"verified"`
+
+	// List of sensor names that do not satisfy the filters
+	Unverified []string `json:"unverified"`
+
+	// Original request for reference
+	Request *SensorVerifyRequest `json:"request"`
+}
+
 // TimeseriesFilter filters sensors by the timeseries types they have
 type TimeseriesFilter struct {
 	// Required timeseries types - sensors must have ALL of these types

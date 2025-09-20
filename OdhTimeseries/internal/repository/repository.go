@@ -879,6 +879,60 @@ func (r *Repository) DiscoverSensorsByConditions(req *filter.SensorDiscoveryRequ
 	return sensors, nil
 }
 
+// VerifyDiscoveredSensors verifies if given sensor names match the discovery filters
+func (r *Repository) VerifyDiscoveredSensors(req *filter.SensorVerifyRequest) (*filter.SensorVerifyResponse, error) {
+	// If no filters are specified, all sensors are considered verified
+	if req.TimeseriesFilter == nil && req.MeasurementFilter == nil {
+		return &filter.SensorVerifyResponse{
+			OK:         true,
+			Verified:   req.SensorNames,
+			Unverified: []string{},
+			Request:    req,
+		}, nil
+	}
+
+	// Convert verify request to discovery request to reuse existing logic
+	discoveryReq := &filter.SensorDiscoveryRequest{
+		TimeseriesFilter:  req.TimeseriesFilter,
+		MeasurementFilter: req.MeasurementFilter,
+		Limit:            0, // No limit for verification
+	}
+
+	// Discover all sensors that match the filters
+	matchingSensors, err := r.DiscoverSensorsByConditions(discoveryReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to discover sensors for verification: %w", err)
+	}
+
+	// Create a set of matching sensor names for quick lookup
+	matchingNames := make(map[string]bool)
+	for _, sensor := range matchingSensors {
+		matchingNames[sensor.Name] = true
+	}
+
+	// Categorize the requested sensors
+	var verified []string
+	var unverified []string
+
+	for _, sensorName := range req.SensorNames {
+		if matchingNames[sensorName] {
+			verified = append(verified, sensorName)
+		} else {
+			unverified = append(unverified, sensorName)
+		}
+	}
+
+	// All sensors are OK if unverified list is empty
+	allOK := len(unverified) == 0
+
+	return &filter.SensorVerifyResponse{
+		OK:         allOK,
+		Verified:   verified,
+		Unverified: unverified,
+		Request:    req,
+	}, nil
+}
+
 type measurementConditionResult struct {
 	joins        []string
 	whereClauses []string

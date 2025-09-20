@@ -169,6 +169,9 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 			// Main sensor discovery endpoint
 			sensors.POST("", sensorDiscoveryHandler.DiscoverSensors)
 
+			// Sensor verification endpoint
+			sensors.POST("/verify", sensorDiscoveryHandler.VerifySensors)
+
 			// Legacy compatibility endpoints
 			sensors.GET("/discover", sensorDiscoveryHandler.DiscoverSensorsLegacy)
 		}
