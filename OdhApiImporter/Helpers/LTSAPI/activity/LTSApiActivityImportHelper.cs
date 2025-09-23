@@ -667,7 +667,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
         private async Task AddIDMMetaTitleAndDescription(ODHActivityPoiLinked activityNew, MetaInfosOdhActivityPoi metainfo)
         {
