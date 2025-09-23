@@ -343,6 +343,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     await CompleteLTSTagsAndAddLTSParentAsTag(poiparsed, jsondata);
 
+                    AddSpecialCases(poiparsed);
+
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergePoiTags(poiparsed, poiindb);
 
@@ -619,7 +621,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 poiNew.SmgTags = new List<string>();
 
             //Remove all ODHTags that where automatically assigned
-            if (poiNew != null && poiOld.SmgTags != null && tagstoremove != null)
+            if (poiNew != null && poiOld != null && poiOld.SmgTags != null && tagstoremove != null)
                 tagstopreserve = poiOld.SmgTags.Except(tagstoremove.Select(x => x.Id)).ToList();
 
             //Add the activity Tag
@@ -680,18 +682,20 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             var oamapping = new Dictionary<string, string>() { };
 
-            if (poiOld.OutdooractiveElevationID != null)
+            if (poiOld != null)
             {
-                poiNew.OutdooractiveElevationID = poiOld.OutdooractiveElevationID;
-                oamapping.Add("elevationid", poiOld.OutdooractiveElevationID);
-            }
+                if (poiOld.OutdooractiveElevationID != null)
+                {
+                    poiNew.OutdooractiveElevationID = poiOld.OutdooractiveElevationID;
+                    oamapping.Add("elevationid", poiOld.OutdooractiveElevationID);
+                }
 
-            if (poiOld.OutdooractiveElevationID != null)
-            {
-                poiNew.OutdooractiveID = poiOld.OutdooractiveID;
-                oamapping.Add("id", poiOld.OutdooractiveID);
+                if (poiOld.OutdooractiveElevationID != null)
+                {
+                    poiNew.OutdooractiveID = poiOld.OutdooractiveID;
+                    oamapping.Add("id", poiOld.OutdooractiveID);
+                }
             }
-
             //Add to Mapping
             if (oamapping.Count > 0)
                 poiNew.Mapping.Add("outdooractive", oamapping);
@@ -817,6 +821,45 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
+        }
+
+        private static void AddSpecialCases(ODHActivityPoiLinked poiNew)
+        {
+            //If it is a slope / skitrack activity add the difficulty as ODHTag
+
+            if (poiNew != null && poiNew.LTSTags != null &&
+                poiNew.LTSTags.Where(x => new List<string() { "D544A6312F8A47CF80CC4DFF8833FE50", "EB5D6F10C0CB4797A2A04818088CD6AB" }.Contains(x.Id)).Count > 0 &&
+                !String.IsNullOrEmpty(poiNew.Difficulty))
+            {
+                if (poiNew.Difficulty == "1" || poiNew.Difficulty == "2")
+                    poiNew.SmgTags.Add("blau");
+                if (poiNew.Difficulty == "3" || poiNew.Difficulty == "4")
+                    poiNew.SmgTags.Add("rot");
+                if (poiNew.Difficulty == "5" || poiNew.Difficulty == "6")
+                    poiNew.SmgTags.Add("schwarz");
+            }
+
+
+            //If it is a lift, add the Mapping.liftType and Mapping.liftCapacityType as ODHTag
+            if (poiNew != null && poiNew.LTSTags != null &&
+                    poiNew.LTSTags.Where(x => new List<string() { "E23AA37B2AE3477F96D1C0782195AFDF" }.Contains(x.Id)).Count > 0)
+            {
+                if(poiNew.Mapping != null && poiNew.Mapping.ContainsKey("lts"))
+                {
+                    if (poiNew.Mapping["lts"].ContainsKey("liftType"))
+                    {
+                        //TODO Add ODHTags (german keys)
+                        //switch (poiNew.Mapping["lts"]["liftType"])
+                        //{                            
+                        //}
+                    }
+                    if (poiNew.Mapping["lts"].ContainsKey("liftCapacityType"))
+                    {
+                        //TODO Add ODHTags (german keys)
+
+                    }
+                }
+            }            
         }
 
         #endregion

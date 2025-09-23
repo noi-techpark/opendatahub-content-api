@@ -617,7 +617,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 activityNew.SmgTags = new List<string>();
 
             //Remove all ODHTags that where automatically assigned
-            if (activityNew != null && activityOld.SmgTags != null && tagstoremove != null)
+            if (activityNew != null && activityOld != null && activityOld.SmgTags != null && tagstoremove != null)
                 tagstopreserve = activityOld.SmgTags.Except(tagstoremove.Select(x => x.Id)).ToList();
 
             //Add the activity Tag
@@ -677,17 +677,20 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             var oamapping = new Dictionary<string, string>() {  };
 
-            if (poiOld.OutdooractiveElevationID != null)
+            if (poiOld != null)
             {
-                poiNew.OutdooractiveElevationID = poiOld.OutdooractiveElevationID;
-                oamapping.Add("elevationid", poiOld.OutdooractiveElevationID);
+                if (poiOld.OutdooractiveElevationID != null)
+                {
+                    poiNew.OutdooractiveElevationID = poiOld.OutdooractiveElevationID;
+                    oamapping.Add("elevationid", poiOld.OutdooractiveElevationID);
+                }
+
+                if (poiOld.OutdooractiveElevationID != null)
+                {
+                    poiNew.OutdooractiveID = poiOld.OutdooractiveID;
+                    oamapping.Add("id", poiOld.OutdooractiveID);
+                }
             }
-                
-            if (poiOld.OutdooractiveElevationID != null)
-            {
-                poiNew.OutdooractiveID = poiOld.OutdooractiveID;
-                oamapping.Add("id", poiOld.OutdooractiveID);
-            }                
 
             //Add to Mapping
             if (oamapping.Count > 0)
