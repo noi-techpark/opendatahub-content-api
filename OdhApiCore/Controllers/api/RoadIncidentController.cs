@@ -2,24 +2,28 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.Tagging;
+using LTSAPI;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using OdhApiCore.Controllers.api;
 using OdhApiCore.Responses;
 using OdhNotifier;
+using ServiceReferenceLCS;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers
 {
@@ -41,9 +45,23 @@ namespace OdhApiCore.Controllers
         /// <summary>
         /// GET RoadIncident List
         /// </summary>
+        /// <param name="pagenumber">Pagenumber</param>
+        /// <param name="pagesize">Elements per Page, (default:10)</param>
+        /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
+        /// <param name="langfilter">Langfilter (returns only data available in the selected Language, Separator ',' possible values: 'de,it,en,nl,sc,pl,fr,ru', 'null': Filter disabled)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of IDs, 'null' = No Filter), (default:'null')</param>
         /// <param name="source">Source Filter (possible Values: 'lts','idm'), (default:'null')</param>
+        /// <param name="begin">Begin Filter (Format: yyyy-MM-dd HH:MM), (default: 'null')</param>
+        /// <param name="end">End Filter (Format: yyyy-MM-dd HH:MM), (default: 'null')</param>
+        /// <param name="active">Active Filter (possible Values: 'true' only active data, 'false' only not active data), (default:'null')</param>
+        /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
+        /// <param name="longitude">GeoFilter FLOAT Longitude Format: '11.369909', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
+        /// <param name="radius">Radius INTEGER to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
+        /// <param name="polygon">valid WKT (Well-known text representation of geometry) Format, Examples (POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))) / By Using the GeoShapes Api (v1/GeoShapes) and passing Country.Type.Id OR Country.Type.Name Example (it.municipality.3066) / Bounding Box Filter bbc: 'Bounding Box Contains', 'bbi': 'Bounding Box Intersects', followed by a List of Comma Separated Longitude Latitude Tuples, 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#polygon-filter-functionality' target="_blank">Wiki geosort</a></param>
+        /// <param name="publishedon">Published On Filter (Separator ',' List of publisher IDs), (default:'null')</param>
+        /// <param name="updatefrom">Returns data changed after this date Format (yyyy-MM-dd), (default: 'null')</param>
+        /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagSource.TagId,TagSource.TagId,TagId) example or(idm.summer,lts.hiking) - and(idm.themed hikes,lts.family hikings) - or(hiking) - and(idm.summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
         /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
@@ -62,8 +80,20 @@ namespace OdhApiCore.Controllers
             uint? pagenumber = 1,
             PageSize pagesize = null!,
             string? language = null,
+            string? langfilter = null,
             string? idlist = null,
             string? source = null,
+            LegacyBool active = null!,
+            string? begin = null,
+            string? end = null,
+            string? tagfilter = null,
+            string? publishedon = null,
+            string? updatefrom = null,
+            string? seed = null,
+            string? latitude = null,
+            string? longitude = null,
+            string? radius = null,
+            string? polygon = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? searchfilter = null,
             string? rawfilter = null,
@@ -73,12 +103,32 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
+            var geosearchresult = Helper.GeoSearchHelper.GetPGGeoSearchResult(
+               latitude,
+               longitude,
+               radius
+           );
+            var polygonsearchresult = await Helper.GeoSearchHelper.GetPolygon(
+                polygon,
+                QueryFactory
+            );
+
             return await Get(
                 pagenumber,
                 pagesize,
                 language,
+                langfilter,
                 idlist,
                 source,
+                active?.Value,
+                begin,
+                end,
+                tagfilter,
+                publishedon,
+                seed,
+                updatefrom,
+                polygonsearchresult,
+                geosearchresult,
                 fields: fields ?? Array.Empty<string>(),
                 searchfilter,
                 rawfilter,
@@ -129,8 +179,18 @@ namespace OdhApiCore.Controllers
             uint? pagenumber,
             int? pagesize,
             string? language,
+            string? languagefilter,
             string? idfilter,
             string? source,
+            bool? active,
+            string? begin,
+            string? end,
+            string? tagfilter,
+            string? publishedon,
+            string? seed,
+            string? lastchange,
+            GeoPolygonSearchResult? polygonsearchresult,
+            PGGeoSearchResult geosearchresult,
             string[] fields,
             string? searchfilter,
             string? rawfilter,
@@ -145,8 +205,20 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
-                var sourcelist = Helper.CommonListCreator.CreateIdList(source);
-                var idlist = Helper.CommonListCreator.CreateIdList(idfilter);
+                RoadIncidentHelper helper =
+                            await RoadIncidentHelper.CreateAsync(
+                                queryFactory: QueryFactory,
+                                idfilter: idfilter,
+                                languagefilter: languagefilter,
+                                sourcefilter: source,
+                                activefilter: active,
+                                lastchange: lastchange,
+                                tagfilter: tagfilter,
+                                publishedonfilter: publishedon,
+                                begindate: begin,
+                                enddate: end,
+                                cancellationToken
+                            );
 
                 var query = QueryFactory
                     .Query()
@@ -154,20 +226,35 @@ namespace OdhApiCore.Controllers
                     .When(!getasidarray, x => x.SelectRaw("data"))
                     .From("roadincidents")
                     .RoadIncidentWhereExpression(
-                        languagelist: new List<string>(),
-                        idlist: idlist,
-                        sourcelist: sourcelist,
+                        languagelist: helper.languagelist,
+                        idlist: helper.idlist,
+                        sourcelist: helper.sourcelist,
                         searchfilter: searchfilter,
                         language: language,
+                        lastchange: helper.lastchange,
+                        activefilter: helper.active,
+                        tagdict: helper.tagdict,
+                        publishedonlist: helper.publishedonlist,
+                        start: helper.begin,
+                        end: helper.end,
                         additionalfilter: additionalfilter,
                         userroles: UserRolesToFilter
                     )
+                    .When(
+                        polygonsearchresult != null,
+                        x =>
+                            x.WhereRaw(
+                                PostgresSQLHelper.GetGeoWhereInPolygon_GeneratedColumns(
+                                    polygonsearchresult.wktstring,
+                                    polygonsearchresult.polygon,
+                                    polygonsearchresult.srid,
+                                    polygonsearchresult.operation,
+                                    polygonsearchresult.reduceprecision
+                                )
+                            )
+                    )
                     .ApplyRawFilter(rawfilter)
-                    .ApplyOrdering(
-                        new PGGeoSearchResult() { geosearch = false },
-                        rawsort,
-                        "data#>>'\\{Shortname\\}'"
-                    );
+                    .ApplyOrdering_GeneratedColumns(ref seed, geosearchresult, rawsort);
 
                 //IF getasidarray set simply return array of ids
                 if (getasidarray)
