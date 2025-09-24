@@ -44,6 +44,8 @@ namespace DataModel
         public ICollection<Tags> Tags { get; set; }
         public ICollection<string> TagIds { get; set; }
         public ICollection<GpsInfo>? GpsInfo { get; set; }
+
+
     }
 
     #endregion
@@ -652,12 +654,20 @@ namespace DataModel
 
     #region TrafficEvents
 
-    public class RoadIncident : Generic
+    public class RoadIncident : Generic, IGPSPointsAware
     {        
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
 
-        public IDictionary<string, Detail> Detail { get; set; }        
+        public IDictionary<string, Detail> Detail { get; set; }
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
+
+        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public IDictionary<string, GpsInfo> GpsPoints
+        {
+            get { return this.GpsInfo.ToGpsPointsDictionary(); }
+        }
     }
 
     public class RoadIncidentProperties
