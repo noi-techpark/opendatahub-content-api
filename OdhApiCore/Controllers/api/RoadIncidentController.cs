@@ -11,6 +11,7 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -265,6 +266,12 @@ namespace OdhApiCore.Controllers
                 if (roadincident.LicenseInfo == null)
                     roadincident.LicenseInfo = new LicenseInfo() { ClosedData = false };
 
+                //Populate Tags (Id/Source/Type)
+                await roadincident.UpdateTagsExtension(QueryFactory);
+
+                //TRIM all strings
+                roadincident.TrimStringProperties();
+
                 return await UpsertData<RoadIncident>(
                     roadincident,
                     new DataInfo("roadincidents", CRUDOperation.Create),
@@ -294,6 +301,12 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
                 roadincident.Id = Helper.IdGenerator.CheckIdFromType<RoadIncident>(id);
+
+                //Populate Tags (Id/Source/Type)
+                await roadincident.UpdateTagsExtension(QueryFactory);
+
+                //TRIM all strings
+                roadincident.TrimStringProperties();
 
                 return await UpsertData<RoadIncident>(
                     roadincident,
