@@ -1577,5 +1577,36 @@ namespace Helper
             //TODO future opendata rules on
             //.Anonymous_Logged_UserRule_GeneratedColumn(filterClosedData, !reducedData);
         }
+
+        //Return Where and Parameters for OdhTag and Tag
+        public static Query RoadIncidentWhereExpression(
+            this Query query,
+            IReadOnlyCollection<string> languagelist,
+            IReadOnlyCollection<string> idlist,
+            IReadOnlyCollection<string> sourcelist,
+            string? searchfilter,
+            string? language,
+            string? additionalfilter,
+            IEnumerable<string> userroles
+        )
+        {
+            LogMethodInfo(
+                System.Reflection.MethodBase.GetCurrentMethod()!,
+                "<query>", // not interested in query
+                searchfilter,
+                language,
+                sourcelist
+            );
+
+            return query
+                .SearchFilter(TitleFieldsToSearchFor(language), searchfilter)
+                .SourceFilter_GeneratedColumn(sourcelist)
+                .When(idlist != null && idlist.Count > 0, q => query.WhereIn("id", idlist))
+                .When(
+                    !String.IsNullOrEmpty(additionalfilter),
+                    q => q.FilterAdditionalDataByCondition(additionalfilter)
+                )
+                .FilterDataByAccessRoles(userroles);
+        }
     }
 }

@@ -27,7 +27,8 @@ namespace DataModel
         ISource, 
         IHasTagInfo, 
         IShortName,
-        IHasLanguage
+        IHasLanguage,
+        IImportDateassigneable
     {
         public string Id { get; set; }
         public Metadata? _Meta { get; set; }
