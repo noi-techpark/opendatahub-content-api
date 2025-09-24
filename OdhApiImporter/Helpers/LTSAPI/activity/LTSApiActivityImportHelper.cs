@@ -71,23 +71,31 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             //Check if Data is accessible on LTS
             if (activitylts != null && activitylts.FirstOrDefault().ContainsKey("success") && (Boolean)activitylts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
-            {     //Import Single Data & Deactivate Data
-                var result = await SaveActivitiesToPG(activitylts);
-                return result;
+            {     
+                //Import Single Data & Deactivate Data
+                return await SaveActivitiesToPG(activitylts);                
             }
             //If data is not accessible on LTS Side, delete or disable it
             else if (activitylts != null && activitylts.FirstOrDefault().ContainsKey("status") && ((int)activitylts.FirstOrDefault()["status"] == 403 || (int)activitylts.FirstOrDefault()["status"] == 404))
             {
+                var resulttoreturn = default(UpdateDetail);
+
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableActivitiesData(id, false, false);
+                    resulttoreturn = await DeleteOrDisableActivitiesData(id, false, false);
+                    if(activitylts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(activitylts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + activitylts.FirstOrDefault()["message"].ToString() +"|";
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableActivitiesData(id, true, true);
+                    resulttoreturn = await DeleteOrDisableActivitiesData(id, true, true);
+                    if (activitylts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(activitylts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + "opendata:" + activitylts.FirstOrDefault()["message"].ToString() + "|";
                 }
+
+                return resulttoreturn;
             }
             else
             {
@@ -342,6 +350,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
                     await CompleteLTSTagsAndAddLTSParentAsTag(activityparsed, jsondata);
+
+                    AddActivitySpecialCases(activityparsed);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeActivityTags(activityparsed, activityindb);
@@ -812,6 +822,45 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         }
 
                         activityNew.AdditionalPoiInfos.Add(languagecategory, additionalPoiInfos);
+                    }
+                }
+            }
+        }
+
+        private static void AddActivitySpecialCases(ODHActivityPoiLinked poiNew)
+        {
+            //If it is a slope / skitrack activity add the difficulty as ODHTag
+
+            if (poiNew != null && poiNew.LTSTags != null &&
+                poiNew.LTSTags.Where(x => new List<string>() { "D544A6312F8A47CF80CC4DFF8833FE50", "EB5D6F10C0CB4797A2A04818088CD6AB" }.Contains(x.Id)).Count() > 0 &&
+                !String.IsNullOrEmpty(poiNew.Difficulty))
+            {
+                if (poiNew.Difficulty == "1" || poiNew.Difficulty == "2")
+                    poiNew.SmgTags.Add("blau");
+                if (poiNew.Difficulty == "3" || poiNew.Difficulty == "4")
+                    poiNew.SmgTags.Add("rot");
+                if (poiNew.Difficulty == "5" || poiNew.Difficulty == "6")
+                    poiNew.SmgTags.Add("schwarz");
+            }
+
+
+            //If it is a lift, add the Mapping.liftType and Mapping.liftCapacityType as ODHTag
+            if (poiNew != null && poiNew.LTSTags != null &&
+                    poiNew.LTSTags.Where(x => new List<string>() { "E23AA37B2AE3477F96D1C0782195AFDF" }.Contains(x.Id)).Count() > 0)
+            {
+                if (poiNew.Mapping != null && poiNew.Mapping.ContainsKey("lts"))
+                {
+                    if (poiNew.Mapping["lts"].ContainsKey("liftType"))
+                    {
+                        //TODO Add ODHTags (german keys)
+                        //switch (poiNew.Mapping["lts"]["liftType"])
+                        //{                            
+                        //}
+                    }
+                    if (poiNew.Mapping["lts"].ContainsKey("liftCapacityType"))
+                    {
+                        //TODO Add ODHTags (german keys)
+
                     }
                 }
             }

@@ -72,23 +72,31 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             //Check if Data is accessible on LTS
             if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("success") && (Boolean)eventlts.FirstOrDefault()["success"]) //&& eventlts.FirstOrDefault()["Success"] == true
-            {     //Import Single Data & Deactivate Data
-                var result = await SaveEventsToPG(eventlts);
-                return result;
+            {     
+                //Import Single Data & Deactivate Data
+                return await SaveEventsToPG(eventlts);                
             }
             //If data is not accessible on LTS Side, delete or disable it
             else if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("status") && ((int)eventlts.FirstOrDefault()["status"] == 403 || (int)eventlts.FirstOrDefault()["status"] == 404))
             {
+                var resulttoreturn = default(UpdateDetail);
+
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableEventData(id, false);
+                    resulttoreturn = await DeleteOrDisableEventData(id, false, false);
+                    if (eventlts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(eventlts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + eventlts.FirstOrDefault()["message"].ToString() + "|";
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableEventData(id + "_REDUCED", true);
+                    resulttoreturn = await DeleteOrDisableEventData(id, true, true);
+                    if (eventlts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(eventlts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + "opendata:" + eventlts.FirstOrDefault()["message"].ToString() + "|";
                 }
+
+                return resulttoreturn;
             }
             else
             {
@@ -552,7 +560,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             );
         }
 
-        public async Task<UpdateDetail> DeleteOrDisableEventData(string id, bool delete)
+        public async Task<UpdateDetail> DeleteOrDisableEventData(string id, bool delete, bool reduced)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
@@ -563,7 +571,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 result =  await QueryFactory.DeleteData<EventLinked>(
                     id,
                     new DataInfo("events", CRUDOperation.Delete),
-                    new CRUDConstraints()
+                    new CRUDConstraints(),
+                    reduced
                 );
 
                 if (result.errorreason != "Data Not Found")

@@ -68,23 +68,31 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             //Check if Data is accessible on LTS
             if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("success") && (Boolean)gastronomylts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
-            {     //Import Single Data & Deactivate Data
-                var result = await SaveGastronomiesToPG(gastronomylts);
-                return result;
+            {     
+                //Import Single Data & Deactivate Data
+                return await SaveGastronomiesToPG(gastronomylts);
             }
             //If data is not accessible on LTS Side, delete or disable it
             else if (gastronomylts != null && gastronomylts.FirstOrDefault().ContainsKey("status") && ((int)gastronomylts.FirstOrDefault()["status"] == 403 || (int)gastronomylts.FirstOrDefault()["status"] == 404))
             {
+                var resulttoreturn = default(UpdateDetail);
+
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableGastronomiesData(id, false, false);
+                    resulttoreturn = await DeleteOrDisableGastronomiesData(id, false, false);
+                    if (gastronomylts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(gastronomylts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + gastronomylts.FirstOrDefault()["message"].ToString() + "|";
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableGastronomiesData(id, true, true);
+                    resulttoreturn = await DeleteOrDisableGastronomiesData(id, true, true);
+                    if (gastronomylts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(gastronomylts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + "opendata:" + gastronomylts.FirstOrDefault()["message"].ToString() + "|";
                 }
+
+                return resulttoreturn;
             }
             else
             {
