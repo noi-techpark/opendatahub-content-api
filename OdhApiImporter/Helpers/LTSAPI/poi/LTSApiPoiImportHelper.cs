@@ -828,7 +828,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //If it is a slope / skitrack activity add the difficulty as ODHTag
 
             if (poiNew != null && poiNew.LTSTags != null &&
-                poiNew.LTSTags.Where(x => new List<string() { "D544A6312F8A47CF80CC4DFF8833FE50", "EB5D6F10C0CB4797A2A04818088CD6AB" }.Contains(x.Id)).Count > 0 &&
+                poiNew.LTSTags.Where(x => new List<string>() { "D544A6312F8A47CF80CC4DFF8833FE50", "EB5D6F10C0CB4797A2A04818088CD6AB" }.Contains(x.Id)).Count() > 0 &&
                 !String.IsNullOrEmpty(poiNew.Difficulty))
             {
                 if (poiNew.Difficulty == "1" || poiNew.Difficulty == "2")
@@ -842,7 +842,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             //If it is a lift, add the Mapping.liftType and Mapping.liftCapacityType as ODHTag
             if (poiNew != null && poiNew.LTSTags != null &&
-                    poiNew.LTSTags.Where(x => new List<string() { "E23AA37B2AE3477F96D1C0782195AFDF" }.Contains(x.Id)).Count > 0)
+                    poiNew.LTSTags.Where(x => new List<string>() { "E23AA37B2AE3477F96D1C0782195AFDF" }.Contains(x.Id)).Count() > 0)
             {
                 if(poiNew.Mapping != null && poiNew.Mapping.ContainsKey("lts"))
                 {
