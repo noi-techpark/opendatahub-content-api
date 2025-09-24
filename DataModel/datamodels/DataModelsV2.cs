@@ -25,7 +25,7 @@ namespace DataModel
         IHasLanguage,
         IImportDateassigneable
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
         public Metadata? _Meta { get; set; }
         public LicenseInfo? LicenseInfo { get; set; }
 
@@ -37,12 +37,12 @@ namespace DataModel
         public ICollection<string>? HasLanguage { get; set; }
 
         public ICollection<string>? PublishedOn { get; set; }
-        public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
-        public IDictionary<string, dynamic> AdditionalProperties { get; set; }
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
         public string? Source { get; set; }
 
-        public ICollection<Tags> Tags { get; set; }
-        public ICollection<string> TagIds { get; set; }
+        public ICollection<Tags>? Tags { get; set; }
+        public ICollection<string>? TagIds { get; set; }
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
 
@@ -656,8 +656,8 @@ namespace DataModel
 
     public class RoadIncident : Generic, IGPSPointsAware
     {        
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
 
         public IDictionary<string, Detail> Detail { get; set; }
         public ICollection<RelatedContent>? RelatedContent { get; set; }
