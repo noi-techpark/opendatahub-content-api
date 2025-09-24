@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DataModel.Annotations;
+using RTools_NTS.Util;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace DataModel
@@ -649,6 +650,23 @@ namespace DataModel
         public double Price { get; set; }
         public bool Ticket { get; set; }
         public string TicketInfo { get; set; }
+    }
+
+    #endregion
+
+    #region TrafficEvents
+
+    public class RoadIncident : Generic
+    {        
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+
+        public IDictionary<string, Detail> Detail { get; set; }        
+    }
+
+    public class RoadIncidentProperties
+    {
+        //TODO Add the Properties for AdditionalProperties (direction, lanes, expected_delay, planned_incident)
     }
 
     #endregion
