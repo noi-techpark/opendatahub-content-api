@@ -190,10 +190,10 @@ namespace OdhApiImporter.Helpers
                         );
 
                     //Deactivate Full
-                    updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false);
+                    updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false, false);
 
                     //Delete Reduced                    
-                    updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true);
+                    updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true, true);
 
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
@@ -486,10 +486,10 @@ namespace OdhApiImporter.Helpers
                         var updateresultreduced = default(UpdateDetail);
 
                         //Use the DeleteOrDisable method
-                        updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false);
+                        updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false, false);
 
                         //Use the DeleteOrDisable method
-                        updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true);
+                        updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true, true);
 
                         updateresult.pushed = await CheckIfObjectChangedAndPush(
                                     updateresult,
@@ -787,7 +787,7 @@ namespace OdhApiImporter.Helpers
 
                             if (!reduced)
                             {
-                                updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false);
+                                updateresult = await ltsapieventimporthelper.DeleteOrDisableEventData(id, false, false);
 
                                 updateresult.pushed = await CheckIfObjectChangedAndPush(
                                             updateresult,
@@ -798,7 +798,7 @@ namespace OdhApiImporter.Helpers
 
                             if(reduced)
                                 //Get Reduced                    
-                                updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true);
+                                updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true, true);
 
 
                             //Create Delete/Disable Log
