@@ -52,7 +52,8 @@ namespace Helper
                 "weatherforecast",
                 "weatherrealtime",
                 "snowreport",
-                "geoshape"
+                "geoshape",
+                "roadincident"
             };
         }
 
@@ -106,6 +107,7 @@ namespace Helper
                 VenueV2 => "venue",
                 EventV2 => "event",
                 GeoShapeJson => "geoshape",
+                RoadIncident => "roadincident",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -153,6 +155,7 @@ namespace Helper
                 EventV2 => "eventsv2",
                 VenueV2 => "venuesv2",
                 GeoShapeJson => "geoshapes",
+                RoadIncident => "roadincidents",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -200,6 +203,7 @@ namespace Helper
                 "odhmetadata" => "metadata",
                 "tag" => "tags",
                 "geoshape" => "geoshapes",
+                "roadincident" => "roadincidents",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -248,6 +252,7 @@ namespace Helper
                 "odhmetadata" => typeof(TourismMetaData),
                 "tag" => typeof(TagLinked),
                 "geoshape" => typeof(GeoShapeJson),
+                "roadincident" => typeof(RoadIncident),
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -297,6 +302,7 @@ namespace Helper
                 "venuesv2" => "venue",
                 "eventsv2" => "event",
                 "geoshapes" => "geoshape",
+                "roadincidents" => "roadincident",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -343,6 +349,7 @@ namespace Helper
                 "eventsv2" => typeof(EventV2),
                 "venuesv2" => typeof(VenueV2),
                 "geoshapes" => typeof(GeoShapeJson),
+                "roadincidents" => typeof(RoadIncident),
                 _ => throw new Exception("not known table name"),
             };
         }
@@ -392,6 +399,7 @@ namespace Helper
                 "publisher" => id.ToLower(),
                 "source" => id.ToLower(),
                 "geoshape" => id.ToLower(),
+                "roadincident" => id.ToLower(),
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -437,6 +445,7 @@ namespace Helper
                 "weatherhistory" => JsonConvert.DeserializeObject<WeatherHistoryLinked>(raw.Value)!,
                 "odhmetadata" => JsonConvert.DeserializeObject<TourismMetaData>(raw.Value)!,
                 "tag" => JsonConvert.DeserializeObject<TagLinked>(raw.Value)!,
+                "roadincident" => JsonConvert.DeserializeObject<RoadIncident>(raw.Value)!,
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -480,6 +489,7 @@ namespace Helper
                 odhtypes.Add("metaregion");
                 odhtypes.Add("area");
                 odhtypes.Add("wineaward");
+                odhtypes.Add("roadincident");
             }
 
             return odhtypes.ToArray();
@@ -506,6 +516,7 @@ namespace Helper
                 or "article"
                 or "experiencearea"
                 or "webcam"
+                or "roadincident"
                 or "venue" => PostgresSQLWhereBuilder.TitleFieldsToSearchFor,
                 //"measuringpoint" => PostgresSQLWhereBuilder.,
                 //                "webcam" => PostgresSQLWhereBuilder.WebcamnameFieldsToSearchFor,
@@ -555,6 +566,7 @@ namespace Helper
                 "weatherrealtime" => "Weather/Realtime",
                 "snowreport" => "Weather/SnowReport",
                 "weather" => "Weather",
+                "roadincident" => "RoadIncident",
 
                 _ => throw new Exception("not known odh type"),
             };
@@ -601,6 +613,7 @@ namespace Helper
                 or "skiregion"
                 or "article"
                 or "experiencearea"
+                or "roadincident"
                 or "venue" => $"Detail.{language}.Title",
                 "measuringpoint" => $"Shortname",
                 "webcam" => $"Webcamname.{language}",
@@ -630,6 +643,7 @@ namespace Helper
                 or "skiarea"
                 or "skiregion"
                 or "article"
+                or "roadincident"
                 or "experiencearea" => $"Detail.{language}.BaseText",
                 "measuringpoint" => "notextfield",
                 "webcam" => "notextfield",

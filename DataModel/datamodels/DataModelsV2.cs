@@ -4,10 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using DataModel.Annotations;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -26,9 +22,10 @@ namespace DataModel
         ISource, 
         IHasTagInfo, 
         IShortName,
-        IHasLanguage
+        IHasLanguage,
+        IImportDateassigneable
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
         public Metadata? _Meta { get; set; }
         public LicenseInfo? LicenseInfo { get; set; }
 
@@ -40,13 +37,15 @@ namespace DataModel
         public ICollection<string>? HasLanguage { get; set; }
 
         public ICollection<string>? PublishedOn { get; set; }
-        public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
-        public IDictionary<string, dynamic> AdditionalProperties { get; set; }
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
         public string? Source { get; set; }
 
-        public ICollection<Tags> Tags { get; set; }
-        public ICollection<string> TagIds { get; set; }
+        public ICollection<Tags>? Tags { get; set; }
+        public ICollection<string>? TagIds { get; set; }
         public ICollection<GpsInfo>? GpsInfo { get; set; }
+
+
     }
 
     #endregion
@@ -649,6 +648,31 @@ namespace DataModel
         public double Price { get; set; }
         public bool Ticket { get; set; }
         public string TicketInfo { get; set; }
+    }
+
+    #endregion
+
+    #region TrafficEvents
+
+    public class RoadIncident : Generic, IGPSPointsAware
+    {        
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
+
+        public IDictionary<string, Detail> Detail { get; set; }
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
+
+        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public IDictionary<string, GpsInfo> GpsPoints
+        {
+            get { return this.GpsInfo.ToGpsPointsDictionary(); }
+        }
+    }
+
+    public class RoadIncidentProperties
+    {
+        //TODO Add the Properties for AdditionalProperties (direction, lanes, expected_delay, planned_incident)
     }
 
     #endregion
