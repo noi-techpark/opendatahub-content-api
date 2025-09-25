@@ -350,16 +350,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
                     await CompleteLTSTagsAndAddLTSParentAsTag(activityparsed, jsondata);
-
-                    AddActivitySpecialCases(activityparsed);
-
+                    
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeActivityTags(activityparsed, activityindb);
-
+               
                     //**BEGIN If on opendata IDM Categorization is no more wanted move this to the if(!opendata) section
 
                     //Preserves all manually assigned ODHTags, and adds all Mapped ODHTags
                     await AssignODHTags(activityparsed, activityindb, jsondata);
+
+                    //Add Difficulty as Tag, Skilift type as Tag
+                    AddActivitySpecialCases(activityparsed);
 
                     //TODO Maybe we can disable this withhin the Api Switch
                     //Traduce all Tags with Source IDM to english tags
@@ -595,6 +596,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return deletedisableresult;
         }
      
+        //Adds all Redactional Assigned Tags from the old Record to the new Record
         private async Task MergeActivityTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
         {
             if (poiOld != null)
@@ -832,8 +834,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //If it is a slope / skitrack activity add the difficulty as ODHTag
 
             if (poiNew != null && poiNew.LTSTags != null &&
-                poiNew.LTSTags.Where(x => new List<string>() { "D544A6312F8A47CF80CC4DFF8833FE50", "EB5D6F10C0CB4797A2A04818088CD6AB" }.Contains(x.Id)).Count() > 0 &&
-                !String.IsNullOrEmpty(poiNew.Difficulty))
+                (poiNew.LTSTags.Select(x => x.LTSRID).ToList().Contains("D544A6312F8A47CF80CC4DFF8833FE50") || poiNew.LTSTags.Select(x => x.Id).ToList().Contains("EB5D6F10C0CB4797A2A04818088CD6AB")) 
+                && !String.IsNullOrEmpty(poiNew.Difficulty))
             {
                 if(poiNew.SmgTags == null)
                     poiNew.SmgTags = new List<string>();
@@ -849,7 +851,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             //If it is a lift, add the Mapping.liftType and Mapping.liftCapacityType as ODHTag
             if (poiNew != null && poiNew.LTSTags != null &&
-                    poiNew.LTSTags.Where(x => new List<string>() { "E23AA37B2AE3477F96D1C0782195AFDF" }.Contains(x.Id)).Count() > 0)
+                    poiNew.LTSTags.Select(x => x.LTSRID).ToList().Contains("E23AA37B2AE3477F96D1C0782195AFDF"))
             {
                 if (poiNew.Mapping != null && poiNew.Mapping.ContainsKey("lts"))
                 {
@@ -897,22 +899,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                 poiNew.SmgTags.Add("Zug".ToLower());
                                 break;
                         }
-                        
-
-
-                        //--------liftCapacityType-----------
-                        // <-> 
-                        // <-> 
-                        // <-> 
-                        // <-> 
-                        // <-> 
-                        // <-> 
-                        // <-> 
 
                     }
                     if (poiNew.Mapping["lts"].ContainsKey("liftCapacityType"))
                     {
-                        switch (poiNew.Mapping["lts"]["liftType"])
+                        switch (poiNew.Mapping["lts"]["liftCapacityType"])
                         {
                             case "chairliftForOnePerson":
                                 poiNew.SmgTags.Add("1er Sessellift kuppelbar".ToLower());
@@ -933,7 +924,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                 poiNew.SmgTags.Add("8er Sessellift kuppelbar".ToLower());
                                 break;
                             case "lowProfileSkiLift":
-                                poiNew.SmgTags.Add("Kleinskilift");
+                                poiNew.SmgTags.Add("Kleinskilift".ToLower());
                                 break;                            
                         }
                     }
