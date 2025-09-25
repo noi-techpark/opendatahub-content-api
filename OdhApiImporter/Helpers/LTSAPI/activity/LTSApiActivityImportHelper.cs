@@ -835,6 +835,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 poiNew.LTSTags.Where(x => new List<string>() { "D544A6312F8A47CF80CC4DFF8833FE50", "EB5D6F10C0CB4797A2A04818088CD6AB" }.Contains(x.Id)).Count() > 0 &&
                 !String.IsNullOrEmpty(poiNew.Difficulty))
             {
+                if(poiNew.SmgTags == null)
+                    poiNew.SmgTags = new List<string>();
+
                 if (poiNew.Difficulty == "1" || poiNew.Difficulty == "2")
                     poiNew.SmgTags.Add("blau");
                 if (poiNew.Difficulty == "3" || poiNew.Difficulty == "4")
@@ -850,17 +853,89 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 if (poiNew.Mapping != null && poiNew.Mapping.ContainsKey("lts"))
                 {
+                    if (poiNew.SmgTags == null)
+                        poiNew.SmgTags = new List<string>();
+
                     if (poiNew.Mapping["lts"].ContainsKey("liftType"))
                     {
-                        //TODO Add ODHTags (german keys)
-                        //switch (poiNew.Mapping["lts"]["liftType"])
-                        //{                            
-                        //}
+                        switch (poiNew.Mapping["lts"]["liftType"])
+                        {
+                            case "gondolaRopeway": 
+                                poiNew.SmgTags.Add("Kabinenbahn".ToLower());
+                                break;
+                            case "chairlift":
+                                poiNew.SmgTags.Add("Sessellift".ToLower());
+                                break;
+                            case "skiLift":
+                                poiNew.SmgTags.Add("Skilift".ToLower());
+                                break;
+                            case "cableCar":
+                                poiNew.SmgTags.Add("Seilbahn".ToLower());
+                                break;
+                            case "detachableGondolaRopeway":
+                                poiNew.SmgTags.Add("Umlaufbahn".ToLower());
+                                break;
+                            case "skibus":
+                                poiNew.SmgTags.Add("Skibus".ToLower());
+                                break;
+                            case "inclinedLift":
+                                poiNew.SmgTags.Add("Schrägaufzug".ToLower());
+                                break;
+                            case "conveyorBelt":
+                                poiNew.SmgTags.Add("Förderband".ToLower());
+                                break;
+                            case "undergroundRopeway":
+                                poiNew.SmgTags.Add("Unterirdische Bahn".ToLower());
+                                break;
+                            case "telemixLift":
+                                poiNew.SmgTags.Add("Telemix".ToLower());
+                                break;
+                            case "cableRailway":
+                                poiNew.SmgTags.Add("Standseilbahn Zahnradbahn".ToLower());
+                                break;
+                            case "train":
+                                poiNew.SmgTags.Add("Zug".ToLower());
+                                break;
+                        }
+                        
+
+
+                        //--------liftCapacityType-----------
+                        // <-> 
+                        // <-> 
+                        // <-> 
+                        // <-> 
+                        // <-> 
+                        // <-> 
+                        // <-> 
+
                     }
                     if (poiNew.Mapping["lts"].ContainsKey("liftCapacityType"))
                     {
-                        //TODO Add ODHTags (german keys)
-
+                        switch (poiNew.Mapping["lts"]["liftType"])
+                        {
+                            case "chairliftForOnePerson":
+                                poiNew.SmgTags.Add("1er Sessellift kuppelbar".ToLower());
+                                break;
+                            case "chairliftForTwoPersons":
+                                poiNew.SmgTags.Add("2er Sessellift kuppelbar".ToLower());
+                                break;
+                            case "chairliftForThreePersons":
+                                poiNew.SmgTags.Add("3er Sessellift kuppelbar".ToLower());
+                                break;
+                            case "chairliftForFourPersons":
+                                poiNew.SmgTags.Add("4er Sessellift kuppelbar".ToLower());
+                                break;
+                            case "chairliftForSixPersons":
+                                poiNew.SmgTags.Add("6er Sessellift kuppelbar".ToLower());
+                                break;
+                            case "chairliftForEightPersons":
+                                poiNew.SmgTags.Add("8er Sessellift kuppelbar".ToLower());
+                                break;
+                            case "lowProfileSkiLift":
+                                poiNew.SmgTags.Add("Kleinskilift");
+                                break;                            
+                        }
                     }
                 }
             }
