@@ -29,6 +29,10 @@ namespace Helper.Tagging
         public static async Task UpdateTagsExtension<T>(this T data, QueryFactory queryFactory, Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve = null)
             where T : IHasTagInfo
         {
+            //Resort TagIds
+            if (data.TagIds != null)
+                data.TagIds = data.TagIds.Distinct().OrderBy(x => x).ToList();
+                
             data.Tags = await UpdateTags(data.TagIds, queryFactory, tagEntrysTopreserve);
         }
 

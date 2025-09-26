@@ -2434,6 +2434,60 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Imports all ODHActivityPois TagProperties
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("LTS/ODHActivityPoi/Update/TagProperties")]
+        public async Task<IActionResult> ImportLTSODHActivityPoiTagProperties(
+            string id = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import LTS ODHActivityPois TagProperties";
+            string updatetype = GetUpdateType(null);
+            string source = "lts";
+            string otherinfo = "odhactivitypoi.tagproperties";
+
+            try
+            {
+                LTSApiTagPropertyImportHelper importhelper = new LTSApiTagPropertyImportHelper(
+                    settings,
+                    QueryFactory,
+                    "tags",
+                    UrlGeneratorStatic("LTS/ODHActivityPois/TagProperties")
+                );
+
+                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS ODHActivityPois TagProperties succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS ODHActivityPois TagProperties data failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
         //Imports Accommodations
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("LTS/Accommodation/Update")]

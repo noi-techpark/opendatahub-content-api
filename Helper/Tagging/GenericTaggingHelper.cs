@@ -108,6 +108,16 @@ namespace Helper
             }
         }
 
+        public static async Task<List<ODHTagLinked>> GetAllGeneratedOdhTagsfromJson(string jsondir)
+        {
+            using (StreamReader r = new StreamReader(Path.Combine(jsondir, $"ODHTagsSourceIDMLTS.json")))
+            {
+                string json = await r.ReadToEndAsync();
+
+                return JsonConvert.DeserializeObject<List<ODHTagLinked>>(json) ?? new();
+            }
+        }
+
         //Translates OLD Tags with german keys to new English Tags
         public static List<Tags> GenerateNewTags(
             ICollection<string> currenttags,
@@ -238,18 +248,6 @@ namespace Helper
                 string json = await r.ReadToEndAsync();
 
                 return JsonConvert.DeserializeObject<List<AllowedTags>>(json) ?? new();
-            }
-        }
-
-        public static async Task<List<CategoriesTags>> GetAllGastronomyTagsfromJson(string jsondir)
-        {
-            using (
-                StreamReader r = new StreamReader(Path.Combine(jsondir, $"TagsForGastronomy.json"))
-            )
-            {
-                string json = await r.ReadToEndAsync();
-
-                return JsonConvert.DeserializeObject<List<CategoriesTags>>(json) ?? new();
             }
         }
     }
