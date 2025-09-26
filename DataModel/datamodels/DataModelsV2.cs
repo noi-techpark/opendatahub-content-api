@@ -653,36 +653,94 @@ namespace DataModel
 
     #endregion
 
+    #region ODHActivityPoiAdditionalProperties
 
-    //NOT USED anymore
-    //public class EventInfo
-    //{
-    //    //Begin and Enddate in UTC (could be created automatically)
-    //    public double BeginUTC { get; set; }
-    //    public double EndUTC { get; set; }
+    //To check if this is added as AdditionalProperty
+    //ODHActivityPoiPropertiesLTSActivity
+    //ODHActivityPoiPropertiesLTSPoi
+    //ODHActivityPoiPropertiesLTSGastronomy
+    //ODHActivityPoiPropertiesSuedtirolWein
+    //ODHActivityPoiPropertiesEcharging
 
-    //    //Assigned Venue
-    //    public List<string> VenueIds { get; set; }
+    //Add the AdditionalProperty to ODHActivityPoiLinked
+    //Add a Method that returns the appropriate AdditionalProperties
 
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public ICollection<VenueLink> Venues
-    //    {
-    //        get
-    //        {
-    //            return this.VenueIds != null ? this.VenueIds.Select(x => new VenueLink() { Id = x, Self = "VenueV2/" + x }).ToList() : new List<VenueLink>();
-    //        }
-    //    }
+    //Check the 
 
-    //    //Dynamic Additional Properties field
-    //    public IDictionary<string, dynamic> AdditionalProperties { get; set; }
+    //LTS
+    public class AdditionalPropertiesLTSActivity
+    {
+        public int? AgeFrom { get; set; }
+        public int? AgeTo { get; set; }
 
-    //    //Detail Information
-    //    public IDictionary<string, Detail> Detail { get; set; }
+        public double? AltitudeDifference { get; set; }
+        public double? AltitudeHighestPoint { get; set; }
+        public double? AltitudeLowestPoint { get; set; }
+        public double? AltitudeSumUp { get; set; }
+        public double? AltitudeSumDown { get; set; }
 
-    //    //Documents
-    //    public IDictionary<string, List<DocumentDetailed>?> Documents { get; set; }
+        public double? DistanceDuration { get; set; }
+        public double? DistanceLength { get; set; }
 
-    //    //Capacity of the Event Venue Combination (not always the same as the Venue Capacity)
-    //    public int? Capacity { get; set; }
-    //}
+        public bool? IsOpen { get; set; }
+        public bool? IsPrepared { get; set; }
+        public bool? RunToValley { get; set; }
+        public bool? IsWithLigth { get; set; }
+        public bool? HasRentals { get; set; }
+        public bool? HasFreeEntrance { get; set; }
+        public bool? LiftAvailable { get; set; }
+        public bool? FeetClimb { get; set; }
+
+        public bool? BikeTransport { get; set; }
+
+        public Ratings? Ratings { get; set; }
+        public ICollection<string>? Exposition { get; set; }
+
+        public int? WayNumber { get; set; }
+
+        public string? Number { get; set; }
+    }
+
+    public class AdditionalPropertiesLTSPoi
+    {
+        public int? AgeFrom { get; set; }
+        public int? AgeTo { get; set; }
+
+        public double? AltitudeDifference { get; set; }
+        public double? AltitudeHighestPoint { get; set; }
+        public double? AltitudeLowestPoint { get; set; }
+        public double? AltitudeSumUp { get; set; }
+        public double? AltitudeSumDown { get; set; }
+
+        public double? DistanceDuration { get; set; }
+        public double? DistanceLength { get; set; }
+
+        public bool? IsOpen { get; set; }
+        public bool? IsPrepared { get; set; }
+        public bool? RunToValley { get; set; }
+        public bool? IsWithLigth { get; set; }
+        public bool? HasRentals { get; set; }
+        public bool? HasFreeEntrance { get; set; }
+        public bool? LiftAvailable { get; set; }
+        public bool? FeetClimb { get; set; }
+
+        public bool? BikeTransport { get; set; }
+
+        public Ratings? Ratings { get; set; }
+        public ICollection<string>? Exposition { get; set; }
+
+        public int? WayNumber { get; set; }
+
+        public string? Number { get; set; }
+    }
+
+    public class AdditionalPropertiesLTSGastronomy
+    {
+
+    }
+
+
+    #endregion
+
+    
 }
