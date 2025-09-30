@@ -650,11 +650,6 @@ namespace DataModel
     //ODHActivityPoiPropertiesSuedtirolWein
     //ODHActivityPoiPropertiesEcharging
 
-    //Add the AdditionalProperty to ODHActivityPoiLinked
-    //Add a Method that returns the appropriate AdditionalProperties
-
-    //IDM
-
     public class PoiAgeDataProperties
     {        
         public int? AgeFrom { get; set; }
