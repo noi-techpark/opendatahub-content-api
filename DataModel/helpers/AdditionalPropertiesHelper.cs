@@ -108,11 +108,11 @@ namespace DataModel.helpers
 
         public void FillIDMPoiAdditionalProperties(ODHActivityPoi odhActivityPoi)
         {
-            AdditionalPropertiesIDMPoi addprop = new AdditionalPropertiesIDMPoi();
+            PoiAgeDataProperties addprop = new PoiAgeDataProperties();
             addprop.AgeFrom = odhActivityPoi.AgeFrom;
             addprop.AgeTo = odhActivityPoi.AgeTo;
             
-            var additionalpropertieskey = typeof(AdditionalPropertiesIDMPoi).Name;
+            var additionalpropertieskey = typeof(PoiAgeDataProperties).Name;
 
             if (odhActivityPoi.AdditionalProperties == null)
             {

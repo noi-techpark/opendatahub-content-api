@@ -9,12 +9,14 @@ using Newtonsoft.Json.Converters;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Text.Json.Serialization;
 
 namespace DataModel
 {
@@ -297,45 +299,18 @@ namespace DataModel
         }
 
         //Check if here we can define what classes this Additionalproperties can be
-        //[SwaggerSchema()]
+        [PolymorphicDictionary(
+            "EchargingDataProperties", typeof(EchargingDataProperties),
+            "ActivityLtsDataProperties", typeof(ActivityLtsDataProperties),
+            "PoiLtsDataProperties", typeof(PoiLtsDataProperties),
+            "GastronomyLtsDataProperties", typeof(GastronomyLtsDataProperties),
+            "PoiAgeDataProperties", typeof(PoiAgeDataProperties),
+            "SuedtirolWeinCompanyDataProperties", typeof(SuedtirolWeinCompanyDataProperties)
+        )]
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
     }
 
     public interface IAdditionalProperties { }
-
-    //TODO Move all properties to this section
-    public class ODHActivityPoiProperties : IAdditionalProperties
-    {
-        public int? AgeFrom { get; set; }
-        public int? AgeTo { get; set; }
-
-        public double? AltitudeDifference { get; set; }
-        public double? AltitudeHighestPoint { get; set; }
-        public double? AltitudeLowestPoint { get; set; }
-        public double? AltitudeSumUp { get; set; }
-        public double? AltitudeSumDown { get; set; }
-
-        public double? DistanceDuration { get; set; }
-        public double? DistanceLength { get; set; }
-
-        public bool? IsOpen { get; set; }
-        public bool? IsPrepared { get; set; }
-        public bool? RunToValley { get; set; }
-        public bool? IsWithLigth { get; set; }
-        public bool? HasRentals { get; set; }
-        public bool? HasFreeEntrance { get; set; }
-        public bool? LiftAvailable { get; set; }
-        public bool? FeetClimb { get; set; }
-
-        public bool? BikeTransport { get; set; }
-
-        public Ratings? Ratings { get; set; }
-        public ICollection<string>? Exposition { get; set; }
-
-        public int? WayNumber { get; set; }
-
-        public string? Number { get; set; }
-    }
 
     public class PoiProperty
     {

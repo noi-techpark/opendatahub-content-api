@@ -656,7 +656,7 @@ namespace DataModel
     //IDM
 
     public class PoiAgeDataProperties
-    {
+    {        
         public int? AgeFrom { get; set; }
         public int? AgeTo { get; set; }
     }
@@ -708,7 +708,7 @@ namespace DataModel
     }
 
     public class GastronomyLtsDataProperties
-    {
+    {        
         public int? MaxSeatingCapacity { get; set; }
         public ICollection<CategoryCodes>? CategoryCodes { get; set; }
         public ICollection<DishRates>? DishRates { get; set; }
@@ -717,7 +717,8 @@ namespace DataModel
     }
 
     public class SuedtirolWeinCompanyDataProperties
-    {
+    {        
+
         //TODO add Dictionary where it needs localization, categorize (socials) etc...
 
         public string OpeningtimesWineshop { get; set; }
@@ -763,7 +764,7 @@ namespace DataModel
 
     //Independent
     public class EchargingDataProperties
-    {
+    {        
         //Mobility Provides
         //state (ACTIVE)
         //capacity (integer)
