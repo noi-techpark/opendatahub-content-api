@@ -655,14 +655,14 @@ namespace DataModel
 
     //IDM
 
-    public class AdditionalPropertiesIDMPoi
+    public class PoiAgeDataProperties
     {
         public int? AgeFrom { get; set; }
         public int? AgeTo { get; set; }
     }
 
     //LTS
-    public class AdditionalPropertiesLTSActivity
+    public class ActivityLtsDataProperties
     {
         public double? AltitudeDifference { get; set; }
         public double? AltitudeHighestPoint { get; set; }
@@ -701,13 +701,13 @@ namespace DataModel
         //snowPark.isInground, snowPark.hasArtificiallySnow, snowPark.hasBoarderCross
     }
 
-    public class AdditionalPropertiesLTSPoi
+    public class PoiLtsDataProperties
     {        
         public bool? IsOpen { get; set; }
         public bool? HasFreeEntrance { get; set; }       
     }
 
-    public class AdditionalPropertiesLTSGastronomy
+    public class GastronomyLtsDataProperties
     {
         public int? MaxSeatingCapacity { get; set; }
         public ICollection<CategoryCodes>? CategoryCodes { get; set; }
@@ -716,7 +716,7 @@ namespace DataModel
         public ICollection<Facilities>? Facilities { get; set; }
     }
 
-    public class AdditionalPropertiesSuedtirolWeinCompany
+    public class SuedtirolWeinCompanyDataProperties
     {
         //TODO add Dictionary where it needs localization, categorize (socials) etc...
 
