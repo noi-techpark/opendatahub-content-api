@@ -80,6 +80,7 @@ namespace OdhApiImporter.Helpers
                             );
                        
                     break;
+                
                 case "gastronomy":
                     LTSApiGastronomyImportHelper ltsapigastroimporthelper = new LTSApiGastronomyImportHelper(
                         settings,
