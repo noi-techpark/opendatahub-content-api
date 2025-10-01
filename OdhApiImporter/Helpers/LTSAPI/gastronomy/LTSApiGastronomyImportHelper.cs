@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Helper.Generic;
 using Helper.Location;
@@ -393,6 +394,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //Create Tags and preserve the old TagEntries
                     await gastroparsed.UpdateTagsExtension(QueryFactory,await FillTagsObject.GetTagEntrysToPreserve(gastroparsed));
+
+                    //Fill AdditionalProperties
+                    //gastroparsed.FillLTSGastronomyAdditionalProperties();
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
 

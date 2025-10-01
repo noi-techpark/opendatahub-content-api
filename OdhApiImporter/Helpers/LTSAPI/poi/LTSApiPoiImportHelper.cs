@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Helper.Generic;
 using Helper.IDM;
@@ -388,9 +389,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     SetAdditionalInfosCategoriesByODHTags(poiparsed, jsondata);
 
-
                     //Create Tags and preserve the old TagEntries
                     await poiparsed.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(poiparsed));
+
+                    //Preserve old Values
+                    PreserveOldValues(poiparsed, poiindb);
+
+                    //Fill AdditionalProperties
+                    //poiparsed.FillLTSPoiAdditionalProperties();
+                    //poiparsed.FillIDMPoiAdditionalProperties();
 
                     var result = await InsertDataToDB(poiparsed, data.data);
 
@@ -829,7 +836,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-        }        
+        }
+
+        //Insert here all manually edited values to preserve
+        private static void PreserveOldValues(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        {
+            if (poiOld.AgeFrom != null && poiOld.AgeFrom > 0)
+                poiNew.AgeFrom = poiOld.AgeFrom;
+            if (poiOld.AgeTo != null && poiOld.AgeTo > 0)
+                poiNew.AgeTo = poiOld.AgeTo;
+        }
 
         #endregion
     }

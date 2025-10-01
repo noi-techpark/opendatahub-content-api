@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Helper.Generic;
 using Helper.IDM;
@@ -377,7 +378,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         await ReassignOutdooractiveMapping(activityparsed, activityindb);
 
                         //Add the MetaTitle for IDM
-                        await AddIDMMetaTitleAndDescription(activityparsed, metainfosidm);
+                        await AddIDMMetaTitleAndDescription(activityparsed, metainfosidm);                        
                     }
 
                     //When requested with opendata Interface does not return isActive field
@@ -392,6 +393,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //Create Tags and preserve the old TagEntries
                     await activityparsed.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(activityparsed));
+
+                    //Preserve old Values
+                    PreserveOldValues(activityparsed, activityindb);
+
+                    //Fill AdditionalProperties
+                    //activityparsed.FillLTSActivityAdditionalProperties();
+                    //activityparsed.FillIDMPoiAdditionalProperties();
 
                     var result = await InsertDataToDB(activityparsed, data.data);
 
@@ -952,6 +960,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
+        }
+
+        //Insert here all manually edited values to preserve
+        private static void PreserveOldValues(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        {
+            if (poiOld.AgeFrom != null && poiOld.AgeFrom > 0)
+                poiNew.AgeFrom = poiOld.AgeFrom;
+            if (poiOld.AgeTo != null && poiOld.AgeTo > 0)
+                poiNew.AgeTo = poiOld.AgeTo;
         }
 
         #endregion

@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace DataModel.helpers
 {
-    public class AdditionalPropertiesHelper
+    public static class AdditionalPropertiesHelper
     {
-        public void FillLTSActivityAdditionalProperties(ODHActivityPoi odhActivityPoi)
+        public static void FillLTSActivityAdditionalProperties(this ODHActivityPoi odhActivityPoi)
         {
             ActivityLtsDataProperties addprop = new ActivityLtsDataProperties();
             addprop.AltitudeDifference = odhActivityPoi.AltitudeDifference;
@@ -57,7 +57,7 @@ namespace DataModel.helpers
 
         }
 
-        public void FillLTSPoiAdditionalProperties(ODHActivityPoi odhActivityPoi)
+        public static void FillLTSPoiAdditionalProperties(this ODHActivityPoi odhActivityPoi)
         {
             PoiLtsDataProperties addprop = new PoiLtsDataProperties();            
             addprop.IsOpen = odhActivityPoi.IsOpen;
@@ -80,7 +80,7 @@ namespace DataModel.helpers
 
         }
 
-        public void FillLTSGastronomyAdditionalProperties(ODHActivityPoi odhActivityPoi)
+        public static void FillLTSGastronomyAdditionalProperties(this ODHActivityPoi odhActivityPoi)
         {
             GastronomyLtsDataProperties addprop = new GastronomyLtsDataProperties();
             addprop.MaxSeatingCapacity = odhActivityPoi.MaxSeatingCapacity;
@@ -106,7 +106,7 @@ namespace DataModel.helpers
 
         }
 
-        public void FillIDMPoiAdditionalProperties(ODHActivityPoi odhActivityPoi)
+        public static void FillIDMPoiAdditionalProperties(this ODHActivityPoi odhActivityPoi)
         {
             PoiAgeDataProperties addprop = new PoiAgeDataProperties();
             addprop.AgeFrom = odhActivityPoi.AgeFrom;

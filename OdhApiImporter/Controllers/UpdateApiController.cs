@@ -2907,9 +2907,11 @@ namespace OdhApiImporter.Controllers
                 OutdoorActiveImportHelper outdooractiveimporthelper = new OutdoorActiveImportHelper(
                     settings,
                     QueryFactory,
-                    "",
+                    "smgpois",
                     UrlGeneratorStatic("OUTDOORACTIVE/" + datatype)
                 );
+
+                outdooractiveimporthelper.SetType(datatype);
 
                 updatedetail = await outdooractiveimporthelper.SaveDataToODH(
                     null,

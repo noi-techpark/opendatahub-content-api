@@ -39,6 +39,16 @@ namespace OdhApiImporter.Helpers
             syncelevation = false;
         }
 
+        public void SetType(string typepassed)
+        {
+            if (typepassed == "activity")
+                this.type = "lts-tours";
+            else if (typepassed == "poi")
+                this.type = "lts-points";
+            else
+                throw new Exception("invalid type passed");
+        }
+
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
