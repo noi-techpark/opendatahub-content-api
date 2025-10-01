@@ -7,6 +7,7 @@ using Helper;
 using Helper.Generic;
 using LTSAPI;
 using OUTDOORACTIVE;
+using OUTDOORACTIVE.Parser;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -89,7 +90,7 @@ namespace OdhApiImporter.Helpers
                 //loop trough outdooractive items
                 foreach (XElement oadatael in oadata.Root.Elements("content"))
                 {
-                    var importresult = await ImportDataSingle(oadatael);
+                    var importresult = await ImportDataSingle(oadatael, cancellationToken);
 
                     newcounter = newcounter + importresult.created ?? newcounter;
                     updatecounter = updatecounter + importresult.updated ?? updatecounter;
@@ -107,7 +108,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parsing the Data
-        public async Task<UpdateDetail> ImportDataSingle(XElement oadata)
+        public async Task<UpdateDetail> ImportDataSingle(XElement oadata, CancellationToken cancellationToken)
         {
             int updatecounter = 0;
             int newcounter = 0;
@@ -121,26 +122,16 @@ namespace OdhApiImporter.Helpers
             {
                 var ltsid = oadata.Attribute("foreignKey").Value;
 
-                string ltstype = "";
-
                 if (ltsid.StartsWith("lts-points"))
-                {
-                    ltsid = ltsid.Replace("lts-points.21430.", "");
-                    ltstype = "poi";
-                }
-                if (ltsid.StartsWith("lts-tours"))
-                {
-                    ltsid = ltsid.Replace("lts-tours.21450.", "");
-                    ltstype = "activity";
-                }
+                    ltsid = ltsid.Replace("lts-points.21430.", "").Trim();
 
-                ltsid = ltsid.Trim();
+                if (ltsid.StartsWith("lts-tours"))
+                    ltsid = ltsid.Replace("lts-tours.21450.", "").Trim();
+                
                 returnid = ltsid;
 
                 var outdooractiveid = oadata.Attribute("id").Value;
-
                 var state = oadata.Attribute("state").Value;
-
                 var lastchanged = DateTime.Parse(oadata.Attribute("lastModifiedAt").Value);
 
                 if (state == "published" && !String.IsNullOrEmpty(ltsid))
@@ -155,22 +146,39 @@ namespace OdhApiImporter.Helpers
                             odhactivitypoiindb.OutdooractiveID = outdooractiveid;
 
                             string oaelevation = null;
-                            //TODO if elevation SYNC enabled sync also the Elevation
-                            if(syncelevation)
+                            
+                            //If elevation SYNC enabled sync also the Elevation
+                            if (syncelevation)
                             {
-
+                                //TODO Add this also to Rawdata ?
+                                var oadatasingle = await GetDataSingle(outdooractiveid, cancellationToken);
+                                var parsedoadatasingle = ParseOutdooractiveData.ParseOADataDetail(oadatasingle);
+                                if (parsedoadatasingle != null)
+                                {
+                                    oaelevation = parsedoadatasingle.elevationprofile_id.ToString();                                    
+                                }
                             }
 
-
-                            if(odhactivitypoiindb.Mapping != null && odhactivitypoiindb.Mapping.ContainsKey("outdooractive"))
+                            if (odhactivitypoiindb.Mapping != null && odhactivitypoiindb.Mapping.ContainsKey("outdooractive"))
                             {
                                 var oaiddict = odhactivitypoiindb.Mapping["outdooractive"];
                                 oaiddict.TryAddOrUpdate("id", outdooractiveid);
+                                if (!String.IsNullOrEmpty(oaelevation))
+                                {
+                                    odhactivitypoiindb.OutdooractiveElevationID = outdooractiveid;
+                                    oaiddict.TryAddOrUpdate("elevationid", oaelevation);
+                                }
                                 odhactivitypoiindb.Mapping.TryAddOrUpdate("outdooractive", oaiddict);
                             }
                             else
                             {                                
                                 var oaiddict = new Dictionary<string, string>() { { "id", outdooractiveid } };
+                                if (!String.IsNullOrEmpty(oaelevation))
+                                {
+                                    odhactivitypoiindb.OutdooractiveElevationID = outdooractiveid;
+                                    oaiddict.TryAddOrUpdate("elevationid", oaelevation);
+                                }
+                                    
                                 odhactivitypoiindb.Mapping.TryAddOrUpdate("outdooractive", oaiddict);
                             }
 

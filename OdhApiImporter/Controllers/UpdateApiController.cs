@@ -2891,6 +2891,8 @@ namespace OdhApiImporter.Controllers
         [HttpGet, Route("OUTDOORACTIVE/Update/{datatype}")]
         public async Task<IActionResult> UpdateOutdoorActiveData(
             string datatype,
+            string updatefrom,
+            bool syncelevation = false,
             CancellationToken cancellationToken = default
         )
         {

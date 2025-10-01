@@ -315,13 +315,29 @@ namespace Helper
                                             ? false
                                             : true;
 
+                                bool locinfonotemptyandsourcelts = true;
+                                if (mydata._Meta.Source == "lts")
+                                {
+                                    //IF data is from Source LTS and has no Locationinfo (outside of South Tyrol) deactivate it
+                                    if((mydata as ODHActivityPoiLinked).LocationInfo == null ||
+                                        (
+                                            (mydata as ODHActivityPoiLinked).LocationInfo.TvInfo == null &&
+                                            (mydata as ODHActivityPoiLinked).LocationInfo.RegionInfo == null &&
+                                            (mydata as ODHActivityPoiLinked).LocationInfo.DistrictInfo == null &&
+                                            (mydata as ODHActivityPoiLinked).LocationInfo.MunicipalityInfo == null
+                                        ))
+                                    {
+                                        locinfonotemptyandsourcelts = false;
+                                    }                                    
+                                }
+
                                 //IF category is white or blacklisted find an intersection
                                 var tagintersection = (mydata as ODHActivityPoiLinked).SmgTags != null ? allowedtags                                    
                                     .Select(x => x.Id)
                                     .ToList()
                                     .Intersect((mydata as ODHActivityPoiLinked).SmgTags) : new List<string>();
 
-                                if (tagintersection.Count() > 0 && tvallowed && ownerallowed)
+                                if (tagintersection.Count() > 0 && tvallowed && ownerallowed && locinfonotemptyandsourcelts)
                                 {
                                     var blacklistedpublisher = new List<string>();
 
@@ -379,11 +395,7 @@ namespace Helper
                                 {
                                     publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                                 }
-                            }
-
-
-                            
-
+                            }                            
                         }
 
                         break;
