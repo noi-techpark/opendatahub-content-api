@@ -322,10 +322,10 @@ namespace Helper.Location
                         return await GetTheLocationInfoDistrict(queryFactory, district.Id);
                     }
                     else
-                        return null;
+                        return new LocationInfoLinked();
                 }
                 else
-                    return null;
+                    return new LocationInfoLinked();
                 //TODO Use Area, use TV use SIAG Methods
             }
             else

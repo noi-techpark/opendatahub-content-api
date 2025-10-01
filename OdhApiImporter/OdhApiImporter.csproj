@@ -32,6 +32,7 @@
     <ProjectReference Include="..\MSS\MSS.csproj" />
     <ProjectReference Include="..\NINJA\NINJA.csproj" />
     <ProjectReference Include="..\OdhNotifier\OdhNotifier.csproj" />
+    <ProjectReference Include="..\OUTDOORACTIVE\OUTDOORACTIVE.csproj" />
     <ProjectReference Include="..\PANOCLOUD\PANOCLOUD.csproj" />
     <ProjectReference Include="..\PANOMAX\PANOMAX.csproj" />
     <ProjectReference Include="..\PushServer\PushServer.csproj" />

@@ -2885,6 +2885,66 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region OUTDOORACTIVE DATA SYNC
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("OUTDOORACTIVE/Update/{datatype}")]
+        public async Task<IActionResult> UpdateOutdoorActiveData(
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import Outdooractive " + datatype;
+            string updatetype = GetUpdateType(null);
+            string source = "outdooractive";
+            string otherinfo = "rawonly";
+
+            try
+            {
+                OutdoorActiveImportHelper outdooractiveimporthelper = new OutdoorActiveImportHelper(
+                    settings,
+                    QueryFactory,
+                    "",
+                    UrlGeneratorStatic("OUTDOORACTIVE/" + datatype)
+                );
+
+                updatedetail = await outdooractiveimporthelper.SaveDataToODH(
+                    null,
+                    null,
+                    cancellationToken
+                );
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    $"Import Outdooractive {datatype} succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                     $"Import Outdooractive {datatype} failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        #endregion
 
         #region DIGIWAY
 
