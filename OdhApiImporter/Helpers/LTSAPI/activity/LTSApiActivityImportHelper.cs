@@ -827,7 +827,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         {
                             if (smgtagtotranslate.TagName.ContainsKey(languagecategory))
                             {
-                                additionalPoiInfos.Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
+                                if (!additionalPoiInfos.Categories.Contains(smgtagtotranslate.TagName[languagecategory].Trim()))
+                                    additionalPoiInfos.Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
                             }
                         }
 
@@ -965,10 +966,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
         //Insert here all manually edited values to preserve
         private static void PreserveOldValues(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
         {
-            if (poiOld.AgeFrom != null && poiOld.AgeFrom > 0)
-                poiNew.AgeFrom = poiOld.AgeFrom;
-            if (poiOld.AgeTo != null && poiOld.AgeTo > 0)
-                poiNew.AgeTo = poiOld.AgeTo;
+            if (poiOld != null)
+            {
+                if (poiOld.AgeFrom != null && poiOld.AgeFrom > 0)
+                    poiNew.AgeFrom = poiOld.AgeFrom;
+                if (poiOld.AgeTo != null && poiOld.AgeTo > 0)
+                    poiNew.AgeTo = poiOld.AgeTo;
+            }
         }
 
         #endregion
