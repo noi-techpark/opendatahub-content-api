@@ -2,13 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
 using AspNetCore.CacheOutput.InMemory.Extensions;
 using Helper;
 using Helper.Factories;
@@ -39,6 +32,13 @@ using Serilog.Events;
 using SqlKata.Execution;
 using Swashbuckle.AspNetCore.Filters;
 using Swashbuckle.AspNetCore.Swagger;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Reflection;
 
 namespace OdhApiCore
 {
@@ -457,7 +457,22 @@ namespace OdhApiCore
                 c.SchemaFilter<DeprecatedAttributeSchemaFilter>();
                 c.SchemaFilter<EnumAttributeSchemaFilter>();
                 c.SchemaFilter<ReferencedAttributeSchemaFilter>();
+                c.SchemaFilter<PolymorphicDictionarySchemaFilter>();
                 c.EnableAnnotations();
+                //c.UseOneOfForPolymorphism();
+                //c.UseAllOfForInheritance();
+                //c.SelectDiscriminatorNameUsing(baseType =>
+                //    baseType == typeof(BaseAdditionalProperties) ? "Type" : null);
+                //c.SelectDiscriminatorValueUsing(subType =>
+                //{
+                //    if (subType == typeof(EchargingDataProperties)) return "echargingdata";
+                //    if (subType == typeof(ActivityLtsDataProperties)) return "activitylts";
+                //    if (subType == typeof(PoiLtsDataProperties)) return "poilts";
+                //    if (subType == typeof(GastronomyLtsDataProperties)) return "gastronomylts";
+                //    if (subType == typeof(SuedtirolWeinCompanyDataProperties)) return "suedtirolweincompany";
+                //    if (subType == typeof(PoiAgeDataProperties)) return "poiage";
+                //    return null;
+                //});
                 //c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 //{
                 //    {

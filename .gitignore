@@ -188,3 +188,5 @@ $RECYCLE.BIN/
 /OdhApiImporter/json/CategoryCodes.json
 /OdhApiImporter/json/DishRates.json
 /OdhApiImporter/json/Facilities.json
+/OdhApiImporter/json/AutoPublishTags.json
+/OdhApiImporter/json/GenericTags.json

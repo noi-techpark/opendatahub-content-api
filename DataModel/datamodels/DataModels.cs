@@ -9,12 +9,14 @@ using Newtonsoft.Json.Converters;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Text.Json.Serialization;
 
 namespace DataModel
 {
@@ -297,45 +299,18 @@ namespace DataModel
         }
 
         //Check if here we can define what classes this Additionalproperties can be
-        //[SwaggerSchema()]
+        [PolymorphicDictionary(
+            "EchargingDataProperties", typeof(EchargingDataProperties),
+            "ActivityLtsDataProperties", typeof(ActivityLtsDataProperties),
+            "PoiLtsDataProperties", typeof(PoiLtsDataProperties),
+            "GastronomyLtsDataProperties", typeof(GastronomyLtsDataProperties),
+            "PoiAgeDataProperties", typeof(PoiAgeDataProperties),
+            "SuedtirolWeinCompanyDataProperties", typeof(SuedtirolWeinCompanyDataProperties)
+        )]
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
     }
 
     public interface IAdditionalProperties { }
-
-    //TODO Move all properties to this section
-    public class ODHActivityPoiProperties : IAdditionalProperties
-    {
-        public int? AgeFrom { get; set; }
-        public int? AgeTo { get; set; }
-
-        public double? AltitudeDifference { get; set; }
-        public double? AltitudeHighestPoint { get; set; }
-        public double? AltitudeLowestPoint { get; set; }
-        public double? AltitudeSumUp { get; set; }
-        public double? AltitudeSumDown { get; set; }
-
-        public double? DistanceDuration { get; set; }
-        public double? DistanceLength { get; set; }
-
-        public bool? IsOpen { get; set; }
-        public bool? IsPrepared { get; set; }
-        public bool? RunToValley { get; set; }
-        public bool? IsWithLigth { get; set; }
-        public bool? HasRentals { get; set; }
-        public bool? HasFreeEntrance { get; set; }
-        public bool? LiftAvailable { get; set; }
-        public bool? FeetClimb { get; set; }
-
-        public bool? BikeTransport { get; set; }
-
-        public Ratings? Ratings { get; set; }
-        public ICollection<string>? Exposition { get; set; }
-
-        public int? WayNumber { get; set; }
-
-        public string? Number { get; set; }
-    }
 
     public class PoiProperty
     {
@@ -402,123 +377,6 @@ namespace DataModel
         public string? Objectid { get; set; }
     }
 
-    public class EchargingDataProperties
-    {
-        //Mobility Provides
-        //state (ACTIVE)
-        //capacity (integer)
-        //provider
-        //accessInfo (FREE_PUBLICLY_ACCESSIBLE)
-        //accessType (PUBLIC)
-        //reservable (true/false)
-        //paymentInfo
-        //outlets [ id, maxPower, maxCurrent, minCurrent, outletTypeCode (Type2Mennekes, CHAdeMO, CCS, 700 bar small vehicles, )  ]
-
-        public int? Capacity { get; set; }
-
-        [SwaggerSchema(Description = "State of the E-chargingstation", ReadOnly = true)]
-        [SwaggerEnum(
-            new[]
-            {
-                "UNAVAILABLE",
-                "ACTIVE",
-                "TEMPORARYUNAVAILABLE",
-                "AVAILABLE",
-                "UNKNOWN",
-                "FAULT",
-                "PLANNED",
-            }
-        )]
-        public string? State { get; set; }
-
-        [SwaggerSchema(Description = "Information about Payment", ReadOnly = true)]
-        public string? PaymentInfo { get; set; }
-
-        [SwaggerSchema(Description = "Public or private access", ReadOnly = true)]
-        [SwaggerEnum(new[] { "PUBLIC", "PRIVATE", "PRIVATE_WITHPUBLICACCESS" })]
-        public string? AccessType { get; set; }
-
-        [SwaggerSchema(Description = "Types of the Charging Pistols", ReadOnly = true)]
-        [SwaggerEnum(
-            new[]
-            {
-                "Typ 1-Stecker",
-                "Typ 2-Stecker",
-                "Combo-Stecker",
-                "CHAdeMO-Stecker",
-                "Tesla Supercharger",
-            }
-        )]
-        public List<string>? ChargingPistolTypes { get; set; }
-
-        [SwaggerSchema(Description = "AccessType Information", ReadOnly = true)]
-        public string AccessTypeInfo { get; set; }
-
-        public DateTime? SurveyDate { get; set; }
-        public string? SurveyType { get; set; }
-
-        public IDictionary<string, string> SurveyAnnotations { get; set; }
-
-        public bool? Covered { get; set; }
-        public bool? VerticalRoadSign { get; set; }
-        public bool? HorizontalFloorRoadSign { get; set; }
-
-        [SwaggerSchema(Description = "Charging Station Accessible", ReadOnly = true)]
-        public bool? ChargingStationAccessible { get; set; }
-
-        [SwaggerSchema("Maximum operation height in cm")]
-        public int? DisplayOrCardReaderOperationHeight { get; set; }
-
-        [SwaggerSchema("Maximum operation height in cm (barrierfree = 90-120 cm)")]
-        public int? ChargingPistolOperationHeight { get; set; }
-
-        public int? ChargingCableLength { get; set; }
-
-        public bool? ShieldingPostInFrontOfStation { get; set; }
-
-        [SwaggerSchema(
-            "Stufenlose Gehsteiganbindung: zulässige maximale Steigung <5-8%) bodengleich an den Gehsteig angebunden"
-        )]
-        public bool? SteplessSidewalkConnection { get; set; }
-
-        [SwaggerEnum(new[] { "Barrierefrei", "Bedingt zugänglich", "Nicht zugänglich" })]
-        public string? Barrierfree { get; set; }
-
-        //public ICollection<CarparkingArea> CarparkingArea { get; set; }
-
-        public EchargingCarparkingArea? CarParkingSpaceNextToEachOther { get; set; }
-        public EchargingCarparkingArea? CarParkingSpaceBehindEachOther { get; set; }
-    }
-
-    public class EchargingCarparkingArea
-    {
-        //[SwaggerEnum(new[] { "column", "row" })]
-        //public string? Type { get; set; }
-
-        [SwaggerSchema("Eben (wenn Steigung <5% und Querneigung <3%)")]
-        public bool? Flat { get; set; }
-
-        [SwaggerSchema("Steigung % (wenn Steigung >5%)")]
-        public double? Gradient { get; set; }
-
-        [SwaggerSchema("Querneigung % (wenn Querneigung >3%)")]
-        public double? LateralInclination { get; set; }
-
-        [SwaggerEnum(new[] { "Barrierefrei", "Bedingt zugänglich", "Nicht zugänglich" })]
-        public string Pavement { get; set; }
-
-        [SwaggerSchema("Width, (on column barrierfree = 350 cm), (on row barrierfree = 250 cm)")]
-        public int? Width { get; set; }
-
-        [SwaggerSchema("Length, (on column barrierfree = 500 cm), (on row barrierfree = 650 cm)")]
-        public int? Length { get; set; }
-
-        [SwaggerSchema("Barrier-free access space signage present")]
-        public bool? ManeuvringSpaceSignagePresent { get; set; }
-
-        [SwaggerSchema("Barrier-free access space to charging point(monitor / pistol)")]
-        public bool? BarrierFreeAccessSpacetoChargingPoint { get; set; }
-    }
 
     #endregion
 

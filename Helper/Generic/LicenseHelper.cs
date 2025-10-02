@@ -305,7 +305,96 @@ namespace Helper
 
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
-   
+
+        public static LicenseInfo GetLicenseforOdhActivityPoi(ODHActivityPoi data, bool opendata = false)
+        {
+            bool isopendata = opendata;
+
+            var licensetype = "Closed";
+            var licenseholder = data.Source ?? "";
+
+            if (data.Source == null)
+                data.Source = "Content";
+
+            if (data.Source.ToLower() == "noi")
+                licenseholder = "http://noi.bz.it";
+            if (
+                data.Source.ToLower() == "idm"
+                || data.Source.ToLower() == "content"
+                || data.Source.ToLower() == "magnolia"
+                || data.Source.ToLower() == "common"
+            )
+                licenseholder = @"https://www.idm-suedtirol.com";
+            if (data.Source.ToLower() == "siag")
+                licenseholder = "http://www.provinz.bz.it/kunst-kultur/museen";
+            if (data.Source.ToLower() == "archapp")
+                licenseholder = "https://stiftung.arch.bz.it";
+            if (data.Source.ToLower() == "suedtirolwein")
+                licenseholder = "https://www.suedtirolwein.com";
+            if (data.Source.ToLower() == "sta")
+                licenseholder = "https://www.sta.bz.it";
+            if (data.Source.ToLower() == "lts")
+                licenseholder = @"https://www.lts.it";
+            if (data.Source.ToLower() == "dss")
+                licenseholder = @"https://www.dolomitisuperski.com";
+            if (data.Source.ToLower() == "alperia")
+                licenseholder = @"";
+            if (data.Source.ToLower() == "iit")
+                licenseholder = @"";
+            if (data.Source.ToLower() == "driwe")
+                licenseholder = @"";
+            if (data.Source.ToLower() == "route220")
+                licenseholder = @"";
+            if (data.Source.ToLower() == "echargingspreadsheet")
+                licenseholder = @"";
+            if (data.Source.ToLower() == "civis.geoserver")
+                licenseholder = @"https://geoservices1.civis.bz.it";
+
+            List<string?> allowedsyncsourceinterfaces = new List<string?>()
+            {
+                "magnolia",
+                "none",
+                "museumdata",
+                "suedtirolwein",
+                "suedtirolweincompany",
+                "suedtirolweinaward",
+                "archapp",
+                "activitydata",
+                "poidata",
+                "beacondata",
+                "gastronomicdata",
+                "common",
+                "sta",
+                "dssliftbase",
+                "dssslopebase",
+                "noi",
+                "neogy",
+                "driwe",
+                "ecogy gmbh",
+                "route220",
+                "leitner energy",
+                "�tzi genossenschaft",
+                "vek",
+                "pension erlacher",
+                "officina elettrica san vigilio di marebbe spa",
+                "geoservices1.civis.bz.it",
+                "gtfsapi",
+                "civis.geoserver."
+            };
+
+            if (data.Active)
+            {
+                if (data.SyncSourceInterface != null && allowedsyncsourceinterfaces.Where(x => x.StartsWith(data.SyncSourceInterface?.ToLower())).Count() > 0)
+                {
+                    isopendata = true;
+                    licensetype = "CC0";
+                }
+            }
+
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
+        }
+
+
         public static LicenseInfo GetLicenseforPackage(Package data)
         {
             var isopendata = false;

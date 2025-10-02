@@ -45,6 +45,7 @@ namespace Helper
         MusportConfig MusportConfig { get; }
         SuedtirolWeinConfig SuedtirolWeinConfig { get; }
         LoopTecConfig LoopTecConfig { get; }
+        OutdooractiveConfig OutdooractiveConfig { get; }
         IDictionary<string, DigiWayConfig> DigiWayConfig { get; }
         IDictionary<string, GTFSApiConfig> GTFSApiConfig { get; }
         LTSCredentials LtsCredentials { get; }
@@ -446,6 +447,22 @@ namespace Helper
         public string User { get; private set; }
         public string Password { get; private set; }
         public string ServiceUrl { get; private set; }
+    }
+
+    public class OutdooractiveConfig
+    {
+        public OutdooractiveConfig(string user, string password, string serviceurl, string serviceurldetail)
+        {
+            this.User = user;
+            this.Password = password;
+            this.ServiceUrl = serviceurl;
+            this.ServiceUrlDetail = serviceurldetail;
+        }
+
+        public string User { get; private set; }
+        public string Password { get; private set; }
+        public string ServiceUrl { get; private set; }
+        public string ServiceUrlDetail { get; private set; }
     }
 
     public class S3Config

@@ -295,108 +295,108 @@ namespace OdhApiImporter.Helpers
                     //    );
                     //}
 
-                    throw new Exception("Gastronomy Update Raven Migrated!");
-
-                    break;
+                    throw new Exception("Gastronomy Update Raven Migrated!");                    
 
                 case "activity":
-                    mydata = await GetDataFromRaven.GetRavenData<LTSActivityLinked>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            LTSActivityLinked,
-                            LTSActivityLinked
-                        >((LTSActivityLinked)mydata, TransformToPGObject.GetActivityPGObject);
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<LTSActivityLinked>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<
+                    //        LTSActivityLinked,
+                    //        LTSActivityLinked
+                    //    >((LTSActivityLinked)mydata, TransformToPGObject.GetActivityPGObject);
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    myupdateresult = await SaveRavenObjectToPG<LTSActivityLinked>(
-                        (LTSActivityLinked)mypgdata,
-                        "activities",
-                        false,
-                        false,
-                        true
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<LTSActivityLinked>(
+                    //    (LTSActivityLinked)mypgdata,
+                    //    "activities",
+                    //    false,
+                    //    false,
+                    //    true
+                    //);
 
-                    //No need for Publishedon, neither comparing data since this data is from a deprecated endpoint
+                    ////No need for Publishedon, neither comparing data since this data is from a deprecated endpoint
 
-                    //Check if data has to be reduced and save it
-                    if (
-                        ReduceDataTransformer.ReduceDataCheck<LTSActivityLinked>(
-                            (LTSActivityLinked)mypgdata
-                        ) == true
-                    )
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (LTSActivityLinked)mypgdata,
-                            ReduceDataTransformer.CopyLTSActivityToReducedObject
-                        );
+                    ////Check if data has to be reduced and save it
+                    //if (
+                    //    ReduceDataTransformer.ReduceDataCheck<LTSActivityLinked>(
+                    //        (LTSActivityLinked)mypgdata
+                    //    ) == true
+                    //)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (LTSActivityLinked)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSActivityToReducedObject
+                    //    );
 
-                        updateresultreduced = await SaveRavenObjectToPG<LTSActivityLinked>(
-                            (LTSActivityLinkedReduced)reducedobject,
-                            "activities",
-                            false,
-                            false,
-                            false
-                        );
-                    }
+                    //    updateresultreduced = await SaveRavenObjectToPG<LTSActivityLinked>(
+                    //        (LTSActivityLinkedReduced)reducedobject,
+                    //        "activities",
+                    //        false,
+                    //        false,
+                    //        false
+                    //    );
+                    //}
 
-                    break;
+                    throw new Exception("Activity Update Raven Migrated!");                    
 
                 case "poi":
-                    mydata = await GetDataFromRaven.GetRavenData<LTSPoiLinked>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<LTSPoiLinked, LTSPoiLinked>(
-                            (LTSPoiLinked)mydata,
-                            TransformToPGObject.GetPoiPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<LTSPoiLinked>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<LTSPoiLinked, LTSPoiLinked>(
+                    //        (LTSPoiLinked)mydata,
+                    //        TransformToPGObject.GetPoiPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    myupdateresult = await SaveRavenObjectToPG<LTSPoiLinked>(
-                        (LTSPoiLinked)mypgdata,
-                        "pois",
-                        false,
-                        false,
-                        true
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<LTSPoiLinked>(
+                    //    (LTSPoiLinked)mypgdata,
+                    //    "pois",
+                    //    false,
+                    //    false,
+                    //    true
+                    //);
 
-                    //No need for Publishedon, neither comparing data since this data is from a deprecated endpoint
+                    ////No need for Publishedon, neither comparing data since this data is from a deprecated endpoint
 
-                    //Check if data has to be reduced and save it
-                    if (
-                        ReduceDataTransformer.ReduceDataCheck<LTSPoiLinked>((LTSPoiLinked)mypgdata)
-                        == true
-                    )
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (LTSPoiLinked)mypgdata,
-                            ReduceDataTransformer.CopyLTSPoiToReducedObject
-                        );
+                    ////Check if data has to be reduced and save it
+                    //if (
+                    //    ReduceDataTransformer.ReduceDataCheck<LTSPoiLinked>((LTSPoiLinked)mypgdata)
+                    //    == true
+                    //)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (LTSPoiLinked)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSPoiToReducedObject
+                    //    );
 
-                        updateresultreduced = await SaveRavenObjectToPG<LTSPoiLinked>(
-                            (LTSPoiLinkedReduced)reducedobject,
-                            "pois",
-                            false,
-                            false,
-                            false                            
-                        );
-                    }
+                    //    updateresultreduced = await SaveRavenObjectToPG<LTSPoiLinked>(
+                    //        (LTSPoiLinkedReduced)reducedobject,
+                    //        "pois",
+                    //        false,
+                    //        false,
+                    //        false                            
+                    //    );
+                    //}
 
-                    break;
+                    //break;
+
+                    throw new Exception("Poi Update Raven Migrated!");
 
                 case "odhactivitypoi":
                     mydata = await GetDataFromRaven.GetRavenData<ODHActivityPoiLinked>(
@@ -408,6 +408,11 @@ namespace OdhApiImporter.Helpers
                         cancellationToken
                     );
                     if (mydata != null)
+                    {
+                        if (((ODHActivityPoiLinked)mydata).Source.ToLower() == "lts")
+                            throw new Exception("Activity, Poi, Gastronomy Update Raven Migrated!");
+
+
                         mypgdata = TransformToPGObject.GetPGObject<
                             ODHActivityPoiLinked,
                             ODHActivityPoiLinked
@@ -415,6 +420,7 @@ namespace OdhApiImporter.Helpers
                             (ODHActivityPoiLinked)mydata,
                             TransformToPGObject.GetODHActivityPoiPGObject
                         );
+                    }
                     else
                         throw new Exception("No data found!");
 
@@ -534,9 +540,7 @@ namespace OdhApiImporter.Helpers
                     //    );
                     //}
 
-                    throw new Exception("Events Update Raven Migrated!");
-
-                    break;
+                    throw new Exception("Events Update Raven Migrated!");                    
 
                 case "webcam":
                     mydata = await GetDataFromRaven.GetRavenData<WebcamInfoRaven>(
@@ -1225,38 +1229,57 @@ namespace OdhApiImporter.Helpers
                     //    true
                     //);
 
-                    throw new Exception("Gastronomy Delete Raven Migrated!");
-
-                    break;
+                    throw new Exception("Gastronomy Delete Raven Migrated!");                   
 
                 case "activity":
 
-                    deleteresult = await DeleteRavenObjectFromPG<LTSActivityLinked>(
-                        id,
-                        "activities",
-                        true
-                    );
+                    //deleteresult = await DeleteRavenObjectFromPG<LTSActivityLinked>(
+                    //    id,
+                    //    "activities",
+                    //    true
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Activity Delete Raven Migrated!");
 
                 case "poi":
 
-                    deleteresult = await DeleteRavenObjectFromPG<LTSPoiLinked>(
-                        id, 
-                        "pois", 
-                        true
-                    );
+                    //deleteresult = await DeleteRavenObjectFromPG<LTSPoiLinked>(
+                    //    id, 
+                    //    "pois", 
+                    //    true
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Poi Delete Raven Migrated!");
 
                 case "odhactivitypoi":
 
+                    //Check Source
+                    var mydata = await GetDataFromRaven.GetRavenData<ODHActivityPoiLinked>(
+                        datatype,
+                        id,
+                        settings.RavenConfig.ServiceUrl,
+                        settings.RavenConfig.User,
+                        settings.RavenConfig.Password,
+                        cancellationToken
+                    );
+                    if (mydata != null)
+                    {
+                        if (((ODHActivityPoiLinked)mydata).Source.ToLower() == "lts")
+                            throw new Exception("Activity, Poi, Gastronomy Delete Raven Migrated!");
+                    }
+
+
                     //Delete
                     deleteresult = await DeleteRavenObjectFromPG<ODHActivityPoiLinked>(
-                        id,
-                        "smgpois",
-                        true
+                    id,
+                    "smgpois",
+                    true
                     );
+
                     deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
                     break;
@@ -1267,9 +1290,7 @@ namespace OdhApiImporter.Helpers
                     //deleteresult = await DeleteRavenObjectFromPG<EventLinked>(id, "events", true);
                     //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    throw new Exception("Events Delete Raven Migrated!");
-
-                    break;
+                    throw new Exception("Events Delete Raven Migrated!");                    
 
                 case "metaregion":
 

@@ -37,6 +37,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "STA", "STA\STA.csproj", "{7CF11DF2-132A-4A3B-BC3C-22DD543FC5BE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OdhApiImporter", "OdhApiImporter\OdhApiImporter.csproj", "{3AB01F9C-524C-46EA-A43D-5E9AAA47F331}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E} = {3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonLDTransformer", "JsonLDTransformer\JsonLDTransformer.csproj", "{86048A5A-5F85-4E40-861F-974D2DA2E1D0}"
 EndProject
@@ -65,6 +68,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GTFSAPI", "GTFSAPI\GTFSAPI.csproj", "{5BE4934F-E414-49EC-8B7B-F37851307395}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperTests", "HelperTests\HelperTests.csproj", "{2C84B950-2688-4EB8-B956-8E9F8BAE8532}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OUTDOORACTIVE", "OUTDOORACTIVE\OUTDOORACTIVE.csproj", "{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -188,6 +193,10 @@ Global
 		{2C84B950-2688-4EB8-B956-8E9F8BAE8532}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2C84B950-2688-4EB8-B956-8E9F8BAE8532}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2C84B950-2688-4EB8-B956-8E9F8BAE8532}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

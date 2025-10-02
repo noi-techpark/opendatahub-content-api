@@ -336,9 +336,12 @@ namespace OdhApiImporter.Helpers.RAVEN
                             : null
                         : null;
 
-                foreach (var card in cardtypes)
+                if (cardtypes != null)
                 {
-                    accommodation.TagIds.Add(card.rid);
+                    foreach (var card in cardtypes)
+                    {
+                        accommodation.TagIds.Add(card.rid);
+                    }
                 }
 
                 //Add also Type and Category to TagIds
