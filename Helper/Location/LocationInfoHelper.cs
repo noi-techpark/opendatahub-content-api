@@ -270,14 +270,14 @@ namespace Helper.Location
                 //Check if 
                 (oldlocationinfo != null && oldlocationinfo.DistrictInfo != null && oldlocationinfo.RegionInfo == null && oldlocationinfo.MunicipalityInfo == null && oldlocationinfo.TvInfo == null))
             {
-                //IF a DistrictId is there use this
-                if (data is IDistrictId && !String.IsNullOrEmpty((data as IDistrictId).DistrictId))
+                //IF a DistrictId is there use this to fill
+                if (data is IDistrictId && !String.IsNullOrEmpty((data as IDistrictId).DistrictId) && (data as IDistrictId).DistrictId != "79CBD63051C911D18F1400A02427D15E")
                     return await GetTheLocationInfoDistrict(
                         queryFactory,
                         (data as IDistrictId).DistrictId as string
                     );
                 //Use the DistrictInfo from LocationInfo if only this info is filled
-                else if (data.LocationInfo != null &&  data.LocationInfo.DistrictInfo != null && !String.IsNullOrEmpty(data.LocationInfo.DistrictInfo.Id))
+                else if (data.LocationInfo != null &&  data.LocationInfo.DistrictInfo != null && !String.IsNullOrEmpty(data.LocationInfo.DistrictInfo.Id) && data.LocationInfo.DistrictInfo.Id != "79CBD63051C911D18F1400A02427D15E")
                     return await GetTheLocationInfoDistrict(
                         queryFactory,
                         data.LocationInfo.DistrictInfo.Id
@@ -295,37 +295,45 @@ namespace Helper.Location
                     if (gps == null)
                         gps = (data as IGPSInfoAware).GpsInfo.FirstOrDefault();
 
-                    //Check if the Gps Point is in South Tyrol
-
-                    //var southtyrol = await queryFactory.Query()
-                    //    .SelectRaw("ST_AsText(geometry)")
-                    //    .From("shapes")
-                    //    .Where("name", "Bolzano")
-                    //    .FirstOrDefaultAsync<string>();
-                    CultureInfo culture = CultureInfo.InvariantCulture;
-
-                    var isinsouthtyrol = await queryFactory
-                        .Query()
-                        .SelectRaw(
-                            $"ST_Contains((select geometry from shapes where name = 'Bolzano'), st_setsrid(st_makepoint(({gps.Longitude.ToString(culture)})::double precision, ({gps.Latitude.ToString(culture)})::double precision), 4326))"
-                        )
-                        .FirstOrDefaultAsync<bool>();
-
-                    if (isinsouthtyrol)
+                    if(gps != null)
                     {
-                        var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
-                            queryFactory,
-                            gps.Latitude,
-                            gps.Longitude,
-                            30000
-                        );
-                        return await GetTheLocationInfoDistrict(queryFactory, district.Id);
+                        //Check if the Gps Point is in South Tyrol
+                        CultureInfo culture = CultureInfo.InvariantCulture;
+
+                        var isinsouthtyrol = await queryFactory
+                            .Query()
+                            .SelectRaw(
+                                $"ST_Contains((select geometry from shapes where name = 'Bolzano'), st_setsrid(st_makepoint(({gps.Longitude.ToString(culture)})::double precision, ({gps.Latitude.ToString(culture)})::double precision), 4326))"
+                            )
+                            .FirstOrDefaultAsync<bool>();
+
+                        if (isinsouthtyrol)
+                        {
+                            //If TourismOrganization is assigned restrict Districts to this TV!
+                            string? tvid = null;
+
+                            if (data is IHasTourismOrganizationId && !String.IsNullOrEmpty((data as IHasTourismOrganizationId).TourismOrganizationId))
+                                tvid = (data as IHasTourismOrganizationId).TourismOrganizationId;
+
+                            var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
+                                queryFactory,
+                                gps.Latitude,
+                                gps.Longitude,
+                                30000,
+                                tvid
+                            );
+
+                            return await GetTheLocationInfoDistrict(queryFactory, district.Id);
+                        }
+                        else
+                            return new LocationInfoLinked();
                     }
                     else
                         return new LocationInfoLinked();
                 }
                 else
                     return new LocationInfoLinked();
+
                 //TODO Use Area, use TV use SIAG Methods
             }
             else
@@ -353,7 +361,8 @@ namespace Helper.Location
             QueryFactory QueryFactory,
             double latitude,
             double longitude,
-            int radius = 30000
+            int radius = 30000,
+            string? tvid = null
         )
         {
             string wheregeo = PostgresSQLHelper.GetGeoWhereSimple(latitude, longitude, radius);
@@ -363,6 +372,7 @@ namespace Helper.Location
                 .Query("districts")
                 .Select("data")
                 .WhereRaw(wheregeo)
+                .When(tvid != null, x => x.Where("data->>TourismvereinId", tvid))
                 .OrderByRaw(orderbygeo);
 
             return await query.GetObjectSingleAsync<District>();
@@ -378,14 +388,14 @@ namespace Helper.Location
 
             LocationInfoLinked mylocinfo = new LocationInfoLinked();
 
-            //Wenn nicht District nicht definiert ist oder Livinallongo/Arabba/Gebiet Pieve - Digonera - Pordoijoch - nicht südtirol ;)
+            //If District is not:
             if (
-                districtid != "79CBD63051C911D18F1400A02427D15E"
-                && districtid != "53DF587C2BF74853B9DF3429089587E3"
-                && districtid != "43C0E6789C4046718B70DAA56CF4332C"
-                && districtid != "52B456D784854FB5A77F87C0CF4AFADF"
-                && districtid != "C17DC9768C1A4DC5BA1592ED5C1D591B"
-                && districtid != "79CBAAA0513331D18F1400A02427D15E"
+                districtid != "79CBD63051C911D18F1400A02427D15E"        //undefined
+                && districtid != "53DF587C2BF74853B9DF3429089587E3"     //Livinallongo
+                && districtid != "43C0E6789C4046718B70DAA56CF4332C"     //Zona Pieve – Digonera
+                && districtid != "52B456D784854FB5A77F87C0CF4AFADF"     //Arabba
+                && districtid != "C17DC9768C1A4DC5BA1592ED5C1D591B"     //Passo Pordoi
+                && districtid != "79CBAAA0513331D18F1400A02427D15E"     //not South Tyrol
             )
             {
                 var districtquery = QueryFactory
