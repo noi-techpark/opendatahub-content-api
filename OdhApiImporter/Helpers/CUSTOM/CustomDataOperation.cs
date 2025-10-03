@@ -1878,7 +1878,7 @@ namespace OdhApiImporter.Helpers
         {
             //Load all data from PG and resave
             var query = QueryFactory.Query().SelectRaw("data").From("smgtags")
-                  .ODHTagSourcesFilter_GeneratedColumn(new List<string>() { "odhcategory", "ltscategory" }); //Using custom source filter
+                  .ODHTagSourcesFilter_GeneratedColumn(new List<string>() { "odhcategory", "ltscategory", "LTSCategory", "ODHCategory" }); //Using custom source filter
 
             var data = await query.GetObjectListAsync<ODHTagLinked>();
             int i = 0;
