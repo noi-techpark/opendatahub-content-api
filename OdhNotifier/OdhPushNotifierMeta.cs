@@ -858,7 +858,8 @@ namespace OdhNotifier
                     "poi" => "ODH_ACTIVITY_POI", //deprecated
                     "odhactivitypoi" => "ODH_ACTIVITY_POI",
                     "odhtag" => "ODH_TAG",
-                    "tag" => "ODH_TAG", // to check if this works
+                    //"tag" => "ODH_TAG", // to check if this works
+                    "tag" => "NOT SUPPORTED", // todo add the idm-marketplace publisher and wait for the push route
                     "ski_area" => "SKI_AREA",
                     "odh_activity_poi" => "ODH_ACTIVITY_POI",
                     "webcam" => "NOT SUPPORTED",

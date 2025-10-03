@@ -1499,7 +1499,6 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
-
         
         public async Task<int> TagParentIdFix()
         {
@@ -1544,7 +1543,6 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
-
 
         public async Task<int> EventTopicsToTags()
         {
@@ -1876,10 +1874,62 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        public async Task<int> TranslatedODHTagsFix()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("smgtags")
+                  .ODHTagSourcesFilter_GeneratedColumn(new List<string>() { "odhcategory", "ltscategory" }); //Using custom source filter
+
+            var data = await query.GetObjectListAsync<ODHTagLinked>();
+            int i = 0;
+
+            foreach (var odhtag in data)
+            {
+                //remove , and & and / from id
+                var idtoload = odhtag.TagName["en"].ToLower();
+                idtoload = idtoload.Replace(",", "").Replace("&", "").Replace("/", "").Replace("-", "");
+
+                //Load the Tag and update the Translations
+                var tagquery = QueryFactory
+                    .Query("tags")
+                    .Select("data")
+                    .Where("id", idtoload);
+
+                var tag = await tagquery.GetObjectSingleAsync<TagLinked>();
+
+                if (tag != null)
+                {
+                    //Update Translations in FR/CS/PL/NL
+                    tag.TagName["cs"] = odhtag.TagName["cs"];
+                    tag.TagName["fr"] = odhtag.TagName["fr"];
+                    tag.TagName["nl"] = odhtag.TagName["nl"];
+                    tag.TagName["pl"] = odhtag.TagName["pl"];
+
+                   // var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                   //    tag,
+                   //    new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                   //    new EditInfo("tag.modify", "importer"),
+                   //    new CRUDConstraints(),
+                   //    new CompareConfig(false, false)
+                   //);
+
+                    i++;
+                }
+                else
+                {
+
+                }
+   
+            }
+
+            return i;
+        }
+
+
         #endregion
 
         #region GeoShape
-            
+
         public async Task<int> UpdateGeoshapeMetaInfo()
         {
             //Load all data from PG and resave
