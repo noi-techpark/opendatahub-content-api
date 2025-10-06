@@ -91,12 +91,13 @@ namespace Helper
             };
 
             //Blaklisted OwnerRIDs
-            Dictionary<string, List<string>> notallowedownerrids = new Dictionary<string, List<string>>()
+            Dictionary<string, List<string>> notallowedarearids = new Dictionary<string, List<string>>()
             {
                 {
                     "odhactivitypoi",
                     new List<string>()
                     {
+                        //TODO Insert all blacklisted Areas
                         "0E8FFB31CCFC31D92C6F396134D2F1FC", // Tourismusverband Tiroler Oberland - Infobüro Nauders                      
                     }
                 },
@@ -143,6 +144,7 @@ namespace Helper
                         }
 
                         break;
+                    
                     //Event Add all Active Events from now
                     case "event":
 
@@ -300,20 +302,12 @@ namespace Helper
                                             ? false
                                             : true;
 
-                                bool ownerallowed = true;
-                                if ((mydata as ODHActivityPoiLinked).OwnerRid != null)
-                                    ownerallowed =
-                                        notallowedownerrids[mydata._Meta.Type]
-                                            .Where(x =>
-                                                x.Contains(
-                                                    (
-                                                        mydata as ODHActivityPoiLinked
-                                                    ).OwnerRid
-                                                )
-                                            )
-                                            .Count() > 0
-                                            ? false
-                                            : true;
+                                //If there are only blacklisted areas assigned TEST
+                                bool hasmorethanblacklistedarea = true;
+                                if ((mydata as ODHActivityPoiLinked).AreaId != null)
+                                {
+                                    hasmorethanblacklistedarea = (mydata as ODHActivityPoiLinked).AreaId.Except(notallowedarearids[mydata._Meta.Type]).Count() > 0 ? true : false;
+                                }                                    
 
                                 bool locinfonotemptyandsourcelts = true;
                                 if (mydata._Meta.Source == "lts")
@@ -337,7 +331,7 @@ namespace Helper
                                     .ToList()
                                     .Intersect((mydata as ODHActivityPoiLinked).SmgTags) : new List<string>();
 
-                                if (tagintersection.Count() > 0 && tvallowed && ownerallowed && locinfonotemptyandsourcelts)
+                                if (tagintersection.Count() > 0 && tvallowed && hasmorethanblacklistedarea && locinfonotemptyandsourcelts)
                                 {
                                     var blacklistedpublisher = new List<string>();
 
