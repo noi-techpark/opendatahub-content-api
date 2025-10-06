@@ -312,8 +312,8 @@ namespace Helper.Location
                             //If TourismOrganization is assigned restrict Districts to this TV!
                             string? tvid = null;
 
-                            if (data is IHasTourismOrganizationId && !String.IsNullOrEmpty((data as IHasTourismOrganizationId).TourismOrganizationId))
-                                tvid = (data as IHasTourismOrganizationId).TourismOrganizationId;
+                            if (data is IHasTourismorganizationId && !String.IsNullOrEmpty((data as IHasTourismorganizationId).TourismorganizationId))
+                                tvid = (data as IHasTourismorganizationId).TourismorganizationId;
 
                             var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
                                 queryFactory,
@@ -372,7 +372,7 @@ namespace Helper.Location
                 .Query("districts")
                 .Select("data")
                 .WhereRaw(wheregeo)
-                .When(tvid != null, x => x.Where("data->>TourismvereinId", tvid))
+                .When(tvid != null, x => x.WhereRaw("data#>>'\\{TourismvereinId\\}' = $$", tvid))
                 .OrderByRaw(orderbygeo);
 
             return await query.GetObjectSingleAsync<District>();
