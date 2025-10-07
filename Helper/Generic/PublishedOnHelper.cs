@@ -317,26 +317,26 @@ namespace Helper
 
                                 //If there are only blacklisted areas assigned TEST
                                 bool hasmorethanblacklistedarea = true;
-                                if ((mydata as ODHActivityPoiLinked).AreaId != null)
+                                if (mydata._Meta.Source == "lts" && (mydata as ODHActivityPoiLinked).AreaId != null)
                                 {
                                     hasmorethanblacklistedarea = (mydata as ODHActivityPoiLinked).AreaId.Except(notallowedarearids[mydata._Meta.Type]).Count() > 0 ? true : false;
                                 }                                    
 
-                                bool locinfonotemptyandsourcelts = true;
-                                if (mydata._Meta.Source == "lts")
-                                {
-                                    //IF data is from Source LTS and has no Locationinfo (outside of South Tyrol) deactivate it
-                                    if((mydata as ODHActivityPoiLinked).LocationInfo == null ||
-                                        (
-                                            (mydata as ODHActivityPoiLinked).LocationInfo.TvInfo == null &&
-                                            (mydata as ODHActivityPoiLinked).LocationInfo.RegionInfo == null &&
-                                            (mydata as ODHActivityPoiLinked).LocationInfo.DistrictInfo == null &&
-                                            (mydata as ODHActivityPoiLinked).LocationInfo.MunicipalityInfo == null
-                                        ))
-                                    {
-                                        locinfonotemptyandsourcelts = false;
-                                    }                                    
-                                }
+                                //bool locinfonotemptyandsourcelts = true;
+                                //if (mydata._Meta.Source == "lts")
+                                //{
+                                //    //IF data is from Source LTS and has no Locationinfo (outside of South Tyrol) deactivate it
+                                //    if((mydata as ODHActivityPoiLinked).LocationInfo == null ||
+                                //        (
+                                //            (mydata as ODHActivityPoiLinked).LocationInfo.TvInfo == null &&
+                                //            (mydata as ODHActivityPoiLinked).LocationInfo.RegionInfo == null &&
+                                //            (mydata as ODHActivityPoiLinked).LocationInfo.DistrictInfo == null &&
+                                //            (mydata as ODHActivityPoiLinked).LocationInfo.MunicipalityInfo == null
+                                //        ))
+                                //    {
+                                //        locinfonotemptyandsourcelts = false;
+                                //    }                                    
+                                //}
 
                                 //IF category is white or blacklisted find an intersection
                                 var tagintersection = (mydata as ODHActivityPoiLinked).SmgTags != null ? allowedtags                                    
@@ -344,7 +344,7 @@ namespace Helper
                                     .ToList()
                                     .Intersect((mydata as ODHActivityPoiLinked).SmgTags) : new List<string>();
 
-                                if (tagintersection.Count() > 0 && tvallowed && hasmorethanblacklistedarea && locinfonotemptyandsourcelts)
+                                if (tagintersection.Count() > 0 && tvallowed && hasmorethanblacklistedarea)
                                 {
                                     var blacklistedpublisher = new List<string>();
 
