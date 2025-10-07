@@ -29,12 +29,12 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    public class RoadIncidentController : OdhController
+    public class AnnouncementController : OdhController
     {
-        public RoadIncidentController(
+        public AnnouncementController(
             IWebHostEnvironment env,
             ISettings settings,
-            ILogger<RoadIncidentController> logger,
+            ILogger<AnnouncementController> logger,
             QueryFactory queryFactory,
             IOdhPushNotifier odhpushnotifier
         )
@@ -43,7 +43,7 @@ namespace OdhApiCore.Controllers
         #region SWAGGER Exposed API
 
         /// <summary>
-        /// GET RoadIncident List
+        /// GET Announcement List
         /// </summary>
         /// <param name="pagenumber">Pagenumber</param>
         /// <param name="pagesize">Elements per Page, (default:10)</param>
@@ -68,15 +68,15 @@ namespace OdhApiCore.Controllers
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <returns>Collection of RoadIncident Objects</returns>
+        /// <returns>Collection of Announcement Objects</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(IEnumerable<RoadIncident>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<Announcement>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("RoadIncident")]
-        public async Task<IActionResult> GetRoadIncidentAsync(
+        [HttpGet, Route("Announcement")]
+        public async Task<IActionResult> GetAnnouncementAsync(
             uint? pagenumber = 1,
             PageSize pagesize = null!,
             string? language = null,
@@ -140,21 +140,21 @@ namespace OdhApiCore.Controllers
         }
 
         /// <summary>
-        /// GET RoadIncident Single
+        /// GET Announcement Single
         /// </summary>
-        /// <param name="id">ID of the RoadIncident</param>
+        /// <param name="id">ID of the Announcement</param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <returns>RoadIncident Object</returns>
+        /// <returns>Announcement Object</returns>
         /// <response code="200">Object created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(RoadIncident), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Announcement), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("RoadIncident/{id}", Name = "SingleRoadIncident")]
-        public async Task<IActionResult> GetRoadIncidentSingle(
+        [HttpGet, Route("Announcement/{id}", Name = "SingleAnnouncement")]
+        public async Task<IActionResult> GetAnnouncementSingle(
             string id,
             string? language = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,            
@@ -205,8 +205,8 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
-                RoadIncidentHelper helper =
-                            await RoadIncidentHelper.CreateAsync(
+                AnnouncementHelper helper =
+                            await AnnouncementHelper.CreateAsync(
                                 queryFactory: QueryFactory,
                                 idfilter: idfilter,
                                 languagefilter: languagefilter,
@@ -224,8 +224,8 @@ namespace OdhApiCore.Controllers
                     .Query()
                     .When(getasidarray, x => x.Select("id"))
                     .When(!getasidarray, x => x.SelectRaw("data"))
-                    .From("roadincidents")
-                    .RoadIncidentWhereExpression(
+                    .From("announcements")
+                    .AnnouncementWhereExpression(
                         languagelist: helper.languagelist,
                         idlist: helper.idlist,
                         sourcelist: helper.sourcelist,
@@ -306,7 +306,7 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
                 var data = await QueryFactory
-                    .Query("roadincidents")
+                    .Query("announcements")
                     .Select("data")
                     .Where("id", id.ToLower())
                     .When(
@@ -331,37 +331,37 @@ namespace OdhApiCore.Controllers
         #region POST PUT DELETE
 
         /// <summary>
-        /// POST Insert new RoadIncident
+        /// POST Insert new Announcement
         /// </summary>
-        /// <param name="roadincident">RoadIncident Object</param>
+        /// <param name="announcement">Announcement Object</param>
         /// <returns>Http Response</returns>
-        //[Authorize(Roles = "DataWriter,DataCreate,RoadIncidentManager,RoadIncidentCreate")]
+        //[Authorize(Roles = "DataWriter,DataCreate,AnnouncementManager,AnnouncementCreate")]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
-        [HttpPost, Route("RoadIncident")]
-        public Task<IActionResult> Post([FromBody] RoadIncident roadincident)
+        [HttpPost, Route("Announcement")]
+        public Task<IActionResult> Post([FromBody] Announcement announcement)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
 
-                roadincident.Id = Helper.IdGenerator.GenerateIDFromType(roadincident);
+                announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
 
-                if (roadincident.LicenseInfo == null)
-                    roadincident.LicenseInfo = new LicenseInfo() { ClosedData = false };
+                if (announcement.LicenseInfo == null)
+                    announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
 
                 //Populate Tags (Id/Source/Type)
-                await roadincident.UpdateTagsExtension(QueryFactory);
+                await announcement.UpdateTagsExtension(QueryFactory);
 
                 //TRIM all strings
-                roadincident.TrimStringProperties();
+                announcement.TrimStringProperties();
 
-                return await UpsertData<RoadIncident>(
-                    roadincident,
-                    new DataInfo("roadincidents", CRUDOperation.Create),
+                return await UpsertData<Announcement>(
+                    announcement,
+                    new DataInfo("announcements", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
@@ -369,35 +369,35 @@ namespace OdhApiCore.Controllers
         }
 
         /// <summary>
-        /// PUT Modify existing RoadIncident
+        /// PUT Modify existing Announcement
         /// </summary>
-        /// <param name="id">RoadIncident Id</param>
-        /// <param name="roadincident">RoadIncident Object</param>
+        /// <param name="id">Announcement Id</param>
+        /// <param name="announcement">Announcement Object</param>
         /// <returns>Http Response</returns>
-        //[Authorize(Roles = "DataWriter,DataModify,RoadIncidentManager,RoadIncidentModify,RoadIncidentUpdate")]
+        //[Authorize(Roles = "DataWriter,DataModify,AnnouncementManager,AnnouncementModify,AnnouncementUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpPut, Route("RoadIncident/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] RoadIncident roadincident)
+        [HttpPut, Route("Announcement/{id}")]
+        public Task<IActionResult> Put(string id, [FromBody] Announcement announcement)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
-                roadincident.Id = Helper.IdGenerator.CheckIdFromType<RoadIncident>(id);
+                announcement.Id = Helper.IdGenerator.CheckIdFromType<Announcement>(id);
 
                 //Populate Tags (Id/Source/Type)
-                await roadincident.UpdateTagsExtension(QueryFactory);
+                await announcement.UpdateTagsExtension(QueryFactory);
 
                 //TRIM all strings
-                roadincident.TrimStringProperties();
+                announcement.TrimStringProperties();
 
-                return await UpsertData<RoadIncident>(
-                    roadincident,
-                    new DataInfo("roadincidents", CRUDOperation.Update, true),
+                return await UpsertData<Announcement>(
+                    announcement,
+                    new DataInfo("announcements", CRUDOperation.Update, true),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
@@ -405,16 +405,16 @@ namespace OdhApiCore.Controllers
         }
 
         /// <summary>
-        /// DELETE RoadIncident by Id
+        /// DELETE Announcement by Id
         /// </summary>
-        /// <param name="id">RoadIncident Id</param>
+        /// <param name="id">Announcement Id</param>
         /// <returns>Http Response</returns>
-        //[Authorize(Roles = "DataWriter,DataDelete,RoadIncidentManager,RoadIncidentDelete")]
+        //[Authorize(Roles = "DataWriter,DataDelete,AnnouncementManager,AnnouncementDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpDelete, Route("RoadIncident/{id}")]
+        [HttpDelete, Route("Announcement/{id}")]
         public Task<IActionResult> Delete(string id)
         {
             return DoAsyncReturn(async () =>
@@ -422,11 +422,11 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<RoadIncident>(id);
+                id = Helper.IdGenerator.CheckIdFromType<Announcement>(id);
                 
-                return await DeleteData<RoadIncident>(
+                return await DeleteData<Announcement>(
                     id,
-                    new DataInfo("roadincidents", CRUDOperation.Delete),
+                    new DataInfo("announcements", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });

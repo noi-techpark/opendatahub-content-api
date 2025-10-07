@@ -13,7 +13,7 @@ using SqlKata.Execution;
 
 namespace OdhApiCore.Controllers.api
 {
-    public class RoadIncidentHelper
+    public class AnnouncementHelper
     {
         public List<string> idlist;
         public List<string> sourcelist;
@@ -27,7 +27,7 @@ namespace OdhApiCore.Controllers.api
         //New Publishedonlist
         public List<string> publishedonlist;
 
-        public static async Task<RoadIncidentHelper> CreateAsync(
+        public static async Task<AnnouncementHelper> CreateAsync(
             QueryFactory queryFactory,
             string? idfilter,
             string? languagefilter,
@@ -41,7 +41,7 @@ namespace OdhApiCore.Controllers.api
             CancellationToken cancellationToken
         )
         {            
-            return new RoadIncidentHelper(
+            return new AnnouncementHelper(
                 idfilter,
                 languagefilter,
                 sourcefilter,
@@ -54,7 +54,7 @@ namespace OdhApiCore.Controllers.api
             );
         }
 
-        private RoadIncidentHelper(
+        private AnnouncementHelper(
             string? idfilter,
             string? languagefilter,
             string? sourcefilter,

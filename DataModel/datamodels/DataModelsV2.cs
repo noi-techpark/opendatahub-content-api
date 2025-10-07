@@ -652,9 +652,9 @@ namespace DataModel
 
     #endregion
 
-    #region TrafficEvents
+    #region Announcements
 
-    public class RoadIncident : Generic, IGPSPointsAware
+    public class Announcement : Generic, IGPSPointsAware
     {        
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }

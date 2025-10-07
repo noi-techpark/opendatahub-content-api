@@ -1580,7 +1580,7 @@ namespace Helper
         }
 
         //Return Where and Parameters for OdhTag and Tag
-        public static Query RoadIncidentWhereExpression(
+        public static Query AnnouncementWhereExpression(
             this Query query,
             IReadOnlyCollection<string> languagelist,
             IReadOnlyCollection<string> idlist,

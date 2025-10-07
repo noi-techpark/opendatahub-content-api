@@ -94,7 +94,7 @@ namespace Helper
                 TourismMetaData => IDStyle.lowercase,
                 TagLinked => IDStyle.mixed,
                 WeatherHistoryLinked => IDStyle.mixed,
-                RoadIncident => IDStyle.lowercase,
+                Announcement => IDStyle.lowercase,
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -163,7 +163,7 @@ namespace Helper
                     IDStyle.lowercase,
                 Type _ when odhtype == typeof(TourismMetaData) => IDStyle.lowercase,
                 Type _ when odhtype == typeof(WeatherHistoryLinked) => IDStyle.mixed,
-                Type _ when odhtype == typeof(RoadIncident) => IDStyle.lowercase,
+                Type _ when odhtype == typeof(Announcement) => IDStyle.lowercase,
                 _ => throw new Exception("not known odh type"),
             };
         }

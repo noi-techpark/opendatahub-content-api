@@ -53,7 +53,7 @@ namespace Helper
                 "weatherrealtime",
                 "snowreport",
                 "geoshape",
-                "roadincident"
+                "announcement"
             };
         }
 
@@ -107,7 +107,7 @@ namespace Helper
                 VenueV2 => "venue",
                 EventV2 => "event",
                 GeoShapeJson => "geoshape",
-                RoadIncident => "roadincident",
+                Announcement => "announcement",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -155,7 +155,7 @@ namespace Helper
                 EventV2 => "eventsv2",
                 VenueV2 => "venuesv2",
                 GeoShapeJson => "geoshapes",
-                RoadIncident => "roadincidents",
+                Announcement => "announcements",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -203,7 +203,7 @@ namespace Helper
                 "odhmetadata" => "metadata",
                 "tag" => "tags",
                 "geoshape" => "geoshapes",
-                "roadincident" => "roadincidents",
+                "announcement" => "announcements",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -252,7 +252,7 @@ namespace Helper
                 "odhmetadata" => typeof(TourismMetaData),
                 "tag" => typeof(TagLinked),
                 "geoshape" => typeof(GeoShapeJson),
-                "roadincident" => typeof(RoadIncident),
+                "announcement" => typeof(Announcement),
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -302,7 +302,7 @@ namespace Helper
                 "venuesv2" => "venue",
                 "eventsv2" => "event",
                 "geoshapes" => "geoshape",
-                "roadincidents" => "roadincident",
+                "announcements" => "announcement",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -349,7 +349,7 @@ namespace Helper
                 "eventsv2" => typeof(EventV2),
                 "venuesv2" => typeof(VenueV2),
                 "geoshapes" => typeof(GeoShapeJson),
-                "roadincidents" => typeof(RoadIncident),
+                "announcements" => typeof(Announcement),
                 _ => throw new Exception("not known table name"),
             };
         }
@@ -399,7 +399,7 @@ namespace Helper
                 "publisher" => id.ToLower(),
                 "source" => id.ToLower(),
                 "geoshape" => id.ToLower(),
-                "roadincident" => id.ToLower(),
+                "announcement" => id.ToLower(),
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -445,7 +445,7 @@ namespace Helper
                 "weatherhistory" => JsonConvert.DeserializeObject<WeatherHistoryLinked>(raw.Value)!,
                 "odhmetadata" => JsonConvert.DeserializeObject<TourismMetaData>(raw.Value)!,
                 "tag" => JsonConvert.DeserializeObject<TagLinked>(raw.Value)!,
-                "roadincident" => JsonConvert.DeserializeObject<RoadIncident>(raw.Value)!,
+                "announcement" => JsonConvert.DeserializeObject<Announcement>(raw.Value)!,
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -489,7 +489,7 @@ namespace Helper
                 odhtypes.Add("metaregion");
                 odhtypes.Add("area");
                 odhtypes.Add("wineaward");
-                odhtypes.Add("roadincident");
+                odhtypes.Add("announcement");
             }
 
             return odhtypes.ToArray();
@@ -516,7 +516,7 @@ namespace Helper
                 or "article"
                 or "experiencearea"
                 or "webcam"
-                or "roadincident"
+                or "announcement"
                 or "venue" => PostgresSQLWhereBuilder.TitleFieldsToSearchFor,
                 //"measuringpoint" => PostgresSQLWhereBuilder.,
                 //                "webcam" => PostgresSQLWhereBuilder.WebcamnameFieldsToSearchFor,
@@ -566,7 +566,7 @@ namespace Helper
                 "weatherrealtime" => "Weather/Realtime",
                 "snowreport" => "Weather/SnowReport",
                 "weather" => "Weather",
-                "roadincident" => "RoadIncident",
+                "announcement" => "Announcement",
 
                 _ => throw new Exception("not known odh type"),
             };
@@ -613,7 +613,7 @@ namespace Helper
                 or "skiregion"
                 or "article"
                 or "experiencearea"
-                or "roadincident"
+                or "announcement"
                 or "venue" => $"Detail.{language}.Title",
                 "measuringpoint" => $"Shortname",
                 "webcam" => $"Webcamname.{language}",
@@ -643,7 +643,7 @@ namespace Helper
                 or "skiarea"
                 or "skiregion"
                 or "article"
-                or "roadincident"
+                or "announcement"
                 or "experiencearea" => $"Detail.{language}.BaseText",
                 "measuringpoint" => "notextfield",
                 "webcam" => "notextfield",
