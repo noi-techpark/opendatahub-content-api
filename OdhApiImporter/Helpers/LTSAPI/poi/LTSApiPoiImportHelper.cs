@@ -833,7 +833,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             }
                         }
 
-                        poiNew.AdditionalPoiInfos.Add(languagecategory, additionalPoiInfos);
+                        poiNew.AdditionalPoiInfos.TryAddOrUpdate(languagecategory, additionalPoiInfos);
                     }
                 }
             }
