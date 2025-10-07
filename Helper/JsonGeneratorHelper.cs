@@ -101,7 +101,18 @@ namespace Helper
 
             var query = queryFactory.Query().SelectRaw("data").From("tags");
 
-            var data = await query.GetObjectListAsync<TagLinked>();
+            var datafirst = await query.GetObjectListAsync<TagLinked>();
+
+            //Reduce Json size
+            var data = datafirst
+                .Select(x => new 
+                {
+                    Id = x.Id,
+                    Source = x.Source,
+                    ODHTagIds = x.ODHTagIds,
+                    TagName = x.TagName,
+                })
+                .ToList();
 
             //Save json
             string fileName = Path.Combine(jsondir, $"{jsonName}.json");
@@ -164,6 +175,35 @@ namespace Helper
 
             var data = datafirst
                 .Select(x => new CategoriesTags() { Id = x.Id, TagName = x.TagName })
+                .ToList();
+
+            //Save json
+            string fileName = Path.Combine(jsondir, $"{jsonName}.json");
+            using (var writer = File.CreateText(fileName))
+            {
+                serializer.Serialize(writer, data);
+            }
+        }
+
+        public static async Task GenerateJSONODHTagSourceIDMLTSList(
+            QueryFactory queryFactory,
+            string jsondir,
+            string jsonName
+        )
+        {
+            var serializer = new JsonSerializer();
+
+            var query = queryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("smgtags")
+                .ODHTagValidForEntityFilter(new List<string>() { "odhactivitypoi" })
+                .ODHTagSourcesFilter_GeneratedColumn(new List<string>() { "ODHCategory", "LTSCategory" });
+
+            var datafirst = await query.GetObjectListAsync<ODHTagLinked>();
+
+            var data = datafirst
+                .Select(x => new { Id = x.Id, TagName = x.TagName, Source = x.Source, MappedTagIds = x.MappedTagIds, LTSTaggingInfo = x.LTSTaggingInfo, Mapping = x.Mapping })
                 .ToList();
 
             //Save json
@@ -300,6 +340,35 @@ namespace Helper
 
             var data = datafirst
                 .Select(x => new CategoriesTags() { Id = x.Id, TagName = x.TagName })
+                .ToList();
+
+            //Save json
+            string fileName = Path.Combine(jsondir, $"{jsonName}.json");
+            using (var writer = File.CreateText(fileName))
+            {
+                serializer.Serialize(writer, data);
+            }
+        }
+
+        public static async Task GenerateJSONLTSTagsList(
+            QueryFactory queryFactory,
+            string jsondir,
+            string jsonName,
+            List<string> typelist
+        )
+        {
+            var serializer = new JsonSerializer();
+
+            var query = queryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("tags")
+                .TagTypesFilter(typelist);
+
+            var datafirst = await query.GetObjectListAsync<TagLinked>();
+
+            var data = datafirst
+                .Select(x => new { Id = x.Id, TagName = x.TagName, Mapping = x.Mapping,  })
                 .ToList();
 
             //Save json

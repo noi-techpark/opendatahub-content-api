@@ -208,9 +208,9 @@ namespace DataModel
         ICollection<string>? DistrictIds { get; set; }
     }
 
-    public interface IHasTourismOrganizationId
+    public interface IHasTourismorganizationId
     {
-        string? TourismOrganizationId { get; set; }
+        string? TourismorganizationId { get; set; }
     }
 
     public interface IGpsTrack
