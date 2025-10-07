@@ -90,15 +90,28 @@ namespace Helper
                 },
             };
 
-            //Blaklisted OwnerRIDs
+            //Blaklisted Areas
             Dictionary<string, List<string>> notallowedarearids = new Dictionary<string, List<string>>()
             {
                 {
                     "odhactivitypoi",
                     new List<string>()
-                    {
-                        //TODO Insert all blacklisted Areas
-                        "0E8FFB31CCFC31D92C6F396134D2F1FC", // Tourismusverband Tiroler Oberland - Infobüro Nauders                      
+                    {                        
+                        "CF0F2EE94A23ED0CEE50EFE674EB1B2C", //Obertilliach
+                        "78DC6AA57BCC4647AF3925BD1197C418", // Osttirol
+                        "EB08528A2DBA406188A4C85012A28195", // PelmoSkiCivetta
+                        "2F327A4A8AAB82A867234D9A7C2F6605", //Veneto
+                        "98910F5EBED441F986F2B19833C28B10", //Marmolada
+                        "3629935C546A49328842D3E0E9150CE8", //Auronzo - Misurina - Lorenzago
+                        "B6021F468FD24DCE92E3B6BEC93FBD83", //Cortina
+                        "0646D169CCA842E38B981790A08D3AF5", //Arabba
+                        "43E671500E21477F8D682E8767D812A8", //Comelico–Sappada
+                        "FDC26773609E139FCC76F4C6FA6A2F72", //Testarea LTS
+                        "94187AC0AB734AC087BA54A9E3C910E4", //Auronzo–Misurina–Lorenzago
+                        "C5CA26AD0DCA477E8011FE12A6DDF02C", //Forni di Sopra
+                        "835FD7E072ED47FCA0F27F6EE053AD9F", //Engadin Scuol Zernez
+                        "79178AB1F14E4701B96127DE73F5A8A0", //Minschuns (Müstair)
+                        "2861C7E0C4C04BDF942B99417D44FDA2", //Arabba
                     }
                 },
             };
