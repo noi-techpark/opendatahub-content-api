@@ -1,0 +1,15 @@
+{
+  "provenance": {
+    "lineage": "test",
+    "data_collector": "test",
+    "data_collector_version": "1.0"
+  },
+  "measurements": [
+    {
+      "sensor_name": "TEST_SIMPLE_001",
+      "type_name": "temperature",
+      "timestamp": "2025-10-07T14:00:00Z",
+      "value": 25.5
+    }
+  ]
+}

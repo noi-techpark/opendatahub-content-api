@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/encoding/wkt"
 	"github.com/paulmach/orb/geojson"
 	"github.com/sirupsen/logrus"
 )
@@ -85,8 +86,8 @@ func (h *MutationHandler) processBatchMeasurements(measurements []models.Measure
 		// Get or create sensor
 		sensor, err := h.repo.GetOrCreateSensor(
 			measurement.SensorName,
-			nil, // parent_id
-			nil, // metadata
+			nil,                   // parent_id
+			json.RawMessage("{}"), // metadata (empty JSON object)
 		)
 		if err != nil {
 			return fmt.Errorf("failed to get or create sensor %s: %w", measurement.SensorName, err)
@@ -104,7 +105,7 @@ func (h *MutationHandler) processBatchMeasurements(measurements []models.Measure
 			"", // description
 			"", // unit
 			dataType,
-			nil, // metadata
+			json.RawMessage("{}"), // metadata (empty JSON object)
 		)
 		if err != nil {
 			return fmt.Errorf("failed to get or create type %s: %w", measurement.TypeName, err)
@@ -185,10 +186,12 @@ func (h *MutationHandler) convertValue(value interface{}, dataType models.DataTy
 			}
 
 			if point, ok := feature.Geometry().(orb.Point); ok {
-				return &point, nil
+				// Correctly return the WKT as a string and a nil error
+				return string(wkt.Marshal(point)), nil
 			}
 		}
-		return nil, nil
+		return nil, fmt.Errorf("invalid geoposition format")
+
 	case models.DataTypeGeoshape:
 		if geoMap, ok := value.(map[string]interface{}); ok {
 			geoJSON, err := json.Marshal(geoMap)
@@ -202,10 +205,12 @@ func (h *MutationHandler) convertValue(value interface{}, dataType models.DataTy
 			}
 
 			if polygon, ok := feature.Geometry().(orb.Polygon); ok {
-				return &polygon, nil
+				// Correctly return the WKT as a string and a nil error
+				return string(wkt.Marshal(polygon)), nil
 			}
 		}
-		return nil, nil
+		return nil, fmt.Errorf("invalid geoshape format")
+
 	case models.DataTypeJSON:
 		jsonBytes, err := json.Marshal(value)
 		if err != nil {

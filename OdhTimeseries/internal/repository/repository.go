@@ -232,27 +232,12 @@ func (r *Repository) insertMeasurementBatch(tableName string, measurements []mod
 		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d)",
 			i*4+1, i*4+2, i*4+3, i*4+4))
 
-		var formattedValue interface{}
-		switch dataType {
-		case models.DataTypeGeoposition:
-			if point, ok := m.Value.(*orb.Point); ok && point != nil {
-				formattedValue = fmt.Sprintf("ST_GeomFromText('POINT(%f %f)', 4326)", point.X(), point.Y())
-			}
-		case models.DataTypeGeoshape:
-			if polygon, ok := m.Value.(*orb.Polygon); ok && polygon != nil {
-				formattedValue = fmt.Sprintf("ST_GeomFromText('%s', 4326)", string(wkt.Marshal(*polygon)))
-			}
-		default:
-			formattedValue = m.Value
-		}
-
-		valueArgs = append(valueArgs, m.TimeseriesID, m.Timestamp, formattedValue, m.ProvenanceID)
+		valueArgs = append(valueArgs, m.TimeseriesID, m.Timestamp, m.Value, m.ProvenanceID)
 	}
 
 	query := fmt.Sprintf(`
 		INSERT INTO %s (timeseries_id, timestamp, value, provenance_id)
-		VALUES %s
-		ON CONFLICT (timeseries_id, timestamp) DO NOTHING`,
+		VALUES %s`,
 		tableName, strings.Join(valueStrings, ", "))
 
 	_, err := r.db.Exec(query, valueArgs...)
@@ -443,7 +428,6 @@ func (r *Repository) getMeasurements(sensorNames []string, typeNames []string, s
 				whereClause, timeConditions,
 				orderBy, limitClause)
 		}
-
 
 		rows, err := r.db.Query(query, args...)
 		if err != nil {
@@ -858,7 +842,6 @@ func (r *Repository) DiscoverSensorsByConditions(req *filter.SensorDiscoveryRequ
 		args = append(args, req.Limit)
 	}
 
-
 	// Execute query
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -895,7 +878,7 @@ func (r *Repository) VerifyDiscoveredSensors(req *filter.SensorVerifyRequest) (*
 	discoveryReq := &filter.SensorDiscoveryRequest{
 		TimeseriesFilter:  req.TimeseriesFilter,
 		MeasurementFilter: req.MeasurementFilter,
-		Limit:            0, // No limit for verification
+		Limit:             0, // No limit for verification
 	}
 
 	// Discover all sensors that match the filters

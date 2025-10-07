@@ -7,3 +7,28 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5556:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+
+  materialize:
+    image: materialize/materialized:latest
+    ports:
+      - "6875:6875"
+    depends_on:
+      - db
+    volumes:
+      - materialize_data:/mzdata
+    environment:
+      - MZ_NO_TELEMETRY=1
+
+volumes:
+  postgres_data:
+  materialize_data:

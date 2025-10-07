@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeseries Streaming Test Client</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .header h1 {
+            margin-bottom: 5px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .status.disconnected {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status.connected {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status.connecting {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .messages {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: #fafafa;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .message {
+            padding: 8px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+
+        .message.ack {
+            background: #e6fffa;
+            border-left-color: #319795;
+        }
+
+        .message.data {
+            background: #ebf4ff;
+            border-left-color: #3182ce;
+        }
+
+        .message.error {
+            background: #fff5f5;
+            border-left-color: #e53e3e;
+        }
+
+        .message.info {
+            background: #f7fafc;
+            border-left-color: #718096;
+        }
+
+        .message-time {
+            color: #718096;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #2d3748;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Timeseries Streaming Test Client</h1>
+            <p>WebSocket subscription testing for real-time measurement updates</p>
+        </div>
+
+        <div class="content">
+            <!-- Connection Status -->
+            <div class="section">
+                <h2>Connection Status</h2>
+                <div id="status" class="status disconnected">
+                    ⚫ Disconnected
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="section">
+                <h2>Statistics</h2>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Messages Received</div>
+                        <div class="stat-value" id="stat-messages">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Data Updates</div>
+                        <div class="stat-value" id="stat-updates">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Errors</div>
+                        <div class="stat-value" id="stat-errors">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Connection Time</div>
+                        <div class="stat-value" id="stat-uptime">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection Settings -->
+            <div class="section">
+                <h2>Connection Settings</h2>
+                <div class="form-group">
+                    <label for="ws-url">WebSocket URL:</label>
+                    <input type="text" id="ws-url" value="ws://localhost:8080/api/v1/measurements/subscribe">
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="connect()">Connect</button>
+                    <button class="btn-danger" onclick="disconnect()">Disconnect</button>
+                </div>
+            </div>
+
+            <!-- Subscription Settings -->
+            <div class="section">
+                <h2>Subscription Request</h2>
+
+                <!-- Subscription Mode Selector -->
+                <div class="form-group">
+                    <label for="subscription-mode">Subscription Mode:</label>
+                    <select id="subscription-mode" onchange="toggleSubscriptionMode()">
+                        <option value="simple">Simple (Sensor Names)</option>
+                        <option value="discovery">Discovery (Advanced Filters)</option>
+                    </select>
+                </div>
+
+                <!-- Simple Mode Fields -->
+                <div id="simple-mode" style="display:block;">
+                    <div class="form-group">
+                        <label for="sensor-names">Sensor Names (comma-separated):</label>
+                        <input type="text" id="sensor-names" placeholder="e.g., sensor1, sensor2, sensor3">
+                    </div>
+                    <div class="form-group">
+                        <label for="type-names">Type Names (comma-separated, optional):</label>
+                        <input type="text" id="type-names" placeholder="e.g., temperature, humidity">
+                    </div>
+                </div>
+
+                <!-- Discovery Mode Fields -->
+                <div id="discovery-mode" style="display:none;">
+                    <div class="form-group">
+                        <label for="required-types">Required Types (comma-separated):</label>
+                        <input type="text" id="required-types" placeholder="e.g., temperature, humidity">
+                        <small style="color: #718096;">Sensors must have ALL of these types</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="optional-types">Optional Types (comma-separated):</label>
+                        <input type="text" id="optional-types" placeholder="e.g., pressure">
+                        <small style="color: #718096;">Sensors may have ANY of these types</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataset-ids">Dataset IDs (comma-separated):</label>
+                        <input type="text" id="dataset-ids" placeholder="e.g., weather_stations">
+                    </div>
+                    <div class="form-group">
+                        <label for="measurement-expression">Measurement Filter Expression:</label>
+                        <input type="text" id="measurement-expression" placeholder="e.g., temperature.gteq.20">
+                        <small style="color: #718096;">Examples: temperature.gteq.20, or(temp.gt.30, humidity.lt.40)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="latest-only">
+                            <input type="checkbox" id="latest-only" style="width: auto; display: inline;">
+                            Latest Only
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="discovery-limit">Limit (max sensors):</label>
+                        <input type="text" id="discovery-limit" placeholder="e.g., 50" value="50">
+                    </div>
+                </div>
+
+                <!-- Spatial Filter (Discovery Mode Only) -->
+                <div id="spatial-filter-section" style="display:none;">
+                    <div class="form-group">
+                        <label for="spatial-filter-type">Spatial Filter Type (Discovery Mode Only):</label>
+                        <select id="spatial-filter-type" onchange="toggleSpatialFilter()">
+                            <option value="none">None</option>
+                            <option value="bbox">Bounding Box</option>
+                            <option value="radius">Radius</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="bbox-fields" style="display:none;">
+                        <label>Bounding Box Coordinates (minLon, minLat, maxLon, maxLat):</label>
+                        <input type="text" id="bbox-coords" placeholder="11.0, 46.0, 12.0, 47.0">
+                    </div>
+                    <div class="form-group" id="radius-fields" style="display:none;">
+                        <label>Radius Coordinates (centerLon, centerLat, radiusMeters):</label>
+                        <input type="text" id="radius-coords" placeholder="11.5, 46.5, 5000">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="subscribe()">Subscribe</button>
+                    <button class="btn-secondary" onclick="unsubscribe()">Unsubscribe</button>
+                    <button class="btn-secondary" onclick="sendCustomMessage()">Send Custom</button>
+                </div>
+            </div>
+
+            <!-- Custom Message -->
+            <div class="section">
+                <h2>Custom Message</h2>
+                <div class="form-group">
+                    <label for="custom-message">JSON Message:</label>
+                    <textarea id="custom-message" placeholder='{"action":"subscribe","sensor_names":["sensor1"]}'></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Quick Examples:</label>
+                    <div class="button-group">
+                        <button class="btn-secondary" onclick="loadExample('simple')">Simple</button>
+                        <button class="btn-secondary" onclick="loadExample('discovery')">Discovery</button>
+                        <button class="btn-secondary" onclick="loadExample('discovery-geo')">Discovery + Geo</button>
+                        <button class="btn-secondary" onclick="loadExample('discovery-filter')">Discovery + Filter</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Log -->
+            <div class="section">
+                <h2>Messages Log</h2>
+                <div class="button-group" style="margin-bottom: 15px;">
+                    <button class="btn-secondary" onclick="clearMessages()">Clear Log</button>
+                </div>
+                <div id="messages" class="messages">
+                    <div class="message info">
+                        <div class="message-time">Ready</div>
+                        Waiting for connection...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let stats = {
+            messages: 0,
+            updates: 0,
+            errors: 0,
+            connectTime: null
+        };
+        let uptimeInterval = null;
+
+        function toggleSubscriptionMode() {
+            const mode = document.getElementById('subscription-mode').value;
+            document.getElementById('simple-mode').style.display = mode === 'simple' ? 'block' : 'none';
+            document.getElementById('discovery-mode').style.display = mode === 'discovery' ? 'block' : 'none';
+            // Spatial filter only available in discovery mode
+            document.getElementById('spatial-filter-section').style.display = mode === 'discovery' ? 'block' : 'none';
+        }
+
+        function toggleSpatialFilter() {
+            const type = document.getElementById('spatial-filter-type').value;
+            document.getElementById('bbox-fields').style.display = type === 'bbox' ? 'block' : 'none';
+            document.getElementById('radius-fields').style.display = type === 'radius' ? 'block' : 'none';
+        }
+
+        function updateStatus(status, text) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = `status ${status}`;
+            statusEl.textContent = text;
+        }
+
+        function updateStats() {
+            document.getElementById('stat-messages').textContent = stats.messages;
+            document.getElementById('stat-updates').textContent = stats.updates;
+            document.getElementById('stat-errors').textContent = stats.errors;
+
+            if (stats.connectTime) {
+                const seconds = Math.floor((Date.now() - stats.connectTime) / 1000);
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                document.getElementById('stat-uptime').textContent = `${mins}m ${secs}s`;
+            } else {
+                document.getElementById('stat-uptime').textContent = '--';
+            }
+        }
+
+        function addMessage(type, content) {
+            stats.messages++;
+            if (type === 'data') stats.updates++;
+            if (type === 'error') stats.errors++;
+            updateStats();
+
+            const messagesEl = document.getElementById('messages');
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${type}`;
+
+            const time = new Date().toLocaleTimeString();
+            const timeEl = document.createElement('div');
+            timeEl.className = 'message-time';
+            timeEl.textContent = time;
+
+            const contentEl = document.createElement('pre');
+            contentEl.textContent = typeof content === 'string' ? content : JSON.stringify(content, null, 2);
+            contentEl.style.margin = '0';
+            contentEl.style.whiteSpace = 'pre-wrap';
+
+            messageEl.appendChild(timeEl);
+            messageEl.appendChild(contentEl);
+            messagesEl.appendChild(messageEl);
+
+            // Auto-scroll to bottom
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        function connect() {
+            const url = document.getElementById('ws-url').value;
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addMessage('error', 'Already connected');
+                return;
+            }
+
+            updateStatus('connecting', '🟡 Connecting...');
+            addMessage('info', `Connecting to ${url}`);
+
+            ws = new WebSocket(url);
+
+            ws.onopen = () => {
+                updateStatus('connected', '🟢 Connected');
+                addMessage('info', 'WebSocket connection established');
+                stats.connectTime = Date.now();
+                updateStats();
+
+                // Start uptime counter
+                if (uptimeInterval) clearInterval(uptimeInterval);
+                uptimeInterval = setInterval(updateStats, 1000);
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    addMessage(data.type || 'unknown', data);
+                } catch (e) {
+                    addMessage('error', `Failed to parse message: ${event.data}`);
+                }
+            };
+
+            ws.onerror = (error) => {
+                addMessage('error', `WebSocket error: ${error}`);
+            };
+
+            ws.onclose = () => {
+                updateStatus('disconnected', '⚫ Disconnected');
+                addMessage('info', 'WebSocket connection closed');
+                stats.connectTime = null;
+                if (uptimeInterval) {
+                    clearInterval(uptimeInterval);
+                    uptimeInterval = null;
+                }
+                updateStats();
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function subscribe() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addMessage('error', 'Not connected');
+                return;
+            }
+
+            const mode = document.getElementById('subscription-mode').value;
+            const request = { action: 'subscribe' };
+
+            if (mode === 'simple') {
+                // Simple mode: sensor names
+                const sensorNames = document.getElementById('sensor-names').value
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(s => s);
+
+                if (sensorNames.length === 0) {
+                    addMessage('error', 'At least one sensor name is required');
+                    return;
+                }
+
+                request.sensor_names = sensorNames;
+
+                const typeNames = document.getElementById('type-names').value
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(s => s);
+
+                if (typeNames.length > 0) {
+                    request.type_names = typeNames;
+                }
+            } else {
+                // Discovery mode: advanced filters
+                const timeseriesFilter = {};
+                const measurementFilter = {};
+                let hasTimeseriesFilter = false;
+                let hasMeasurementFilter = false;
+
+                // Required types
+                const requiredTypes = document.getElementById('required-types').value
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(s => s);
+                if (requiredTypes.length > 0) {
+                    timeseriesFilter.required_types = requiredTypes;
+                    hasTimeseriesFilter = true;
+                }
+
+                // Optional types
+                const optionalTypes = document.getElementById('optional-types').value
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(s => s);
+                if (optionalTypes.length > 0) {
+                    timeseriesFilter.optional_types = optionalTypes;
+                    hasTimeseriesFilter = true;
+                }
+
+                // Dataset IDs
+                const datasetIds = document.getElementById('dataset-ids').value
+                    .split(',')
+                    .map(s => s.trim())
+                    .filter(s => s);
+                if (datasetIds.length > 0) {
+                    timeseriesFilter.dataset_ids = datasetIds;
+                    hasTimeseriesFilter = true;
+                }
+
+                // Measurement expression
+                const expression = document.getElementById('measurement-expression').value.trim();
+                if (expression) {
+                    measurementFilter.expression = expression;
+                    hasMeasurementFilter = true;
+                }
+
+                // Latest only
+                const latestOnly = document.getElementById('latest-only').checked;
+                if (latestOnly) {
+                    measurementFilter.latest_only = true;
+                    hasMeasurementFilter = true;
+                }
+
+                if (hasTimeseriesFilter) {
+                    request.timeseries_filter = timeseriesFilter;
+                }
+
+                if (hasMeasurementFilter) {
+                    request.measurement_filter = measurementFilter;
+                }
+
+                // Limit
+                const limit = parseInt(document.getElementById('discovery-limit').value);
+                if (!isNaN(limit) && limit > 0) {
+                    request.limit = limit;
+                }
+
+                if (!hasTimeseriesFilter && !hasMeasurementFilter) {
+                    addMessage('error', 'At least one discovery filter is required (timeseries_filter or measurement_filter)');
+                    return;
+                }
+
+                // Spatial filter (only in discovery mode)
+                const filterType = document.getElementById('spatial-filter-type').value;
+                if (filterType === 'bbox') {
+                    const coords = document.getElementById('bbox-coords').value
+                        .split(',')
+                        .map(s => parseFloat(s.trim()));
+                    if (coords.length === 4) {
+                        request.spatial_filter = {
+                            type: 'bbox',
+                            coordinates: coords
+                        };
+                    }
+                } else if (filterType === 'radius') {
+                    const coords = document.getElementById('radius-coords').value
+                        .split(',')
+                        .map(s => parseFloat(s.trim()));
+                    if (coords.length === 3) {
+                        request.spatial_filter = {
+                            type: 'radius',
+                            coordinates: coords
+                        };
+                    }
+                }
+            }
+
+            ws.send(JSON.stringify(request));
+            addMessage('info', `Sent ${mode} subscription request: ${JSON.stringify(request, null, 2)}`);
+        }
+
+        function unsubscribe() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addMessage('error', 'Not connected');
+                return;
+            }
+
+            const request = { action: 'unsubscribe' };
+            ws.send(JSON.stringify(request));
+            addMessage('info', 'Sent unsubscribe request');
+        }
+
+        function sendCustomMessage() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addMessage('error', 'Not connected');
+                return;
+            }
+
+            try {
+                const message = document.getElementById('custom-message').value;
+                const parsed = JSON.parse(message);
+                ws.send(message);
+                addMessage('info', `Sent custom message: ${JSON.stringify(parsed, null, 2)}`);
+            } catch (e) {
+                addMessage('error', `Invalid JSON: ${e.message}`);
+            }
+        }
+
+        function loadExample(type) {
+            const examples = {
+                'simple': {
+                    "action": "subscribe",
+                    "sensor_names": ["HUM_Park_067", "PARK_Highway_052"]
+                },
+                'discovery': {
+                    "action": "subscribe",
+                    "timeseries_filter": {
+                        "required_types": ["power_generation"]
+                    },
+                    "limit": 50
+                },
+                'discovery-geo': {
+                    "action": "subscribe",
+                    "timeseries_filter": {
+                        "required_types": ["location"]
+                    },
+                    "spatial_filter": {
+                        "type": "bbox",
+                        "coordinates": [10.5, 46.2, 12.5, 47.2]
+                    },
+                    "limit": 20
+                },
+                'discovery-filter': {
+                    "action": "subscribe",
+                    "timeseries_filter": {
+                        "required_types": ["temperature"]
+                    },
+                    "measurement_filter": {
+                        "latest_only": true,
+                        "expression": "temperature.gteq.20"
+                    },
+                    "limit": 30
+                }
+            };
+
+            const example = examples[type];
+            if (example) {
+                document.getElementById('custom-message').value = JSON.stringify(example, null, 2);
+                addMessage('info', `Loaded ${type} example`);
+            }
+        }
+
+        // Initialize stats display
+        updateStats();
+    </script>
+</body>
+</html>

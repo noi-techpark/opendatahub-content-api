@@ -14,6 +14,7 @@ import (
 	"timeseries-api/internal/handlers"
 	"timeseries-api/internal/middleware"
 	"timeseries-api/internal/repository"
+	"timeseries-api/internal/streaming"
 	"timeseries-api/pkg/database"
 
 	"github.com/gin-gonic/gin"
@@ -69,14 +70,44 @@ func main() {
 	// Initialize repository
 	repo := repository.New(db)
 
+	// Initialize Materialize client
+	materializeClient, err := streaming.NewMaterializeClient(streaming.MaterializeConfig{
+		Host:     "localhost",
+		Port:     6875,
+		User:     "materialize",
+		Password: "",
+		Database: "materialize",
+	})
+	if err != nil {
+		logrus.WithError(err).Warn("Failed to connect to Materialize, streaming features will be unavailable")
+		materializeClient = nil
+	}
+	if materializeClient != nil {
+		defer materializeClient.Close()
+
+		// Wait for initial sync
+		syncCtx, syncCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer syncCancel()
+		if err := materializeClient.WaitForInitialSync(syncCtx); err != nil {
+			logrus.WithError(err).Warn("Materialize initial sync incomplete, continuing anyway")
+		}
+	}
+
 	// Initialize handlers
 	mutationHandler := handlers.NewMutationHandler(repo)
 	queryHandler := handlers.NewQueryHandler(repo)
 	datasetHandler := handlers.NewDatasetHandler(repo)
 	sensorDiscoveryHandler := handlers.NewSensorDiscoveryHandler(repo)
 
+	// Initialize streaming handler if Materialize is available
+	var streamingHandler *handlers.StreamingHandler
+	if materializeClient != nil {
+		wsManager := streaming.NewWebSocketManager(materializeClient, repo)
+		streamingHandler = handlers.NewStreamingHandler(wsManager)
+	}
+
 	// Setup Gin router
-	router := setupRouter(mutationHandler, queryHandler, datasetHandler, sensorDiscoveryHandler)
+	router := setupRouter(mutationHandler, queryHandler, datasetHandler, sensorDiscoveryHandler, streamingHandler)
 
 	// Setup HTTP server
 	srv := &http.Server{
@@ -126,7 +157,7 @@ func setupLogging(level string) {
 	logrus.SetLevel(logLevel)
 }
 
-func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handlers.QueryHandler, datasetHandler *handlers.DatasetHandler, sensorDiscoveryHandler *handlers.SensorDiscoveryHandler) *gin.Engine {
+func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handlers.QueryHandler, datasetHandler *handlers.DatasetHandler, sensorDiscoveryHandler *handlers.SensorDiscoveryHandler, streamingHandler *handlers.StreamingHandler) *gin.Engine {
 	// Set Gin mode based on log level
 	if logrus.GetLevel() == logrus.DebugLevel {
 		gin.SetMode(gin.DebugMode)
@@ -161,6 +192,11 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 			measurements.POST("/latest", queryHandler.GetLatestMeasurements)
 			measurements.GET("/historical", queryHandler.GetHistoricalMeasurementsQuery)
 			measurements.POST("/historical", queryHandler.GetHistoricalMeasurements)
+
+			// Streaming subscription (WebSocket)
+			if streamingHandler != nil {
+				measurements.GET("/subscribe", streamingHandler.SubscribeToMeasurements)
+			}
 		}
 
 		// Sensor discovery endpoints

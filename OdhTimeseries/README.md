@@ -4,6 +4,8 @@ A Go REST API server for managing timeseries data using Gin framework and Postgr
 
 ## Features
 
+- **Real-Time Streaming Subscriptions** - WebSocket subscriptions with Materialize for live measurement updates
+- **Advanced Discovery Subscriptions** - Use DiscoverSensors-style filters to auto-subscribe to matching sensors
 - **High-Performance Batch Processing** - Optimized batch inserts with configurable batch sizes
 - **Multiple Data Types** - Support for numeric, string, JSON, geoposition, geoshape, boolean
 - **Flexible Dataset Management** - Relational dataset-type associations (no JSON storage)
@@ -124,6 +126,13 @@ A Go REST API server for managing timeseries data using Gin framework and Postgr
 - `POST /api/v1/sensors/search` - Search sensors by measurement value conditions
 - **`POST /api/v1/sensors/types`** - Find sensors with specific measurement types (NEW)
 - **`GET /api/v1/sensors/types`** - Find sensors with specific measurement types (query params) (NEW)
+
+### Real-Time Streaming (WebSocket)
+- `GET /api/v1/measurements/subscribe` - **WebSocket endpoint for real-time measurement updates**
+  - **Simple subscriptions**: Specify sensor names directly
+  - **Discovery subscriptions**: Use DiscoverSensors-style filters to auto-subscribe
+  - **Geospatial filtering**: Bounding box and radius filters
+  - See [STREAMING.md](STREAMING.md) and [QUICKSTART-STREAMING.md](QUICKSTART-STREAMING.md) for details
 
 ### System Endpoints
 - `GET /api/v1/health` - Health check
