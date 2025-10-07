@@ -72,6 +72,8 @@ namespace DataModel
         public ICollection<string>? pushchannels { get; init; }
 
         public IDictionary<string, NotifierResponse>? pushed { get; set; }
+
+        public string? exception { get; set; }
     }
 
     //TO CHECK if this could be unified
@@ -158,6 +160,7 @@ namespace DataModel
             int? objectchanged = 0;
             int? objectimagechanged = 0;
             List<string>? channelstopush = new List<string>();
+            string? exception = null;
 
             JToken? changes = null;
 
@@ -199,6 +202,11 @@ namespace DataModel
                     foreach (var updatedetailpushed in updatedetail.pushed)
                         pushed.TryAdd(updatedetailpushed.Key, updatedetailpushed.Value);
                 }
+
+                if(!String.IsNullOrEmpty(updatedetail.exception))
+                {
+                    exception = updatedetail.exception + exception;
+                }
             }
 
             return new UpdateDetail()
@@ -213,6 +221,7 @@ namespace DataModel
                 pushchannels = channelstopush,
                 pushed = pushed,
                 changes = changes,
+                exception = exception
             };
         }
 
@@ -250,7 +259,7 @@ namespace DataModel
                 pushed = detail.pushed,
                 error = detail.error,
                 success = true,
-                exception = null,
+                exception = detail.exception,
                 stacktrace = null,
             };
 

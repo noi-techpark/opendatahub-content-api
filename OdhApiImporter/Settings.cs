@@ -34,6 +34,7 @@ namespace OdhApiImporter
         private readonly PanomaxConfig panomaxConfig;
         private readonly PanocloudConfig panocloudConfig;
         private readonly A22Config a22Config;
+        private readonly OutdooractiveConfig outdooractiveConfig;
 
         private readonly List<NotifierConfig> notifierConfig;
         private readonly IDictionary<string, S3Config> s3Config;
@@ -142,6 +143,14 @@ namespace OdhApiImporter
                 looptec.GetValue<string>("Username", ""),
                 looptec.GetValue<string>("Password", ""),
                 looptec.GetValue<string>("ServiceUrl", "")
+            );
+
+            var outdooractive = this.configuration.GetSection("OutdooractiveConfig");
+            this.outdooractiveConfig = new OutdooractiveConfig(
+                outdooractive.GetValue<string>("Username", ""),
+                outdooractive.GetValue<string>("Password", ""),
+                outdooractive.GetValue<string>("ServiceUrl", ""),
+                outdooractive.GetValue<string>("ServiceUrlDetail", "")
             );
 
             var xml = this.configuration.GetSection("XmlConfig");
@@ -280,6 +289,9 @@ namespace OdhApiImporter
         public MusportConfig MusportConfig => this.musportConfig;
         public NinjaConfig NinjaConfig => this.ninjaConfig;
         public LoopTecConfig LoopTecConfig => this.looptecConfig;
+
+        public OutdooractiveConfig OutdooractiveConfig => this.outdooractiveConfig;
+
 
         public List<NotifierConfig> NotifierConfig => this.notifierConfig;
 

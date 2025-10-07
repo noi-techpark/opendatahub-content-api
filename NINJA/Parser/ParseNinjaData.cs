@@ -1020,6 +1020,12 @@ namespace NINJA.Parser
                         (JObject)echargingpoi.AdditionalProperties[additionalpropertieskey]
                     ).ToObject<EchargingDataProperties>();
 
+                    //TEST!!!!
+                    //var propstonotoverwrite =
+                    //   (EchargingDataProperties)echargingpoi.AdditionalProperties[additionalpropertieskey];
+
+
+
                     properties.HorizontalFloorRoadSign =
                         propstonotoverwrite.HorizontalFloorRoadSign;
                     properties.SurveyDate = propstonotoverwrite.SurveyDate;

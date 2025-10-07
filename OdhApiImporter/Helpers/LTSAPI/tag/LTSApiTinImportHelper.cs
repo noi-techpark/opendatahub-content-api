@@ -17,9 +17,9 @@ using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
-    public class LTSApiTagImportHelper : ImportHelper, IImportHelper
+    public class LTSApiTagPropertyImportHelper : ImportHelper, IImportHelper
     {
-        public LTSApiTagImportHelper(
+        public LTSApiTagPropertyImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -27,7 +27,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        private async Task<List<JObject>> GetTagsFromLTSV2()
+        private async Task<List<JObject>> GetTagPropertiessFromLTSV2()
         {
             try
             {
@@ -41,7 +41,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 var qs = new LTSQueryStrings() { page_size = 100 };
                 var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                var ltsdata = await ltsapi.TagListRequest(dict, true);
+                var ltsdata = await ltsapi.TagPropertyListRequest(dict, true);
 
                 return ltsdata;
             }
@@ -50,11 +50,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "list.tags",
+                    "list.tagproperties",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.tags",
+                        sourceinterface = "lts.tagproperties",
                         success = false,
                         error = ex.Message,
                     }
@@ -71,14 +71,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var eventtags = await GetTagsFromLTSV2();
+            var tagproperties = await GetTagPropertiessFromLTSV2();
             //Import Single Data & Deactivate Data
-            var result = await SaveTagsToPG(eventtags);
+            var result = await SaveTagPropertiesToPG(tagproperties);
 
             return result;
         }
 
-        private async Task<UpdateDetail> SaveTagsToPG(List<JObject> ltsdata)
+        private async Task<UpdateDetail> SaveTagPropertiesToPG(List<JObject> ltsdata)
         {
             var newimportcounter = 0;
             var updateimportcounter = 0;
@@ -90,11 +90,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 List<string> idlistlts = new List<string>();
                 List<string> typelistlts = new List<string>();
 
-                List<LTSTags> tagdata = new List<LTSTags>();
+                List<LTSTagProperties> tagdata = new List<LTSTagProperties>();
 
                 foreach (var ltsdatasingle in ltsdata)
                 {
-                    tagdata.AddRange(ltsdatasingle["data"].ToObject<IList<LTSTags>>());
+                    tagdata.AddRange(ltsdatasingle["data"].ToObject<IList<LTSTagProperties>>());
                 }
 
                 foreach (var data in tagdata)
@@ -110,7 +110,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         objecttosave = new TagLinked();
 
                     objecttosave.Id = data.rid;
-                    objecttosave.Active = data.isActive;
+                    objecttosave.Active = true;
                     objecttosave.DisplayAsCategory = false;
                     objecttosave.FirstImport =
                         objecttosave.FirstImport == null ? DateTime.Now : objecttosave.FirstImport;
@@ -125,10 +125,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     objecttosave.Shortname = objecttosave.TagName.ContainsKey("en")
                         ? objecttosave.TagName["en"]
                         : objecttosave.TagName.FirstOrDefault().Value;
-                    objecttosave.Types = new List<string>() { "tags" + data.entityType.ToLower() };
+                    objecttosave.Types = new List<string>() { "ltstagproperties" };
 
-                    if (!typelistlts.Contains("ltstags"))
-                        typelistlts.Add("ltstags");
+                    if (!typelistlts.Contains("ltstagproperties"))
+                        typelistlts.Add("ltstagproperties");
 
                     //objecttosave.IDMCategoryMapping = null;
                     objecttosave.PublishDataWithTagOn = null;
@@ -140,27 +140,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             {
                                 { "rid", data.rid },
                                 { "code", data.code },
-                                { "entityType", data.entityType },
-                                { "level", data.level.ToString() },
-                                { "mainTagRid", data.mainTagRid },
-                                { "parentTagRid", data.parentTagRid },
-                                { "isSelectable", data.isSelectable.ToString() },
-                                { "properties", data.properties != null ? String.Join(",", data.properties.Select(x => x.rid).ToList()) : string.Empty },
+                                { "parentTagProperty", data.parentTagProperty != null && data.parentTagProperty.rid != null ? data.parentTagProperty.rid : string.Empty },
                             }
                         },
                     };
-                    objecttosave.LTSTaggingInfo = new LTSTaggingInfo()
-                    {
-                        LTSRID = data.rid,
-                        ParentLTSRID = data.parentTagRid,
-                    };
                     objecttosave.PublishedOn = null;
                     
-
-                    //Do not set this because we have mapped tag ids assigned
-                    //objecttosave.MappedTagIds = null;
-
-
                     var result = await InsertDataToDB(objecttosave, data);
 
                     newimportcounter = newimportcounter + result.created ?? 0;
@@ -172,11 +157,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     WriteLog.LogToConsole(
                         id,
                         "dataimport",
-                        "single.tags",
+                        "single.tagproperties",
                         new ImportLog()
                         {
                             sourceid = id,
-                            sourceinterface = "lts.tags",
+                            sourceinterface = "lts.tagproperties",
                             success = true,
                             error = "",
                         }
@@ -204,11 +189,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             WriteLog.LogToConsole(
                                 idtodelete,
                                 "dataimport",
-                                "single.tags.deactivate",
+                                "single.tagproperties.deactivate",
                                 new ImportLog()
                                 {
                                     sourceid = idtodelete,
-                                    sourceinterface = "lts.tags",
+                                    sourceinterface = "lts.tagproperties",
                                     success = true,
                                     error = "",
                                 }
@@ -217,11 +202,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             WriteLog.LogToConsole(
                                 idtodelete,
                                 "dataimport",
-                                "single.tags.delete",
+                                "single.tagproperties.delete",
                                 new ImportLog()
                                 {
                                     sourceid = idtodelete,
-                                    sourceinterface = "lts.tags",
+                                    sourceinterface = "lts.tagproperties",
                                     success = true,
                                     error = "",
                                 }
@@ -246,7 +231,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(TagLinked objecttosave, LTSTags data)
+        private async Task<PGCRUDResult> InsertDataToDB(TagLinked objecttosave, LTSTagProperties data)
         {
             try
             {
@@ -267,7 +252,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 return await QueryFactory.UpsertData<TagLinked>(
                     objecttosave,
                     new DataInfo("tags", Helper.Generic.CRUDOperation.CreateAndUpdate),
-                    new EditInfo("lts.tags.import", importerURL),
+                    new EditInfo("lts.tagproperties.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
                     rawdataid
@@ -279,7 +264,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<int> InsertInRawDataDB(LTSTags data)
+        private async Task<int> InsertInRawDataDB(LTSTagProperties data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
@@ -287,10 +272,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     datasource = "lts",
                     importdate = DateTime.Now,
                     raw = JsonConvert.SerializeObject(data),
-                    sourceinterface = "tags",
+                    sourceinterface = "tagproperties",
                     sourceid = data.rid,
-                    sourceurl = "https://go.lts.it/api/v1/tags",
-                    type = "tags",
+                    sourceurl = "https://go.lts.it/api/v1/tags/properties",
+                    type = "tagproperties",
                     license = "open",
                     rawformat = "json",
                 }
@@ -298,7 +283,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
     }
 
-    public class LTSTags
+    public class LTSTagProperties
     {
         public string rid { get; set; }
         public DateTime lastUpdate { get; set; }
@@ -307,22 +292,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         public IDictionary<string, string> description { get; set; }
 
         public string code { get; set; }
-        public string entityType { get; set; }
-        public int level { get; set; }
 
-        public string mainTagRid { get; set; }
-
-        public string parentTagRid { get; set; }
-
-        public bool isActive { get; set; }
-
-        public bool isSelectable { get; set; }
-
-        public ICollection<LTSTagRidObject> properties { get; set; }
-    }
-
-    public class LTSTagRidObject
-    {
-        public string rid { get; set; }
+        public LTSTagRidObject parentTagProperty { get; set; }
     }
 }

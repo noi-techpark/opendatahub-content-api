@@ -915,7 +915,8 @@ namespace DataModel
             IGPSPointsAware,
             IHasLocationInfoLinked,
             IHasTagInfo,
-            IHasDistrictId
+            IHasDistrictId,
+            IHasTourismorganizationId
     {
         public Metadata? _Meta { get; set; }
 

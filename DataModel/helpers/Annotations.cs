@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,5 +75,29 @@ namespace DataModel.Annotations
 
         public string Description { get; }
         public Type ReferenceTo { get; }
+    }
+    
+    [AttributeUsage(AttributeTargets.Property)]
+    public class PolymorphicDictionaryAttribute : Attribute
+    {
+        public Dictionary<string, Type> TypeMapping { get; }
+
+        public PolymorphicDictionaryAttribute(params object[] keyTypePairs)
+        {
+            TypeMapping = new Dictionary<string, Type>();
+
+            for (int i = 0; i < keyTypePairs.Length; i += 2)
+            {
+                if (i + 1 < keyTypePairs.Length)
+                {
+                    var key = keyTypePairs[i].ToString();
+                    var type = keyTypePairs[i + 1] as Type;
+                    if (key != null && type != null)
+                    {
+                        TypeMapping[key] = type;
+                    }
+                }
+            }
+        }
     }
 }

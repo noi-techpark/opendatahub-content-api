@@ -90,14 +90,28 @@ namespace Helper
                 },
             };
 
-            //Blaklisted OwnerRIDs
-            Dictionary<string, List<string>> notallowedownerrids = new Dictionary<string, List<string>>()
+            //Blaklisted Areas
+            Dictionary<string, List<string>> notallowedarearids = new Dictionary<string, List<string>>()
             {
                 {
                     "odhactivitypoi",
                     new List<string>()
-                    {
-                        "0E8FFB31CCFC31D92C6F396134D2F1FC", // Tourismusverband Tiroler Oberland - Infobüro Nauders                      
+                    {                        
+                        "CF0F2EE94A23ED0CEE50EFE674EB1B2C", //Obertilliach
+                        "78DC6AA57BCC4647AF3925BD1197C418", // Osttirol
+                        "EB08528A2DBA406188A4C85012A28195", // PelmoSkiCivetta
+                        "2F327A4A8AAB82A867234D9A7C2F6605", //Veneto
+                        "98910F5EBED441F986F2B19833C28B10", //Marmolada
+                        "3629935C546A49328842D3E0E9150CE8", //Auronzo - Misurina - Lorenzago
+                        "B6021F468FD24DCE92E3B6BEC93FBD83", //Cortina
+                        "0646D169CCA842E38B981790A08D3AF5", //Arabba
+                        "43E671500E21477F8D682E8767D812A8", //Comelico–Sappada
+                        "FDC26773609E139FCC76F4C6FA6A2F72", //Testarea LTS
+                        "94187AC0AB734AC087BA54A9E3C910E4", //Auronzo–Misurina–Lorenzago
+                        "C5CA26AD0DCA477E8011FE12A6DDF02C", //Forni di Sopra
+                        "835FD7E072ED47FCA0F27F6EE053AD9F", //Engadin Scuol Zernez
+                        "79178AB1F14E4701B96127DE73F5A8A0", //Minschuns (Müstair)
+                        "2861C7E0C4C04BDF942B99417D44FDA2", //Arabba
                     }
                 },
             };
@@ -117,8 +131,7 @@ namespace Helper
                             (mydata as AccommodationLinked).SmgActive
                             && allowedsourcesMP[mydata._Meta.Type].Contains(mydata._Meta.Source)
                         )
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
@@ -126,9 +139,7 @@ namespace Helper
                     //Accommodation Room publishedon
                     case "accommodationroom":
 
-                        //TO check add publishedon logic only for rooms with source hgv? for online bookable accommodations?
-
-                        publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        //TO check add publishedon logic only for rooms with source hgv? for online bookable accommodations?                        
 
                         if (activatesourceonly != null && activatesourceonly.Item2 == true)
                         {
@@ -146,6 +157,7 @@ namespace Helper
                         }
 
                         break;
+                    
                     //Event Add all Active Events from now
                     case "event":
 
@@ -271,8 +283,6 @@ namespace Helper
                     //ODHActivityPoi
                     case "odhactivitypoi":
 
-                        if ((mydata as ODHActivityPoiLinked).SmgActive)
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
                         if (
                             (mydata as ODHActivityPoiLinked).SmgActive
                             && mydata._Meta.Source == "suedtirolwein"
@@ -305,28 +315,36 @@ namespace Helper
                                             ? false
                                             : true;
 
-                                bool ownerallowed = true;
-                                if ((mydata as ODHActivityPoiLinked).OwnerRid != null)
-                                    ownerallowed =
-                                        notallowedownerrids[mydata._Meta.Type]
-                                            .Where(x =>
-                                                x.Contains(
-                                                    (
-                                                        mydata as ODHActivityPoiLinked
-                                                    ).OwnerRid
-                                                )
-                                            )
-                                            .Count() > 0
-                                            ? false
-                                            : true;
+                                //If there are only blacklisted areas assigned TEST
+                                bool hasmorethanblacklistedarea = true;
+                                if (mydata._Meta.Source == "lts" && (mydata as ODHActivityPoiLinked).AreaId != null)
+                                {
+                                    hasmorethanblacklistedarea = (mydata as ODHActivityPoiLinked).AreaId.Except(notallowedarearids[mydata._Meta.Type]).Count() > 0 ? true : false;
+                                }                                    
+
+                                //bool locinfonotemptyandsourcelts = true;
+                                //if (mydata._Meta.Source == "lts")
+                                //{
+                                //    //IF data is from Source LTS and has no Locationinfo (outside of South Tyrol) deactivate it
+                                //    if((mydata as ODHActivityPoiLinked).LocationInfo == null ||
+                                //        (
+                                //            (mydata as ODHActivityPoiLinked).LocationInfo.TvInfo == null &&
+                                //            (mydata as ODHActivityPoiLinked).LocationInfo.RegionInfo == null &&
+                                //            (mydata as ODHActivityPoiLinked).LocationInfo.DistrictInfo == null &&
+                                //            (mydata as ODHActivityPoiLinked).LocationInfo.MunicipalityInfo == null
+                                //        ))
+                                //    {
+                                //        locinfonotemptyandsourcelts = false;
+                                //    }                                    
+                                //}
 
                                 //IF category is white or blacklisted find an intersection
-                                var tagintersection = allowedtags
+                                var tagintersection = (mydata as ODHActivityPoiLinked).SmgTags != null ? allowedtags                                    
                                     .Select(x => x.Id)
                                     .ToList()
-                                    .Intersect((mydata as ODHActivityPoiLinked).SmgTags);
+                                    .Intersect((mydata as ODHActivityPoiLinked).SmgTags) : new List<string>();
 
-                                if (tagintersection.Count() > 0 && tvallowed && ownerallowed)
+                                if (tagintersection.Count() > 0 && tvallowed && hasmorethanblacklistedarea)
                                 {
                                     var blacklistedpublisher = new List<string>();
 
@@ -384,11 +402,7 @@ namespace Helper
                                 {
                                     publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                                 }
-                            }
-
-
-                            
-
+                            }                            
                         }
 
                         break;
@@ -441,8 +455,7 @@ namespace Helper
 
                     case "measuringpoint":
                         if ((mydata as MeasuringpointLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
@@ -452,7 +465,6 @@ namespace Helper
                         {
                             if ((mydata as VenueLinked).Active == true)
                             {
-                                publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
                                 publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                             }
                         }
@@ -482,16 +494,14 @@ namespace Helper
                     //TO CHECK, import all and set it active on Marketplace?
                     case "webcam":
                         if ((mydata as WebcamInfoLinked).SmgActive == true)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "wineaward":
                         if ((mydata as WineLinked).Active == true)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("suedtirolwein.com");
                             //publishedonlist.TryAddOrUpdateOnList("idm-marketplace"); /??
                         }
@@ -499,72 +509,63 @@ namespace Helper
 
                     case "region":
                         if ((mydata as RegionLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "tourismassociation":
                         if ((mydata as TourismvereinLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "district":
                         if ((mydata as DistrictLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "municipality":
                         if ((mydata as MunicipalityLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "metaregion":
                         if ((mydata as MetaRegionLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "area":
                         if ((mydata as AreaLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "skiarea":
                         if ((mydata as SkiAreaLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "skiregion":
                         if ((mydata as SkiRegionLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
 
                     case "experiencearea":
                         if ((mydata as ExperienceAreaLinked).Active)
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
+                        {                            
                             publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                         }
                         break;
@@ -576,9 +577,7 @@ namespace Helper
                             article.SmgActive
                             && allowedtypesMP[mydata._Meta.Type].Contains(article.Type.ToLower())
                         )
-                        {
-                            publishedonlist.TryAddOrUpdateOnList("suedtirol.info");
-                            //publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                        {                            
                         }
                         break;
 

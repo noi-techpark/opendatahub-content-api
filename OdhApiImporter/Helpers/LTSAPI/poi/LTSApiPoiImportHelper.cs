@@ -3,8 +3,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Helper.Generic;
+using Helper.IDM;
 using Helper.Location;
 using Helper.Tagging;
 using LTSAPI;
@@ -17,6 +19,7 @@ using SqlKata.Execution;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -69,23 +72,31 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             //Check if Data is accessible on LTS
             if (poilts != null && poilts.FirstOrDefault().ContainsKey("success") && (Boolean)poilts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
-            {     //Import Single Data & Deactivate Data
-                var result = await SavePoisToPG(poilts);
-                return result;
+            {     
+                //Import Single Data & Deactivate Data
+                return await SavePoisToPG(poilts);
             }
             //If data is not accessible on LTS Side, delete or disable it
             else if (poilts != null && poilts.FirstOrDefault().ContainsKey("status") && ((int)poilts.FirstOrDefault()["status"] == 403 || (int)poilts.FirstOrDefault()["status"] == 404))
             {
+                var resulttoreturn = default(UpdateDetail);
+
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisablePoisData(id, false, false);
+                    resulttoreturn = await DeleteOrDisablePoisData(id, false, false);
+                    if (poilts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(poilts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + poilts.FirstOrDefault()["message"].ToString() + "|";
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisablePoisData(id, true, true);
+                    resulttoreturn = await DeleteOrDisablePoisData(id, true, true);
+                    if (poilts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(poilts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + "opendata:" + poilts.FirstOrDefault()["message"].ToString() + "|";
                 }
+
+                return resulttoreturn;
             }
             else
             {
@@ -303,19 +314,24 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     );
                 }
 
-                //TO CHECK ???? Load the json Data
-                //IDictionary<string,JArray> jsondata = default(Dictionary<string, JArray>);
+                //Load the json Data
+                IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
 
-                //if (!opendata)
-                //{
-                //    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
-                //    settings.JsonConfig.Jsondir,
-                //    new List<string>()
-                //        {
-                //            "LTSTags"
-                //        }
-                //    );
-                //}
+                jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                settings.JsonConfig.Jsondir,
+                new List<string>()
+                    {
+                        "ODHTagsSourceIDMLTS",
+                        "LTSTagsAndTins",
+                        "ActivityPoiDisplayAsCategory",
+                    }
+                );
+
+                var metainfosidm = await QueryFactory
+                    .Query("odhactivitypoimetainfos")
+                    .Select("data")
+                    .Where("id", "metainfoexcelsmgpoi")
+                    .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
 
                 foreach (var data in poidata)
                 {
@@ -323,7 +339,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var poiparsed = PointofInterestParser.ParseLTSPointofInterest(data.data, false);
 
-                    //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
+                    //POPULATE LocationInfo TO CHECK if this works for new pois...
                     poiparsed.LocationInfo = await poiparsed.UpdateLocationInfoExtension(
                         QueryFactory
                     );
@@ -332,37 +348,56 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await poiparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Poi
-                    var poiindb = await LoadDataFromDB<ODHActivityPoiLinked>(id, IDStyle.lowercase);
+                    var poiindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase); ;
+
+                    await CompleteLTSTagsAndAddLTSParentAsTag(poiparsed, jsondata);
+
+                    //AddPoiSpecialCases(poiparsed);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergePoiTags(poiparsed, poiindb);
-              
+
+                    //**BEGIN If on opendata IDM Categorization is no more wanted move this to the if(!opendata) section
+
+                    //Preserves all manually assigned ODHTags, and adds tall Mapped ODHTags
+                    await AssignODHTags(poiparsed, poiindb, jsondata);
+
+                    //Traduce all Tags with Source IDM to english tags
+                    await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                        poiparsed,
+                        settings.JsonConfig.Jsondir
+                    );
+
+                    //**END
+
                     if (!opendata)
                     {
-                        //TO CHECK
-                        //Add the SmgTags for IDM
-                        //await AssignODHTags(poiparsed, poiindb);
+                        //Reassign Outdooractive Sync Values
+                        await ReassignOutdooractiveMapping(poiparsed, poiindb);
 
-                        //TO CHECK
-                        //await SetODHActiveBasedOnRepresentationMode(poiparsed);
-
-                        //TO CHECK
                         //Add the MetaTitle for IDM
-                        //await AddMetaTitle(poiparsed);
-
-                        //Add the values to Tags (TagEntry) not needed anymore?
-                        //await AddTagEntryToTags(poiparsed);
-
-                        //Traduce all Tags with Source IDM to english tags
-                        await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                            poiparsed,
-                            settings.JsonConfig.Jsondir
-                        );
+                        await AddIDMMetaTitleAndDescription(poiparsed, metainfosidm);
                     }
 
-                    //Create Tags and preserve the old TagEntries
-                    await poiparsed.UpdateTagsExtension(QueryFactory, null);
+                    //When requested with opendata Interface does not return isActive field
+                    //All data returned by opendata interface are active by default
+                    if (opendata)
+                    {
+                        poiparsed.Active = true;
+                        poiparsed.SmgActive = true;
+                    }
 
+                    SetAdditionalInfosCategoriesByODHTags(poiparsed, jsondata);
+
+                    //Create Tags and preserve the old TagEntries
+                    await poiparsed.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(poiparsed));
+
+                    //Preserve old Values
+                    PreserveOldValues(poiparsed, poiindb);
+
+                    //Fill AdditionalProperties
+                    //poiparsed.FillLTSPoiAdditionalProperties();
+                    //poiparsed.FillIDMPoiAdditionalProperties();
 
                     var result = await InsertDataToDB(poiparsed, data.data);
 
@@ -416,16 +451,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 });
             }
 
-
-            //To check, this works only for single updates             
-            //return new UpdateDetail()
-            //{
-            //    updated = updateimportcounter,
-            //    created = newimportcounter,
-            //    deleted = deleteimportcounter,
-            //    error = errorimportcounter,
-            //};
-
             return updatedetails.FirstOrDefault();
         }
 
@@ -436,26 +461,31 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             try
             {
-                //TODO!
                 //Set LicenseInfo
-                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(objecttosave, opendata);
+                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(objecttosave, opendata);
 
                 //TODO!
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-                //Add the PublishedOn Logic
-                //Exception here all Tags with autopublish has to be passed
-                var autopublishtaglist =
-                    await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
-                        settings.JsonConfig.Jsondir
-                    );               
-                //Set PublishedOn with allowedtaglist
-                objecttosave.CreatePublishedOnList(autopublishtaglist);
+                if (!opendata)
+                {
+                    //Add the PublishedOn Logic
+                    //Exception here all Tags with autopublish has to be passed
+                    var autopublishtaglist =
+                        await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
+                            settings.JsonConfig.Jsondir
+                        );
+                    //Set PublishedOn with allowedtaglist
+                    objecttosave.CreatePublishedOnList(autopublishtaglist);
+                }
+                else
+                    objecttosave.PublishedOn = new List<string>();
 
                 var rawdataid = await InsertInRawDataDB(poilts);
-                
-                objecttosave.Id = objecttosave.Id.ToLower();
+
+                //Prefix Poi with "smgpoi" Id
+                objecttosave.Id = "smgpoi" + objecttosave.Id.ToLower();
 
                 return await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                     objecttosave,
@@ -500,7 +530,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (delete)
             {
                 result = await QueryFactory.DeleteData<ODHActivityPoiLinked>(
-                id.ToLower(),
+                "smgpoi" + id.ToLower(),
                 new DataInfo("smgpois", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
@@ -525,7 +555,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
+                var query = QueryFactory.Query(table).Select("data").Where("id", "smgpoi" + id.ToLower());
 
                 var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
@@ -594,66 +624,233 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //TODO import the Redactional Tags from SmgTags into Tags?
         }
 
+        #region OLD Compatibility Stufff
+
         //TODO Pois ODHTags assignment
-        //private async Task AssignODHTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
-        //{
-        //    List<string> tagstopreserve = new List<string>();
-        //    //Remove all ODHTags that where automatically assigned         
-        //    if(gastroOld != null && gastroOld.SmgTags != null)
-        //        tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
-            
-        //    gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
-        //}
-        
-        //TODO Metatitle + metadesc
+        private async Task AssignODHTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld, IDictionary<string, JArray>? jsonfiles)
+        {
+            List<ODHTagLinked> tagstoremove = jsonfiles != null && jsonfiles["ODHTagsSourceIDMLTS"] != null ? jsonfiles["ODHTagsSourceIDMLTS"].ToObject<List<ODHTagLinked>>() : null;
+
+            List<string> tagstopreserve = new List<string>();
+            if (poiNew.SmgTags == null)
+                poiNew.SmgTags = new List<string>();
+
+            //Remove all ODHTags that where automatically assigned
+            if (poiNew != null && poiOld != null && poiOld.SmgTags != null && tagstoremove != null)
+                tagstopreserve = poiOld.SmgTags.Except(tagstoremove.Select(x => x.Id)).ToList();
+
+            //Add the activity Tag
+            if (!poiNew.SmgTags.Contains("activity"))
+                poiNew.SmgTags.Add("activity");
+
+            //Readd all mapped Tags
+            foreach (var ltstag in poiNew.TagIds)
+            {
+                if (tagstoremove != null)
+                {
+                    //load
+                    var ltstagsinlist = tagstoremove.Where(x => x.LTSTaggingInfo != null && x.LTSTaggingInfo.LTSRID == ltstag);
+
+                    if (ltstagsinlist != null)
+                    {
+                        foreach (var ltstaginlist in ltstagsinlist)
+                        {
+                            //Add LTS Tag id
+                            if (!poiNew.SmgTags.Contains(ltstaginlist.Id))
+                                poiNew.SmgTags.Add(ltstaginlist.Id);
+                            //Add the mapped Tags
+                            foreach (var mappedtag in ltstaginlist.MappedTagIds)
+                            {
+                                if (!poiNew.SmgTags.Contains(mappedtag))
+                                    poiNew.SmgTags.Add(mappedtag);
+                            }
+
+                            //Handle also the LTS Parent Tags
+                            if (ltstaginlist.Mapping != null && ltstaginlist.Mapping.ContainsKey("lts"))
+                            {
+                                if (ltstaginlist.Mapping["lts"].ContainsKey("parent_id"))
+                                {
+                                    if (!poiNew.SmgTags.Contains(ltstaginlist.Mapping["lts"]["parent_id"]))
+                                        poiNew.SmgTags.Add(ltstaginlist.Mapping["lts"]["parent_id"]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            //Readd Tags to preserve
+            foreach (var tagtopreserve in tagstopreserve)
+            {
+                poiNew.SmgTags.Add(tagtopreserve);
+            }
+        }
+
+
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
-        //private async Task AddMetaTitle(ODHActivityPoiLinked gastroNew)
-        //{
-        //    if (gastroNew != null && gastroNew.Detail != null)
-        //    {
-        //        if (gastroNew.Detail.ContainsKey("de"))
-        //        {
-        //            string city = GetCityForGastroSeo("de", gastroNew);
+        private async Task AddIDMMetaTitleAndDescription(ODHActivityPoiLinked poiNew, MetaInfosOdhActivityPoi metainfo)
+        {
+            IDMCustomHelper.SetMetaInfoForActivityPoi(poiNew, metainfo);
+        }
 
-        //            gastroNew.Detail["de"].MetaTitle = gastroNew.Detail["de"].Title + " • " + city + " (Südtirol)";
-        //            gastroNew.Detail["de"].MetaDesc = "Kontakt •  Reservierung •  Öffnungszeiten → " + gastroNew.Detail["de"].Title + ", " + city + ". Hier finden Feinschmecker das passende Restaurant, Cafe, Almhütte, uvm.";
-        //        }
-        //        if (gastroNew.Detail.ContainsKey("it"))
-        //        {
-        //            string city = GetCityForGastroSeo("it", gastroNew);
+        private async Task ReassignOutdooractiveMapping(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        {
+            var oamapping = new Dictionary<string, string>() { };
 
-        //            gastroNew.Detail["it"].MetaTitle = gastroNew.Detail["it"].Title + " • " + city + " (Alto Adige)";
-        //            gastroNew.Detail["it"].MetaDesc = "Contatto • prenotazione • orari d'apertura → " + gastroNew.Detail["it"].Title + ", " + city + ". Il posto giusto per i buongustai: ristorante, cafè, baita, e tanto altro.";
-        //        }
-        //        if (gastroNew.Detail.ContainsKey("en"))
-        //        {
-        //            string city = GetCityForGastroSeo("en", gastroNew);
+            if (poiOld != null)
+            {
+                if (poiOld.OutdooractiveElevationID != null)
+                {
+                    poiNew.OutdooractiveElevationID = poiOld.OutdooractiveElevationID;
+                    oamapping.Add("elevationid", poiOld.OutdooractiveElevationID);
+                }
 
-        //            gastroNew.Detail["en"].MetaTitle = gastroNew.Detail["en"].Title + " • " + city + " (South Tyrol)";
-        //            gastroNew.Detail["en"].MetaDesc = "•  Contact •  reservation •  opening times →  " + gastroNew.Detail["en"].Title + ". Find the perfect restaurant, cafe, alpine chalet in South Tyrol.";
-        //        }
+                if (poiOld.OutdooractiveElevationID != null)
+                {
+                    poiNew.OutdooractiveID = poiOld.OutdooractiveID;
+                    oamapping.Add("id", poiOld.OutdooractiveID);
+                }
+            }
+            //Add to Mapping
+            if (oamapping.Count > 0)
+                poiNew.Mapping.Add("outdooractive", oamapping);
+        }
 
-        //        //foreach (var detail in gastroNew.Detail)
-        //        //{
-        //        //    //Check this
-        //        //    detail.Value.MetaTitle = detail.Value.Title + " | suedtirol.info";
-        //        //}
-        //    }
-        //}
+        private async Task CompleteLTSTagsAndAddLTSParentAsTag(ODHActivityPoiLinked poiNew, IDictionary<string, JArray>? jsonfiles)
+        {
+            var ltstagsandtins = jsonfiles != null && jsonfiles["LTSTagsAndTins"] != null ? jsonfiles["LTSTagsAndTins"].ToObject<List<TagLinked>>() : null;
 
-        //to check
-        //private async Task SetODHActiveBasedOnRepresentationMode(ODHActivityPoiLinked gastroNew)
-        //{
-        //    if(gastroNew.Mapping != null && gastroNew.Mapping.ContainsKey("lts") && gastroNew.Mapping["lts"].ContainsKey("representationMode"))
-        //    {                
-        //            var representationmode = gastroNew.Mapping["lts"]["representationMode"];
-        //        if (representationmode == "full")
-        //        {
-        //            gastroNew.SmgActive = true;
-        //        }
-        //    }
-        //}
+            var tagstoadd = new List<string>();
+
+            //TO TEST
+            if (ltstagsandtins != null)
+            {
+                foreach (var tag in poiNew.TagIds)
+                {
+                    GetAllLTSParentTagsRecursively(tag, tagstoadd, ltstagsandtins);
+                }
+            }
+
+            foreach (var tag in tagstoadd)
+            {
+                if (!poiNew.TagIds.Contains(tag))
+                    poiNew.TagIds.Add(tag);
+
+                if (poiNew.LTSTags.Where(x => x.LTSRID == tag).Count() == 0)
+                    poiNew.LTSTags.Add(new LTSTagsLinked() { LTSRID = tag });
+            }
+
+            if (ltstagsandtins != null)
+            {
+                //Complete LTSTags
+                foreach (var tag in poiNew.LTSTags)
+                {
+                    //Search the Tag and check if it has a Parent
+                    var ltstag = ltstagsandtins.Where(x => x.Id == tag.LTSRID).FirstOrDefault();
+                    if (ltstag != null)
+                    {
+                        tag.TagName = ltstag.TagName?.Where(kvp => poiNew.HasLanguage?.Contains(kvp.Key) == true)
+                                      .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+                                      ?? new Dictionary<string, string>();
+                            //.Where(kvp => poiNew.HasLanguage != null ? poiNew.HasLanguage.Contains(kvp.Key) : !String.IsNullOrEmpty(kvp.Key))
+                            //.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                        tag.Level = ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && int.TryParse(ltstag.Mapping["lts"]["level"], out int taglevel) ? taglevel : 0;
+                        tag.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
+
+                        //Add the TIN Info
+                        if (tag.LTSTins != null && tag.LTSTins.Count > 0)
+                        {
+                            foreach (var tin in tag.LTSTins)
+                            {
+                                var ltstin = ltstagsandtins.Where(x => x.Id == tin.LTSRID).FirstOrDefault();
+                                if (ltstin != null)
+                                {
+                                    tin.TinName = ltstin.TagName?.Where(kvp => poiNew.HasLanguage?.Contains(kvp.Key) == true)
+                                      .ToDictionary(kvp => kvp.Key, kvp => kvp.Value)
+                                      ?? new Dictionary<string, string>();
+                                    tin.Id = ltstag.TagName.ContainsKey("de") ? ltstag.TagName["de"].ToLower() : "";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void GetAllLTSParentTagsRecursively(string ltstagid, List<string> parenttags, List<TagLinked>? ltstagsandtins)
+        {
+            //Search the Tag and check if it has a Parent
+            var ltstag = ltstagsandtins.Where(x => x.Id == ltstagid).FirstOrDefault();
+
+            if (ltstag != null)
+            {
+                if (ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("parentTagRid") && ltstag.Mapping["lts"]["parentTagRid"] != null)
+                {
+                    if (!parenttags.Contains(ltstag.Mapping["lts"]["parentTagRid"]))
+                        parenttags.Add(ltstag.Mapping["lts"]["parentTagRid"]);
+
+                    if (ltstag.Mapping != null && ltstag.Mapping.ContainsKey("lts") && ltstag.Mapping["lts"].ContainsKey("level") && ltstag.Mapping["lts"]["level"] == "2")
+                    {
+                        GetAllLTSParentTagsRecursively(ltstag.Mapping["lts"]["parentTagRid"], parenttags, ltstagsandtins);
+                    }
+                }
+            }
+        }
+
+        private static void SetAdditionalInfosCategoriesByODHTags(ODHActivityPoiLinked poiNew, IDictionary<string, JArray>? jsonfiles)
+        {
+            //TO CHECK
+            //SET ADDITIONALINFOS
+            //Setting Categorization by Valid Tags
+            var validcategorylist = jsonfiles != null && jsonfiles["ActivityPoiDisplayAsCategory"] != null ? jsonfiles["ActivityPoiDisplayAsCategory"].ToObject<List<CategoriesTags>>() : null;
+
+            if (validcategorylist != null && poiNew.SmgTags != null)
+            {
+                var currentcategories = validcategorylist.Where(x => poiNew.SmgTags.Select(y => y.ToLower()).Contains(x.Id.ToLower())).ToList();
+
+                if (currentcategories != null)
+                {
+                    if (poiNew.AdditionalPoiInfos == null)
+                        poiNew.AdditionalPoiInfos = new Dictionary<string, AdditionalPoiInfos>();
+
+                    foreach (var languagecategory in new List<string>() { "de", "it", "en", "nl", "cs", "pl", "fr", "ru" })
+                    {
+                        //Do not overwrite Novelty
+                        string? novelty = null;
+                        if (poiNew.AdditionalPoiInfos.ContainsKey(languagecategory) && !String.IsNullOrEmpty(poiNew.AdditionalPoiInfos[languagecategory].Novelty))
+                            novelty = poiNew.AdditionalPoiInfos[languagecategory].Novelty;
 
 
+                        AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string>(), Novelty = novelty };
+
+                        //Reassigning Categories
+                        foreach (var smgtagtotranslate in currentcategories)
+                        {
+                            if (smgtagtotranslate.TagName.ContainsKey(languagecategory))
+                            {
+                                if(!additionalPoiInfos.Categories.Contains(smgtagtotranslate.TagName[languagecategory].Trim()))
+                                    additionalPoiInfos.Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
+                            }
+                        }
+
+                        poiNew.AdditionalPoiInfos.Add(languagecategory, additionalPoiInfos);
+                    }
+                }
+            }
+        }
+
+        //Insert here all manually edited values to preserve
+        private static void PreserveOldValues(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        {
+            if (poiOld != null)
+            {
+                if (poiOld.AgeFrom != null && poiOld.AgeFrom > 0)
+                    poiNew.AgeFrom = poiOld.AgeFrom;
+                if (poiOld.AgeTo != null && poiOld.AgeTo > 0)
+                    poiNew.AgeTo = poiOld.AgeTo;
+            }
+        }
+
+        #endregion
     }
 }

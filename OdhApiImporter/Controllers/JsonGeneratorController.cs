@@ -39,6 +39,7 @@ namespace OdhApiImporter.Controllers
 
         #region Tags
 
+        //Generates Taglist used to generated translated Tags from ODHTags
         [HttpGet, Route("ODH/Taglist")]
         public async Task<IActionResult> ProduceTagJson(CancellationToken cancellationToken)
         {
@@ -72,7 +73,8 @@ namespace OdhApiImporter.Controllers
                 return BadRequest(result);
             }
         }
-
+        
+        //Generates list with ODHTags that have an autopublish option set
         [HttpGet, Route("ODH/OdhTagAutoPublishlist")]
         public async Task<IActionResult> ProduceOdhTagAutoPublishListJson(
             CancellationToken cancellationToken
@@ -109,6 +111,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Generates list with ODHTags with DisplayasCategory true used to create the AdditionalPoiInfos Categories OBOLETE?
         [HttpGet, Route("ODH/OdhTagCategorieslist")]
         public async Task<IActionResult> ProduceOdhTagCategoriesListJson(
             CancellationToken cancellationToken
@@ -145,10 +148,48 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Generates list with ODHTags with Tags for activities & pois from idm and lts, used for LTSTag<->ODHTag
+        [HttpGet, Route("ODH/OdhTagSourceLTSIDMlist")]
+        public async Task<IActionResult> ProduceOdhTagGeneratedListJson(
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                await JsonGeneratorHelper.GenerateJSONODHTagSourceIDMLTSList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "ODHTagsSourceIDMLTS"
+                );
+
+                var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
+                    "Json Generation",
+                    "ODHTagGeneratedList",
+                    "Generate Json OdhTagSourceLTSIDMlist succeeded",
+                    true
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var result = GenericResultsHelper.GetErrorJsonGenerateResult(
+                    "Json Generation",
+                    "ODHTagCategoriesList",
+                    "Generate Json OdhTagSourceLTSIDMlist failed",
+                    ex,
+                    true
+                );
+
+                return BadRequest(result);
+            }
+        }
+
+        //Generates lists of Tags/ODHTags? used in Gastronomy Sync
         [HttpGet, Route("ODH/GastronomyCategorieslist")]
         public async Task<IActionResult> ProduceGastronomyCategoriesListJson(
-    CancellationToken cancellationToken
-)
+            CancellationToken cancellationToken
+        )
         {
             try
             {
@@ -199,6 +240,50 @@ namespace OdhApiImporter.Controllers
                     "Json Generation",
                     "GastronomyCategorieslist",
                     "Generate Json GastronomyCategorieslist failed",
+                    ex,
+                    true
+                );
+
+                return BadRequest(result);
+            }
+        }
+
+        //Generates lits of Tags/ODHTags? used in Activity Sync
+        [HttpGet, Route("ODH/ActivityPoiDatalist")]
+        public async Task<IActionResult> ProduceActivityDataListJson(
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {                
+                await JsonGeneratorHelper.GenerateJSONLTSTagsList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "LTSTagsAndTins",
+                     new List<string>() { "tagsactivity", "ltstagproperties", "tagspointofinterest" }
+                );                
+                await JsonGeneratorHelper.GenerateJSONODHTagsDisplayAsCategoryList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "ActivityPoiDisplayAsCategory",
+                     new List<string>() { "odhactivitypoi" }
+                );
+
+                var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
+                    "Json Generation",
+                    "ActivityPoiDatalist",
+                    "Generate Json ActivityDatalist succeeded",
+                    true
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var result = GenericResultsHelper.GetErrorJsonGenerateResult(
+                    "Json Generation",
+                    "ActivityDatalist",
+                    "Generate Json ActivityDatalist failed",
                     ex,
                     true
                 );

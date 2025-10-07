@@ -72,23 +72,31 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             //Check if Data is accessible on LTS
             if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("success") && (Boolean)eventlts.FirstOrDefault()["success"]) //&& eventlts.FirstOrDefault()["Success"] == true
-            {     //Import Single Data & Deactivate Data
-                var result = await SaveEventsToPG(eventlts);
-                return result;
+            {     
+                //Import Single Data & Deactivate Data
+                return await SaveEventsToPG(eventlts);                
             }
             //If data is not accessible on LTS Side, delete or disable it
             else if (eventlts != null && eventlts.FirstOrDefault().ContainsKey("status") && ((int)eventlts.FirstOrDefault()["status"] == 403 || (int)eventlts.FirstOrDefault()["status"] == 404))
             {
+                var resulttoreturn = default(UpdateDetail);
+
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableEventData(id, false);
+                    resulttoreturn = await DeleteOrDisableEventData(id, false, false);
+                    if (eventlts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(eventlts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + eventlts.FirstOrDefault()["message"].ToString() + "|";
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableEventData(id + "_REDUCED", true);
+                    resulttoreturn = await DeleteOrDisableEventData(id, true, true);
+                    if (eventlts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(eventlts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + "opendata:" + eventlts.FirstOrDefault()["message"].ToString() + "|";
                 }
+
+                return resulttoreturn;
             }
             else
             {
@@ -366,10 +374,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Add Event Tag of type eventtag to ODHTags Compatibility
                         await AddEventTagsToODHTags(eventparsed);
-
-                        //PublishedOn Logich
-                        //Add the PublishedOn Logic
-                        eventparsed.CreatePublishedOnList();
                     }
 
                     //When requested with opendata Interface does not return isActive field
@@ -514,8 +518,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-                //Set PublishedOn
-                objecttosave.CreatePublishedOnList();
+                //Set PublishedOn (only full data)
+                if(!opendata)
+                    objecttosave.CreatePublishedOnList();
+                else
+                    objecttosave.PublishedOn = new List<string>();
 
                 var rawdataid = await InsertInRawDataDB(eventlts);
 
@@ -553,7 +560,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             );
         }
 
-        public async Task<UpdateDetail> DeleteOrDisableEventData(string id, bool delete)
+        public async Task<UpdateDetail> DeleteOrDisableEventData(string id, bool delete, bool reduced)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
@@ -564,7 +571,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 result =  await QueryFactory.DeleteData<EventLinked>(
                     id,
                     new DataInfo("events", CRUDOperation.Delete),
-                    new CRUDConstraints()
+                    new CRUDConstraints(),
+                    reduced
                 );
 
                 if (result.errorreason != "Data Not Found")
@@ -684,7 +692,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
 
                 //Readd all Redactional Tags
-                var redactionalassignedTags = eventOld.Tags != null ? eventOld.Tags.Where(x => x.Source != "lts").ToList() : null;
+                //var redactionalassignedTags = eventOld.Tags != null ? eventOld.Tags.Where(x => x.Source != "lts").ToList() : null;
+                var redactionalassignedTags = eventOld.Tags != null ? eventOld.Tags.Where(x => x.Source != "lts" && (x.Source == "idm" && x.Type != "odhcategory")).ToList() : null;
+
                 if (redactionalassignedTags != null)
                 {
                     foreach (var tag in redactionalassignedTags)
@@ -693,14 +703,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
                 }
             }
-            //TODO import the Redactional Tags from Events into Tags?
+            //TODO import the Redactional Tags from Events into Tags?            
         }
 
         //Compatibility resons add the Event Tag to ODHTag
         private async Task AddEventTagsToODHTags(EventLinked eventNew)
         {
-
-
             if (eventNew != null && eventNew.Tags != null && eventNew.Tags.Count > 0)
             {               
                 foreach (var eventtag in eventNew.Tags.Where(x => x.Type == "eventtag"))
