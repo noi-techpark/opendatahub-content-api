@@ -396,8 +396,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     PreserveOldValues(poiparsed, poiindb);
 
                     //Fill AdditionalProperties
-                    //poiparsed.FillLTSPoiAdditionalProperties();
-                    //poiparsed.FillIDMPoiAdditionalProperties();
+                    poiparsed.FillLTSPoiAdditionalProperties();
+                    poiparsed.FillIDMPoiAdditionalProperties();
 
                     var result = await InsertDataToDB(poiparsed, data.data);
 

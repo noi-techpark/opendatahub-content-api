@@ -398,8 +398,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     PreserveOldValues(activityparsed, activityindb);
 
                     //Fill AdditionalProperties
-                    //activityparsed.FillLTSActivityAdditionalProperties();
-                    //activityparsed.FillIDMPoiAdditionalProperties();
+                    activityparsed.FillLTSActivityAdditionalProperties();
+                    activityparsed.FillIDMPoiAdditionalProperties();
 
                     var result = await InsertDataToDB(activityparsed, data.data);
 

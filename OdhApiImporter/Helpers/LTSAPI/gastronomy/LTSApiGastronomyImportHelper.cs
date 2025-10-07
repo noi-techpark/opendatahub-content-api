@@ -396,7 +396,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await gastroparsed.UpdateTagsExtension(QueryFactory,await FillTagsObject.GetTagEntrysToPreserve(gastroparsed));
 
                     //Fill AdditionalProperties
-                    //gastroparsed.FillLTSGastronomyAdditionalProperties();
+                    gastroparsed.FillLTSGastronomyAdditionalProperties();
 
                     var result = await InsertDataToDB(gastroparsed, data.data);
 
