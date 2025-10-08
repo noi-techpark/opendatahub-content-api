@@ -50,7 +50,6 @@ namespace DataModel
 
     #endregion
 
-
     #region EventsV2 Datamodel
     public class EventV2
         : IIdentifiable,
@@ -862,6 +861,21 @@ namespace DataModel
         [SwaggerEnum(new[] { "Barrierefrei", "Bedingt zugänglich", "Nicht zugänglich" })]
         public string Pavement { get; set; }
 
+        [SwaggerSchema("Width, (on column barrierfree = 350 cm), (on row barrierfree = 250 cm)")]
+        public int? Width { get; set; }
+
+        [SwaggerSchema("Length, (on column barrierfree = 500 cm), (on row barrierfree = 650 cm)")]
+        public int? Length { get; set; }
+
+        [SwaggerSchema("Barrier-free access space signage present")]
+        public bool? ManeuvringSpaceSignagePresent { get; set; }
+
+        [SwaggerSchema("Barrier-free access space to charging point(monitor / pistol)")]
+        public bool? BarrierFreeAccessSpacetoChargingPoint { get; set; }
+    }
+
+    #endregion
+
     #region Announcements
 
     public class Announcement : Generic, IGPSPointsAware
@@ -885,23 +899,5 @@ namespace DataModel
         //TODO Add the Properties for AdditionalProperties (direction, lanes, expected_delay, planned_incident)
     }
 
-    #endregion
-
-        [SwaggerSchema("Width, (on column barrierfree = 350 cm), (on row barrierfree = 250 cm)")]
-        public int? Width { get; set; }
-
-        [SwaggerSchema("Length, (on column barrierfree = 500 cm), (on row barrierfree = 650 cm)")]
-        public int? Length { get; set; }
-
-        [SwaggerSchema("Barrier-free access space signage present")]
-        public bool? ManeuvringSpaceSignagePresent { get; set; }
-
-        [SwaggerSchema("Barrier-free access space to charging point(monitor / pistol)")]
-        public bool? BarrierFreeAccessSpacetoChargingPoint { get; set; }
-    }
-
-
-    #endregion
-
-
+    #endregion        
 }
