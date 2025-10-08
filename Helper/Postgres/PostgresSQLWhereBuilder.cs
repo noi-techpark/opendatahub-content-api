@@ -2,11 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using SqlKata;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using SqlKata;
+using static RawQueryParser.Filtering.FilterStatement;
 
 namespace Helper
 {
@@ -198,174 +199,174 @@ namespace Helper
             Serilog.Log.Debug("{method}({@parameters})", m.Name, parameterInfo);
         }
 
-        //Return Where and Parameters for Activity
-        public static Query ActivityWhereExpression(
-            this Query query,
-            IReadOnlyCollection<string> languagelist,
-            IReadOnlyCollection<string> idlist,
-            IReadOnlyCollection<string> activitytypelist,
-            IReadOnlyCollection<string> subtypelist,
-            IReadOnlyCollection<string> difficultylist,
-            IReadOnlyCollection<string> smgtaglist,
-            IReadOnlyCollection<string> districtlist,
-            IReadOnlyCollection<string> municipalitylist,
-            IReadOnlyCollection<string> tourismvereinlist,
-            IReadOnlyCollection<string> regionlist,
-            IReadOnlyCollection<string> arealist,
-            bool distance,
-            int distancemin,
-            int distancemax,
-            bool duration,
-            int durationmin,
-            int durationmax,
-            bool altitude,
-            int altitudemin,
-            int altitudemax,
-            bool? highlight,
-            bool? activefilter,
-            bool? smgactivefilter,
-            string? searchfilter,
-            string? language,
-            string? lastchange,
-            string? additionalfilter,
-            IEnumerable<string> userroles
-        )
-        {
-            LogMethodInfo(
-                System.Reflection.MethodBase.GetCurrentMethod()!,
-                "<query>", // not interested in query
-                idlist,
-                activitytypelist,
-                subtypelist,
-                difficultylist,
-                smgtaglist,
-                districtlist,
-                municipalitylist,
-                tourismvereinlist,
-                regionlist,
-                arealist,
-                distance,
-                distancemin,
-                distancemax,
-                duration,
-                durationmin,
-                durationmax,
-                altitude,
-                altitudemin,
-                altitudemax,
-                highlight,
-                activefilter,
-                smgactivefilter,
-                searchfilter,
-                language,
-                lastchange
-            );
+        ////Return Where and Parameters for Activity
+        //public static Query ActivityWhereExpression(
+        //    this Query query,
+        //    IReadOnlyCollection<string> languagelist,
+        //    IReadOnlyCollection<string> idlist,
+        //    IReadOnlyCollection<string> activitytypelist,
+        //    IReadOnlyCollection<string> subtypelist,
+        //    IReadOnlyCollection<string> difficultylist,
+        //    IReadOnlyCollection<string> smgtaglist,
+        //    IReadOnlyCollection<string> districtlist,
+        //    IReadOnlyCollection<string> municipalitylist,
+        //    IReadOnlyCollection<string> tourismvereinlist,
+        //    IReadOnlyCollection<string> regionlist,
+        //    IReadOnlyCollection<string> arealist,
+        //    bool distance,
+        //    int distancemin,
+        //    int distancemax,
+        //    bool duration,
+        //    int durationmin,
+        //    int durationmax,
+        //    bool altitude,
+        //    int altitudemin,
+        //    int altitudemax,
+        //    bool? highlight,
+        //    bool? activefilter,
+        //    bool? smgactivefilter,
+        //    string? searchfilter,
+        //    string? language,
+        //    string? lastchange,
+        //    string? additionalfilter,
+        //    IEnumerable<string> userroles
+        //)
+        //{
+        //    LogMethodInfo(
+        //        System.Reflection.MethodBase.GetCurrentMethod()!,
+        //        "<query>", // not interested in query
+        //        idlist,
+        //        activitytypelist,
+        //        subtypelist,
+        //        difficultylist,
+        //        smgtaglist,
+        //        districtlist,
+        //        municipalitylist,
+        //        tourismvereinlist,
+        //        regionlist,
+        //        arealist,
+        //        distance,
+        //        distancemin,
+        //        distancemax,
+        //        duration,
+        //        durationmin,
+        //        durationmax,
+        //        altitude,
+        //        altitudemin,
+        //        altitudemax,
+        //        highlight,
+        //        activefilter,
+        //        smgactivefilter,
+        //        searchfilter,
+        //        language,
+        //        lastchange
+        //    );
 
-            return query
-                .IdUpperFilter(idlist)
-                .When(
-                    activitytypelist.Count > 0,
-                    q => q.SmgTagFilterOr_GeneratedColumn(activitytypelist)
-                ) //.ActivityTypeFilterOnTags(activitytypelist)
-                .When(subtypelist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(subtypelist)) //.ActivitySubTypeFilterOnTags(subtypelist)
-                .ActiveFilter_GeneratedColumn(activefilter) //.ActiveFilter(activefilter)
-                .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.SmgTagFilter(smgtaglist)
-                .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
-                .LastChangedFilter_GeneratedColumn(lastchange) //.LastChangedFilter(lastchange)
-                .When(
-                    languagelist.Count > 0,
-                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
-                ) //OK GENERATED COLUMNS
-                //.DistrictFilter(districtlist)
-                //.LocFilterMunicipalityFilter(municipalitylist)
-                //.LocFilterTvsFilter(tourismvereinlist)
-                //.LocFilterRegionFilter(regionlist)
-                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
-                .AreaFilter(arealist)
-                .DifficultyFilter(difficultylist)
-                .DistanceFilter(distance, distancemin, distancemax)
-                .DurationFilter(duration, durationmin, durationmax)
-                .AltitudeFilter(altitude, altitudemin, altitudemax)
-                .HighlightFilter(highlight)
-                .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
-                .When(
-                    !String.IsNullOrEmpty(additionalfilter),
-                    q => q.FilterAdditionalDataByCondition(additionalfilter)
-                )
-                .FilterDataByAccessRoles(userroles)
-                .FilterReducedDataByRoles(userroles);
-        }
+        //    return query
+        //        .IdUpperFilter(idlist)
+        //        .When(
+        //            activitytypelist.Count > 0,
+        //            q => q.SmgTagFilterOr_GeneratedColumn(activitytypelist)
+        //        ) //.ActivityTypeFilterOnTags(activitytypelist)
+        //        .When(subtypelist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(subtypelist)) //.ActivitySubTypeFilterOnTags(subtypelist)
+        //        .ActiveFilter_GeneratedColumn(activefilter) //.ActiveFilter(activefilter)
+        //        .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.SmgTagFilter(smgtaglist)
+        //        .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
+        //        .LastChangedFilter_GeneratedColumn(lastchange) //.LastChangedFilter(lastchange)
+        //        .When(
+        //            languagelist.Count > 0,
+        //            q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+        //        ) //OK GENERATED COLUMNS
+        //        //.DistrictFilter(districtlist)
+        //        //.LocFilterMunicipalityFilter(municipalitylist)
+        //        //.LocFilterTvsFilter(tourismvereinlist)
+        //        //.LocFilterRegionFilter(regionlist)
+        //        .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
+        //        .AreaFilter(arealist)
+        //        .DifficultyFilter(difficultylist)
+        //        .DistanceFilter(distance, distancemin, distancemax)
+        //        .DurationFilter(duration, durationmin, durationmax)
+        //        .AltitudeFilter(altitude, altitudemin, altitudemax)
+        //        .HighlightFilter(highlight)
+        //        .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
+        //        .When(
+        //            !String.IsNullOrEmpty(additionalfilter),
+        //            q => q.FilterAdditionalDataByCondition(additionalfilter)
+        //        )
+        //        .FilterDataByAccessRoles(userroles)
+        //        .FilterReducedDataByRoles(userroles);
+        //}
 
-        //Return Where and Parameters for Poi
-        public static Query PoiWhereExpression(
-            this Query query,
-            IReadOnlyCollection<string> languagelist,
-            IReadOnlyCollection<string> idlist,
-            IReadOnlyCollection<string> poitypelist,
-            IReadOnlyCollection<string> subtypelist,
-            IReadOnlyCollection<string> smgtaglist,
-            IReadOnlyCollection<string> districtlist,
-            IReadOnlyCollection<string> municipalitylist,
-            IReadOnlyCollection<string> tourismvereinlist,
-            IReadOnlyCollection<string> regionlist,
-            IReadOnlyCollection<string> arealist,
-            bool? highlight,
-            bool? activefilter,
-            bool? smgactivefilter,
-            string? searchfilter,
-            string? language,
-            string? lastchange,
-            string? additionalfilter,
-            IEnumerable<string> userroles
-        )
-        {
-            LogMethodInfo(
-                System.Reflection.MethodBase.GetCurrentMethod()!,
-                "<query>",
-                idlist,
-                poitypelist,
-                subtypelist,
-                smgtaglist,
-                districtlist,
-                municipalitylist,
-                tourismvereinlist,
-                regionlist,
-                arealist,
-                highlight,
-                activefilter,
-                smgactivefilter,
-                searchfilter,
-                language,
-                lastchange
-            );
+        ////Return Where and Parameters for Poi DEPRECATED
+        //public static Query PoiWhereExpression(
+        //    this Query query,
+        //    IReadOnlyCollection<string> languagelist,
+        //    IReadOnlyCollection<string> idlist,
+        //    IReadOnlyCollection<string> poitypelist,
+        //    IReadOnlyCollection<string> subtypelist,
+        //    IReadOnlyCollection<string> smgtaglist,
+        //    IReadOnlyCollection<string> districtlist,
+        //    IReadOnlyCollection<string> municipalitylist,
+        //    IReadOnlyCollection<string> tourismvereinlist,
+        //    IReadOnlyCollection<string> regionlist,
+        //    IReadOnlyCollection<string> arealist,
+        //    bool? highlight,
+        //    bool? activefilter,
+        //    bool? smgactivefilter,
+        //    string? searchfilter,
+        //    string? language,
+        //    string? lastchange,
+        //    string? additionalfilter,
+        //    IEnumerable<string> userroles
+        //)
+        //{
+        //    LogMethodInfo(
+        //        System.Reflection.MethodBase.GetCurrentMethod()!,
+        //        "<query>",
+        //        idlist,
+        //        poitypelist,
+        //        subtypelist,
+        //        smgtaglist,
+        //        districtlist,
+        //        municipalitylist,
+        //        tourismvereinlist,
+        //        regionlist,
+        //        arealist,
+        //        highlight,
+        //        activefilter,
+        //        smgactivefilter,
+        //        searchfilter,
+        //        language,
+        //        lastchange
+        //    );
 
-            return query
-                .IdUpperFilter(idlist)
-                .When(poitypelist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(poitypelist)) //OK GENERATED COLUMNS //.PoiTypeFilterOnTags(poitypelist)
-                .When(subtypelist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(subtypelist)) //OK GENERATED COLUMNS //.PoiSubTypeFilterOnTags(subtypelist)
-                .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.SmgTagFilter(smgtaglist)
-                .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
-                .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
-                .LastChangedFilter_GeneratedColumn(lastchange)
-                .When(
-                    languagelist.Count > 0,
-                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
-                )
-                //.DistrictFilter(districtlist) //Use generated columns also here?
-                //.LocFilterMunicipalityFilter(municipalitylist) //Use generated columns also here?
-                //.LocFilterTvsFilter(tourismvereinlist) //Use generated columns also here?
-                //.LocFilterRegionFilter(regionlist) //Use generated columns also here?
-                .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
-                .AreaFilter(arealist) //Use generated columns also here?
-                .HighlightFilter(highlight)
-                .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
-                .When(
-                    !String.IsNullOrEmpty(additionalfilter),
-                    q => q.FilterAdditionalDataByCondition(additionalfilter)
-                )
-                .FilterDataByAccessRoles(userroles)
-                .FilterReducedDataByRoles(userroles);
-        }
+        //    return query
+        //        .IdUpperFilter(idlist)
+        //        .When(poitypelist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(poitypelist)) //OK GENERATED COLUMNS //.PoiTypeFilterOnTags(poitypelist)
+        //        .When(subtypelist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(subtypelist)) //OK GENERATED COLUMNS //.PoiSubTypeFilterOnTags(subtypelist)
+        //        .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.SmgTagFilter(smgtaglist)
+        //        .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
+        //        .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
+        //        .LastChangedFilter_GeneratedColumn(lastchange)
+        //        .When(
+        //            languagelist.Count > 0,
+        //            q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+        //        )
+        //        //.DistrictFilter(districtlist) //Use generated columns also here?
+        //        //.LocFilterMunicipalityFilter(municipalitylist) //Use generated columns also here?
+        //        //.LocFilterTvsFilter(tourismvereinlist) //Use generated columns also here?
+        //        //.LocFilterRegionFilter(regionlist) //Use generated columns also here?
+        //        .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist, true)
+        //        .AreaFilter(arealist) //Use generated columns also here?
+        //        .HighlightFilter(highlight)
+        //        .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
+        //        .When(
+        //            !String.IsNullOrEmpty(additionalfilter),
+        //            q => q.FilterAdditionalDataByCondition(additionalfilter)
+        //        )
+        //        .FilterDataByAccessRoles(userroles)
+        //        .FilterReducedDataByRoles(userroles);
+        //}
 
         ////Return Where and Parameters for Gastronomy DEPRECATED
         //public static Query GastronomyWhereExpression(
@@ -1576,6 +1577,55 @@ namespace Helper
                 .FilterDataByAccessRoles(userroles);
             //TODO future opendata rules on
             //.Anonymous_Logged_UserRule_GeneratedColumn(filterClosedData, !reducedData);
+        }
+
+        //Return Where and Parameters for OdhTag and Tag
+        public static Query AnnouncementWhereExpression(
+            this Query query,
+            IReadOnlyCollection<string> languagelist,
+            IReadOnlyCollection<string> idlist,
+            IReadOnlyCollection<string> sourcelist,
+            string? searchfilter,
+            string? language,
+            string? lastchange,
+            bool? activefilter,
+            IDictionary<string, List<string>>? tagdict,
+            IReadOnlyCollection<string> publishedonlist,
+            DateTime? start,
+            DateTime? end,
+            string? additionalfilter,
+            IEnumerable<string> userroles
+        )
+        {
+            LogMethodInfo(
+                System.Reflection.MethodBase.GetCurrentMethod()!,
+                "<query>", // not interested in query
+                searchfilter,
+                language,
+                sourcelist
+            );
+
+            return query
+                .SearchFilter(TitleFieldsToSearchFor(language), searchfilter)
+                .SourceFilter_GeneratedColumn(sourcelist)
+                .When(idlist != null && idlist.Count > 0, q => query.WhereIn("id", idlist))
+                .PublishedOnFilter_GeneratedColumn(publishedonlist)
+                .LastChangedFilter_GeneratedColumn(lastchange)
+                .ActiveFilter_GeneratedColumn(activefilter)
+                .When(
+                    languagelist.Count > 0,
+                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+                )
+                .EventShortDateFilter_GeneratedColumn(start, end, true, true)
+                .When(
+                    tagdict != null && tagdict.Count > 0,
+                    q => q.TaggingFilter_GeneratedColumn(tagdict)
+                )
+                .When(
+                    !String.IsNullOrEmpty(additionalfilter),
+                    q => q.FilterAdditionalDataByCondition(additionalfilter)
+                )
+                .FilterDataByAccessRoles(userroles);
         }
     }
 }

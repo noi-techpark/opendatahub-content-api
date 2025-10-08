@@ -298,7 +298,7 @@ namespace DataModel
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
 
-        //Check if here we can define what classes this Additionalproperties can be
+        //We define what classes this Additionalproperties can be
         [PolymorphicDictionary(
             "EchargingDataProperties", typeof(EchargingDataProperties),
             "ActivityLtsDataProperties", typeof(ActivityLtsDataProperties),

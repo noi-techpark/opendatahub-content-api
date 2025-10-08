@@ -313,7 +313,12 @@ namespace Helper.Location
                             string? tvid = null;
 
                             if (data is IHasTourismorganizationId && !String.IsNullOrEmpty((data as IHasTourismorganizationId).TourismorganizationId))
+                            {
                                 tvid = (data as IHasTourismorganizationId).TourismorganizationId;
+
+                                //CHECK if we have this TourismOrganizationID in the DB otherwise reset null for the tvid
+                                tvid = await GetTourismOrganizationById(queryFactory, tvid);
+                            }
 
                             var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
                                 queryFactory,
@@ -355,6 +360,21 @@ namespace Helper.Location
             var data = await districtquery.GetObjectListAsync<District>();
 
             return data;
+        }
+
+        public static async Task<string?> GetTourismOrganizationById(
+            QueryFactory QueryFactory,
+            string tvid
+        )
+        {
+            var tvquery = QueryFactory
+                .Query("tvs")
+                .Select("data")
+                .Where("id", tvid);
+
+            var data = await tvquery.GetObjectSingleAsync<TourismvereinLinked>();
+
+            return data?.Id ?? null;
         }
 
         public static async Task<District?> GetNearestDistrictbyGPS(
