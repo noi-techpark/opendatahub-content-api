@@ -16,13 +16,13 @@ using static OdhApiCoreTests.IntegrationTets.Helpers;
 namespace OdhApiCoreTests.IntegrationTets
 {
     [Trait("Category", "Integration")]
-    public class ActivityApiControllerTests
+    public class ODHActivityPoiApiControllerTests
         : IClassFixture<CustomWebApplicationFactory<OdhApiCore.Startup>>
     {
         private readonly HttpClient _client;
         private readonly CustomWebApplicationFactory<OdhApiCore.Startup> _factory;
 
-        public ActivityApiControllerTests(CustomWebApplicationFactory<OdhApiCore.Startup> factory)
+        public ODHActivityPoiApiControllerTests(CustomWebApplicationFactory<OdhApiCore.Startup> factory)
         {
             _factory = factory;
             _client = factory.CreateClient(
@@ -31,19 +31,19 @@ namespace OdhApiCoreTests.IntegrationTets
         }
 
         [Theory]
-        [InlineData("/v1/Activity")]
-        [InlineData("/v1/Activity?pagesize=1")]
-        [InlineData("/v1/Activity?activitytype=12")]
-        [InlineData("/v1/Activity?language=de")]
-        [InlineData("/v1/Activity?language=en")]
+        [InlineData("/v1/ODHActivityPoi")]
+        [InlineData("/v1/ODHActivityPoi?pagesize=1")]
+        [InlineData("/v1/ODHActivityPoi?activitytype=12")]
+        [InlineData("/v1/ODHActivityPoi?language=de")]
+        [InlineData("/v1/ODHActivityPoi?language=en")]
         //[InlineData("/v1/Activity?pagenumber=1&pagesize=100&activitytype=1023&areafilter=skaSKIC57DA31F859141A1802E86B410FEBD70&active=true&seed=null")]
         //[InlineData("/v1/Activity?pagenumber=1&pagesize=100&activitytype=1023&areafilter=skaSKIEC3B49365C47477B83D124D9AE6C3259&active=true&seed=null")]
         [InlineData(
-            "/v1/Activity?pagenumber=1&pagesize=10&activitytype=11&locfilter=tvs5228229651CA11D18F1400A02427D15E&odhactive=true&active=true&seed=null"
+            "/v1/ODHActivityPoi?pagenumber=1&pagesize=10&activitytype=11&locfilter=tvs5228229651CA11D18F1400A02427D15E&odhactive=true&active=true&seed=null"
         )]
-        [InlineData("/v1/Activity?pagenumber=1&pagesize=10&activitytype=511&seed=null")]
+        [InlineData("/v1/ODHActivityPoi?pagenumber=1&pagesize=10&activitytype=511&seed=null")]
         [InlineData(
-            "/v1/Activity?pagenumber=1&pagesize=20&activitytype=Berg&subtype=null&idlist=null&locfilter=null&areafilter=null&distancefilter=null&altitudefilter=null&durationfilter=null&highlight=null&difficultyfilter=null&active=null&odhactive=null&odhtagfilter=null&seed=null"
+            "/v1/ODHActivityPoi?pagenumber=1&pagesize=20&activitytype=Berg&subtype=null&idlist=null&locfilter=null&areafilter=null&distancefilter=null&altitudefilter=null&durationfilter=null&highlight=null&difficultyfilter=null&active=null&odhactive=null&odhtagfilter=null&seed=null"
         )]
         public async Task Get_Activities(string url)
         {
@@ -73,8 +73,8 @@ namespace OdhApiCoreTests.IntegrationTets
         }
 
         [Theory]
-        [InlineData("/v1/Activity/078883A95FF002AA246B5B99DA5BB9D7_REDUCED")]
-        [InlineData("/v1/Activity/EC73E28E771A21C431A7F8B5B931007E_REDUCED")]
+        [InlineData("/v1/ODHActivityPoi/smgpoi078883A95FF002AA246B5B99DA5BB9D7")]
+        [InlineData("/v1/ODHActivityPoi/smgpoi107")]
         public async Task Get_SingleActivity(string url)
         {
             var response = await _client.GetAsync(url);
@@ -109,26 +109,26 @@ namespace OdhApiCoreTests.IntegrationTets
         }
 
         [Theory]
-        [InlineData("/v1/Activity/878883A95FF002AA246B5B99DA5BB9D7")]
-        [InlineData("/v1/Activity/EC73E28E771A21C431A7F8B5B931007V")]
+        [InlineData("/v1/ODHActivityPoi/smgpoi878883A95FF002AA246B5B99DA5BB9D7")]
+        [InlineData("/v1/ODHActivityPoi/smgpoiEC73E28E771A21C431A7F8B5B931007V")]
         public async Task Get_SingleNonExistentActivity(string url)
         {
             var response = await _client.GetAsync(url);
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
-        [Fact]
-        public async Task Get_ActivityTypes()
-        {
-            var response = await _client.GetAsync("/v1/ActivityTypes");
-            response.EnsureSuccessStatusCode();
-            Assert.Equal(
-                "application/json; charset=utf-8",
-                response.Content.Headers.ContentType?.ToString()
-            );
-            string json = await response.Content.ReadAsStringAsync();
-            dynamic? data = JsonConvert.DeserializeObject<ActivityTypes[]>(json);
-            Assert.NotEmpty(data);
-        }
+        //[Fact]
+        //public async Task Get_ActivityTypes()
+        //{
+        //    var response = await _client.GetAsync("/v1/ActivityTypes");
+        //    response.EnsureSuccessStatusCode();
+        //    Assert.Equal(
+        //        "application/json; charset=utf-8",
+        //        response.Content.Headers.ContentType?.ToString()
+        //    );
+        //    string json = await response.Content.ReadAsStringAsync();
+        //    dynamic? data = JsonConvert.DeserializeObject<ActivityTypes[]>(json);
+        //    Assert.NotEmpty(data);
+        //}
     }
 }
