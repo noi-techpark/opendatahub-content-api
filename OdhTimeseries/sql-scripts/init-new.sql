@@ -107,111 +107,79 @@ COMMENT ON TABLE intimev3.timeseries IS 'Defines a unique data stream for a sens
 COMMENT ON COLUMN intimev3.timeseries.type_id IS 'Foreign key to the types table, linking this timeseries to its unit and data type.';
 
 -- =================================================================================
--- Partitioned Measurement Tables for different data types.
--- These tables remain unchanged as the core of the measurement storage.
+-- Measurement Tables for different data types.
+-- Simplified schema without partitioning for easier development and testing.
 -- =================================================================================
 CREATE TABLE intimev3.measurements_numeric (
     timeseries_id UUID NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL,
     value FLOAT8 NOT NULL,
     provenance_id BIGINT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT now()
-) PARTITION BY HASH (timeseries_id);
+    created_on TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (timeseries_id, timestamp)
+);
 
 CREATE TABLE intimev3.measurements_string (
     timeseries_id UUID NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL,
     value VARCHAR(255) NOT NULL,
     provenance_id BIGINT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT now()
-) PARTITION BY HASH (timeseries_id);
+    created_on TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (timeseries_id, timestamp)
+);
 
 CREATE TABLE intimev3.measurements_json (
     timeseries_id UUID NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL,
     value JSONB NOT NULL,
     provenance_id BIGINT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT now()
-) PARTITION BY HASH (timeseries_id);
+    created_on TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (timeseries_id, timestamp)
+);
 
 CREATE TABLE intimev3.measurements_geoposition (
     timeseries_id UUID NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL,
     value public.geometry(Point, 4326) NOT NULL,
     provenance_id BIGINT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT now()
-) PARTITION BY HASH (timeseries_id);
+    created_on TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (timeseries_id, timestamp)
+);
 
 CREATE TABLE intimev3.measurements_geoshape (
     timeseries_id UUID NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL,
     value public.geometry(Polygon, 4326) NOT NULL,
     provenance_id BIGINT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT now()
-) PARTITION BY HASH (timeseries_id);
+    created_on TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (timeseries_id, timestamp)
+);
 
 CREATE TABLE intimev3.measurements_boolean (
     timeseries_id UUID NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL,
     value BOOLEAN NOT NULL,
     provenance_id BIGINT NULL,
-    created_on TIMESTAMPTZ NOT NULL DEFAULT now()
-) PARTITION BY HASH (timeseries_id);
+    created_on TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (timeseries_id, timestamp)
+);
 
 CREATE INDEX idx_numeric_timestamp ON intimev3.measurements_numeric (timestamp DESC);
+CREATE INDEX idx_numeric_timeseries_id ON intimev3.measurements_numeric (timeseries_id);
+
 CREATE INDEX idx_string_timestamp ON intimev3.measurements_string (timestamp DESC);
+CREATE INDEX idx_string_timeseries_id ON intimev3.measurements_string (timeseries_id);
+
 CREATE INDEX idx_json_timestamp ON intimev3.measurements_json (timestamp DESC);
+CREATE INDEX idx_json_timeseries_id ON intimev3.measurements_json (timeseries_id);
+
 CREATE INDEX idx_geoposition_timestamp ON intimev3.measurements_geoposition (timestamp DESC);
+CREATE INDEX idx_geoposition_timeseries_id ON intimev3.measurements_geoposition (timeseries_id);
+CREATE INDEX idx_geoposition_value ON intimev3.measurements_geoposition USING GIST (value);
+
 CREATE INDEX idx_geoshape_timestamp ON intimev3.measurements_geoshape (timestamp DESC);
+CREATE INDEX idx_geoshape_timeseries_id ON intimev3.measurements_geoshape (timeseries_id);
+CREATE INDEX idx_geoshape_value ON intimev3.measurements_geoshape USING GIST (value);
+
 CREATE INDEX idx_boolean_timestamp ON intimev3.measurements_boolean (timestamp DESC);
-
--- =================================================================================
--- Partition Creation and Indexing
--- In a time-based partitioning scheme, you'll need a script to regularly create
--- new partitions for future data. These examples show how to create a yearly
--- partition.
--- =================================================================================
-
--- -- Example: Creating partitions for numeric data for the year 2025
--- CREATE TABLE intimev3.measurements_numeric_2025 PARTITION OF intimev3.measurements_numeric
---     FOR VALUES FROM ('2025-01-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
--- ALTER TABLE intimev3.measurements_numeric_2025 ADD PRIMARY KEY (timeseries_id, timestamp);
--- CREATE INDEX idx_numeric_timestamp_2025 ON intimev3.measurements_numeric_2025 (timestamp DESC);
--- CREATE INDEX idx_numeric_timeseries_id_2025 ON intimev3.measurements_numeric_2025 (timeseries_id);
-
--- -- Example: Creating partitions for string data for the year 2025
--- CREATE TABLE intimev3.measurements_string_2025 PARTITION OF intimev3.measurements_string
---     FOR VALUES FROM ('2025-01-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
--- ALTER TABLE intimev3.measurements_string_2025 ADD PRIMARY KEY (timeseries_id, timestamp);
--- CREATE INDEX idx_string_timestamp_2025 ON intimev3.measurements_string_2025 (timestamp DESC);
--- CREATE INDEX idx_string_timeseries_id_2025 ON intimev3.measurements_string_2025 (timeseries_id);
-
--- -- Example: Creating partitions for JSON data for the year 2025
--- CREATE TABLE intimev3.measurements_json_2025 PARTITION OF intimev3.measurements_json
---     FOR VALUES FROM ('2025-01-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
--- ALTER TABLE intimev3.measurements_json_2025 ADD PRIMARY KEY (timeseries_id, timestamp);
--- CREATE INDEX idx_json_timestamp_2025 ON intimev3.measurements_json_2025 (timestamp DESC);
--- CREATE INDEX idx_json_timeseries_id_2025 ON intimev3.measurements_json_2025 (timeseries_id);
-
--- -- Example: Creating partitions for geospatial point data for the year 2025
--- CREATE TABLE intimev3.measurements_geoposition_2025 PARTITION OF intimev3.measurements_geoposition
---     FOR VALUES FROM ('2025-01-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
--- ALTER TABLE intimev3.measurements_geoposition_2025 ADD PRIMARY KEY (timeseries_id, timestamp);
--- CREATE INDEX idx_geoposition_timestamp_2025 ON intimev3.measurements_geoposition_2025 (timestamp DESC);
--- CREATE INDEX idx_geoposition_timeseries_id_2025 ON intimev3.measurements_geoposition_2025 (timeseries_id);
--- CREATE INDEX idx_geoposition_value_2025 ON intimev3.measurements_geoposition_2025 USING GIST (value);
-
--- -- Example: Creating partitions for geospatial shape data for the year 2025
--- CREATE TABLE intimev3.measurements_geoshape_2025 PARTITION OF intimev3.measurements_geoshape
---     FOR VALUES FROM ('2025-01-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
--- ALTER TABLE intimev3.measurements_geoshape_2025 ADD PRIMARY KEY (timeseries_id, timestamp);
--- CREATE INDEX idx_geoshape_timestamp_2025 ON intimev3.measurements_geoshape_2025 (timestamp DESC);
--- CREATE INDEX idx_geoshape_timeseries_id_2025 ON intimev3.measurements_geoshape_2025 (timeseries_id);
--- CREATE INDEX idx_geoshape_value_2025 ON intimev3.measurements_geoshape_2025 USING GIST (value);
-
--- -- Example: Creating partitions for boolean data for the year 2025
--- CREATE TABLE intimev3.measurements_boolean_2025 PARTITION OF intimev3.measurements_boolean
---     FOR VALUES FROM ('2025-01-01 00:00:00+00') TO ('2026-01-01 00:00:00+00');
--- ALTER TABLE intimev3.measurements_boolean_2025 ADD PRIMARY KEY (timeseries_id, timestamp);
--- CREATE INDEX idx_boolean_timestamp_2025 ON intimev3.measurements_boolean_2025 (timestamp DESC);
--- CREATE INDEX idx_boolean_timeseries_id_2025 ON intimev3.measurements_boolean_2025 (timeseries_id);
+CREATE INDEX idx_boolean_timeseries_id ON intimev3.measurements_boolean (timeseries_id);

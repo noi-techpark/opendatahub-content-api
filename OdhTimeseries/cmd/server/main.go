@@ -193,9 +193,10 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 			measurements.GET("/historical", queryHandler.GetHistoricalMeasurementsQuery)
 			measurements.POST("/historical", queryHandler.GetHistoricalMeasurements)
 
-			// Streaming subscription (WebSocket)
+			// Streaming subscription (WebSocket) - GraphQL-style connection_init
 			if streamingHandler != nil {
 				measurements.GET("/subscribe", streamingHandler.SubscribeToMeasurements)
+				measurements.GET("/subscribe/advanced", streamingHandler.SubscribeToMeasurementsAdvanced)
 			}
 		}
 

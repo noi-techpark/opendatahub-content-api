@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeseries Streaming Test Client</title>
+    <title>Timeseries Streaming Test Client (GraphQL-style)</title>
     <style>
         * {
             box-sizing: border-box;
@@ -97,7 +97,7 @@
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover:not(:disabled) {
             background: #5568d3;
         }
 
@@ -106,7 +106,7 @@
             color: white;
         }
 
-        .btn-danger:hover {
+        .btn-danger:hover:not(:disabled) {
             background: #e53e3e;
         }
 
@@ -115,8 +115,13 @@
             color: white;
         }
 
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             background: #4a5568;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .status {
@@ -159,7 +164,7 @@
             border-left: 4px solid;
         }
 
-        .message.ack {
+        .message.connection_ack {
             background: #e6fffa;
             border-left-color: #319795;
         }
@@ -210,16 +215,51 @@
             font-size: 24px;
             font-weight: bold;
         }
+
+        .info-box {
+            background: #ebf8ff;
+            border: 1px solid #90cdf4;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            color: #2c5282;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: #2d3748;
+        }
+
+        .info-box li {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🔄 Timeseries Streaming Test Client</h1>
-            <p>WebSocket subscription testing for real-time measurement updates</p>
+            <p>GraphQL-style WebSocket subscriptions (connection_init protocol)</p>
         </div>
 
         <div class="content">
+            <!-- Info Box -->
+            <div class="info-box">
+                <h3>GraphQL-style Protocol Flow:</h3>
+                <ul>
+                    <li>1. Configure subscription settings below</li>
+                    <li>2. Click "Connect & Subscribe" - WebSocket connects and immediately sends <code>connection_init</code> message</li>
+                    <li>3. Server validates and responds with <code>connection_ack</code> or <code>error</code></li>
+                    <li>4. Server streams <code>data</code> messages with measurement updates</li>
+                    <li>5. Click "Disconnect" to close the connection</li>
+                </ul>
+            </div>
+
             <!-- Connection Status -->
             <div class="section">
                 <h2>Connection Status</h2>
@@ -253,27 +293,30 @@
 
             <!-- Connection Settings -->
             <div class="section">
-                <h2>Connection Settings</h2>
+                <h2>Endpoint Selection</h2>
+                <div class="form-group">
+                    <label for="endpoint-mode">Endpoint Mode:</label>
+                    <select id="endpoint-mode" onchange="updateEndpointURL()">
+                        <option value="simple">Simple (/subscribe)</option>
+                        <option value="advanced">Advanced (/subscribe/advanced)</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label for="ws-url">WebSocket URL:</label>
                     <input type="text" id="ws-url" value="ws://localhost:8080/api/v1/measurements/subscribe">
-                </div>
-                <div class="button-group">
-                    <button class="btn-primary" onclick="connect()">Connect</button>
-                    <button class="btn-danger" onclick="disconnect()">Disconnect</button>
                 </div>
             </div>
 
             <!-- Subscription Settings -->
             <div class="section">
-                <h2>Subscription Request</h2>
+                <h2>Subscription Configuration</h2>
 
                 <!-- Subscription Mode Selector -->
                 <div class="form-group">
-                    <label for="subscription-mode">Subscription Mode:</label>
+                    <label for="subscription-mode">Configuration Mode:</label>
                     <select id="subscription-mode" onchange="toggleSubscriptionMode()">
                         <option value="simple">Simple (Sensor Names)</option>
-                        <option value="discovery">Discovery (Advanced Filters)</option>
+                        <option value="advanced">Advanced (Discovery Filters)</option>
                     </select>
                 </div>
 
@@ -281,7 +324,7 @@
                 <div id="simple-mode" style="display:block;">
                     <div class="form-group">
                         <label for="sensor-names">Sensor Names (comma-separated):</label>
-                        <input type="text" id="sensor-names" placeholder="e.g., sensor1, sensor2, sensor3">
+                        <input type="text" id="sensor-names" placeholder="e.g., HUM_Park_067, PARK_Highway_052" value="HUM_Park_067">
                     </div>
                     <div class="form-group">
                         <label for="type-names">Type Names (comma-separated, optional):</label>
@@ -293,7 +336,7 @@
                 <div id="discovery-mode" style="display:none;">
                     <div class="form-group">
                         <label for="required-types">Required Types (comma-separated):</label>
-                        <input type="text" id="required-types" placeholder="e.g., temperature, humidity">
+                        <input type="text" id="required-types" placeholder="e.g., temperature, humidity" value="power_generation">
                         <small style="color: #718096;">Sensors must have ALL of these types</small>
                     </div>
                     <div class="form-group">
@@ -312,58 +355,46 @@
                     </div>
                     <div class="form-group">
                         <label for="latest-only">
-                            <input type="checkbox" id="latest-only" style="width: auto; display: inline;">
+                            <input type="checkbox" id="latest-only" style="width: auto; display: inline;" checked>
                             Latest Only
                         </label>
                     </div>
                     <div class="form-group">
                         <label for="discovery-limit">Limit (max sensors):</label>
-                        <input type="text" id="discovery-limit" placeholder="e.g., 50" value="50">
-                    </div>
-                </div>
-
-                <!-- Spatial Filter (Discovery Mode Only) -->
-                <div id="spatial-filter-section" style="display:none;">
-                    <div class="form-group">
-                        <label for="spatial-filter-type">Spatial Filter Type (Discovery Mode Only):</label>
-                        <select id="spatial-filter-type" onchange="toggleSpatialFilter()">
-                            <option value="none">None</option>
-                            <option value="bbox">Bounding Box</option>
-                            <option value="radius">Radius</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="bbox-fields" style="display:none;">
-                        <label>Bounding Box Coordinates (minLon, minLat, maxLon, maxLat):</label>
-                        <input type="text" id="bbox-coords" placeholder="11.0, 46.0, 12.0, 47.0">
-                    </div>
-                    <div class="form-group" id="radius-fields" style="display:none;">
-                        <label>Radius Coordinates (centerLon, centerLat, radiusMeters):</label>
-                        <input type="text" id="radius-coords" placeholder="11.5, 46.5, 5000">
+                        <input type="text" id="discovery-limit" placeholder="e.g., 50" value="10">
                     </div>
                 </div>
 
                 <div class="button-group">
-                    <button class="btn-primary" onclick="subscribe()">Subscribe</button>
-                    <button class="btn-secondary" onclick="unsubscribe()">Unsubscribe</button>
-                    <button class="btn-secondary" onclick="sendCustomMessage()">Send Custom</button>
+                    <button class="btn-primary" id="btn-connect" onclick="connect()">Connect & Subscribe</button>
+                    <button class="btn-danger" id="btn-disconnect" onclick="disconnect()" disabled>Disconnect</button>
                 </div>
             </div>
 
             <!-- Custom Message -->
             <div class="section">
-                <h2>Custom Message</h2>
+                <h2>Custom connection_init Payload</h2>
                 <div class="form-group">
-                    <label for="custom-message">JSON Message:</label>
-                    <textarea id="custom-message" placeholder='{"action":"subscribe","sensor_names":["sensor1"]}'></textarea>
+                    <label for="custom-endpoint">Endpoint for Custom Payload:</label>
+                    <select id="custom-endpoint">
+                        <option value="simple">Simple (/subscribe)</option>
+                        <option value="advanced">Advanced (/subscribe/advanced)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="custom-message">JSON Payload (connection_init will be sent automatically):</label>
+                    <textarea id="custom-message" placeholder='{"sensor_names": ["sensor1"], "type_names": ["temperature"]}'></textarea>
                 </div>
                 <div class="form-group">
                     <label>Quick Examples:</label>
                     <div class="button-group">
                         <button class="btn-secondary" onclick="loadExample('simple')">Simple</button>
                         <button class="btn-secondary" onclick="loadExample('discovery')">Discovery</button>
-                        <button class="btn-secondary" onclick="loadExample('discovery-geo')">Discovery + Geo</button>
                         <button class="btn-secondary" onclick="loadExample('discovery-filter')">Discovery + Filter</button>
                     </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" id="btn-custom-connect" onclick="connectWithCustomPayload()">Connect with Custom Payload</button>
                 </div>
             </div>
 
@@ -376,7 +407,7 @@
                 <div id="messages" class="messages">
                     <div class="message info">
                         <div class="message-time">Ready</div>
-                        Waiting for connection...
+                        Configure subscription settings above and click "Connect & Subscribe"
                     </div>
                 </div>
             </div>
@@ -393,18 +424,20 @@
         };
         let uptimeInterval = null;
 
+        function updateEndpointURL() {
+            const mode = document.getElementById('endpoint-mode').value;
+            const baseURL = 'ws://localhost:8080/api/v1/measurements/subscribe';
+            document.getElementById('ws-url').value = mode === 'advanced' ? baseURL + '/advanced' : baseURL;
+        }
+
         function toggleSubscriptionMode() {
             const mode = document.getElementById('subscription-mode').value;
             document.getElementById('simple-mode').style.display = mode === 'simple' ? 'block' : 'none';
-            document.getElementById('discovery-mode').style.display = mode === 'discovery' ? 'block' : 'none';
-            // Spatial filter only available in discovery mode
-            document.getElementById('spatial-filter-section').style.display = mode === 'discovery' ? 'block' : 'none';
-        }
+            document.getElementById('discovery-mode').style.display = mode === 'advanced' ? 'block' : 'none';
 
-        function toggleSpatialFilter() {
-            const type = document.getElementById('spatial-filter-type').value;
-            document.getElementById('bbox-fields').style.display = type === 'bbox' ? 'block' : 'none';
-            document.getElementById('radius-fields').style.display = type === 'radius' ? 'block' : 'none';
+            // Also update endpoint mode to match
+            document.getElementById('endpoint-mode').value = mode;
+            updateEndpointURL();
         }
 
         function updateStatus(status, text) {
@@ -426,15 +459,25 @@
             } else {
                 document.getElementById('stat-uptime').textContent = '--';
             }
+
+            // Update page title with message count for visibility
+            document.title = `Streaming Client (${stats.messages} msgs, ${stats.updates} updates)`;
         }
 
         function addMessage(type, content) {
+            console.log(`addMessage called: type=${type}`, content);
+
             stats.messages++;
             if (type === 'data') stats.updates++;
             if (type === 'error') stats.errors++;
             updateStats();
 
             const messagesEl = document.getElementById('messages');
+            if (!messagesEl) {
+                console.error('Messages element not found!');
+                return;
+            }
+
             const messageEl = document.createElement('div');
             messageEl.className = `message ${type}`;
 
@@ -452,6 +495,8 @@
             messageEl.appendChild(contentEl);
             messagesEl.appendChild(messageEl);
 
+            console.log(`Message added to DOM. Total messages in container: ${messagesEl.children.length}`);
+
             // Auto-scroll to bottom
             messagesEl.scrollTop = messagesEl.scrollHeight;
         }
@@ -460,70 +505,9 @@
             document.getElementById('messages').innerHTML = '';
         }
 
-        function connect() {
-            const url = document.getElementById('ws-url').value;
-
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                addMessage('error', 'Already connected');
-                return;
-            }
-
-            updateStatus('connecting', '🟡 Connecting...');
-            addMessage('info', `Connecting to ${url}`);
-
-            ws = new WebSocket(url);
-
-            ws.onopen = () => {
-                updateStatus('connected', '🟢 Connected');
-                addMessage('info', 'WebSocket connection established');
-                stats.connectTime = Date.now();
-                updateStats();
-
-                // Start uptime counter
-                if (uptimeInterval) clearInterval(uptimeInterval);
-                uptimeInterval = setInterval(updateStats, 1000);
-            };
-
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    addMessage(data.type || 'unknown', data);
-                } catch (e) {
-                    addMessage('error', `Failed to parse message: ${event.data}`);
-                }
-            };
-
-            ws.onerror = (error) => {
-                addMessage('error', `WebSocket error: ${error}`);
-            };
-
-            ws.onclose = () => {
-                updateStatus('disconnected', '⚫ Disconnected');
-                addMessage('info', 'WebSocket connection closed');
-                stats.connectTime = null;
-                if (uptimeInterval) {
-                    clearInterval(uptimeInterval);
-                    uptimeInterval = null;
-                }
-                updateStats();
-            };
-        }
-
-        function disconnect() {
-            if (ws) {
-                ws.close();
-                ws = null;
-            }
-        }
-
-        function subscribe() {
-            if (!ws || ws.readyState !== WebSocket.OPEN) {
-                addMessage('error', 'Not connected');
-                return;
-            }
-
+        function buildConnectionInitPayload() {
             const mode = document.getElementById('subscription-mode').value;
-            const request = { action: 'subscribe' };
+            const payload = {};
 
             if (mode === 'simple') {
                 // Simple mode: sensor names
@@ -533,11 +517,10 @@
                     .filter(s => s);
 
                 if (sensorNames.length === 0) {
-                    addMessage('error', 'At least one sensor name is required');
-                    return;
+                    throw new Error('At least one sensor name is required');
                 }
 
-                request.sensor_names = sensorNames;
+                payload.sensor_names = sensorNames;
 
                 const typeNames = document.getElementById('type-names').value
                     .split(',')
@@ -545,7 +528,7 @@
                     .filter(s => s);
 
                 if (typeNames.length > 0) {
-                    request.type_names = typeNames;
+                    payload.type_names = typeNames;
                 }
             } else {
                 // Discovery mode: advanced filters
@@ -599,121 +582,259 @@
                 }
 
                 if (hasTimeseriesFilter) {
-                    request.timeseries_filter = timeseriesFilter;
+                    payload.timeseries_filter = timeseriesFilter;
                 }
 
                 if (hasMeasurementFilter) {
-                    request.measurement_filter = measurementFilter;
+                    payload.measurement_filter = measurementFilter;
                 }
 
                 // Limit
                 const limit = parseInt(document.getElementById('discovery-limit').value);
                 if (!isNaN(limit) && limit > 0) {
-                    request.limit = limit;
+                    payload.limit = limit;
                 }
 
                 if (!hasTimeseriesFilter && !hasMeasurementFilter) {
-                    addMessage('error', 'At least one discovery filter is required (timeseries_filter or measurement_filter)');
-                    return;
-                }
-
-                // Spatial filter (only in discovery mode)
-                const filterType = document.getElementById('spatial-filter-type').value;
-                if (filterType === 'bbox') {
-                    const coords = document.getElementById('bbox-coords').value
-                        .split(',')
-                        .map(s => parseFloat(s.trim()));
-                    if (coords.length === 4) {
-                        request.spatial_filter = {
-                            type: 'bbox',
-                            coordinates: coords
-                        };
-                    }
-                } else if (filterType === 'radius') {
-                    const coords = document.getElementById('radius-coords').value
-                        .split(',')
-                        .map(s => parseFloat(s.trim()));
-                    if (coords.length === 3) {
-                        request.spatial_filter = {
-                            type: 'radius',
-                            coordinates: coords
-                        };
-                    }
+                    throw new Error('At least one discovery filter is required (timeseries_filter or measurement_filter)');
                 }
             }
 
-            ws.send(JSON.stringify(request));
-            addMessage('info', `Sent ${mode} subscription request: ${JSON.stringify(request, null, 2)}`);
+            return payload;
         }
 
-        function unsubscribe() {
-            if (!ws || ws.readyState !== WebSocket.OPEN) {
-                addMessage('error', 'Not connected');
+        function connect() {
+            const url = document.getElementById('ws-url').value;
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addMessage('error', 'Already connected');
                 return;
             }
 
-            const request = { action: 'unsubscribe' };
-            ws.send(JSON.stringify(request));
-            addMessage('info', 'Sent unsubscribe request');
-        }
-
-        function sendCustomMessage() {
-            if (!ws || ws.readyState !== WebSocket.OPEN) {
-                addMessage('error', 'Not connected');
-                return;
-            }
-
+            let payload;
             try {
-                const message = document.getElementById('custom-message').value;
-                const parsed = JSON.parse(message);
-                ws.send(message);
-                addMessage('info', `Sent custom message: ${JSON.stringify(parsed, null, 2)}`);
+                payload = buildConnectionInitPayload();
             } catch (e) {
-                addMessage('error', `Invalid JSON: ${e.message}`);
+                addMessage('error', e.message);
+                return;
+            }
+
+            updateStatus('connecting', '🟡 Connecting...');
+            addMessage('info', `Connecting to ${url}`);
+
+            ws = new WebSocket(url);
+
+            ws.onopen = () => {
+                // Send connection_init message immediately
+                const initMessage = {
+                    type: 'connection_init',
+                    payload: payload
+                };
+
+                ws.send(JSON.stringify(initMessage));
+                addMessage('info', `Sent connection_init: ${JSON.stringify(initMessage, null, 2)}`);
+
+                stats.connectTime = Date.now();
+                updateStats();
+
+                // Start uptime counter
+                if (uptimeInterval) clearInterval(uptimeInterval);
+                uptimeInterval = setInterval(updateStats, 1000);
+
+                // Update button states
+                document.getElementById('btn-connect').disabled = true;
+                document.getElementById('btn-custom-connect').disabled = true;
+                document.getElementById('btn-disconnect').disabled = false;
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('📨 WebSocket message received:', data);
+
+                    if (data.type === 'connection_ack') {
+                        console.log('✅ Connection acknowledged');
+                        updateStatus('connected', '🟢 Connected & Subscribed');
+                        addMessage('connection_ack', data);
+                    } else if (data.type === 'data') {
+                        console.log('📊 Data message:', data.payload);
+                        addMessage('data', data);
+                    } else if (data.type === 'error') {
+                        console.error('❌ Error message:', data.payload);
+                        addMessage('error', data);
+                        // Close connection on error
+                        ws.close();
+                    } else {
+                        console.log('ℹ️ Unknown message type:', data.type);
+                        addMessage('info', data);
+                    }
+                } catch (e) {
+                    console.error('⚠️ Failed to parse message:', e, event.data);
+                    addMessage('error', `Failed to parse message: ${e.message}`);
+                }
+            };
+
+            ws.onerror = (error) => {
+                addMessage('error', `WebSocket error: ${error}`);
+            };
+
+            ws.onclose = () => {
+                updateStatus('disconnected', '⚫ Disconnected');
+                addMessage('info', 'WebSocket connection closed');
+                stats.connectTime = null;
+                if (uptimeInterval) {
+                    clearInterval(uptimeInterval);
+                    uptimeInterval = null;
+                }
+                updateStats();
+
+                // Update button states
+                document.getElementById('btn-connect').disabled = false;
+                document.getElementById('btn-custom-connect').disabled = false;
+                document.getElementById('btn-disconnect').disabled = true;
+            };
+        }
+
+        function connectWithCustomPayload() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addMessage('error', 'Already connected');
+                return;
+            }
+
+            let customPayload;
+            try {
+                const payloadText = document.getElementById('custom-message').value;
+                customPayload = JSON.parse(payloadText);
+            } catch (e) {
+                addMessage('error', `Invalid JSON payload: ${e.message}`);
+                return;
+            }
+
+            // Build URL based on selected endpoint
+            const endpointMode = document.getElementById('custom-endpoint').value;
+            const baseURL = 'ws://localhost:8080/api/v1/measurements/subscribe';
+            const url = endpointMode === 'advanced' ? baseURL + '/advanced' : baseURL;
+
+            updateStatus('connecting', '🟡 Connecting...');
+            addMessage('info', `Connecting to ${url} with custom payload`);
+
+            ws = new WebSocket(url);
+
+            ws.onopen = () => {
+                // Send connection_init message immediately
+                const initMessage = {
+                    type: 'connection_init',
+                    payload: customPayload
+                };
+
+                ws.send(JSON.stringify(initMessage));
+                addMessage('info', `Sent connection_init: ${JSON.stringify(initMessage, null, 2)}`);
+
+                stats.connectTime = Date.now();
+                updateStats();
+
+                // Start uptime counter
+                if (uptimeInterval) clearInterval(uptimeInterval);
+                uptimeInterval = setInterval(updateStats, 1000);
+
+                // Update button states
+                document.getElementById('btn-connect').disabled = true;
+                document.getElementById('btn-custom-connect').disabled = true;
+                document.getElementById('btn-disconnect').disabled = false;
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('📨 WebSocket message received:', data);
+
+                    if (data.type === 'connection_ack') {
+                        console.log('✅ Connection acknowledged');
+                        updateStatus('connected', '🟢 Connected & Subscribed');
+                        addMessage('connection_ack', data);
+                    } else if (data.type === 'data') {
+                        console.log('📊 Data message:', data.payload);
+                        addMessage('data', data);
+                    } else if (data.type === 'error') {
+                        console.error('❌ Error message:', data.payload);
+                        addMessage('error', data);
+                        // Close connection on error
+                        ws.close();
+                    } else {
+                        console.log('ℹ️ Unknown message type:', data.type);
+                        addMessage('info', data);
+                    }
+                } catch (e) {
+                    console.error('⚠️ Failed to parse message:', e, event.data);
+                    addMessage('error', `Failed to parse message: ${e.message}`);
+                }
+            };
+
+            ws.onerror = (error) => {
+                addMessage('error', `WebSocket error: ${error}`);
+            };
+
+            ws.onclose = () => {
+                updateStatus('disconnected', '⚫ Disconnected');
+                addMessage('info', 'WebSocket connection closed');
+                stats.connectTime = null;
+                if (uptimeInterval) {
+                    clearInterval(uptimeInterval);
+                    uptimeInterval = null;
+                }
+                updateStats();
+
+                // Update button states
+                document.getElementById('btn-connect').disabled = false;
+                document.getElementById('btn-custom-connect').disabled = false;
+                document.getElementById('btn-disconnect').disabled = true;
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
             }
         }
 
         function loadExample(type) {
             const examples = {
                 'simple': {
-                    "action": "subscribe",
-                    "sensor_names": ["HUM_Park_067", "PARK_Highway_052"]
+                    payload: {
+                        "sensor_names": ["HUM_Park_067", "PARK_Highway_052"]
+                    },
+                    endpoint: 'simple'
                 },
                 'discovery': {
-                    "action": "subscribe",
-                    "timeseries_filter": {
-                        "required_types": ["power_generation"]
+                    payload: {
+                        "timeseries_filter": {
+                            "required_types": ["power_generation"]
+                        },
+                        "limit": 10
                     },
-                    "limit": 50
-                },
-                'discovery-geo': {
-                    "action": "subscribe",
-                    "timeseries_filter": {
-                        "required_types": ["location"]
-                    },
-                    "spatial_filter": {
-                        "type": "bbox",
-                        "coordinates": [10.5, 46.2, 12.5, 47.2]
-                    },
-                    "limit": 20
+                    endpoint: 'advanced'
                 },
                 'discovery-filter': {
-                    "action": "subscribe",
-                    "timeseries_filter": {
-                        "required_types": ["temperature"]
+                    payload: {
+                        "timeseries_filter": {
+                            "required_types": ["power_generation"]
+                        },
+                        "measurement_filter": {
+                            "latest_only": true,
+                            "expression": "power_generation.gteq.100"
+                        },
+                        "limit": 10
                     },
-                    "measurement_filter": {
-                        "latest_only": true,
-                        "expression": "temperature.gteq.20"
-                    },
-                    "limit": 30
+                    endpoint: 'advanced'
                 }
             };
 
             const example = examples[type];
             if (example) {
-                document.getElementById('custom-message').value = JSON.stringify(example, null, 2);
-                addMessage('info', `Loaded ${type} example`);
+                document.getElementById('custom-message').value = JSON.stringify(example.payload, null, 2);
+                document.getElementById('custom-endpoint').value = example.endpoint;
+                addMessage('info', `Loaded ${type} example (${example.endpoint} endpoint)`);
             }
         }
 

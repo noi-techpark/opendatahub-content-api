@@ -2,9 +2,11 @@ package streaming
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
+	"strings"
 	"sync"
 
 	"timeseries-api/internal/filter"
@@ -25,14 +27,15 @@ type WebSocketManager struct {
 
 // Subscription represents a client's subscription with filters
 type Subscription struct {
-	conn          *websocket.Conn
-	sensorNames   []string
-	typeNames     []string
-	spatialFilter *SpatialFilter
-	updatesChan   chan MeasurementUpdate
-	ctx           context.Context
-	cancel        context.CancelFunc
-	mu            sync.Mutex
+	conn              *websocket.Conn
+	sensorNames       []string
+	typeNames         []string
+	timeseriesFilter  *filter.TimeseriesFilter
+	measurementFilter *filter.MeasurementFilter
+	updatesChan       chan MeasurementUpdate
+	ctx               context.Context
+	cancel            context.CancelFunc
+	mu                sync.Mutex
 }
 
 // SpatialFilter defines geospatial filtering parameters
@@ -44,26 +47,22 @@ type SpatialFilter struct {
 	// For polygon: [lon1, lat1, lon2, lat2, ...]
 }
 
-// SubscriptionRequest represents a WebSocket subscription request
-type SubscriptionRequest struct {
-	Action      string   `json:"action"` // "subscribe" or "unsubscribe"
+// WebSocketMessage represents any WebSocket message (GraphQL-style)
+type WebSocketMessage struct {
+	Type    string      `json:"type"`              // "connection_init", "connection_ack", "data", "error"
+	Payload interface{} `json:"payload,omitempty"` // Message-specific payload
+}
+
+// ConnectionInitPayload represents the payload for connection_init message
+type ConnectionInitPayload struct {
+	// Simple mode: specific sensors
 	SensorNames []string `json:"sensor_names,omitempty"`
 	TypeNames   []string `json:"type_names,omitempty"`
 
-	// Advanced discovery filters (alternative to sensor_names)
-	// When using discovery mode, spatial_filter is also available
+	// Advanced mode: discovery filters
 	TimeseriesFilter  *filter.TimeseriesFilter  `json:"timeseries_filter,omitempty"`
 	MeasurementFilter *filter.MeasurementFilter `json:"measurement_filter,omitempty"`
-	SpatialFilter     *SpatialFilter            `json:"spatial_filter,omitempty"` // Only for discovery mode
 	Limit             int                       `json:"limit,omitempty"`
-}
-
-// SubscriptionResponse represents a WebSocket response
-type SubscriptionResponse struct {
-	Type    string      `json:"type"` // "ack", "error", "data"
-	Message string      `json:"message,omitempty"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   string      `json:"error,omitempty"`
 }
 
 // NewWebSocketManager creates a new WebSocket manager
@@ -83,200 +82,170 @@ func NewWebSocketManager(materialize *MaterializeClient, repo *repository.Reposi
 	}
 }
 
-// HandleConnection handles a new WebSocket connection
+// HandleConnection handles a new WebSocket connection (GraphQL-style flow)
+// Client must send connection_init message immediately after connecting
+// Accepts both simple mode (sensor_names) and advanced mode (filters)
 func (wsm *WebSocketManager) HandleConnection(conn *websocket.Conn) {
+	wsm.handleConnectionWithMode(conn, "any")
+}
+
+// HandleConnectionSimple handles a WebSocket connection for simple mode only
+func (wsm *WebSocketManager) HandleConnectionSimple(conn *websocket.Conn) {
+	wsm.handleConnectionWithMode(conn, "simple")
+}
+
+// HandleConnectionAdvanced handles a WebSocket connection for advanced mode only
+func (wsm *WebSocketManager) HandleConnectionAdvanced(conn *websocket.Conn) {
+	wsm.handleConnectionWithMode(conn, "advanced")
+}
+
+// handleConnectionWithMode handles WebSocket connection with mode enforcement
+func (wsm *WebSocketManager) handleConnectionWithMode(conn *websocket.Conn, expectedMode string) {
 	logrus.Info("New WebSocket connection established")
 
-	// Send welcome message
-	welcome := SubscriptionResponse{
-		Type:    "ack",
-		Message: "Connected to timeseries streaming API",
-	}
-	if err := conn.WriteJSON(welcome); err != nil {
-		logrus.WithError(err).Error("Failed to send welcome message")
+	// Wait for connection_init message
+	var initMsg WebSocketMessage
+	if err := conn.ReadJSON(&initMsg); err != nil {
+		logrus.WithError(err).Error("Failed to read connection_init message")
+		wsm.sendError(conn, "Expected connection_init message")
 		conn.Close()
 		return
 	}
 
-	// Handle incoming messages
-	for {
-		var req SubscriptionRequest
-		err := conn.ReadJSON(&req)
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				logrus.WithError(err).Warn("WebSocket connection closed unexpectedly")
-			}
-			break
-		}
-
-		switch req.Action {
-		case "subscribe":
-			wsm.handleSubscribe(conn, &req)
-		case "unsubscribe":
-			wsm.handleUnsubscribe(conn)
-		default:
-			resp := SubscriptionResponse{
-				Type:  "error",
-				Error: fmt.Sprintf("Unknown action: %s", req.Action),
-			}
-			conn.WriteJSON(resp)
-		}
-	}
-
-	// Clean up on disconnect
-	wsm.handleUnsubscribe(conn)
-	conn.Close()
-	logrus.Info("WebSocket connection closed")
-}
-
-// handleSubscribe handles a subscription request
-func (wsm *WebSocketManager) handleSubscribe(conn *websocket.Conn, req *SubscriptionRequest) {
-	var sensorNames []string
-
-	// Determine mode and validate
-	isSimpleMode := len(req.SensorNames) > 0
-	isDiscoveryMode := req.TimeseriesFilter != nil || req.MeasurementFilter != nil
-
-	// Validate: spatial_filter only allowed in discovery mode
-	if req.SpatialFilter != nil && isSimpleMode && !isDiscoveryMode {
-		resp := SubscriptionResponse{
-			Type:  "error",
-			Error: "spatial_filter is only supported in discovery mode (use timeseries_filter or measurement_filter)",
-		}
-		conn.WriteJSON(resp)
+	if initMsg.Type != "connection_init" {
+		wsm.sendError(conn, fmt.Sprintf("Expected connection_init, got: %s", initMsg.Type))
+		conn.Close()
 		return
 	}
 
-	// Determine sensor names: either from direct list or via discovery
-	if isSimpleMode && !isDiscoveryMode {
-		// Simple mode: direct sensor name list (mirrors /latest endpoint)
-		sensorNames = req.SensorNames
-	} else if isDiscoveryMode {
-		// Discovery-based subscription
-		if wsm.repo == nil {
-			resp := SubscriptionResponse{
-				Type:  "error",
-				Error: "Discovery-based subscriptions not available (repository not initialized)",
-			}
-			conn.WriteJSON(resp)
-			return
-		}
-
-		// Perform sensor discovery
-		discoveryReq := &filter.SensorDiscoveryRequest{
-			TimeseriesFilter:  req.TimeseriesFilter,
-			MeasurementFilter: req.MeasurementFilter,
-			Limit:             req.Limit,
-		}
-
-		sensors, err := wsm.repo.DiscoverSensorsByConditions(discoveryReq)
-		if err != nil {
-			logrus.WithError(err).Error("Failed to discover sensors for subscription")
-			resp := SubscriptionResponse{
-				Type:  "error",
-				Error: fmt.Sprintf("Failed to discover sensors: %v", err),
-			}
-			conn.WriteJSON(resp)
-			return
-		}
-
-		// Extract sensor names
-		sensorNames = make([]string, len(sensors))
-		for i, sensor := range sensors {
-			sensorNames[i] = sensor.Name
-		}
-
-		logrus.WithFields(logrus.Fields{
-			"discovered_count": len(sensorNames),
-			"limit":            req.Limit,
-		}).Info("Discovered sensors for subscription")
-	} else {
-		resp := SubscriptionResponse{
-			Type:  "error",
-			Error: "Either sensor_names or discovery filters (timeseries_filter/measurement_filter) must be provided",
-		}
-		conn.WriteJSON(resp)
+	// Parse payload
+	payloadBytes, err := json.Marshal(initMsg.Payload)
+	if err != nil {
+		wsm.sendError(conn, "Invalid connection_init payload")
+		conn.Close()
 		return
 	}
 
-	if len(sensorNames) == 0 {
-		resp := SubscriptionResponse{
-			Type:  "error",
-			Error: "No sensors found matching the criteria",
-		}
-		conn.WriteJSON(resp)
+	var payload ConnectionInitPayload
+	if err := json.Unmarshal(payloadBytes, &payload); err != nil {
+		wsm.sendError(conn, fmt.Sprintf("Invalid connection_init payload: %v", err))
+		conn.Close()
 		return
 	}
 
-	// Cancel existing subscription if any
-	wsm.handleUnsubscribe(conn)
+	// Validate configuration
+	isSimpleMode := len(payload.SensorNames) > 0
+	isAdvancedMode := payload.TimeseriesFilter != nil || payload.MeasurementFilter != nil
 
-	// Create new subscription
+	// Enforce mode if specified
+	if expectedMode == "simple" && !isSimpleMode {
+		wsm.sendError(conn, "This endpoint requires sensor_names in the payload (simple mode)")
+		conn.Close()
+		return
+	}
+
+	if expectedMode == "advanced" && !isAdvancedMode {
+		wsm.sendError(conn, "This endpoint requires timeseries_filter or measurement_filter in the payload (advanced mode)")
+		conn.Close()
+		return
+	}
+
+	// General validation for "any" mode
+	if expectedMode == "any" && !isSimpleMode && !isAdvancedMode {
+		wsm.sendError(conn, "Either sensor_names or filters (timeseries_filter/measurement_filter) must be provided")
+		conn.Close()
+		return
+	}
+
+	// Create subscription
 	ctx, cancel := context.WithCancel(context.Background())
 	sub := &Subscription{
-		conn:          conn,
-		sensorNames:   sensorNames,
-		typeNames:     req.TypeNames,
-		spatialFilter: req.SpatialFilter,
-		updatesChan:   make(chan MeasurementUpdate, 100),
-		ctx:           ctx,
-		cancel:        cancel,
+		conn:              conn,
+		sensorNames:       payload.SensorNames,
+		typeNames:         payload.TypeNames,
+		timeseriesFilter:  payload.TimeseriesFilter,
+		measurementFilter: payload.MeasurementFilter,
+		updatesChan:       make(chan MeasurementUpdate, 100),
+		ctx:               ctx,
+		cancel:            cancel,
 	}
 
 	wsm.mu.Lock()
 	wsm.connections[conn] = sub
 	wsm.mu.Unlock()
 
-	// Send acknowledgment
-	resp := SubscriptionResponse{
-		Type:    "ack",
-		Message: "Subscription created successfully",
-		Data: map[string]interface{}{
-			"sensor_count": len(sensorNames),
-			"sensor_names": sensorNames,
-			"type_names":   req.TypeNames,
+	// Send connection_ack
+	ackMsg := WebSocketMessage{
+		Type: "connection_ack",
+		Payload: map[string]interface{}{
+			"mode": map[bool]string{true: "simple", false: "advanced"}[isSimpleMode],
 		},
 	}
-	if err := conn.WriteJSON(resp); err != nil {
-		logrus.WithError(err).Error("Failed to send subscription ack")
-		wsm.handleUnsubscribe(conn)
+	if err := conn.WriteJSON(ackMsg); err != nil {
+		logrus.WithError(err).Error("Failed to send connection_ack")
+		wsm.cleanup(conn, sub)
 		return
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"mode":          map[bool]string{true: "simple", false: "advanced"}[isSimpleMode],
+		"sensor_count":  len(payload.SensorNames),
+		"has_ts_filter": payload.TimeseriesFilter != nil,
+	}).Info("Subscription initialized")
 
 	// Start listening for updates from Materialize
 	go wsm.listenForUpdates(sub)
 
-	// Start sending updates to client
+	// Start goroutine to send updates to client
 	go wsm.sendUpdatesToClient(sub)
+
+	// Wait for connection to close (ignore any incoming messages)
+	for {
+		if _, _, err := conn.ReadMessage(); err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				logrus.WithError(err).Warn("WebSocket connection closed unexpectedly")
+			}
+			break
+		}
+		// Ignore any messages from client after connection_init
+	}
+
+	// Clean up on disconnect
+	wsm.cleanup(conn, sub)
+	logrus.Info("WebSocket connection closed")
 }
 
-// handleUnsubscribe handles an unsubscribe request
-func (wsm *WebSocketManager) handleUnsubscribe(conn *websocket.Conn) {
-	wsm.mu.Lock()
-	sub, exists := wsm.connections[conn]
-	if exists {
-		delete(wsm.connections, conn)
+// sendError sends an error message and logs it
+func (wsm *WebSocketManager) sendError(conn *websocket.Conn, errorMsg string) {
+	logrus.Error(errorMsg)
+	msg := WebSocketMessage{
+		Type:    "error",
+		Payload: map[string]string{"message": errorMsg},
 	}
-	wsm.mu.Unlock()
+	conn.WriteJSON(msg) // Ignore error, connection will be closed anyway
+}
 
-	if exists {
+// cleanup removes subscription and closes channels
+func (wsm *WebSocketManager) cleanup(conn *websocket.Conn, sub *Subscription) {
+	wsm.mu.Lock()
+	defer wsm.mu.Unlock()
+
+	if _, exists := wsm.connections[conn]; exists {
 		sub.cancel()
 		close(sub.updatesChan)
-
-		resp := SubscriptionResponse{
-			Type:    "ack",
-			Message: "Subscription cancelled",
-		}
-		conn.WriteJSON(resp)
+		delete(wsm.connections, conn)
 	}
+	conn.Close()
 }
 
 // listenForUpdates listens for updates from Materialize
 func (wsm *WebSocketManager) listenForUpdates(sub *Subscription) {
-	err := wsm.materialize.SubscribeToLatestMeasurements(
+	err := wsm.materialize.SubscribeWithFilters(
 		sub.ctx,
 		sub.sensorNames,
 		sub.typeNames,
+		sub.timeseriesFilter,
+		sub.measurementFilter,
 		sub.updatesChan,
 	)
 
@@ -296,21 +265,26 @@ func (wsm *WebSocketManager) sendUpdatesToClient(sub *Subscription) {
 				return
 			}
 
-			// Apply spatial filtering if configured
-			if sub.spatialFilter != nil {
-				if !wsm.applySpatialFilter(&update, sub.spatialFilter) {
-					continue
+			// Apply value filtering from measurementFilter if present
+			// This is done here because Materialize has issues with CAST in UNION views
+			if sub.measurementFilter != nil && sub.measurementFilter.Expression != "" {
+				if !wsm.applyValueFilter(&update, sub.measurementFilter.Expression) {
+					continue // Skip this update
 				}
 			}
 
-			// Send update to client
-			resp := SubscriptionResponse{
-				Type: "data",
-				Data: update,
+			// TODO: Apply geometric filtering from measurementFilter if present
+			// Geometric conditions are extracted from measurementFilter and applied here
+			// since Materialize doesn't support PostGIS functions
+
+			// Send update to client (GraphQL-style message)
+			msg := WebSocketMessage{
+				Type:    "data",
+				Payload: update,
 			}
 
 			sub.mu.Lock()
-			err := sub.conn.WriteJSON(resp)
+			err := sub.conn.WriteJSON(msg)
 			sub.mu.Unlock()
 
 			if err != nil {
@@ -401,4 +375,61 @@ func isPointWithinRadius(point []float64, radiusFilter []float64) bool {
 	distance := earthRadius * c
 
 	return distance <= radius
+}
+
+// applyValueFilter applies value expression filter to an update
+// Expression format: "type.operator.value" (e.g., "temperature.gt.20")
+func (wsm *WebSocketManager) applyValueFilter(update *MeasurementUpdate, expression string) bool {
+	parts := strings.Split(expression, ".")
+	if len(parts) != 3 {
+		logrus.WithField("expression", expression).Warn("Invalid filter expression format")
+		return true // Don't filter if expression is invalid
+	}
+
+	typeName := parts[0]
+	operator := parts[1]
+	filterValue := parts[2]
+
+	// Check if this update matches the type
+	if update.TypeName != typeName {
+		return true // This update is not for this type, let it pass
+	}
+
+	// Only apply to numeric data types
+	if update.DataType != "numeric" {
+		return true
+	}
+
+	// Parse the numeric value from the update
+	var updateVal float64
+	if _, scanErr := fmt.Sscanf(update.Value, "%f", &updateVal); scanErr != nil {
+		logrus.WithError(scanErr).WithField("value", update.Value).Warn("Failed to parse numeric value")
+		return true // Can't parse, let it pass
+	}
+
+	// Parse the filter value
+	var filterVal float64
+	if _, scanErr := fmt.Sscanf(filterValue, "%f", &filterVal); scanErr != nil {
+		logrus.WithError(scanErr).WithField("filterValue", filterValue).Warn("Failed to parse filter value")
+		return true
+	}
+
+	// Apply the operator
+	switch operator {
+	case "eq":
+		return updateVal == filterVal
+	case "neq":
+		return updateVal != filterVal
+	case "gt":
+		return updateVal > filterVal
+	case "gte", "gteq":
+		return updateVal >= filterVal
+	case "lt":
+		return updateVal < filterVal
+	case "lte", "lteq":
+		return updateVal <= filterVal
+	default:
+		logrus.WithField("operator", operator).Warn("Unknown operator in filter expression")
+		return true
+	}
 }

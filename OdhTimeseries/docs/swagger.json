@@ -627,6 +627,42 @@
                 }
             }
         },
+        "/measurements/subscribe": {
+            "get": {
+                "description": "Establishes a WebSocket connection for real-time measurement streaming from specific sensors.\n\n**Protocol Flow (GraphQL-style):**\n1. Client connects to WebSocket (GET /api/v1/measurements/subscribe)\n2. Client immediately sends `connection_init` message with sensor_names\n3. Server validates configuration and responds with `connection_ack` or `error`\n4. Server streams measurement updates as `data` messages\n5. Client closes connection to unsubscribe\n\n**Client Message (connection_init):**\n```json\n{\n\"type\": \"connection_init\",\n\"payload\": {\n\"sensor_names\": [\"sensor1\", \"sensor2\"],\n\"type_names\": [\"temperature\", \"humidity\"]\n}\n}\n```\n\n**Server Response (connection_ack):**\n```json\n{\n\"type\": \"connection_ack\",\n\"payload\": {\n\"mode\": \"simple\"\n}\n}\n```\n\n**Server Data Messages:**\n```json\n{\n\"type\": \"data\",\n\"payload\": {\n\"timeseries_id\": \"uuid\",\n\"sensor_name\": \"sensor1\",\n\"type_name\": \"temperature\",\n\"timestamp\": \"2024-01-01T00:00:00Z\",\n\"value\": \"23.5\"\n}\n}\n```\n\n**Server Error Messages:**\n```json\n{\n\"type\": \"error\",\n\"payload\": {\n\"message\": \"Invalid configuration\"\n}\n}\n```",
+                "tags": [
+                    "measurements",
+                    "streaming"
+                ],
+                "summary": "Simple WebSocket subscription (GraphQL-style)",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols - WebSocket connection established",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/measurements/subscribe/advanced": {
+            "get": {
+                "description": "Establishes a WebSocket connection for real-time measurement streaming using discovery filters.\n\n**Protocol Flow (GraphQL-style):**\n1. Client connects to WebSocket (GET /api/v1/measurements/subscribe/advanced)\n2. Client immediately sends `connection_init` message with filters\n3. Server validates configuration and responds with `connection_ack` or `error`\n4. Server streams measurement updates as `data` messages\n5. Client closes connection to unsubscribe\n\n**Client Message (connection_init):**\n```json\n{\n\"type\": \"connection_init\",\n\"payload\": {\n\"timeseries_filter\": {\n\"required_types\": [\"temperature\"],\n\"optional_types\": [\"humidity\"],\n\"dataset_ids\": [\"weather_stations\"]\n},\n\"measurement_filter\": {\n\"expression\": \"temperature.gt.20\",\n\"latest_only\": true\n},\n\"limit\": 100\n}\n}\n```\n\n**Server Response (connection_ack):**\n```json\n{\n\"type\": \"connection_ack\",\n\"payload\": {\n\"mode\": \"advanced\"\n}\n}\n```\n\n**Server Data Messages:**\n```json\n{\n\"type\": \"data\",\n\"payload\": {\n\"timeseries_id\": \"uuid\",\n\"sensor_name\": \"sensor1\",\n\"type_name\": \"temperature\",\n\"timestamp\": \"2024-01-01T00:00:00Z\",\n\"value\": \"23.5\"\n}\n}\n```\n\n**Server Error Messages:**\n```json\n{\n\"type\": \"error\",\n\"payload\": {\n\"message\": \"Invalid configuration\"\n}\n}\n```\n\n**Filter Expression Syntax:**\n- Simple: `temperature.gt.20` (temperature \u003e 20)\n- AND: `and(temperature.gt.20, humidity.lt.80)`\n- OR: `or(temperature.gt.30, pm25.gt.90)`\n- Operators: eq, neq, gt, gte/gteq, lt, lte/lteq, re (regex)",
+                "tags": [
+                    "measurements",
+                    "streaming"
+                ],
+                "summary": "Advanced WebSocket subscription with discovery filters (GraphQL-style)",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols - WebSocket connection established",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/sensors": {
             "post": {
                 "description": "Find sensors that satisfy conditions over their timeseries measurements",

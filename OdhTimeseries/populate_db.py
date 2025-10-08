@@ -56,87 +56,6 @@ class DatabasePopulator:
         self.dataset_ids = []
         self.timeseries_ids = []
 
-    def create_partitions(self):
-        """Create partition tables for measurements if they don't exist"""
-        print("🔧 Creating measurement partitions for 2025...")
-
-        partition_configs = [
-            ('numeric', 'FLOAT8'),
-            ('string', 'VARCHAR(255)'),
-            ('json', 'JSONB'),
-            ('geoposition', 'public.geometry(Point, 4326)'),
-            ('geoshape', 'public.geometry(Polygon, 4326)'),
-            ('boolean', 'BOOLEAN')
-        ]
-
-        for data_type, value_type in partition_configs:
-            partition_name = f"{SCHEMA}.measurements_{data_type}_2025"
-
-            # Check if partition already exists
-            self.cursor.execute(f"""
-                SELECT EXISTS (
-                    SELECT 1 FROM information_schema.tables
-                    WHERE table_schema = %s AND table_name = %s
-                )
-            """, (SCHEMA, f"measurements_{data_type}_2025"))
-
-            exists = self.cursor.fetchone()['exists']
-
-            if not exists:
-                # Create partition
-                self.cursor.execute(f"""
-                    CREATE TABLE {partition_name} PARTITION OF {SCHEMA}.measurements_{data_type}
-                        FOR VALUES WITH (modulus 4, remainder 0)
-                """)
-
-                # Add primary key
-                self.cursor.execute(f"""
-                    ALTER TABLE {partition_name} ADD PRIMARY KEY (timeseries_id, timestamp)
-                """)
-
-                # Create indexes
-                self.cursor.execute(f"""
-                    CREATE INDEX idx_{data_type}_timestamp_2025 ON {partition_name} (timestamp DESC)
-                """)
-                self.cursor.execute(f"""
-                    CREATE INDEX idx_{data_type}_timeseries_id_2025 ON {partition_name} (timeseries_id)
-                """)
-
-                if data_type in ['geoposition', 'geoshape']:
-                    self.cursor.execute(f"""
-                        CREATE INDEX idx_{data_type}_value_2025 ON {partition_name} USING GIST (value)
-                    """)
-
-                print(f"  ✅ Created partition: measurements_{data_type}_2025")
-            else:
-                print(f"  ⚪ Partition already exists: measurements_{data_type}_2025")
-
-        # Create additional partitions for better distribution
-        for remainder in [1, 2, 3]:
-            for data_type, value_type in partition_configs:
-                partition_name = f"{SCHEMA}.measurements_{data_type}_2025_p{remainder}"
-
-                self.cursor.execute(f"""
-                    SELECT EXISTS (
-                        SELECT 1 FROM information_schema.tables
-                        WHERE table_schema = %s AND table_name = %s
-                    )
-                """, (SCHEMA, f"measurements_{data_type}_2025_p{remainder}"))
-
-                exists = self.cursor.fetchone()['exists']
-
-                if not exists:
-                    self.cursor.execute(f"""
-                        CREATE TABLE {partition_name} PARTITION OF {SCHEMA}.measurements_{data_type}
-                            FOR VALUES WITH (modulus 4, remainder {remainder})
-                    """)
-
-                    self.cursor.execute(f"""
-                        ALTER TABLE {partition_name} ADD PRIMARY KEY (timeseries_id, timestamp)
-                    """)
-
-        self.conn.commit()
-        print("✅ Partition creation completed")
 
     def connect(self):
         """Connect to PostgreSQL database"""
@@ -532,6 +451,7 @@ class DatabasePopulator:
             return
 
         total_measurements = 0
+        # Capture 'now' once to use as the absolute upper bound
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days_back)
 
@@ -552,7 +472,10 @@ class DatabasePopulator:
             for ts in timeseries_list:
                 # Create measurements for each day
                 current_date = start_date
-                while current_date <= end_date:
+                
+                # Use 'current_date < end_date' to process days fully *before* the current time.
+                # We handle the 'end_date' day slightly differently below.
+                while current_date < end_date.replace(hour=0, minute=0, second=0, microsecond=0):
                     for _ in range(random.randint(50, measurements_per_day)):
                         timestamp = current_date + timedelta(
                             hours=random.randint(0, 23),
@@ -560,6 +483,11 @@ class DatabasePopulator:
                             seconds=random.randint(0, 59),
                             microseconds=random.randint(0, 999999)
                         )
+                        
+                        # This check should theoretically not be needed here if the while loop is correct,
+                        # but it's a safe guard for the timestamp generation logic.
+                        if timestamp > end_date:
+                            continue # Skip this measurement as it is in the future
 
                         value = self._generate_measurement_value(data_type, ts['type_id'])
                         provenance_id = random.choice(self.provenance_ids) if random.random() < 0.8 else None
@@ -572,6 +500,32 @@ class DatabasePopulator:
                             measurements = []
 
                     current_date += timedelta(days=1)
+                
+                # --- Handle the measurements for the *current* day up to the 'now' time ---
+                # 'current_date' should now be the start of the final day (today)
+                if current_date.date() == end_date.date():
+                    # Calculate the maximum timedelta for the current day
+                    max_delta = end_date - current_date
+                    
+                    for _ in range(random.randint(50, measurements_per_day)):
+                        # Generate a random timedelta that is less than or equal to max_delta
+                        # A simple way to do this is to pick a random point between 0 and max_delta.total_seconds()
+                        random_seconds = random.uniform(0, max_delta.total_seconds())
+                        timestamp = current_date + timedelta(seconds=random_seconds)
+
+                        # Ensure we haven't somehow exceeded the limit (should be unnecessary with uniform)
+                        if timestamp > end_date:
+                            continue 
+
+                        value = self._generate_measurement_value(data_type, ts['type_id'])
+                        provenance_id = random.choice(self.provenance_ids) if random.random() < 0.8 else None
+
+                        measurements.append((ts['id'], timestamp, value, provenance_id))
+
+                        if len(measurements) >= self.batch_size:
+                            self._insert_measurement_batch(data_type, measurements)
+                            total_measurements += len(measurements)
+                            measurements = []
 
             # Insert remaining measurements
             if measurements:
@@ -758,7 +712,6 @@ def main():
 
     try:
         populator.connect()
-        populator.create_partitions()
 
         if args.clean:
             populator.clean_database()

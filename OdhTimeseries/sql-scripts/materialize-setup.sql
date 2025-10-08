@@ -24,21 +24,15 @@ CREATE CONNECTION pg_connection TO POSTGRES (
     DATABASE 'timeseries'
 );
 
--- Create source from PostgreSQL with specific partition tables
+-- Create source from PostgreSQL base tables (no partitioning)
 -- Use TEXT COLUMNS for geometry types (PostGIS)
 CREATE SOURCE pg_source
   FROM POSTGRES
   CONNECTION pg_connection (
     PUBLICATION 'timeseries_publication',
     TEXT COLUMNS (
-      intimev3.measurements_geoposition_2025.value,
-      intimev3.measurements_geoposition_2025_p1.value,
-      intimev3.measurements_geoposition_2025_p2.value,
-      intimev3.measurements_geoposition_2025_p3.value,
-      intimev3.measurements_geoshape_2025.value,
-      intimev3.measurements_geoshape_2025_p1.value,
-      intimev3.measurements_geoshape_2025_p2.value,
-      intimev3.measurements_geoshape_2025_p3.value
+      intimev3.measurements_geoposition.value,
+      intimev3.measurements_geoshape.value
     )
   )
   FOR TABLES (
@@ -48,73 +42,13 @@ CREATE SOURCE pg_source
     intimev3.datasets AS datasets,
     intimev3.dataset_types AS dataset_types,
     intimev3.timeseries AS timeseries,
-    intimev3.measurements_numeric_2025 AS measurements_numeric_p1,
-    intimev3.measurements_numeric_2025_p1 AS measurements_numeric_p2,
-    intimev3.measurements_numeric_2025_p2 AS measurements_numeric_p3,
-    intimev3.measurements_numeric_2025_p3 AS measurements_numeric_p4,
-    intimev3.measurements_string_2025 AS measurements_string_p1,
-    intimev3.measurements_string_2025_p1 AS measurements_string_p2,
-    intimev3.measurements_string_2025_p2 AS measurements_string_p3,
-    intimev3.measurements_string_2025_p3 AS measurements_string_p4,
-    intimev3.measurements_json_2025 AS measurements_json_p1,
-    intimev3.measurements_json_2025_p1 AS measurements_json_p2,
-    intimev3.measurements_json_2025_p2 AS measurements_json_p3,
-    intimev3.measurements_json_2025_p3 AS measurements_json_p4,
-    intimev3.measurements_geoposition_2025 AS measurements_geoposition_p1,
-    intimev3.measurements_geoposition_2025_p1 AS measurements_geoposition_p2,
-    intimev3.measurements_geoposition_2025_p2 AS measurements_geoposition_p3,
-    intimev3.measurements_geoposition_2025_p3 AS measurements_geoposition_p4,
-    intimev3.measurements_geoshape_2025 AS measurements_geoshape_p1,
-    intimev3.measurements_geoshape_2025_p1 AS measurements_geoshape_p2,
-    intimev3.measurements_geoshape_2025_p2 AS measurements_geoshape_p3,
-    intimev3.measurements_geoshape_2025_p3 AS measurements_geoshape_p4,
-    intimev3.measurements_boolean_2025 AS measurements_boolean_p1,
-    intimev3.measurements_boolean_2025_p1 AS measurements_boolean_p2,
-    intimev3.measurements_boolean_2025_p2 AS measurements_boolean_p3,
-    intimev3.measurements_boolean_2025_p3 AS measurements_boolean_p4
+    intimev3.measurements_numeric AS measurements_numeric,
+    intimev3.measurements_string AS measurements_string,
+    intimev3.measurements_json AS measurements_json,
+    intimev3.measurements_geoposition AS measurements_geoposition,
+    intimev3.measurements_geoshape AS measurements_geoshape,
+    intimev3.measurements_boolean AS measurements_boolean
   );
-
--- Union all numeric measurement partitions
-CREATE VIEW measurements_numeric_union AS
-SELECT * FROM measurements_numeric_p1
-UNION ALL SELECT * FROM measurements_numeric_p2
-UNION ALL SELECT * FROM measurements_numeric_p3
-UNION ALL SELECT * FROM measurements_numeric_p4;
-
--- Union all string measurement partitions
-CREATE VIEW measurements_string_union AS
-SELECT * FROM measurements_string_p1
-UNION ALL SELECT * FROM measurements_string_p2
-UNION ALL SELECT * FROM measurements_string_p3
-UNION ALL SELECT * FROM measurements_string_p4;
-
--- Union all json measurement partitions
-CREATE VIEW measurements_json_union AS
-SELECT * FROM measurements_json_p1
-UNION ALL SELECT * FROM measurements_json_p2
-UNION ALL SELECT * FROM measurements_json_p3
-UNION ALL SELECT * FROM measurements_json_p4;
-
--- Union all geoposition measurement partitions
-CREATE VIEW measurements_geoposition_union AS
-SELECT * FROM measurements_geoposition_p1
-UNION ALL SELECT * FROM measurements_geoposition_p2
-UNION ALL SELECT * FROM measurements_geoposition_p3
-UNION ALL SELECT * FROM measurements_geoposition_p4;
-
--- Union all geoshape measurement partitions
-CREATE VIEW measurements_geoshape_union AS
-SELECT * FROM measurements_geoshape_p1
-UNION ALL SELECT * FROM measurements_geoshape_p2
-UNION ALL SELECT * FROM measurements_geoshape_p3
-UNION ALL SELECT * FROM measurements_geoshape_p4;
-
--- Union all boolean measurement partitions
-CREATE VIEW measurements_boolean_union AS
-SELECT * FROM measurements_boolean_p1
-UNION ALL SELECT * FROM measurements_boolean_p2
-UNION ALL SELECT * FROM measurements_boolean_p3
-UNION ALL SELECT * FROM measurements_boolean_p4;
 
 -- Create materialized views for latest measurements per timeseries
 -- Latest numeric measurements
@@ -132,7 +66,7 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.data_type,
     t.unit,
     s.metadata as sensor_metadata
-FROM measurements_numeric_union m
+FROM measurements_numeric m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
@@ -154,7 +88,7 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.data_type,
     t.unit,
     s.metadata as sensor_metadata
-FROM measurements_string_union m
+FROM measurements_string m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
@@ -176,7 +110,7 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.data_type,
     t.unit,
     s.metadata as sensor_metadata
-FROM measurements_json_union m
+FROM measurements_json m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
@@ -198,7 +132,7 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.data_type,
     t.unit,
     s.metadata as sensor_metadata
-FROM measurements_geoposition_union m
+FROM measurements_geoposition m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
@@ -220,7 +154,7 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.data_type,
     t.unit,
     s.metadata as sensor_metadata
-FROM measurements_geoshape_union m
+FROM measurements_geoshape m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
@@ -242,7 +176,7 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.data_type,
     t.unit,
     s.metadata as sensor_metadata
-FROM measurements_boolean_union m
+FROM measurements_boolean m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id

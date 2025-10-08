@@ -675,6 +675,150 @@ paths:
       summary: Get latest measurements (JSON body)
       tags:
       - measurements
+  /measurements/subscribe:
+    get:
+      description: |-
+        Establishes a WebSocket connection for real-time measurement streaming from specific sensors.
+
+        **Protocol Flow (GraphQL-style):**
+        1. Client connects to WebSocket (GET /api/v1/measurements/subscribe)
+        2. Client immediately sends `connection_init` message with sensor_names
+        3. Server validates configuration and responds with `connection_ack` or `error`
+        4. Server streams measurement updates as `data` messages
+        5. Client closes connection to unsubscribe
+
+        **Client Message (connection_init):**
+        ```json
+        {
+        "type": "connection_init",
+        "payload": {
+        "sensor_names": ["sensor1", "sensor2"],
+        "type_names": ["temperature", "humidity"]
+        }
+        }
+        ```
+
+        **Server Response (connection_ack):**
+        ```json
+        {
+        "type": "connection_ack",
+        "payload": {
+        "mode": "simple"
+        }
+        }
+        ```
+
+        **Server Data Messages:**
+        ```json
+        {
+        "type": "data",
+        "payload": {
+        "timeseries_id": "uuid",
+        "sensor_name": "sensor1",
+        "type_name": "temperature",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "value": "23.5"
+        }
+        }
+        ```
+
+        **Server Error Messages:**
+        ```json
+        {
+        "type": "error",
+        "payload": {
+        "message": "Invalid configuration"
+        }
+        }
+        ```
+      responses:
+        "101":
+          description: Switching Protocols - WebSocket connection established
+          schema:
+            type: string
+      summary: Simple WebSocket subscription (GraphQL-style)
+      tags:
+      - measurements
+      - streaming
+  /measurements/subscribe/advanced:
+    get:
+      description: |-
+        Establishes a WebSocket connection for real-time measurement streaming using discovery filters.
+
+        **Protocol Flow (GraphQL-style):**
+        1. Client connects to WebSocket (GET /api/v1/measurements/subscribe/advanced)
+        2. Client immediately sends `connection_init` message with filters
+        3. Server validates configuration and responds with `connection_ack` or `error`
+        4. Server streams measurement updates as `data` messages
+        5. Client closes connection to unsubscribe
+
+        **Client Message (connection_init):**
+        ```json
+        {
+        "type": "connection_init",
+        "payload": {
+        "timeseries_filter": {
+        "required_types": ["temperature"],
+        "optional_types": ["humidity"],
+        "dataset_ids": ["weather_stations"]
+        },
+        "measurement_filter": {
+        "expression": "temperature.gt.20",
+        "latest_only": true
+        },
+        "limit": 100
+        }
+        }
+        ```
+
+        **Server Response (connection_ack):**
+        ```json
+        {
+        "type": "connection_ack",
+        "payload": {
+        "mode": "advanced"
+        }
+        }
+        ```
+
+        **Server Data Messages:**
+        ```json
+        {
+        "type": "data",
+        "payload": {
+        "timeseries_id": "uuid",
+        "sensor_name": "sensor1",
+        "type_name": "temperature",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "value": "23.5"
+        }
+        }
+        ```
+
+        **Server Error Messages:**
+        ```json
+        {
+        "type": "error",
+        "payload": {
+        "message": "Invalid configuration"
+        }
+        }
+        ```
+
+        **Filter Expression Syntax:**
+        - Simple: `temperature.gt.20` (temperature > 20)
+        - AND: `and(temperature.gt.20, humidity.lt.80)`
+        - OR: `or(temperature.gt.30, pm25.gt.90)`
+        - Operators: eq, neq, gt, gte/gteq, lt, lte/lteq, re (regex)
+      responses:
+        "101":
+          description: Switching Protocols - WebSocket connection established
+          schema:
+            type: string
+      summary: Advanced WebSocket subscription with discovery filters (GraphQL-style)
+      tags:
+      - measurements
+      - streaming
   /sensors:
     post:
       consumes:

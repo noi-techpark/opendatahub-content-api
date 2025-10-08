@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"sync"
+	"strings"
 	"time"
 
+	"timeseries-api/internal/filter"
 	"timeseries-api/internal/models"
 
 	"github.com/google/uuid"
@@ -28,7 +29,6 @@ type MaterializeConfig struct {
 type MaterializeClient struct {
 	db     *sql.DB
 	config MaterializeConfig
-	mu     sync.RWMutex
 }
 
 // MeasurementUpdate represents a measurement update from Materialize TAIL
@@ -79,15 +79,63 @@ func (mc *MaterializeClient) Close() error {
 	return mc.db.Close()
 }
 
-// SubscribeToLatestMeasurements subscribes to the latest_measurements_all view
-// and streams updates through the provided channel
-func (mc *MaterializeClient) SubscribeToLatestMeasurements(
+// InitializeFromPostgres performs initial sync of data from PostgreSQL to Materialize
+// This is handled automatically by Materialize's PostgreSQL source
+func (mc *MaterializeClient) WaitForInitialSync(ctx context.Context) error {
+	logrus.Info("Waiting for Materialize initial sync to complete...")
+
+	// Check if source is running and healthy
+	maxAttempts := 60 // Wait up to 60 seconds
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		var count int
+		err := mc.db.QueryRowContext(ctx,
+			"SELECT COUNT(*) FROM latest_measurements_all",
+		).Scan(&count)
+
+		if err == nil {
+			logrus.WithField("count", count).Info("Materialize initial sync completed")
+			return nil
+		}
+
+		if err != nil && err != sql.ErrNoRows {
+			logrus.WithError(err).Warn("Error checking Materialize sync status")
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(1 * time.Second):
+		}
+	}
+
+	return fmt.Errorf("timeout waiting for Materialize initial sync")
+}
+
+// GetSourceStatus checks the status of the PostgreSQL source
+func (mc *MaterializeClient) GetSourceStatus(ctx context.Context) (string, error) {
+	var status string
+	err := mc.db.QueryRowContext(ctx,
+		"SELECT status FROM mz_sources WHERE name = 'pg_source'",
+	).Scan(&status)
+
+	if err != nil {
+		return "", fmt.Errorf("failed to get source status: %w", err)
+	}
+
+	return status, nil
+}
+
+// SubscribeWithFilters subscribes to measurements using discovery filters
+// Filters are applied directly in the Materialize TAIL query for real-time evaluation
+func (mc *MaterializeClient) SubscribeWithFilters(
 	ctx context.Context,
 	sensorNames []string,
 	typeNames []string,
+	timeseriesFilter *filter.TimeseriesFilter,
+	measurementFilter *filter.MeasurementFilter,
 	updatesChan chan<- MeasurementUpdate,
 ) error {
-	// Build TAIL query with filters
+	// Build TAIL query with dynamic filters
 	query := "DECLARE c CURSOR FOR SUBSCRIBE TO ("
 	query += "SELECT timeseries_id, timestamp, value, provenance_id, created_on, "
 	query += "sensor_id, type_id, sensor_name, type_name, data_type, unit, sensor_metadata "
@@ -96,6 +144,7 @@ func (mc *MaterializeClient) SubscribeToLatestMeasurements(
 	args := []interface{}{}
 	argIndex := 1
 
+	// Simple mode: filter by sensor names
 	if len(sensorNames) > 0 {
 		placeholders := ""
 		for i, name := range sensorNames {
@@ -109,6 +158,7 @@ func (mc *MaterializeClient) SubscribeToLatestMeasurements(
 		query += fmt.Sprintf(" AND sensor_name IN (%s)", placeholders)
 	}
 
+	// Filter by type names (simple mode or discovery mode)
 	if len(typeNames) > 0 {
 		placeholders := ""
 		for i, name := range typeNames {
@@ -122,13 +172,54 @@ func (mc *MaterializeClient) SubscribeToLatestMeasurements(
 		query += fmt.Sprintf(" AND type_name IN (%s)", placeholders)
 	}
 
+	// Discovery mode: apply timeseries_filter conditions
+	if timeseriesFilter != nil {
+		// Required types - sensor must have ALL of these types
+		if len(timeseriesFilter.RequiredTypes) > 0 {
+			placeholders := ""
+			for i, typeName := range timeseriesFilter.RequiredTypes {
+				if i > 0 {
+					placeholders += ","
+				}
+				placeholders += fmt.Sprintf("$%d", argIndex)
+				args = append(args, typeName)
+				argIndex++
+			}
+			query += fmt.Sprintf(" AND type_name IN (%s)", placeholders)
+		}
+
+		// Note: Optional types and dataset filtering would require more complex subqueries
+		// For now, we implement the most common use case (required types)
+		// TODO: Implement optional_types and dataset_ids filtering
+	}
+
+	// Discovery mode: apply measurement_filter conditions
+	if measurementFilter != nil {
+		// Parse and apply value expression filter (non-geometric)
+		if measurementFilter.Expression != "" {
+			// Parse expression format: "type.operator.value"
+			// Example: "temperature.gteq.20" or "humidity.lt.50"
+			whereClause, filterArgs := mc.buildValueFilterClause(measurementFilter.Expression, argIndex)
+			if whereClause != "" {
+				query += " AND " + whereClause
+				args = append(args, filterArgs...)
+				argIndex += len(filterArgs)
+			}
+		}
+
+		// TODO: Time range filtering (requires timestamp comparison)
+		// TODO: Geometric filtering (will be done in application layer)
+	}
+
 	query += ")"
 
 	logrus.WithFields(logrus.Fields{
-		"query":        query,
-		"sensorNames":  sensorNames,
-		"typeNames":    typeNames,
-	}).Info("Starting Materialize TAIL subscription")
+		"query":             query,
+		"sensorNames":       sensorNames,
+		"typeNames":         typeNames,
+		"timeseriesFilter":  timeseriesFilter != nil,
+		"measurementFilter": measurementFilter != nil,
+	}).Info("Starting Materialize TAIL subscription with discovery filters")
 
 	// Start transaction for cursor
 	tx, err := mc.db.BeginTx(ctx, nil)
@@ -212,63 +303,42 @@ func (mc *MaterializeClient) SubscribeToLatestMeasurements(
 	}
 }
 
-// InitializeFromPostgres performs initial sync of data from PostgreSQL to Materialize
-// This is handled automatically by Materialize's PostgreSQL source
-func (mc *MaterializeClient) WaitForInitialSync(ctx context.Context) error {
-	logrus.Info("Waiting for Materialize initial sync to complete...")
-
-	// Check if source is running and healthy
-	maxAttempts := 60 // Wait up to 60 seconds
-	for attempt := 0; attempt < maxAttempts; attempt++ {
-		var count int
-		err := mc.db.QueryRowContext(ctx,
-			"SELECT COUNT(*) FROM latest_measurements_all",
-		).Scan(&count)
-
-		if err == nil {
-			logrus.WithField("count", count).Info("Materialize initial sync completed")
-			return nil
-		}
-
-		if err != nil && err != sql.ErrNoRows {
-			logrus.WithError(err).Warn("Error checking Materialize sync status")
-		}
-
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(1 * time.Second):
-		}
+// buildValueFilterClause builds a WHERE clause from a measurement filter expression
+// Expression format: "type.operator.value" (e.g., "temperature.gteq.20")
+// Returns the WHERE clause and arguments
+func (mc *MaterializeClient) buildValueFilterClause(expression string, startArgIndex int) (string, []interface{}) {
+	parts := strings.Split(expression, ".")
+	if len(parts) != 3 {
+		logrus.WithField("expression", expression).Warn("Invalid filter expression format, expected type.operator.value")
+		return "", nil
 	}
 
-	return fmt.Errorf("timeout waiting for Materialize initial sync")
-}
+	typeName := parts[0]
+	operator := parts[1]
+	value := parts[2]
 
-// GetSourceStatus checks the status of the PostgreSQL source
-func (mc *MaterializeClient) GetSourceStatus(ctx context.Context) (string, error) {
-	var status string
-	err := mc.db.QueryRowContext(ctx,
-		"SELECT status FROM mz_sources WHERE name = 'pg_source'",
-	).Scan(&status)
-
-	if err != nil {
-		return "", fmt.Errorf("failed to get source status: %w", err)
+	// Skip geometric conditions - they will be handled in application layer
+	if typeName == "location" || typeName == "geoposition" || typeName == "geoshape" {
+		return "", nil
 	}
 
-	return status, nil
-}
+	// Build WHERE clause
+	// Note: We filter by type_name and data_type first
+	// The CAST is applied in the application layer to avoid Materialize
+	// evaluating it on non-numeric rows during SUBSCRIBE
+	// For now, just filter by type and data_type
+	// TODO: Full value filtering requires a different approach (e.g., app-layer filtering)
+	whereClause := fmt.Sprintf("(type_name = $%d AND data_type = 'numeric')",
+		startArgIndex)
 
-// ReplicateMeasurement replicates a measurement from PostgreSQL to Materialize
-// Note: This is not needed as Materialize automatically syncs via PostgreSQL replication
-// This function is kept for reference but should not be used in production
-func (mc *MaterializeClient) ReplicateMeasurement(
-	timeseriesID uuid.UUID,
-	timestamp time.Time,
-	value interface{},
-	dataType models.DataType,
-	provenanceID *int64,
-) error {
-	// Materialize handles replication automatically via PostgreSQL logical replication
-	// No manual replication needed
-	return nil
+	args := []interface{}{typeName}
+
+	logrus.WithFields(logrus.Fields{
+		"type_name": typeName,
+		"operator":  operator,
+		"value":     value,
+		"note":      "Value filtering will be applied in application layer to avoid CAST errors",
+	}).Warn("Value expression filtering in Materialize TAIL has issues with UNION views - applying type filter only")
+
+	return whereClause, args
 }
