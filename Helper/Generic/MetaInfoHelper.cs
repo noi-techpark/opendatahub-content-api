@@ -105,7 +105,8 @@ namespace Helper
                 TourismMetaData tm => GetMetaDataForMetaData(tm),
                 EventV2 ev => GetMetadataforEvent(ev),
                 VenueV2 ev => GetMetadataforVenue(ev),
-                GeoShapeJson gj => GetMetadataForGeoShapeJson(gj),                
+                GeoShapeJson gj => GetMetadataForGeoShapeJson(gj),
+                Announcement ri => GetMetadataforAnnouncement(ri),
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -482,6 +483,12 @@ namespace Helper
         public static Metadata GetMetaDataForMetaData(TourismMetaData data)
         {
             return GetMetadata(data, "noi", false);
+        }
+
+        public static Metadata GetMetadataforAnnouncement(Announcement data)
+        {            
+            //TODO Add special case of Roadincident
+            return GetMetadata(data, data.Source ?? "noi");
         }
 
 
