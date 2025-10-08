@@ -38,6 +38,17 @@ namespace DataModel
 
         public ICollection<string>? PublishedOn { get; set; }
         public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+
+        //We define what classes this Additionalproperties can be
+        [PolymorphicDictionary(
+            "EchargingDataProperties", typeof(EchargingDataProperties),
+            "ActivityLtsDataProperties", typeof(ActivityLtsDataProperties),
+            "PoiLtsDataProperties", typeof(PoiLtsDataProperties),
+            "GastronomyLtsDataProperties", typeof(GastronomyLtsDataProperties),
+            "PoiAgeDataProperties", typeof(PoiAgeDataProperties),
+            "SuedtirolWeinCompanyDataProperties", typeof(SuedtirolWeinCompanyDataProperties),
+            "RoadIncidentProperties", typeof(RoadIncidentProperties)
+        )]
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
         public string? Source { get; set; }
 

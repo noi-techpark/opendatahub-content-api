@@ -42,425 +42,425 @@ namespace OdhApiCore.Controllers.api
 
         #region PoiController
 
-        //Reduced GETTER
+        ////Reduced GETTER
 
-        /// <summary>
-        /// GET Poi List Reduced
-        /// </summary>
-        /// <param name="language">Localization Language, (default:'en')</param>
-        /// <param name="poitype">Type of the Poi ('null' = Filter disabled, possible values: BITMASK 'Doctors, Pharmacies = 1','Shops = 2','Culture and sights= 4','Nightlife and entertainment = 8','Public institutions = 16','Sports and leisure = 32','Traffic and transport = 64', 'Service providers' = 128, 'Craft' = 256), (default:'511' == ALL), REFERENCE TO: GET /api/PoiTypes </param>
-        /// <param name="subtype">Subtype of the Activity (BITMASK Filter = available SubTypes depends on the selected poiType), (default:'null')</param>
-        /// <param name="locfilter">Locfilter (Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMASSOCIATIONID = (Filter by Tourismassociation), 'null' = No Filter), (default:'null')</param>
-        /// <param name="areafilter">AreaFilter (Alternate Locfilter, can be combined with locfilter) (Separator ',' possible values: reg + REGIONID = (Filter by Region), tvs + TOURISMASSOCIATIONID = (Filter by Tourismassociation), skr + SKIREGIONID = (Filter by Skiregion), ska + SKIAREAID = (Filter by Skiarea), are + AREAID = (Filter by LTS Area), 'null' = No Filter), (default:'null')</param>
-        /// <param name="highlight">Hightlight Filter (possible values: 'false' = only Pois with Highlight false, 'true' = only Pois with Highlight true), (default:'null')</param>
-        /// <param name="odhtagfilter">ODH Taglist Filter (refers to Array SmgTags) (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=poi'), (default:'null')</param>
-        /// <param name="active">Active Pois Filter (possible Values: 'true' only Active Pois, 'false' only Disabled Pois</param>
-        /// <param name="odhactive">ODH Active (Published) Pois Filter (Refers to field SmgActive) Pois Filter (possible Values: 'true' only published Pois, 'false' only not published Pois, (default:'null')</param>
-        /// <param name="latitude">GeoFilter Latitude Format: '46.624975', 'null' = disabled, (default:'null')</param>
-        /// <param name="longitude">GeoFilter Longitude Format: '11.369909', 'null' = disabled, (default:'null')</param>
-        /// <param name="radius">Radius to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null')</param>
-        /// <returns>Collection of Poi Reduced Objects</returns>
-        [ProducesResponseType(typeof(IEnumerable<ActivityPoiReduced>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[Authorize(Roles = "DataReader,PoiReader")]
-        [HttpGet, Route("PoiReduced")]
-        public async Task<IActionResult> GetPoiReduced(
-            string? language = "en",
-            string? poitype = "511",
-            string? subtype = null,
-            string? locfilter = null,
-            string? areafilter = null,
-            LegacyBool highlight = null!,
-            string? odhtagfilter = null,
-            LegacyBool active = null!,
-            LegacyBool odhactive = null!,
-            string? latitude = null,
-            string? longitude = null,
-            string? radius = null,
-            [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
-            string? searchfilter = null,
-            string? rawfilter = null,
-            string? rawsort = null,
-            CancellationToken cancellationToken = default
-        )
-        {
-            //TODO
-            //CheckOpenData(User);
+        ///// <summary>
+        ///// GET Poi List Reduced
+        ///// </summary>
+        ///// <param name="language">Localization Language, (default:'en')</param>
+        ///// <param name="poitype">Type of the Poi ('null' = Filter disabled, possible values: BITMASK 'Doctors, Pharmacies = 1','Shops = 2','Culture and sights= 4','Nightlife and entertainment = 8','Public institutions = 16','Sports and leisure = 32','Traffic and transport = 64', 'Service providers' = 128, 'Craft' = 256), (default:'511' == ALL), REFERENCE TO: GET /api/PoiTypes </param>
+        ///// <param name="subtype">Subtype of the Activity (BITMASK Filter = available SubTypes depends on the selected poiType), (default:'null')</param>
+        ///// <param name="locfilter">Locfilter (Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMASSOCIATIONID = (Filter by Tourismassociation), 'null' = No Filter), (default:'null')</param>
+        ///// <param name="areafilter">AreaFilter (Alternate Locfilter, can be combined with locfilter) (Separator ',' possible values: reg + REGIONID = (Filter by Region), tvs + TOURISMASSOCIATIONID = (Filter by Tourismassociation), skr + SKIREGIONID = (Filter by Skiregion), ska + SKIAREAID = (Filter by Skiarea), are + AREAID = (Filter by LTS Area), 'null' = No Filter), (default:'null')</param>
+        ///// <param name="highlight">Hightlight Filter (possible values: 'false' = only Pois with Highlight false, 'true' = only Pois with Highlight true), (default:'null')</param>
+        ///// <param name="odhtagfilter">ODH Taglist Filter (refers to Array SmgTags) (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=poi'), (default:'null')</param>
+        ///// <param name="active">Active Pois Filter (possible Values: 'true' only Active Pois, 'false' only Disabled Pois</param>
+        ///// <param name="odhactive">ODH Active (Published) Pois Filter (Refers to field SmgActive) Pois Filter (possible Values: 'true' only published Pois, 'false' only not published Pois, (default:'null')</param>
+        ///// <param name="latitude">GeoFilter Latitude Format: '46.624975', 'null' = disabled, (default:'null')</param>
+        ///// <param name="longitude">GeoFilter Longitude Format: '11.369909', 'null' = disabled, (default:'null')</param>
+        ///// <param name="radius">Radius to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null')</param>
+        ///// <returns>Collection of Poi Reduced Objects</returns>
+        //[ProducesResponseType(typeof(IEnumerable<ActivityPoiReduced>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        ////[Authorize(Roles = "DataReader,PoiReader")]
+        //[HttpGet, Route("PoiReduced")]
+        //public async Task<IActionResult> GetPoiReduced(
+        //    string? language = "en",
+        //    string? poitype = "511",
+        //    string? subtype = null,
+        //    string? locfilter = null,
+        //    string? areafilter = null,
+        //    LegacyBool highlight = null!,
+        //    string? odhtagfilter = null,
+        //    LegacyBool active = null!,
+        //    LegacyBool odhactive = null!,
+        //    string? latitude = null,
+        //    string? longitude = null,
+        //    string? radius = null,
+        //    [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
+        //    string? searchfilter = null,
+        //    string? rawfilter = null,
+        //    string? rawsort = null,
+        //    CancellationToken cancellationToken = default
+        //)
+        //{
+        //    //TODO
+        //    //CheckOpenData(User);
 
-            var geosearchresult = Helper.GeoSearchHelper.GetPGGeoSearchResult(
-                latitude,
-                longitude,
-                radius
-            );
+        //    var geosearchresult = Helper.GeoSearchHelper.GetPGGeoSearchResult(
+        //        latitude,
+        //        longitude,
+        //        radius
+        //    );
 
-            return await GetPoiReduced(
-                language?.ToLower(),
-                poitype,
-                subtype,
-                locfilter,
-                areafilter,
-                highlight,
-                active,
-                odhactive,
-                odhtagfilter,
-                fields: fields ?? Array.Empty<string>(),
-                rawfilter,
-                rawsort,
-                searchfilter,
-                geosearchresult,
-                cancellationToken
-            );
-        }
+        //    return await GetPoiReduced(
+        //        language?.ToLower(),
+        //        poitype,
+        //        subtype,
+        //        locfilter,
+        //        areafilter,
+        //        highlight,
+        //        active,
+        //        odhactive,
+        //        odhtagfilter,
+        //        fields: fields ?? Array.Empty<string>(),
+        //        rawfilter,
+        //        rawsort,
+        //        searchfilter,
+        //        geosearchresult,
+        //        cancellationToken
+        //    );
+        //}
 
-        /// <summary>
-        /// GET Reduced POI List
-        /// </summary>
-        /// <param name="language">Localization Language</param>
-        /// <param name="poitype">Type of the Poi (possible values: STRINGS: 'Ärtze, Apotheken','Geschäfte und Dienstleister','Kultur und Sehenswürdigkeiten','Nachtleben und Unterhaltung','Öffentliche Einrichtungen','Sport und Freizeit','Verkehr und Transport' : BITMASK also possible: 'Ärtze, Apotheken = 1','Geschäfte und Dienstleister = 2','Kultur und Sehenswürdigkeiten = 4','Nachtleben und Unterhaltung = 8','Öffentliche Einrichtungen = 16','Sport und Freizeit = 32','Verkehr und Transport = 64')</param>
-        /// <param name="subtypefilter">Subtype of the Poi ('null' = Filter disabled, available Subtypes depends on the activitytype BITMASK)</param>
-        /// <param name="locfilter">Locfilter (Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMVEREINID = (Filter by Tourismverein), 'null' = No Filter)</param>
-        /// <param name="areafilter">AreaFilter (Separator ',' IDList of AreaIDs separated by ',', 'null' : Filter disabled)</param>
-        /// <param name="highlightfilter">Highlight Filter (Show only Highlights possible values: 'true' : show only Highlight Pois, 'null' Filter disabled)</param>
-        /// <param name="active">Active Filter (possible Values: 'null' Displays all Pois, 'true' only Active Pois, 'false' only Disabled Pois</param>
-        /// <param name="smgactive">SMGActive Filter (possible Values: 'null' Displays all Pois, 'true' only SMG Active Pois, 'false' only SMG Disabled Pois</param>
-        /// <param name="smgtags">SMGTag Filter (String, Separator ',' more SMGTags possible, 'null' = No Filter)</param>
-        /// <returns>Collection of Reduced Poi Objects</returns>
-        private Task<IActionResult> GetPoiReduced(
-            string? language,
-            string? poitype,
-            string? subtypefilter,
-            string? locfilter,
-            string? areafilter,
-            bool? highlightfilter,
-            bool? active,
-            bool? smgactive,
-            string? smgtags,
-            string[] fields,
-            string? rawfilter,
-            string? rawsort,
-            string? searchfilter,
-            PGGeoSearchResult geosearchresult,
-            CancellationToken cancellationToken
-        )
-        {
-            return DoAsyncReturn(async () =>
-            {
-                //Additional Read Filters to Add Check
-                AdditionalFiltersToAddEndpoint("Poi")
-                    .TryGetValue("Read", out var additionalfilter);
+        ///// <summary>
+        ///// GET Reduced POI List
+        ///// </summary>
+        ///// <param name="language">Localization Language</param>
+        ///// <param name="poitype">Type of the Poi (possible values: STRINGS: 'Ärtze, Apotheken','Geschäfte und Dienstleister','Kultur und Sehenswürdigkeiten','Nachtleben und Unterhaltung','Öffentliche Einrichtungen','Sport und Freizeit','Verkehr und Transport' : BITMASK also possible: 'Ärtze, Apotheken = 1','Geschäfte und Dienstleister = 2','Kultur und Sehenswürdigkeiten = 4','Nachtleben und Unterhaltung = 8','Öffentliche Einrichtungen = 16','Sport und Freizeit = 32','Verkehr und Transport = 64')</param>
+        ///// <param name="subtypefilter">Subtype of the Poi ('null' = Filter disabled, available Subtypes depends on the activitytype BITMASK)</param>
+        ///// <param name="locfilter">Locfilter (Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMVEREINID = (Filter by Tourismverein), 'null' = No Filter)</param>
+        ///// <param name="areafilter">AreaFilter (Separator ',' IDList of AreaIDs separated by ',', 'null' : Filter disabled)</param>
+        ///// <param name="highlightfilter">Highlight Filter (Show only Highlights possible values: 'true' : show only Highlight Pois, 'null' Filter disabled)</param>
+        ///// <param name="active">Active Filter (possible Values: 'null' Displays all Pois, 'true' only Active Pois, 'false' only Disabled Pois</param>
+        ///// <param name="smgactive">SMGActive Filter (possible Values: 'null' Displays all Pois, 'true' only SMG Active Pois, 'false' only SMG Disabled Pois</param>
+        ///// <param name="smgtags">SMGTag Filter (String, Separator ',' more SMGTags possible, 'null' = No Filter)</param>
+        ///// <returns>Collection of Reduced Poi Objects</returns>
+        //private Task<IActionResult> GetPoiReduced(
+        //    string? language,
+        //    string? poitype,
+        //    string? subtypefilter,
+        //    string? locfilter,
+        //    string? areafilter,
+        //    bool? highlightfilter,
+        //    bool? active,
+        //    bool? smgactive,
+        //    string? smgtags,
+        //    string[] fields,
+        //    string? rawfilter,
+        //    string? rawsort,
+        //    string? searchfilter,
+        //    PGGeoSearchResult geosearchresult,
+        //    CancellationToken cancellationToken
+        //)
+        //{
+        //    return DoAsyncReturn(async () =>
+        //    {
+        //        //Additional Read Filters to Add Check
+        //        AdditionalFiltersToAddEndpoint("Poi")
+        //            .TryGetValue("Read", out var additionalfilter);
 
-                PoiHelper mypoihelper = await PoiHelper.CreateAsync(
-                    QueryFactory,
-                    poitype: poitype,
-                    subtypefilter: subtypefilter,
-                    idfilter: null,
-                    locfilter: locfilter,
-                    areafilter: areafilter,
-                    highlightfilter: highlightfilter,
-                    activefilter: active,
-                    smgactivefilter: smgactive,
-                    smgtags: smgtags,
-                    lastchange: null,
-                    langfilter: language,
-                    cancellationToken
-                );
+        //        PoiHelper mypoihelper = await PoiHelper.CreateAsync(
+        //            QueryFactory,
+        //            poitype: poitype,
+        //            subtypefilter: subtypefilter,
+        //            idfilter: null,
+        //            locfilter: locfilter,
+        //            areafilter: areafilter,
+        //            highlightfilter: highlightfilter,
+        //            activefilter: active,
+        //            smgactivefilter: smgactive,
+        //            smgtags: smgtags,
+        //            lastchange: null,
+        //            langfilter: language,
+        //            cancellationToken
+        //        );
 
-                string select =
-                    $"data#>>'\\{{Id\\}}' as \"Id\", data#>>'\\{{Detail,{language},Title\\}}' as \"Name\"";
+        //        string select =
+        //            $"data#>>'\\{{Id\\}}' as \"Id\", data#>>'\\{{Detail,{language},Title\\}}' as \"Name\"";
 
-                //Custom Fields filter
-                if (fields.Length > 0)
-                    select += string.Join(
-                        "",
-                        fields
-                            .Where(x => x != "Id")
-                            .Select(field =>
-                                $", data#>'\\{{{field.Replace(".", ",")}\\}}' as \"{field}\""
-                            )
-                    );
+        //        //Custom Fields filter
+        //        if (fields.Length > 0)
+        //            select += string.Join(
+        //                "",
+        //                fields
+        //                    .Where(x => x != "Id")
+        //                    .Select(field =>
+        //                        $", data#>'\\{{{field.Replace(".", ",")}\\}}' as \"{field}\""
+        //                    )
+        //            );
 
-                var query = (XQuery)
-                    QueryFactory
-                        .Query()
-                        .SelectRaw(select)
-                        .From("pois")
-                        .PoiWhereExpression(
-                            idlist: mypoihelper.idlist,
-                            poitypelist: mypoihelper.poitypelist,
-                            subtypelist: mypoihelper.subtypelist,
-                            smgtaglist: mypoihelper.smgtaglist,
-                            districtlist: new List<string>(),
-                            municipalitylist: new List<string>(),
-                            tourismvereinlist: mypoihelper.tourismvereinlist,
-                            regionlist: mypoihelper.regionlist,
-                            arealist: mypoihelper.arealist,
-                            highlight: mypoihelper.highlight,
-                            activefilter: mypoihelper.active,
-                            smgactivefilter: mypoihelper.smgactive,
-                            searchfilter: searchfilter,
-                            language: language,
-                            lastchange: null,
-                            languagelist: new List<string>(),
-                            additionalfilter: additionalfilter,
-                            userroles: UserRolesToFilterEndpoint("Poi")
-                        )
-                        .ApplyRawFilter(rawfilter)
-                        .ApplyOrdering_GeneratedColumns(geosearchresult, rawsort);
+        //        var query = (XQuery)
+        //            QueryFactory
+        //                .Query()
+        //                .SelectRaw(select)
+        //                .From("pois")
+        //                .PoiWhereExpression(
+        //                    idlist: mypoihelper.idlist,
+        //                    poitypelist: mypoihelper.poitypelist,
+        //                    subtypelist: mypoihelper.subtypelist,
+        //                    smgtaglist: mypoihelper.smgtaglist,
+        //                    districtlist: new List<string>(),
+        //                    municipalitylist: new List<string>(),
+        //                    tourismvereinlist: mypoihelper.tourismvereinlist,
+        //                    regionlist: mypoihelper.regionlist,
+        //                    arealist: mypoihelper.arealist,
+        //                    highlight: mypoihelper.highlight,
+        //                    activefilter: mypoihelper.active,
+        //                    smgactivefilter: mypoihelper.smgactive,
+        //                    searchfilter: searchfilter,
+        //                    language: language,
+        //                    lastchange: null,
+        //                    languagelist: new List<string>(),
+        //                    additionalfilter: additionalfilter,
+        //                    userroles: UserRolesToFilterEndpoint("Poi")
+        //                )
+        //                .ApplyRawFilter(rawfilter)
+        //                .ApplyOrdering_GeneratedColumns(geosearchresult, rawsort);
 
-                var compiled = query.Compiler.Compile(query);
+        //        var compiled = query.Compiler.Compile(query);
 
-                var reader = await query.Connection.ExecuteReaderAsync(
-                    compiled.Sql,
-                    compiled.NamedBindings
-                );
+        //        var reader = await query.Connection.ExecuteReaderAsync(
+        //            compiled.Sql,
+        //            compiled.NamedBindings
+        //        );
 
-                return reader.ReadAndParseTOJson();
-            });
-        }
+        //        return reader.ReadAndParseTOJson();
+        //    });
+        //}
 
-        [Obsolete("Deprecated, use the Poi Endpoint")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpGet, Route("PoiChanged")]
-        public RedirectToActionResult GetAllPoisChanged(
-            uint pagenumber = 1,
-            uint pagesize = 10,
-            string? seed = null,
-            string? updatefrom = null,
-            CancellationToken cancellationToken = default
-        )
-        {
-            updatefrom ??= String.Format("{0:yyyy-MM-dd}", DateTime.Now.AddDays(-1));
+        //[Obsolete("Deprecated, use the Poi Endpoint")]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //[HttpGet, Route("PoiChanged")]
+        //public RedirectToActionResult GetAllPoisChanged(
+        //    uint pagenumber = 1,
+        //    uint pagesize = 10,
+        //    string? seed = null,
+        //    string? updatefrom = null,
+        //    CancellationToken cancellationToken = default
+        //)
+        //{
+        //    updatefrom ??= String.Format("{0:yyyy-MM-dd}", DateTime.Now.AddDays(-1));
 
-            return RedirectToAction(
-                "Poi",
-                "v1",
-                new RouteValueDictionary
-                {
-                    { "pagenumber", pagenumber },
-                    { "pagesize", pagesize },
-                    { "seed", seed },
-                    { "updatefrom", updatefrom },
-                }
-            );
-        }
+        //    return RedirectToAction(
+        //        "Poi",
+        //        "v1",
+        //        new RouteValueDictionary
+        //        {
+        //            { "pagenumber", pagenumber },
+        //            { "pagesize", pagesize },
+        //            { "seed", seed },
+        //            { "updatefrom", updatefrom },
+        //        }
+        //    );
+        //}
 
         #endregion
 
         #region ActivityController
 
-        /// <summary>
-        /// GET Activity List Reduced
-        /// </summary>
-        /// <param name="language">Localization Language, (default:'en')</param>
-        /// <param name="activitytype">Type of the Activity ('null' = Filter disabled, possible values: BITMASK: 'Mountains = 1','Cycling = 2','Local tours = 4','Horses = 8','Hiking = 16','Running and fitness = 32','Cross-country ski-track = 64','Tobbogan run = 128','Slopes = 256','Lifts = 512'), (default:'1023' == ALL), REFERENCE TO: GET /api/ActivityTypes </param>
-        /// <param name="subtype">Subtype of the Activity (BITMASK Filter = available SubTypes depends on the selected Activity Type), (default:'null')</param>
-        /// <param name="locfilter">Locfilter (Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMVEREINID = (Filter by Tourismverein), mun + MUNICIPALITYID = (Filter by Municipality), fra + FRACTIONID = (Filter by Fraction)), (default:'null')</param>
-        /// <param name="areafilter">AreaFilter (Separator ',' IDList of AreaIDs separated by ','), (default:'null')</param>
-        /// <param name="distancefilter">Distance Range Filter (Separator ',' example Value: 15,40 Distance from 15 up to 40 Km), (default:'null')</param>
-        /// <param name="altitudefilter">Altitude Range Filter (Separator ',' example Value: 500,1000 Altitude from 500 up to 1000 metres), (default:'null')</param>
-        /// <param name="durationfilter">Duration Range Filter (Separator ',' example Value: 1,3 Duration from 1 to 3 hours), (default:'null')</param>
-        /// <param name="highlight">Hightlight Filter (possible values: 'false' = only Activities with Highlight false, 'true' = only Activities with Highlight true), (default:'null')</param>
-        /// <param name="difficultyfilter">Difficulty Filter (possible values: '1' = easy, '2' = medium, '3' = difficult), (default:'null')</param>
-        /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'api/SmgTag/ByMainEntity/Activity'), (default:'null')</param>
-        /// <param name="active">Active Activities Filter (possible Values: 'true' only Active Activities, 'false' only Disabled Activities</param>
-        /// <param name="odhactive"> odhactive (Published) Activities Filter (possible Values: 'true' only published Activities, 'false' only not published Activities, (default:'null')</param>
-        /// <param name="latitude">GeoFilter Latitude Format: '46.624975', 'null' = disabled, (default:'null')</param>
-        /// <param name="longitude">GeoFilter Longitude Format: '11.369909', 'null' = disabled, (default:'null')</param>
-        /// <param name="radius">Radius to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null')</param>
-        /// <returns>Collection of Activity Reduced Objects</returns>
-        [ProducesResponseType(typeof(IEnumerable<ActivityPoiReduced>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[Authorize(Roles = "DataReader,ActivityReader")]
-        [HttpGet, Route("ActivityReduced")]
-        public async Task<IActionResult> GetActivityReduced(
-            string? language = "en",
-            string? activitytype = "1023",
-            string? subtype = null,
-            string? locfilter = null,
-            string? areafilter = null,
-            string? distancefilter = null,
-            string? altitudefilter = null,
-            string? durationfilter = null,
-            LegacyBool highlight = null!,
-            string? difficultyfilter = null,
-            string? odhtagfilter = null,
-            LegacyBool active = null!,
-            LegacyBool odhactive = null!,
-            string? latitude = null,
-            string? longitude = null,
-            string? radius = null,
-            [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
-            string? searchfilter = null,
-            string? rawfilter = null,
-            string? rawsort = null,
-            CancellationToken cancellationToken = default
-        )
-        {
-            var geosearchresult = Helper.GeoSearchHelper.GetPGGeoSearchResult(
-                latitude,
-                longitude,
-                radius
-            );
+        ///// <summary>
+        ///// GET Activity List Reduced
+        ///// </summary>
+        ///// <param name="language">Localization Language, (default:'en')</param>
+        ///// <param name="activitytype">Type of the Activity ('null' = Filter disabled, possible values: BITMASK: 'Mountains = 1','Cycling = 2','Local tours = 4','Horses = 8','Hiking = 16','Running and fitness = 32','Cross-country ski-track = 64','Tobbogan run = 128','Slopes = 256','Lifts = 512'), (default:'1023' == ALL), REFERENCE TO: GET /api/ActivityTypes </param>
+        ///// <param name="subtype">Subtype of the Activity (BITMASK Filter = available SubTypes depends on the selected Activity Type), (default:'null')</param>
+        ///// <param name="locfilter">Locfilter (Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMVEREINID = (Filter by Tourismverein), mun + MUNICIPALITYID = (Filter by Municipality), fra + FRACTIONID = (Filter by Fraction)), (default:'null')</param>
+        ///// <param name="areafilter">AreaFilter (Separator ',' IDList of AreaIDs separated by ','), (default:'null')</param>
+        ///// <param name="distancefilter">Distance Range Filter (Separator ',' example Value: 15,40 Distance from 15 up to 40 Km), (default:'null')</param>
+        ///// <param name="altitudefilter">Altitude Range Filter (Separator ',' example Value: 500,1000 Altitude from 500 up to 1000 metres), (default:'null')</param>
+        ///// <param name="durationfilter">Duration Range Filter (Separator ',' example Value: 1,3 Duration from 1 to 3 hours), (default:'null')</param>
+        ///// <param name="highlight">Hightlight Filter (possible values: 'false' = only Activities with Highlight false, 'true' = only Activities with Highlight true), (default:'null')</param>
+        ///// <param name="difficultyfilter">Difficulty Filter (possible values: '1' = easy, '2' = medium, '3' = difficult), (default:'null')</param>
+        ///// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'api/SmgTag/ByMainEntity/Activity'), (default:'null')</param>
+        ///// <param name="active">Active Activities Filter (possible Values: 'true' only Active Activities, 'false' only Disabled Activities</param>
+        ///// <param name="odhactive"> odhactive (Published) Activities Filter (possible Values: 'true' only published Activities, 'false' only not published Activities, (default:'null')</param>
+        ///// <param name="latitude">GeoFilter Latitude Format: '46.624975', 'null' = disabled, (default:'null')</param>
+        ///// <param name="longitude">GeoFilter Longitude Format: '11.369909', 'null' = disabled, (default:'null')</param>
+        ///// <param name="radius">Radius to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null')</param>
+        ///// <returns>Collection of Activity Reduced Objects</returns>
+        //[ProducesResponseType(typeof(IEnumerable<ActivityPoiReduced>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        ////[Authorize(Roles = "DataReader,ActivityReader")]
+        //[HttpGet, Route("ActivityReduced")]
+        //public async Task<IActionResult> GetActivityReduced(
+        //    string? language = "en",
+        //    string? activitytype = "1023",
+        //    string? subtype = null,
+        //    string? locfilter = null,
+        //    string? areafilter = null,
+        //    string? distancefilter = null,
+        //    string? altitudefilter = null,
+        //    string? durationfilter = null,
+        //    LegacyBool highlight = null!,
+        //    string? difficultyfilter = null,
+        //    string? odhtagfilter = null,
+        //    LegacyBool active = null!,
+        //    LegacyBool odhactive = null!,
+        //    string? latitude = null,
+        //    string? longitude = null,
+        //    string? radius = null,
+        //    [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
+        //    string? searchfilter = null,
+        //    string? rawfilter = null,
+        //    string? rawsort = null,
+        //    CancellationToken cancellationToken = default
+        //)
+        //{
+        //    var geosearchresult = Helper.GeoSearchHelper.GetPGGeoSearchResult(
+        //        latitude,
+        //        longitude,
+        //        radius
+        //    );
 
-            return await GetActivityReduced(
-                language?.ToLower(),
-                activitytype,
-                subtype,
-                locfilter,
-                areafilter,
-                distancefilter,
-                altitudefilter,
-                durationfilter,
-                highlight,
-                difficultyfilter,
-                active,
-                odhactive,
-                odhtagfilter,
-                fields: fields ?? Array.Empty<string>(),
-                rawfilter,
-                rawsort,
-                searchfilter,
-                geosearchresult,
-                cancellationToken
-            );
-        }
+        //    return await GetActivityReduced(
+        //        language?.ToLower(),
+        //        activitytype,
+        //        subtype,
+        //        locfilter,
+        //        areafilter,
+        //        distancefilter,
+        //        altitudefilter,
+        //        durationfilter,
+        //        highlight,
+        //        difficultyfilter,
+        //        active,
+        //        odhactive,
+        //        odhtagfilter,
+        //        fields: fields ?? Array.Empty<string>(),
+        //        rawfilter,
+        //        rawsort,
+        //        searchfilter,
+        //        geosearchresult,
+        //        cancellationToken
+        //    );
+        //}
 
-        private Task<IActionResult> GetActivityReduced(
-            string? language,
-            string? activitytype,
-            string? subtypefilter,
-            string? locfilter,
-            string? areafilter,
-            string? distancefilter,
-            string? altitudefilter,
-            string? durationfilter,
-            bool? highlightfilter,
-            string? difficultyfilter,
-            bool? active,
-            bool? smgactive,
-            string? smgtags,
-            string[] fields,
-            string? rawfilter,
-            string? rawsort,
-            string? searchfilter,
-            PGGeoSearchResult geosearchresult,
-            CancellationToken cancellationToken
-        )
-        {
-            return DoAsyncReturn(async () =>
-            {
-                AdditionalFiltersToAddEndpoint("Activity")
-                    .TryGetValue("Read", out var additionalfilter);
+        //private Task<IActionResult> GetActivityReduced(
+        //    string? language,
+        //    string? activitytype,
+        //    string? subtypefilter,
+        //    string? locfilter,
+        //    string? areafilter,
+        //    string? distancefilter,
+        //    string? altitudefilter,
+        //    string? durationfilter,
+        //    bool? highlightfilter,
+        //    string? difficultyfilter,
+        //    bool? active,
+        //    bool? smgactive,
+        //    string? smgtags,
+        //    string[] fields,
+        //    string? rawfilter,
+        //    string? rawsort,
+        //    string? searchfilter,
+        //    PGGeoSearchResult geosearchresult,
+        //    CancellationToken cancellationToken
+        //)
+        //{
+        //    return DoAsyncReturn(async () =>
+        //    {
+        //        AdditionalFiltersToAddEndpoint("Activity")
+        //            .TryGetValue("Read", out var additionalfilter);
 
-                ActivityHelper myactivityhelper = await ActivityHelper.CreateAsync(
-                    QueryFactory,
-                    activitytype: activitytype,
-                    subtypefilter: subtypefilter,
-                    idfilter: null,
-                    locfilter: locfilter,
-                    areafilter: areafilter,
-                    distancefilter: distancefilter,
-                    altitudefilter: altitudefilter,
-                    durationfilter: durationfilter,
-                    highlightfilter: highlightfilter,
-                    difficultyfilter: difficultyfilter,
-                    activefilter: active,
-                    smgactivefilter: smgactive,
-                    smgtags: smgtags,
-                    lastchange: null,
-                    langfilter: language,
-                    cancellationToken: cancellationToken
-                );
+        //        ActivityHelper myactivityhelper = await ActivityHelper.CreateAsync(
+        //            QueryFactory,
+        //            activitytype: activitytype,
+        //            subtypefilter: subtypefilter,
+        //            idfilter: null,
+        //            locfilter: locfilter,
+        //            areafilter: areafilter,
+        //            distancefilter: distancefilter,
+        //            altitudefilter: altitudefilter,
+        //            durationfilter: durationfilter,
+        //            highlightfilter: highlightfilter,
+        //            difficultyfilter: difficultyfilter,
+        //            activefilter: active,
+        //            smgactivefilter: smgactive,
+        //            smgtags: smgtags,
+        //            lastchange: null,
+        //            langfilter: language,
+        //            cancellationToken: cancellationToken
+        //        );
 
-                string select =
-                    $"data#>>'\\{{Id\\}}' as \"Id\", data#>>'\\{{Detail,{language},Title\\}}' as \"Name\"";
+        //        string select =
+        //            $"data#>>'\\{{Id\\}}' as \"Id\", data#>>'\\{{Detail,{language},Title\\}}' as \"Name\"";
 
-                //Custom Fields filter
-                if (fields.Length > 0)
-                    select += string.Join(
-                        "",
-                        fields
-                            .Where(x => x != "Id")
-                            .Select(field =>
-                                $", data#>'\\{{{field.Replace(".", ",")}\\}}' as \"{field}\""
-                            )
-                    );
+        //        //Custom Fields filter
+        //        if (fields.Length > 0)
+        //            select += string.Join(
+        //                "",
+        //                fields
+        //                    .Where(x => x != "Id")
+        //                    .Select(field =>
+        //                        $", data#>'\\{{{field.Replace(".", ",")}\\}}' as \"{field}\""
+        //                    )
+        //            );
 
-                var query = (XQuery)
-                    QueryFactory
-                        .Query()
-                        .SelectRaw(select)
-                        .From("activities")
-                        .ActivityWhereExpression(
-                            idlist: myactivityhelper.idlist,
-                            activitytypelist: myactivityhelper.activitytypelist,
-                            subtypelist: myactivityhelper.subtypelist,
-                            difficultylist: myactivityhelper.difficultylist,
-                            smgtaglist: myactivityhelper.smgtaglist,
-                            districtlist: new List<string>(),
-                            municipalitylist: new List<string>(),
-                            tourismvereinlist: myactivityhelper.tourismvereinlist,
-                            regionlist: myactivityhelper.regionlist,
-                            arealist: myactivityhelper.arealist,
-                            distance: myactivityhelper.distance,
-                            distancemin: myactivityhelper.distancemin,
-                            distancemax: myactivityhelper.distancemax,
-                            duration: myactivityhelper.duration,
-                            durationmin: myactivityhelper.durationmin,
-                            durationmax: myactivityhelper.durationmax,
-                            altitude: myactivityhelper.altitude,
-                            altitudemin: myactivityhelper.altitudemin,
-                            altitudemax: myactivityhelper.altitudemax,
-                            highlight: myactivityhelper.highlight,
-                            activefilter: myactivityhelper.active,
-                            smgactivefilter: myactivityhelper.smgactive,
-                            searchfilter: null,
-                            language: language,
-                            lastchange: null,
-                            languagelist: new List<string>(),
-                            additionalfilter: additionalfilter,
-                            userroles: UserRolesToFilterEndpoint("Activity")
-                        )
-                        .ApplyRawFilter(rawfilter)
-                        .ApplyOrdering_GeneratedColumns(geosearchresult, rawsort);
+        //        var query = (XQuery)
+        //            QueryFactory
+        //                .Query()
+        //                .SelectRaw(select)
+        //                .From("activities")
+        //                .ActivityWhereExpression(
+        //                    idlist: myactivityhelper.idlist,
+        //                    activitytypelist: myactivityhelper.activitytypelist,
+        //                    subtypelist: myactivityhelper.subtypelist,
+        //                    difficultylist: myactivityhelper.difficultylist,
+        //                    smgtaglist: myactivityhelper.smgtaglist,
+        //                    districtlist: new List<string>(),
+        //                    municipalitylist: new List<string>(),
+        //                    tourismvereinlist: myactivityhelper.tourismvereinlist,
+        //                    regionlist: myactivityhelper.regionlist,
+        //                    arealist: myactivityhelper.arealist,
+        //                    distance: myactivityhelper.distance,
+        //                    distancemin: myactivityhelper.distancemin,
+        //                    distancemax: myactivityhelper.distancemax,
+        //                    duration: myactivityhelper.duration,
+        //                    durationmin: myactivityhelper.durationmin,
+        //                    durationmax: myactivityhelper.durationmax,
+        //                    altitude: myactivityhelper.altitude,
+        //                    altitudemin: myactivityhelper.altitudemin,
+        //                    altitudemax: myactivityhelper.altitudemax,
+        //                    highlight: myactivityhelper.highlight,
+        //                    activefilter: myactivityhelper.active,
+        //                    smgactivefilter: myactivityhelper.smgactive,
+        //                    searchfilter: null,
+        //                    language: language,
+        //                    lastchange: null,
+        //                    languagelist: new List<string>(),
+        //                    additionalfilter: additionalfilter,
+        //                    userroles: UserRolesToFilterEndpoint("Activity")
+        //                )
+        //                .ApplyRawFilter(rawfilter)
+        //                .ApplyOrdering_GeneratedColumns(geosearchresult, rawsort);
 
-                var compiled = query.Compiler.Compile(query);
+        //        var compiled = query.Compiler.Compile(query);
 
-                var reader = await query.Connection.ExecuteReaderAsync(
-                    compiled.Sql,
-                    compiled.NamedBindings
-                );
+        //        var reader = await query.Connection.ExecuteReaderAsync(
+        //            compiled.Sql,
+        //            compiled.NamedBindings
+        //        );
 
-                return reader.ReadAndParseTOJson();
-            });
-        }
+        //        return reader.ReadAndParseTOJson();
+        //    });
+        //}
 
-        [Obsolete("Deprecated, use the Activity Endpoint")]
-        [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpGet, Route("ActivityChanged")]
-        public RedirectToActionResult GetAllActivityChanged(
-            uint pagenumber = 1,
-            uint pagesize = 10,
-            string? seed = null,
-            string? updatefrom = null
-        )
-        {
-            updatefrom ??= String.Format("{0:yyyy-MM-dd}", DateTime.Now.AddDays(-1));
+        //[Obsolete("Deprecated, use the Activity Endpoint")]
+        //[ApiExplorerSettings(IgnoreApi = true)]
+        //[HttpGet, Route("ActivityChanged")]
+        //public RedirectToActionResult GetAllActivityChanged(
+        //    uint pagenumber = 1,
+        //    uint pagesize = 10,
+        //    string? seed = null,
+        //    string? updatefrom = null
+        //)
+        //{
+        //    updatefrom ??= String.Format("{0:yyyy-MM-dd}", DateTime.Now.AddDays(-1));
 
-            return RedirectToAction(
-                "Activity",
-                "v1",
-                new RouteValueDictionary
-                {
-                    { "pagenumber", pagenumber },
-                    { "pagesize", pagesize },
-                    { "seed", seed },
-                    { "updatefrom", updatefrom },
-                }
-            );
-        }
+        //    return RedirectToAction(
+        //        "Activity",
+        //        "v1",
+        //        new RouteValueDictionary
+        //        {
+        //            { "pagenumber", pagenumber },
+        //            { "pagesize", pagesize },
+        //            { "seed", seed },
+        //            { "updatefrom", updatefrom },
+        //        }
+        //    );
+        //}
 
         #endregion
 
