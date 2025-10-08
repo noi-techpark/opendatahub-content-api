@@ -313,6 +313,7 @@ namespace OdhApiCore
         public SuedtirolWeinConfig SuedtirolWeinConfig => throw new NotImplementedException();
         public NinjaConfig NinjaConfig => throw new NotImplementedException();
         public LoopTecConfig LoopTecConfig => throw new NotImplementedException();
+        public OutdooractiveConfig OutdooractiveConfig => throw new NotImplementedException();
 
         public RavenConfig RavenConfig => this.ravenConfig;
         public List<NotifierConfig> NotifierConfig => this.notifierConfig;

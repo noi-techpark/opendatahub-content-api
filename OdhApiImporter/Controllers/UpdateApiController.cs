@@ -2434,6 +2434,60 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Imports all ODHActivityPois TagProperties
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("LTS/ODHActivityPoi/Update/TagProperties")]
+        public async Task<IActionResult> ImportLTSODHActivityPoiTagProperties(
+            string id = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import LTS ODHActivityPois TagProperties";
+            string updatetype = GetUpdateType(null);
+            string source = "lts";
+            string otherinfo = "odhactivitypoi.tagproperties";
+
+            try
+            {
+                LTSApiTagPropertyImportHelper importhelper = new LTSApiTagPropertyImportHelper(
+                    settings,
+                    QueryFactory,
+                    "tags",
+                    UrlGeneratorStatic("LTS/ODHActivityPois/TagProperties")
+                );
+
+                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS ODHActivityPois TagProperties succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS ODHActivityPois TagProperties data failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
         //Imports Accommodations
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("LTS/Accommodation/Update")]
@@ -2831,6 +2885,70 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region OUTDOORACTIVE DATA SYNC
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("OUTDOORACTIVE/Update/{datatype}")]
+        public async Task<IActionResult> UpdateOutdoorActiveData(
+            string datatype,
+            string updatefrom,
+            bool syncelevation = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import Outdooractive " + datatype;
+            string updatetype = GetUpdateType(null);
+            string source = "outdooractive";
+            string otherinfo = "rawonly";
+
+            try
+            {
+                OutdoorActiveImportHelper outdooractiveimporthelper = new OutdoorActiveImportHelper(
+                    settings,
+                    QueryFactory,
+                    "smgpois",
+                    UrlGeneratorStatic("OUTDOORACTIVE/" + datatype)
+                );
+
+                outdooractiveimporthelper.SetType(datatype);
+
+                updatedetail = await outdooractiveimporthelper.SaveDataToODH(
+                    null,
+                    null,
+                    cancellationToken
+                );
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    $"Import Outdooractive {datatype} succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                     $"Import Outdooractive {datatype} failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        #endregion
 
         #region DIGIWAY
 

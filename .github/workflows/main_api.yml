@@ -67,8 +67,8 @@ jobs:
           X_SIAG_PSWD: ${{ secrets.SIAG_PSWD_TEST }}
           X_SIAG_SERVICEURL: "http://daten.buergernetz.bz.it/services/weather/"
           X_XMLDIR: ${{ secrets.XMLDIR_TEST }}
-          X_IMG_URL: "https://images.tourism.testingmachine.eu/api/Image/GetImage?imageurl="
-          X_DOC_URL: "https://images.tourism.testingmachine.eu/api/File/GetFile/"
+          X_IMG_URL: "https://cdn.opendatahub.testingmachine.eu/api/Image/GetImage?imageurl="
+          X_DOC_URL: "https://cdn.opendatahub.testingmachine.eu/api/File/GetFile/"
           X_S3_BUCKET_ACCESSPOINT: ${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}
           X_S3_IMAGEUPLOADER_ACCESSKEY: ${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}
           X_S3_IMAGEUPLOADER_SECRETKEY: ${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}
@@ -243,8 +243,8 @@ jobs:
           X_SIAG_PSWD: "http://daten.buergernetz.bz.it/services/weather/"
           X_SIAG_SERVICEURL: ${{ secrets.SIAG_URL_TEST }}          
           X_XMLDIR: ${{ secrets.XMLDIR_TEST }}
-          X_IMG_URL: "https://images.opendatahub.com/api/Image/GetImage?imageurl="
-          X_DOC_URL: "https://images.opendatahub.com/api/File/GetFile/"
+          X_IMG_URL: "https://cdn.opendatahub.com/api/Image/GetImage?imageurl="
+          X_DOC_URL: "https://cdn.opendatahub.com/api/File/GetFile/"
           X_S3_BUCKET_ACCESSPOINT: ${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}
           X_S3_IMAGEUPLOADER_ACCESSKEY: ${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}
           X_S3_IMAGEUPLOADER_SECRETKEY: ${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}
