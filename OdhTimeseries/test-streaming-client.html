@@ -392,6 +392,11 @@
                         <button class="btn-secondary" onclick="loadExample('discovery')">Discovery</button>
                         <button class="btn-secondary" onclick="loadExample('discovery-filter')">Discovery + Filter</button>
                     </div>
+                    <div class="button-group">
+                        <button class="btn-secondary" onclick="loadExample('geoposition-bbox')">Geoposition Bbox</button>
+                        <button class="btn-secondary" onclick="loadExample('geoshape-bbox')">Geoshape Bbox</button>
+                        <button class="btn-secondary" onclick="loadExample('geoposition-radius')">Geoposition Radius</button>
+                    </div>
                 </div>
                 <div class="button-group">
                     <button class="btn-primary" id="btn-custom-connect" onclick="connectWithCustomPayload()">Connect with Custom Payload</button>
@@ -823,6 +828,45 @@
                         "measurement_filter": {
                             "latest_only": true,
                             "expression": "power_generation.gteq.100"
+                        },
+                        "limit": 10
+                    },
+                    endpoint: 'advanced'
+                },
+                'geoposition-bbox': {
+                    payload: {
+                        "timeseries_filter": {
+                            "required_types": ["location"]
+                        },
+                        "measurement_filter": {
+                            "expression": "location.bbi.(11.6,46.4,11.65,46.5)",
+                            "latest_only": true
+                        },
+                        "limit": 10
+                    },
+                    endpoint: 'advanced'
+                },
+                'geoshape-bbox': {
+                    payload: {
+                        "timeseries_filter": {
+                            "required_types": ["coverage_area"]
+                        },
+                        "measurement_filter": {
+                            "expression": "coverage_area.bbi.(11.0,46.0,12.0,47.0)",
+                            "latest_only": true
+                        },
+                        "limit": 10
+                    },
+                    endpoint: 'advanced'
+                },
+                'geoposition-radius': {
+                    payload: {
+                        "timeseries_filter": {
+                            "required_types": ["location"]
+                        },
+                        "measurement_filter": {
+                            "expression": "location.dlt.(11.354,46.498,5000)",
+                            "latest_only": true
                         },
                         "limit": 10
                     },

@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"strings"
 	"sync"
 
 	"timeseries-api/internal/filter"
 	"timeseries-api/internal/repository"
 
 	"github.com/gorilla/websocket"
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/encoding/wkt"
 	"github.com/sirupsen/logrus"
 )
 
@@ -32,20 +33,19 @@ type Subscription struct {
 	typeNames         []string
 	timeseriesFilter  *filter.TimeseriesFilter
 	measurementFilter *filter.MeasurementFilter
+	spatialFilters    []SpatialFilterCondition // Extracted from measurementFilter.Expression
 	updatesChan       chan MeasurementUpdate
 	ctx               context.Context
 	cancel            context.CancelFunc
 	mu                sync.Mutex
 }
 
-// SpatialFilter defines geospatial filtering parameters
-type SpatialFilter struct {
-	Type        string    `json:"type"` // "bbox", "radius", "polygon"
-	Coordinates []float64 `json:"coordinates"`
-	// For bbox: [minLon, minLat, maxLon, maxLat]
-	// For radius: [lon, lat, radius_meters]
-	// For polygon: [lon1, lat1, lon2, lat2, ...]
-}
+// SpatialFilterCondition is imported from streaming.MaterializeClient
+// type SpatialFilterCondition struct {
+// 	TypeName    string
+// 	Operator    filter.FilterOperator
+// 	Coordinates []float64
+// }
 
 // WebSocketMessage represents any WebSocket message (GraphQL-style)
 type WebSocketMessage struct {
@@ -239,9 +239,11 @@ func (wsm *WebSocketManager) cleanup(conn *websocket.Conn, sub *Subscription) {
 }
 
 // listenForUpdates listens for updates from Materialize
+// Captures spatial filters returned by SubscribeWithFilters for application-layer filtering
 func (wsm *WebSocketManager) listenForUpdates(sub *Subscription) {
-	err := wsm.materialize.SubscribeWithFilters(
+	spatialFilters, err := wsm.materialize.SubscribeWithFilters(
 		sub.ctx,
+		sub,
 		sub.sensorNames,
 		sub.typeNames,
 		sub.timeseriesFilter,
@@ -251,31 +253,43 @@ func (wsm *WebSocketManager) listenForUpdates(sub *Subscription) {
 
 	if err != nil && err != context.Canceled {
 		logrus.WithError(err).Error("Materialize subscription error")
+		return
+	}
+
+	if len(spatialFilters) > 0 {
+		logrus.WithField("count", len(spatialFilters)).Info("Extracted spatial filters for application-layer filtering")
 	}
 }
 
 // sendUpdatesToClient sends updates to the WebSocket client
+// Applies spatial filters at application layer (since Materialize doesn't support PostGIS)
 func (wsm *WebSocketManager) sendUpdatesToClient(sub *Subscription) {
+	logrus.Debug("sendUpdatesToClient goroutine started")
 	for {
 		select {
 		case <-sub.ctx.Done():
+			logrus.Debug("sendUpdatesToClient context done, exiting")
 			return
 		case update, ok := <-sub.updatesChan:
 			if !ok {
+				logrus.Debug("sendUpdatesToClient channel closed, exiting")
 				return
 			}
 
-			// Apply value filtering from measurementFilter if present
-			// This is done here because Materialize has issues with CAST in UNION views
-			if sub.measurementFilter != nil && sub.measurementFilter.Expression != "" {
-				if !wsm.applyValueFilter(&update, sub.measurementFilter.Expression) {
+			logrus.WithFields(logrus.Fields{
+				"sensor_name": update.SensorName,
+				"type_name":   update.TypeName,
+				"value":       update.Value,
+			}).Debug("Received update from channel in sendUpdatesToClient")
+
+			// Apply spatial filtering at application layer
+			// All non-spatial filters are already applied at DB level in the TAIL query
+			if len(sub.spatialFilters) > 0 {
+				if !wsm.applySpatialFilters(&update, sub.spatialFilters) {
+					logrus.Debug("Update filtered out by spatial filter")
 					continue // Skip this update
 				}
 			}
-
-			// TODO: Apply geometric filtering from measurementFilter if present
-			// Geometric conditions are extracted from measurementFilter and applied here
-			// since Materialize doesn't support PostGIS functions
 
 			// Send update to client (GraphQL-style message)
 			msg := WebSocketMessage{
@@ -283,6 +297,7 @@ func (wsm *WebSocketManager) sendUpdatesToClient(sub *Subscription) {
 				Payload: update,
 			}
 
+			logrus.Debug("Attempting to send update to WebSocket client")
 			sub.mu.Lock()
 			err := sub.conn.WriteJSON(msg)
 			sub.mu.Unlock()
@@ -292,70 +307,124 @@ func (wsm *WebSocketManager) sendUpdatesToClient(sub *Subscription) {
 				sub.cancel()
 				return
 			}
+			logrus.Debug("Successfully sent update to WebSocket client")
 		}
 	}
 }
 
-// applySpatialFilter applies geospatial filtering to an update
-func (wsm *WebSocketManager) applySpatialFilter(update *MeasurementUpdate, filter *SpatialFilter) bool {
+// filterCoordsToBound converts a slice of filter coordinates [minLon, minLat, maxLon, maxLat]
+// into an orb.Bound object.
+func filterCoordsToBound(coords []float64) orb.Bound {
+	return orb.Bound{
+		Min: orb.Point{coords[0], coords[1]},
+		Max: orb.Point{coords[2], coords[3]},
+	}
+}
+
+// applySpatialFilters applies geospatial filtering to an update
+// Checks if the update matches ANY of the spatial filter conditions
+func (wsm *WebSocketManager) applySpatialFilters(update *MeasurementUpdate, filters []SpatialFilterCondition) bool {
 	// Only apply spatial filter to geoposition and geoshape data types
 	if update.DataType != "geoposition" && update.DataType != "geoshape" {
 		return true
 	}
 
-	// Parse the geometry value
-	// Value is in WKT format like "POINT(11.123 46.456)"
-	coords, err := parseWKT(update.Value)
+	// Value is guaranteed to be a WKT string (from previous step's WKB conversion)
+	wktString, ok := update.Value.(string)
+	if !ok {
+		logrus.WithField("type", fmt.Sprintf("%T", update.Value)).Warn("Expected WKT string for spatial filtering but received unexpected type.")
+		return true // Cannot filter, let it through
+	}
+
+	// Unmarshal the WKT string into an orb.Geometry object
+	g, err := wkt.Unmarshal(wktString)
 	if err != nil {
-		logrus.WithError(err).Warn("Failed to parse geometry value")
-		return false
+		logrus.WithError(err).WithField("wkt", wktString).Warn("Failed to unmarshal WKT string for spatial filtering")
+		return false // Failed to parse, filter out
 	}
 
-	switch filter.Type {
-	case "bbox":
-		if len(filter.Coordinates) != 4 {
-			return false
-		}
-		return isPointInBBox(coords, filter.Coordinates)
+	// Get the bounding box (envelope) of the received geometry
+	geomBound := g.Bound() // orb.Geometry.Bound() returns an orb.Bound
 
-	case "radius":
-		if len(filter.Coordinates) != 3 {
-			return false
+	// Check if this update matches any of the filter conditions
+	for _, filter := range filters {
+		// Only apply filter if it's for this type
+		if filter.TypeName != update.TypeName {
+			continue
 		}
-		return isPointWithinRadius(coords, filter.Coordinates)
 
-	default:
-		logrus.WithField("type", filter.Type).Warn("Unknown spatial filter type")
-		return true
+		// Apply the appropriate spatial check
+		var matches bool
+		switch filter.Operator {
+		case "bbi": // OpBoundingBoxIntersect
+			if len(filter.Coordinates) != 4 {
+				logrus.Warn("Invalid bbox coordinates for 'bbi', expected 4")
+				continue
+			}
+			filterBound := filterCoordsToBound(filter.Coordinates)
+			// Use the built-in orb.Bound.Intersects method
+			matches = geomBound.Intersects(filterBound)
+
+		case "bbc": // OpBoundingBoxContain
+			if len(filter.Coordinates) != 4 {
+				logrus.Warn("Invalid bbox coordinates for 'bbc', expected 4")
+				continue
+			}
+			filterBound := filterCoordsToBound(filter.Coordinates)
+			// Check if the filter bound Contains the geometry's bound (Requires BBox logic)
+			// Note: orb.Bound.Contains only checks points. We must use manual BBox check for 'bbc'
+			matches = isBBoxContained(geomBound, filterBound)
+
+		case "dlt": // OpDistanceLessThan
+			if len(filter.Coordinates) != 3 {
+				logrus.Warn("Invalid distance coordinates for 'dlt', expected 3 (lon, lat, radius)")
+				continue
+			}
+			// Use the geometry's center point for distance check
+			centerPoint := geomBound.Center()
+			matches = isPointWithinRadius(centerPoint, filter.Coordinates)
+
+		default:
+			logrus.WithField("operator", filter.Operator).Warn("Unknown spatial filter operator")
+			continue
+		}
+
+		if matches {
+			return true // Found a matching filter
+		}
 	}
+
+	// Final decision on filtering (original logic retained)
+	hasFilterForType := false
+	for _, filter := range filters {
+		if filter.TypeName == update.TypeName {
+			hasFilterForType = true
+			break
+		}
+	}
+
+	return !hasFilterForType
 }
 
-// parseWKT parses WKT format to extract coordinates
-func parseWKT(wkt string) ([]float64, error) {
-	// Simple parser for POINT(lon lat) format
-	// For production, use a proper WKT parser library
-	var lon, lat float64
-	n, err := fmt.Sscanf(wkt, "POINT(%f %f)", &lon, &lat)
-	if err != nil || n != 2 {
-		return nil, fmt.Errorf("failed to parse WKT: %s", wkt)
-	}
-	return []float64{lon, lat}, nil
-}
-
-// isPointInBBox checks if a point is within a bounding box
-func isPointInBBox(point []float64, bbox []float64) bool {
-	if len(point) < 2 {
+// isBBoxContained checks if geomBound is entirely contained within filterBound
+// We redefine this to use orb.Bound types instead of slices.
+func isBBoxContained(geomBound orb.Bound, filterBound orb.Bound) bool {
+	// Check if the min point of the geometry is contained by the filter bound
+	if !filterBound.Contains(geomBound.Min) {
 		return false
 	}
-	lon, lat := point[0], point[1]
-	minLon, minLat, maxLon, maxLat := bbox[0], bbox[1], bbox[2], bbox[3]
-
-	return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat
+	// Check if the max point of the geometry is contained by the filter bound
+	if !filterBound.Contains(geomBound.Max) {
+		return false
+	}
+	return true
 }
 
 // isPointWithinRadius checks if a point is within a radius
-func isPointWithinRadius(point []float64, radiusFilter []float64) bool {
-	if len(point) < 2 {
+// We redefine this to use orb.Point for the input point
+func isPointWithinRadius(point orb.Point, radiusFilter []float64) bool {
+	// radiusFilter: [centerLon, centerLat, radius]
+	if len(radiusFilter) < 3 {
 		return false
 	}
 	centerLon, centerLat, radius := radiusFilter[0], radiusFilter[1], radiusFilter[2]
@@ -375,61 +444,4 @@ func isPointWithinRadius(point []float64, radiusFilter []float64) bool {
 	distance := earthRadius * c
 
 	return distance <= radius
-}
-
-// applyValueFilter applies value expression filter to an update
-// Expression format: "type.operator.value" (e.g., "temperature.gt.20")
-func (wsm *WebSocketManager) applyValueFilter(update *MeasurementUpdate, expression string) bool {
-	parts := strings.Split(expression, ".")
-	if len(parts) != 3 {
-		logrus.WithField("expression", expression).Warn("Invalid filter expression format")
-		return true // Don't filter if expression is invalid
-	}
-
-	typeName := parts[0]
-	operator := parts[1]
-	filterValue := parts[2]
-
-	// Check if this update matches the type
-	if update.TypeName != typeName {
-		return true // This update is not for this type, let it pass
-	}
-
-	// Only apply to numeric data types
-	if update.DataType != "numeric" {
-		return true
-	}
-
-	// Parse the numeric value from the update
-	var updateVal float64
-	if _, scanErr := fmt.Sscanf(update.Value, "%f", &updateVal); scanErr != nil {
-		logrus.WithError(scanErr).WithField("value", update.Value).Warn("Failed to parse numeric value")
-		return true // Can't parse, let it pass
-	}
-
-	// Parse the filter value
-	var filterVal float64
-	if _, scanErr := fmt.Sscanf(filterValue, "%f", &filterVal); scanErr != nil {
-		logrus.WithError(scanErr).WithField("filterValue", filterValue).Warn("Failed to parse filter value")
-		return true
-	}
-
-	// Apply the operator
-	switch operator {
-	case "eq":
-		return updateVal == filterVal
-	case "neq":
-		return updateVal != filterVal
-	case "gt":
-		return updateVal > filterVal
-	case "gte", "gteq":
-		return updateVal >= filterVal
-	case "lt":
-		return updateVal < filterVal
-	case "lte", "lteq":
-		return updateVal <= filterVal
-	default:
-		logrus.WithField("operator", operator).Warn("Unknown operator in filter expression")
-		return true
-	}
 }

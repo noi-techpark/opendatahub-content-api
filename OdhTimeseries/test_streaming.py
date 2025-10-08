@@ -22,8 +22,8 @@ async def test_simple_mode():
         init_msg = {
             "type": "connection_init",
             "payload": {
-                "sensor_names": ["CO2_Airport_008"],
-                "type_names": ["air_temperature"]
+                "sensor_names": ["PM10_Park_039"],
+                "type_names": ["so2"]
             }
         }
 
@@ -75,7 +75,7 @@ async def test_discovery_mode_required_types():
             "type": "connection_init",
             "payload": {
                 "timeseries_filter": {
-                    "required_types": ["temperature"]
+                    "required_types": ["pm25"]
                 },
                 "limit": 5
             }
@@ -127,15 +127,15 @@ async def test_discovery_mode_value_filter():
     async with websockets.connect(uri) as websocket:
         print(f"Connected to: {uri}")
 
-        # Send connection_init with value filter: air_temperature > 20
+        # Send connection_init with value filter: pm25 > 20
         init_msg = {
             "type": "connection_init",
             "payload": {
                 "timeseries_filter": {
-                    "required_types": ["air_temperature"]
+                    "required_types": ["pm25"]
                 },
                 "measurement_filter": {
-                    "expression": "air_temperature.gt.20",
+                    "expression": "pm25.gt.20",
                     "latest_only": True
                 },
                 "limit": 5
