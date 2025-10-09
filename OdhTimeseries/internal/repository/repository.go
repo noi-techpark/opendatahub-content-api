@@ -237,7 +237,8 @@ func (r *Repository) insertMeasurementBatch(tableName string, measurements []mod
 
 	query := fmt.Sprintf(`
 		INSERT INTO %s (timeseries_id, timestamp, value, provenance_id)
-		VALUES %s`,
+		VALUES %s
+		ON CONFLICT DO NOTHING;`,
 		tableName, strings.Join(valueStrings, ", "))
 
 	_, err := r.db.Exec(query, valueArgs...)

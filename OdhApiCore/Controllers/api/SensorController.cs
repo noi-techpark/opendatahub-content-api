@@ -460,10 +460,10 @@ namespace OdhApiCore.Controllers.api
                 }
                 else
                 {
-                    // fullQuery = baseQuery
-                    //     .Clone()
-                    //     .When(getasidarray, x => x.Select("id"))
-                    //     .When(!getasidarray, x => x.SelectRaw("data"));
+                    baseQuery = baseQuery
+                        .Clone()
+                        .When(getasidarray, x => x.Select("id"))
+                        .When(!getasidarray, x => x.SelectRaw("data"));
                 }
 
                 ///IF getasidarray set simply return array of ids
@@ -506,7 +506,7 @@ namespace OdhApiCore.Controllers.api
                 var query = QueryFactory
                     .Query("sensors")
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    .Where("id", id)
                     .FilterDataByAccessRoles(UserRolesToFilter)
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),

@@ -687,11 +687,13 @@ class DatabasePopulator:
             query = f"""
                 INSERT INTO {table_name} (timeseries_id, timestamp, value, provenance_id)
                 VALUES (%s, %s, ST_GeomFromText(%s, 4326), %s)
+                ON CONFLICT DO NOTHING;
             """
         else:
             query = f"""
                 INSERT INTO {table_name} (timeseries_id, timestamp, value, provenance_id)
                 VALUES (%s, %s, %s, %s)
+                ON CONFLICT DO NOTHING;
             """
 
         try:

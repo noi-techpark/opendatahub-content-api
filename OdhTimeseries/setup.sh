@@ -214,7 +214,7 @@ echo ""
 if [ "$MODE" = "clean" ] && [ "$POPULATE" = true ]; then
     print_info "Step 5: Populating databases with sample data (both timeseries and content)"
     if [ -f ./populate_db.py ]; then
-        if python3 populate_db.py --clean --sensors 50 --timeseries 200 --days 7 > /dev/null 2>&1; then
+        if python3 populate_db.py --clean --sensors 100 --timeseries 300 --days 30 > /dev/null 2>&1; then
             print_success "Sample data populated in both databases"
         else
             print_warning "Sample data population failed (continuing anyway)"
