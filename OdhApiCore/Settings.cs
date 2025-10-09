@@ -41,6 +41,8 @@ namespace OdhApiCore
         private readonly LTSCredentials ltsCredentials;
         private readonly LTSCredentials ltsCredentialsOpen;
 
+        private readonly TimeseriesConfig timeseriesConfig;
+
         public Settings(IConfiguration configuration)
         {
             this.configuration = configuration;
@@ -282,6 +284,12 @@ namespace OdhApiCore
                 ltsapiopen.GetValue<string>("XLSClientid", ""),
                 ltsapiopen.GetValue<bool>("Opendata", true)
             );
+
+            var timeseries = this.configuration.GetSection("TimeseriesConfig");
+            this.timeseriesConfig = new TimeseriesConfig(
+                timeseries.GetValue<string>("ServiceUrl", ""),
+                timeseries.GetValue<int>("FetchBatchSize", 100)
+            );
         }
 
         public string PostgresConnectionString => this.connectionString.Value;
@@ -321,5 +329,7 @@ namespace OdhApiCore
         public LTSCredentials LtsCredentials => this.ltsCredentials;
 
         public LTSCredentials LtsCredentialsOpen => this.ltsCredentialsOpen;
+
+        public TimeseriesConfig TimeseriesConfig => this.timeseriesConfig;
     }
 }

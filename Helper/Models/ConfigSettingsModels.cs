@@ -49,6 +49,7 @@ namespace Helper
         IDictionary<string, GTFSApiConfig> GTFSApiConfig { get; }
         LTSCredentials LtsCredentials { get; }
         LTSCredentials LtsCredentialsOpen { get; }
+        TimeseriesConfig TimeseriesConfig { get; }
     }
 
     //Classes for Settings shared between Projects
@@ -528,6 +529,18 @@ namespace Helper
         public string Identifier { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+
+    public class TimeseriesConfig
+    {
+        public TimeseriesConfig(string serviceurl, int fetchbatchsize)
+        {
+            this.ServiceUrl = serviceurl;
+            this.FetchBatchSize = fetchbatchsize;
+        }
+
+        public string ServiceUrl { get; private set; }
+        public int FetchBatchSize { get; private set; }
     }
 
 

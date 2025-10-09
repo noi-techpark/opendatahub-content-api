@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AspNetCore.CacheOutput;
@@ -12,11 +13,13 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Timeseries;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using OdhApiCore.Controllers.helper;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -31,17 +34,20 @@ namespace OdhApiCore.Controllers.api
     public class SensorController : OdhController
     {
         private readonly ISettings settings;
+        private readonly HttpClient httpClient;
 
         public SensorController(
             IWebHostEnvironment env,
             ISettings settings,
             ILogger<SensorController> logger,
             QueryFactory queryFactory,
-            IOdhPushNotifier odhpushnotifier
+            IOdhPushNotifier odhpushnotifier,
+            IHttpClientFactory httpClientFactory
         )
             : base(env, settings, logger, queryFactory, odhpushnotifier)
         {
             this.settings = settings;
+            this.httpClient = httpClientFactory.CreateClient("TimeseriesAPI");
         }
 
         #region SWAGGER Exposed API
@@ -73,6 +79,13 @@ namespace OdhApiCore.Controllers.api
         /// <param name="rawsort">Raw sort for advanced sorting</param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false.</param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)</param>
+        /// <param name="tsdatasetids">Timeseries dataset filter (comma-separated dataset IDs), (default:'null')</param>
+        /// <param name="tsrequiredtypes">Timeseries required types filter (comma-separated type names, sensor must have ALL), (default:'null')</param>
+        /// <param name="tsoptionaltypes">Timeseries optional types filter (comma-separated type names, sensor may have ANY), (default:'null')</param>
+        /// <param name="tsmeasurementexpr">Timeseries measurement expression (e.g., 'or(o2.eq.2, and(temp.gteq.20, temp.lteq.30))'), (default:'null')</param>
+        /// <param name="tslatestonly">Timeseries latest only filter (only consider latest measurements), (default:null)</param>
+        /// <param name="tsstarttime">Timeseries start time filter (RFC3339 format), (default:'null')</param>
+        /// <param name="tsendtime">Timeseries end time filter (RFC3339 format), (default:'null')</param>
         /// <returns>Collection of Sensor Objects</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
@@ -103,23 +116,26 @@ namespace OdhApiCore.Controllers.api
             string? longitude = null,
             string? radius = null,
             DateTime? updatefrom = null,
-            string? fields = null,
+            [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? searchfilter = null,
             string? rawfilter = null,
             string? rawsort = null,
             bool removenullvalues = false,
             bool getasidarray = false,
+            string? tsdatasetids = null,
+            string? tsrequiredtypes = null,
+            string? tsoptionaltypes = null,
+            string? tsmeasurementexpr = null,
+            bool? tslatestonly = null,
+            string? tsstarttime = null,
+            string? tsendtime = null,
             CancellationToken cancellationToken = default
         )
         {
             try
             {
-                var getheader = HttpContext.Request.Headers["fields"].FirstOrDefault();
-                if (getheader != null && !String.IsNullOrEmpty(getheader))
-                    fields = getheader;
-
                 return await GetFiltered(
-                    fields: fields ?? "",
+                    fields: fields ?? Array.Empty<string>(),
                     language: language,
                     pagenumber: pagenumber,
                     pagesize: pagesize,
@@ -145,6 +161,13 @@ namespace OdhApiCore.Controllers.api
                     radius: radius,
                     updatefrom: updatefrom,
                     getasidarray: getasidarray,
+                    tsdatasetids: tsdatasetids,
+                    tsrequiredtypes: tsrequiredtypes,
+                    tsoptionaltypes: tsoptionaltypes,
+                    tsmeasurementexpr: tsmeasurementexpr,
+                    tslatestonly: tslatestonly,
+                    tsstarttime: tsstarttime,
+                    tsendtime: tsendtime,
                     cancellationToken: cancellationToken
                 );
             }
@@ -174,17 +197,13 @@ namespace OdhApiCore.Controllers.api
         public async Task<IActionResult> GetSensor(
             string id,
             string? language = null,
-            string? fields = null,
+            [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             bool removenullvalues = false,
             CancellationToken cancellationToken = default
         )
         {
             try
             {
-                var getheader = HttpContext.Request.Headers["fields"].FirstOrDefault();
-                if (getheader != null && !String.IsNullOrEmpty(getheader))
-                    fields = getheader;
-
                 return await GetSingle(id, language, fields, removenullvalues, cancellationToken);
             }
             catch (Exception ex)
@@ -326,7 +345,7 @@ namespace OdhApiCore.Controllers.api
         #region HELPERS
 
         private Task<IActionResult> GetFiltered(
-            string fields,
+            string[] fields,
             string? language,
             uint pagenumber,
             int pagesize,
@@ -352,6 +371,13 @@ namespace OdhApiCore.Controllers.api
             string? radius,
             DateTime? updatefrom,
             bool getasidarray,
+            string? tsdatasetids,
+            string? tsrequiredtypes,
+            string? tsoptionaltypes,
+            string? tsmeasurementexpr,
+            bool? tslatestonly,
+            string? tsstarttime,
+            string? tsendtime,
             CancellationToken cancellationToken
         )
         {
@@ -380,10 +406,9 @@ namespace OdhApiCore.Controllers.api
                     cancellationToken
                 );
 
-                var query = QueryFactory
+                // Build base query (without Select, without pagination)
+                var baseQuery = QueryFactory
                     .Query()
-                    .When(getasidarray, x => x.Select("id"))
-                    .When(!getasidarray, x => x.SelectRaw("data"))
                     .From("sensors")
                     .SensorWhereExpression(
                         idlist: myhelper.idlist,
@@ -407,14 +432,48 @@ namespace OdhApiCore.Controllers.api
                     .ApplyRawFilter(rawfilter)
                     .ApplyOrdering(ref seed, geosearchresult, rawsort);
 
-                //IF getasidarray set simply return array of ids
-                if(getasidarray)
+                // Check if timeseries filtering should be applied
+                var timeseriesConfig = TimeseriesFederationExtensions.ParseTimeseriesConfig(
+                    settings.TimeseriesConfig.ServiceUrl, tsdatasetids, tsrequiredtypes, tsoptionaltypes,
+                    tsmeasurementexpr, tslatestonly, tsstarttime, tsendtime,
+                    settings.TimeseriesConfig.FetchBatchSize, Logger);
+
+                if (timeseriesConfig != null && timeseriesConfig.Enabled)
                 {
-                    return await query.GetAsync<string>();
+                    // Apply timeseries federation
+                    var federationHelper = new TimeseriesFederationHelper(httpClient, Logger, timeseriesConfig);
+
+                    // Fetch and verify (FetchAndVerifySensorsAsync handles pagination internally)
+                    var federationResult = await federationHelper.FetchAndVerifySensorsAsync(baseQuery, cancellationToken);
+                    if (federationResult.VerifiedIds.Count == 0)
+                    {
+                        return ResponseHelpers.GetResult(pagenumber, 0, 0, seed,
+                            Array.Empty<object>(), Url);
+                    }
+
+                    // Fetch full data for verified sensors only
+                    baseQuery = baseQuery
+                        .Clone()
+                        .When(getasidarray, x => x.Select("id"))
+                        .When(!getasidarray, x => x.SelectRaw("data"))
+                        .WhereIn("id", federationResult.VerifiedIds);
+                }
+                else
+                {
+                    // fullQuery = baseQuery
+                    //     .Clone()
+                    //     .When(getasidarray, x => x.Select("id"))
+                    //     .When(!getasidarray, x => x.SelectRaw("data"));
+                }
+
+                ///IF getasidarray set simply return array of ids
+                if (getasidarray)
+                {
+                    return await baseQuery.GetAsync<string>();
                 }
 
                 // Get paginated data
-                var data = await query.PaginateAsync<JsonRaw>(
+                var data = await baseQuery.PaginateAsync<JsonRaw>(
                     page: (int)pagenumber,
                     perPage: pagesize
                 );
@@ -422,7 +481,7 @@ namespace OdhApiCore.Controllers.api
                 var dataTransformed = data.List.Select(raw =>
                     raw.TransformRawData(
                         language,
-                        fields?.Split(',') ?? Array.Empty<string>(),
+                        fields,
                         filteroutNullValues: removenullvalues,
                         urlGenerator: UrlGenerator,
                         fieldstohide: null
@@ -432,18 +491,12 @@ namespace OdhApiCore.Controllers.api
                 uint totalpages = (uint)data.TotalPages;
                 uint totalcount = (uint)data.Count;
 
-                return ResponseHelpers.GetResult(
-                    pagenumber,
-                    totalpages,
-                    totalcount,
-                    seed,
-                    dataTransformed,
-                    Url
-                );
+                return ResponseHelpers.GetResult(pagenumber, totalpages, totalcount,
+                    seed, dataTransformed, Url);
             });
         }
 
-        private Task<IActionResult> GetSingle(string id, string? language, string? fields, bool removenullvalues, CancellationToken cancellationToken)
+        private Task<IActionResult> GetSingle(string id, string? language, string[] fields, bool removenullvalues, CancellationToken cancellationToken)
         {
             return DoAsyncReturn(async () =>
             {
@@ -471,7 +524,7 @@ namespace OdhApiCore.Controllers.api
 
                 var result = data.TransformRawData(
                     language,
-                    fields?.Split(',') ?? Array.Empty<string>(),
+                    fields,
                     filteroutNullValues: removenullvalues,
                     urlGenerator: UrlGenerator,
                     fieldstohide: null
