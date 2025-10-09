@@ -730,7 +730,7 @@ namespace OdhApiImporter.Helpers
             return updatedetail;
         }
 
-        //TODO Finish Active/Inactive Sync
+        //Finish Active/Inactive Sync (TO CHECK IF needed outside of Gastromy)
         public async Task<Tuple<string, UpdateDetail>> UpdateActiveInactiveDataFromLTSApi(
             bool onlyactive,
             string datatype,
