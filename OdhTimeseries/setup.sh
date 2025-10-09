@@ -99,74 +99,128 @@ echo ""
 # Step 1: Stop existing containers
 print_info "Step 1: Stopping existing containers"
 if [ "$MODE" = "clean" ]; then
+    # Stop timeseries containers
     docker-compose down -v 2>/dev/null || true
-    print_success "Containers stopped and volumes removed"
+    # Stop content database
+    cd ../OdhApiCore
+    docker-compose --profile dev down -v 2>/dev/null || true
+    cd ../OdhTimeseries
+    print_success "All containers stopped and volumes removed"
 else
+    # Stop timeseries containers
     docker-compose down 2>/dev/null || true
-    print_success "Containers stopped (volumes preserved)"
+    # Stop content database
+    cd ../OdhApiCore
+    docker-compose --profile dev down 2>/dev/null || true
+    cd ../OdhTimeseries
+    print_success "All containers stopped (volumes preserved)"
 fi
 echo ""
 
 # Step 2: Start Docker services
-print_info "Step 2: Starting Docker services (PostgreSQL + Materialize)"
+print_info "Step 2: Starting Docker services (PostgreSQL + Materialize + Content DB)"
 docker-compose up -d
 if [ $? -eq 0 ]; then
-    print_success "Docker services started"
+    print_success "Timeseries database started"
 else
-    print_error "Failed to start Docker services"
+    print_error "Failed to start timeseries database"
     exit 1
 fi
+
+# Start content database
+cd ../OdhApiCore
+docker-compose --profile dev up -d db
+if [ $? -eq 0 ]; then
+    print_success "Content database started"
+else
+    print_error "Failed to start content database"
+    exit 1
+fi
+cd ../OdhTimeseries
 echo ""
 
-# Step 3: Wait for PostgreSQL
-print_info "Step 3: Waiting for PostgreSQL to be ready"
+# Step 3: Wait for PostgreSQL databases
+print_info "Step 3: Waiting for databases to be ready"
+
+# Wait for timeseries database
+print_info "Waiting for timeseries database..."
 max_attempts=30
 attempt=0
 while [ $attempt -lt $max_attempts ]; do
     if PGPASSWORD=password psql -h localhost -p 5556 -U bdp -d timeseries -c "SELECT 1" > /dev/null 2>&1; then
-        print_success "PostgreSQL is ready"
+        print_success "Timeseries database is ready"
         break
     fi
     attempt=$((attempt + 1))
     if [ $((attempt % 5)) -eq 0 ]; then
-        echo "Waiting for PostgreSQL... ($attempt/$max_attempts)"
+        echo "Waiting for timeseries database... ($attempt/$max_attempts)"
     fi
     sleep 2
 done
 
 if [ $attempt -eq $max_attempts ]; then
-    print_error "PostgreSQL did not become ready in time"
+    print_error "Timeseries database did not become ready in time"
+    exit 1
+fi
+
+# Wait for content database
+print_info "Waiting for content database..."
+max_attempts=30
+attempt=0
+while [ $attempt -lt $max_attempts ]; do
+    if PGPASSWORD=your_password psql -h localhost -p 5432 -U postgres -d postgres -c "SELECT 1" > /dev/null 2>&1; then
+        print_success "Content database is ready"
+        break
+    fi
+    attempt=$((attempt + 1))
+    if [ $((attempt % 5)) -eq 0 ]; then
+        echo "Waiting for content database... ($attempt/$max_attempts)"
+    fi
+    sleep 2
+done
+
+if [ $attempt -eq $max_attempts ]; then
+    print_error "Content database did not become ready in time"
     exit 1
 fi
 echo ""
 
 # Step 4: Initialize schema (only in clean mode)
 if [ "$MODE" = "clean" ]; then
-    print_info "Step 4: Initializing database schema"
+    print_info "Step 4: Initializing database schemas"
+
+    # Initialize timeseries database
     if PGPASSWORD=password psql -h localhost -p 5556 -U bdp -d timeseries -f sql-scripts/init-new.sql > /dev/null 2>&1; then
-        print_success "Database schema initialized"
+        print_success "Timeseries database schema initialized"
     else
-        print_error "Failed to initialize database schema"
+        print_error "Failed to initialize timeseries database schema"
+        exit 1
+    fi
+
+    # Initialize content database (create sensors table)
+    if PGPASSWORD=your_password psql -h localhost -p 5432 -U postgres -d postgres -f ../Helper/PGDBScripts/Sensors.sql > /dev/null 2>&1; then
+        print_success "Content database schema initialized"
+    else
+        print_error "Failed to initialize content database schema"
         exit 1
     fi
 else
     print_info "Step 4: Skipping schema initialization (restart mode)"
-    print_info "Using existing database schema"
+    print_info "Using existing database schemas"
 fi
 echo ""
 
 # Step 5: Populate data (only in clean mode and if not disabled)
 if [ "$MODE" = "clean" ] && [ "$POPULATE" = true ]; then
-    print_info "Step 5: Populating database with sample data"
-    if [ -f ./setup_and_populate.sh ]; then
-        chmod +x ./setup_and_populate.sh
-        if ./setup_and_populate.sh > /dev/null 2>&1; then
-            print_success "Sample data populated"
+    print_info "Step 5: Populating databases with sample data (both timeseries and content)"
+    if [ -f ./populate_db.py ]; then
+        if python3 populate_db.py --clean --sensors 50 --timeseries 200 --days 7 > /dev/null 2>&1; then
+            print_success "Sample data populated in both databases"
         else
             print_warning "Sample data population failed (continuing anyway)"
         fi
     else
-        print_warning "setup_and_populate.sh not found, skipping sample data"
+        print_warning "populate_db.py not found, skipping sample data"
     fi
 elif [ "$MODE" = "clean" ] && [ "$POPULATE" = false ]; then
     print_info "Step 5: Skipping data population (--no-populate flag)"
@@ -249,9 +303,10 @@ if lsof -ti:8080 > /dev/null 2>&1; then
         print_success "System is ready!"
         echo ""
         print_info "Services status:"
-        print_info "  - PostgreSQL: localhost:5556 (running)"
+        print_info "  - Timeseries DB: localhost:5556 (running)"
+        print_info "  - Content DB: localhost:5432 (running)"
         print_info "  - Materialize: localhost:6875 (running)"
-        print_info "  - API Server: localhost:8080 (already running)"
+        print_info "  - Timeseries API: localhost:8080 (already running)"
         echo ""
         exit 0
     fi
@@ -291,15 +346,17 @@ print_success "All services are running!"
 echo ""
 
 print_info "Services status:"
-print_info "  - PostgreSQL: localhost:5556 ✓"
+print_info "  - Timeseries DB (PostgreSQL): localhost:5556 ✓"
+print_info "  - Content DB (PostgreSQL): localhost:5432 ✓"
 print_info "  - Materialize: localhost:6875 ✓"
-print_info "  - API Server: localhost:8080 ✓"
+print_info "  - Timeseries API: localhost:8080 ✓"
 echo ""
 
 print_info "API Endpoints:"
-print_info "  - Health: http://localhost:8080/api/v1/health"
-print_info "  - Swagger: http://localhost:8080/swagger/index.html"
+print_info "  - Timeseries Health: http://localhost:8080/api/v1/health"
+print_info "  - Timeseries Swagger: http://localhost:8080/swagger/index.html"
 print_info "  - WebSocket: ws://localhost:8080/api/v1/measurements/subscribe"
+print_info "  - Content API (OdhApiCore): Start with 'cd ../OdhApiCore && dotnet run'"
 echo ""
 
 print_info "Testing:"

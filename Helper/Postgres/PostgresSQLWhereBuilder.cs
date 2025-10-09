@@ -1643,6 +1643,122 @@ namespace Helper
                 .FilterDataByAccessRoles(userroles);
         }
 
+        //Return Where and Parameters for Sensor
+        public static Query SensorWhereExpression(
+            this Query query,
+            IReadOnlyCollection<string> idlist,
+            IReadOnlyCollection<string> sensortypelist,
+            IReadOnlyCollection<string> manufacturerlist,
+            IReadOnlyCollection<string> modellist,
+            IReadOnlyCollection<string> datasetidlist,
+            IReadOnlyCollection<string> measurementtypenamelist,
+            IReadOnlyCollection<string> smgtaglist,
+            IReadOnlyCollection<string> sourcelist,
+            IReadOnlyCollection<string> languagelist,
+            IReadOnlyCollection<string> publishedonlist,
+            bool? active,
+            bool? smgactive,
+            string? searchfilter,
+            string? language,
+            string? lastchange,
+            string? additionalfilter,
+            IEnumerable<string> userroles
+        )
+        {
+            LogMethodInfo(
+                System.Reflection.MethodBase.GetCurrentMethod()!,
+                "<query>", // not interested in query
+                idlist,
+                sensortypelist,
+                manufacturerlist,
+                modellist,
+                datasetidlist,
+                measurementtypenamelist,
+                smgtaglist,
+                sourcelist,
+                languagelist,
+                active,
+                smgactive,
+                searchfilter,
+                language,
+                lastchange
+            );
+
+            return query
+                .IdUpperFilter(idlist)
+                .When(
+                    sensortypelist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var sensortype in sensortypelist)
+                        {
+                            sq = sq.OrWhere("gen_sensortype", "ILIKE", sensortype);
+                        }
+                        return sq;
+                    })
+                )
+                .When(
+                    manufacturerlist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var manufacturer in manufacturerlist)
+                        {
+                            sq = sq.OrWhere("gen_manufacturer", "ILIKE", manufacturer);
+                        }
+                        return sq;
+                    })
+                )
+                .When(
+                    modellist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var model in modellist)
+                        {
+                            sq = sq.OrWhere("gen_model", "ILIKE", model);
+                        }
+                        return sq;
+                    })
+                )
+                .When(
+                    datasetidlist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var datasetid in datasetidlist)
+                        {
+                            sq = sq.OrWhereRaw("gen_datasetids && ARRAY[$$]", datasetid);
+                        }
+                        return sq;
+                    })
+                )
+                .When(
+                    measurementtypenamelist.Count > 0,
+                    q => q.Where(sq =>
+                    {
+                        foreach (var typename in measurementtypenamelist)
+                        {
+                            sq = sq.OrWhereRaw("gen_measurementtypenames && ARRAY[$$]", typename);
+                        }
+                        return sq;
+                    })
+                )
+                .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist))
+                .When(sourcelist.Count > 0, q => q.SourceFilter_GeneratedColumn(sourcelist))
+                .When(
+                    languagelist.Count > 0,
+                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+                )
+                .PublishedOnFilter_GeneratedColumn(publishedonlist)
+                .ActiveFilter_GeneratedColumn(active)
+                .OdhActiveFilter_GeneratedColumn(smgactive)
+                .LastChangedFilter_GeneratedColumn(lastchange)
+                .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
+                .When(
+                    !String.IsNullOrEmpty(additionalfilter),
+                    q => q.FilterAdditionalDataByCondition(additionalfilter)
+                )
+                .FilterDataByAccessRoles(userroles);
+        }
+
         //Return Where and Parameters for Rawdata
         public static Query RawdataWhereExpression(
             this Query query,

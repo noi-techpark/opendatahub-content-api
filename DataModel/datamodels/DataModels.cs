@@ -3273,6 +3273,132 @@ namespace DataModel
 
     #endregion
 
+    #region Sensors
+
+    public class Sensor
+        : IIdentifiable,
+            IActivateable,
+            IMetaData,
+            ILicenseInfo,
+            ISource,
+            IImportDateassigneable,
+            IGpsInfo,
+            IHasLanguage,
+            ISmgActive,
+            ISmgTags,
+            IPublishedOn,
+            IContactInfosAware,
+            IDetailInfosAware,
+            IHasAdditionalProperties
+    {
+        public Sensor()
+        {
+            Detail = new Dictionary<string, Detail>();
+            ContactInfos = new Dictionary<string, ContactInfos>();
+            AdditionalProperties = new Dictionary<string, dynamic>();
+        }
+
+        [SwaggerSchema("Unique ID for the Sensor (URN format: urn:odh:<sensor_type>:<sensor_name>)")]
+        public string Id { get; set; } = string.Empty;
+
+        [SwaggerSchema("Active status of the Sensor")]
+        public bool Active { get; set; }
+
+        [SwaggerSchema("ODH Active status")]
+        public bool SmgActive { get; set; }
+
+        [SwaggerSchema("Metadata information")]
+        public Metadata _Meta { get; set; } = new Metadata();
+
+        [SwaggerSchema("License information")]
+        public LicenseInfo LicenseInfo { get; set; } = new LicenseInfo();
+
+        [SwaggerSchema("Source of the data")]
+        public string Source { get; set; } = string.Empty;
+
+        [SwaggerSchema("First import date")]
+        public DateTime? FirstImport { get; set; }
+
+        [SwaggerSchema("Last change date")]
+        public DateTime? LastChange { get; set; }
+
+        [SwaggerSchema("Sensor type (e.g., TEMP, HUM, PRESS, PM25, TRAFFIC, PARK)")]
+        public string? SensorType { get; set; }
+
+        [SwaggerSchema("Sensor name")]
+        public string? SensorName { get; set; }
+
+        [SwaggerSchema("Parent sensor ID for hierarchical sensors")]
+        public string? ParentId { get; set; }
+
+        [SwaggerSchema("GPS type")]
+        public string? Gpstype { get; set; }
+
+        [SwaggerSchema("Latitude")]
+        public double Latitude { get; set; }
+
+        [SwaggerSchema("Longitude")]
+        public double Longitude { get; set; }
+
+        [SwaggerSchema("Altitude")]
+        public double? Altitude { get; set; }
+
+        [SwaggerSchema("Altitude unit of measure")]
+        public string? AltitudeUnitofMeasure { get; set; }
+
+        [SwaggerSchema("Manufacturer of the sensor")]
+        public string? Manufacturer { get; set; }
+
+        [SwaggerSchema("Model of the sensor")]
+        public string? Model { get; set; }
+
+        [SwaggerSchema("Firmware version")]
+        public string? FirmwareVersion { get; set; }
+
+        [SwaggerSchema("Installation date")]
+        public DateTime? InstallationDate { get; set; }
+
+        [SwaggerSchema("Last calibration date")]
+        public DateTime? CalibrationDate { get; set; }
+
+        [SwaggerSchema("Details about the sensor")]
+        public IDictionary<string, Detail> Detail { get; set; }
+
+        [SwaggerSchema("Contact information")]
+        public IDictionary<string, ContactInfos> ContactInfos { get; set; }
+
+        [SwaggerSchema("Sensor images")]
+        public ICollection<ImageGallery>? ImageGallery { get; set; }
+
+        [SwaggerSchema("Dataset IDs this sensor belongs to")]
+        public ICollection<string>? DatasetIds { get; set; }
+
+        [SwaggerSchema("Measurement type names this sensor provides")]
+        public ICollection<string>? MeasurementTypeNames { get; set; }
+
+        [SwaggerSchema("External ID mappings")]
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+
+        [SwaggerSchema("Has language")]
+        public ICollection<string>? HasLanguage { get; set; }
+
+        [SwaggerSchema("SMG Tags")]
+        public ICollection<string>? SmgTags { get; set; }
+
+        [SwaggerSchema("Published on platforms")]
+        public ICollection<string>? PublishedOn { get; set; }
+
+        [SwaggerSchema("Additional properties")]
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+    }
+
+    public class SensorLinked : Sensor
+    {
+        public SensorLinked() : base() { }
+    }
+
+    #endregion
+
     #region Traffic Incidents
 
     public class TrafficIncident
@@ -3419,6 +3545,7 @@ namespace DataModel
                 "ltsactivity",
                 "ltspoi",
                 "ltsgastronomy",
+                "sensor",
                 "trafficincident",
             }
         )]

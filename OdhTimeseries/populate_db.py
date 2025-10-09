@@ -39,6 +39,15 @@ DB_CONFIG = {
     'password': os.getenv('DB_PASSWORD', 'password'),
 }
 
+# Configuration for content database (OdhApiCore database)
+CONTENT_DB_CONFIG = {
+    'host': os.getenv('CONTENT_DB_HOST', 'localhost'),
+    'port': os.getenv('CONTENT_DB_PORT', '5432'),
+    'dbname': os.getenv('CONTENT_DB_NAME', 'postgres'),
+    'user': os.getenv('CONTENT_DB_USER', 'postgres'),
+    'password': os.getenv('CONTENT_DB_PASSWORD', 'your_password'),
+}
+
 SCHEMA = os.getenv('DB_SCHEMA', 'intimev3')
 
 fake = Faker()
@@ -48,36 +57,49 @@ class DatabasePopulator:
         self.batch_size = batch_size
         self.conn = None
         self.cursor = None
+        self.content_conn = None
+        self.content_cursor = None
 
         # Data containers
         self.provenance_ids = []
         self.sensor_ids = []
+        self.sensor_urns = []  # Store URN format sensor IDs
         self.type_ids = []
         self.dataset_ids = []
         self.timeseries_ids = []
 
 
     def connect(self):
-        """Connect to PostgreSQL database"""
+        """Connect to PostgreSQL databases"""
         try:
+            # Connect to timeseries database
             self.conn = psycopg.connect(**DB_CONFIG)
             self.cursor = self.conn.cursor(row_factory=psycopg.rows.dict_row)
-            print(f"✅ Connected to database: {DB_CONFIG['dbname']}")
+            print(f"✅ Connected to timeseries database: {DB_CONFIG['dbname']}")
+
+            # Connect to content database
+            self.content_conn = psycopg.connect(**CONTENT_DB_CONFIG)
+            self.content_cursor = self.content_conn.cursor(row_factory=psycopg.rows.dict_row)
+            print(f"✅ Connected to content database: {CONTENT_DB_CONFIG['dbname']}")
         except Exception as e:
             print(f"❌ Database connection failed: {e}")
             sys.exit(1)
 
     def disconnect(self):
-        """Close database connection"""
+        """Close database connections"""
         if self.cursor:
             self.cursor.close()
         if self.conn:
             self.conn.close()
-        print("✅ Database connection closed")
+        if self.content_cursor:
+            self.content_cursor.close()
+        if self.content_conn:
+            self.content_conn.close()
+        print("✅ Database connections closed")
 
     def clean_database(self):
         """Clean all data from tables (in correct order)"""
-        print("🧹 Cleaning existing data...")
+        print("🧹 Cleaning existing data from timeseries database...")
 
         tables = [
             f'{SCHEMA}.measurements_numeric',
@@ -99,7 +121,18 @@ class DatabasePopulator:
             print(f"  🗑️  Cleaned {table}")
 
         self.conn.commit()
-        print("✅ Database cleaned successfully")
+        print("✅ Timeseries database cleaned successfully")
+
+        # Clean content database
+        print("🧹 Cleaning existing data from content database...")
+        try:
+            self.content_cursor.execute("DELETE FROM public.sensors")
+            print(f"  🗑️  Cleaned public.sensors")
+            self.content_conn.commit()
+            print("✅ Content database cleaned successfully")
+        except Exception as e:
+            print(f"⚠️  Warning: Could not clean content database: {e}")
+            self.content_conn.rollback()
 
     def populate_provenance(self, count: int = 10):
         """Populate provenance table"""
@@ -135,7 +168,7 @@ class DatabasePopulator:
         print(f"✅ Created {len(self.provenance_ids)} provenance records")
 
     def populate_sensors(self, count: int = 100):
-        """Populate sensors table"""
+        """Populate sensors table with URN format and insert into content database"""
         print(f"🌡️  Creating {count} sensors...")
 
         sensor_prefixes = [
@@ -151,7 +184,10 @@ class DatabasePopulator:
         for i in range(count):
             prefix = random.choice(sensor_prefixes)
             location = random.choice(locations)
-            sensor_name = f"{prefix}_{location}_{i+1:03d}"
+            sensor_name = f"{location}_{i+1:03d}"
+
+            # Create URN format: urn:odh:<sensor_type>:<sensor_name>
+            sensor_urn = f"urn:odh:{prefix.lower()}:{sensor_name}"
 
             # Create realistic metadata
             metadata = {
@@ -169,15 +205,120 @@ class DatabasePopulator:
 
             parent_id = random.choice(self.sensor_ids) if self.sensor_ids and random.random() < 0.3 else None
 
+            # Insert into timeseries database with URN as name
             self.cursor.execute(f"""
                 INSERT INTO {SCHEMA}.sensors (name, parent_id, metadata)
                 VALUES (%s, %s, %s) RETURNING id
-            """, (sensor_name, parent_id, json.dumps(metadata)))
+            """, (sensor_urn, parent_id, json.dumps(metadata)))
 
-            self.sensor_ids.append(self.cursor.fetchone()['id'])
+            sensor_id = self.cursor.fetchone()['id']
+            self.sensor_ids.append(sensor_id)
+            self.sensor_urns.append(sensor_urn)
+
+            # Insert into content database
+            self._insert_sensor_to_content_db(
+                sensor_urn=sensor_urn,
+                sensor_type=prefix,
+                sensor_name=sensor_name,
+                metadata=metadata,
+                location=location
+            )
 
         self.conn.commit()
-        print(f"✅ Created {len(self.sensor_ids)} sensors")
+        print(f"✅ Created {len(self.sensor_ids)} sensors in timeseries database")
+        print(f"✅ Created {len(self.sensor_urns)} sensors in content database")
+
+    def _insert_sensor_to_content_db(self, sensor_urn: str, sensor_type: str, sensor_name: str, metadata: dict, location: str):
+        """Insert sensor into content database (OdhApiCore)"""
+        try:
+            # Prepare sensor data for content database
+            sensor_data = {
+                "Id": sensor_urn,
+                "Active": True,
+                "SmgActive": True,
+                "_Meta": {
+                    "Type": "sensor",
+                    "LastUpdate": datetime.now().isoformat(),
+                    "Source": "populate_script"
+                },
+                "LicenseInfo": {
+                    "Author": "Open Data Hub",
+                    "License": "CC0",
+                    "ClosedData": False
+                },
+                "Source": "populate_script",
+                "FirstImport": datetime.now().isoformat(),
+                "LastChange": datetime.now().isoformat(),
+                "SensorType": sensor_type,
+                "SensorName": sensor_name,
+                "Latitude": metadata["coordinates"]["lat"],
+                "Longitude": metadata["coordinates"]["lon"],
+                "Altitude": round(random.uniform(200, 2000), 1),
+                "AltitudeUnitofMeasure": "m",
+                "Manufacturer": metadata["manufacturer"],
+                "Model": metadata["model"],
+                "FirmwareVersion": metadata["firmware_version"],
+                "InstallationDate": metadata["installation_date"],
+                "CalibrationDate": metadata["calibration_date"],
+                "Detail": {
+                    "en": {
+                        "Title": f"{sensor_type} Sensor - {location}",
+                        "Header": f"{sensor_type} Monitoring Station",
+                        "BaseText": f"Automated {sensor_type} sensor located in {location}",
+                        "AdditionalText": f"This sensor provides real-time {sensor_type} measurements for environmental monitoring.",
+                        "GetThereText": f"Located in the {location} area"
+                    },
+                    "de": {
+                        "Title": f"{sensor_type} Sensor - {location}",
+                        "Header": f"{sensor_type} Messstation",
+                        "BaseText": f"Automatischer {sensor_type}-Sensor in {location}",
+                        "AdditionalText": f"Dieser Sensor liefert Echtzeit-{sensor_type}-Messungen für die Umweltüberwachung.",
+                        "GetThereText": f"Im Bereich {location} gelegen"
+                    },
+                    "it": {
+                        "Title": f"Sensore {sensor_type} - {location}",
+                        "Header": f"Stazione di monitoraggio {sensor_type}",
+                        "BaseText": f"Sensore {sensor_type} automatico situato in {location}",
+                        "AdditionalText": f"Questo sensore fornisce misurazioni {sensor_type} in tempo reale per il monitoraggio ambientale.",
+                        "GetThereText": f"Situato nell'area di {location}"
+                    }
+                },
+                "HasLanguage": ["en", "de", "it"],
+                "SmgTags": [sensor_type.lower(), "monitoring", "iot", location.lower()],
+                "PublishedOn": ["odh"],
+                "AdditionalProperties": {
+                    "category": self._get_sensor_category(sensor_type),
+                    "precision": random.randint(1, 4),
+                    "sampling_rate": random.choice(["1min", "5min", "15min", "1hour"])
+                }
+            }
+
+            # Insert into content database
+            self.content_cursor.execute("""
+                INSERT INTO public.sensors (id, data)
+                VALUES (%s, %s)
+                ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data
+            """, (sensor_urn, json.dumps(sensor_data)))
+
+            self.content_conn.commit()
+        except Exception as e:
+            print(f"⚠️  Warning: Could not insert sensor {sensor_urn} to content database: {e}")
+            self.content_conn.rollback()
+
+    def _get_sensor_category(self, sensor_type: str) -> str:
+        """Categorize sensor types"""
+        if sensor_type in ["TEMP", "HUM", "PRESS", "WIND", "RAIN", "SOLAR"]:
+            return "environmental"
+        elif sensor_type in ["PM25", "PM10", "NO2", "CO2"]:
+            return "air_quality"
+        elif sensor_type in ["TRAFFIC", "PARK"]:
+            return "mobility"
+        elif sensor_type == "NOISE":
+            return "acoustic"
+        elif sensor_type == "WATER":
+            return "water_quality"
+        else:
+            return "other"
 
     def populate_types(self):
         """Populate types table with realistic measurement types"""
