@@ -258,6 +258,7 @@
                     <li>4. Server streams <code>data</code> messages with measurement updates</li>
                     <li>5. Click "Disconnect" to close the connection</li>
                 </ul>
+                <p><strong>🎯 Snapshot Control:</strong> By default, you receive all existing records in the view plus new updates. Check "Skip Initial Snapshot" to only receive NEW updates that occur after subscription (using Materialize's <code>WITH (SNAPSHOT = false)</code>).</p>
             </div>
 
             <!-- Connection Status -->
@@ -330,6 +331,12 @@
                         <label for="type-names">Type Names (comma-separated, optional):</label>
                         <input type="text" id="type-names" placeholder="e.g., temperature, humidity">
                     </div>
+                    <div class="form-group">
+                        <label for="skip-snapshot-simple">
+                            <input type="checkbox" id="skip-snapshot-simple" style="width: auto; display: inline;">
+                            🎯 Skip Initial Snapshot (only receive new updates, not existing records)
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Discovery Mode Fields -->
@@ -362,6 +369,12 @@
                     <div class="form-group">
                         <label for="discovery-limit">Limit (max sensors):</label>
                         <input type="text" id="discovery-limit" placeholder="e.g., 50" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="skip-snapshot-advanced">
+                            <input type="checkbox" id="skip-snapshot-advanced" style="width: auto; display: inline;">
+                            🎯 Skip Initial Snapshot (only receive new updates, not existing records)
+                        </label>
                     </div>
                 </div>
 
@@ -535,6 +548,12 @@
                 if (typeNames.length > 0) {
                     payload.type_names = typeNames;
                 }
+
+                // 🎯 Skip initial snapshot (simple mode)
+                const skipSnapshot = document.getElementById('skip-snapshot-simple').checked;
+                if (skipSnapshot) {
+                    payload.skip_initial_snapshot = true;
+                }
             } else {
                 // Discovery mode: advanced filters
                 const timeseriesFilter = {};
@@ -602,6 +621,12 @@
 
                 if (!hasTimeseriesFilter && !hasMeasurementFilter) {
                     throw new Error('At least one discovery filter is required (timeseries_filter or measurement_filter)');
+                }
+
+                // 🎯 Skip initial snapshot (advanced mode)
+                const skipSnapshot = document.getElementById('skip-snapshot-advanced').checked;
+                if (skipSnapshot) {
+                    payload.skip_initial_snapshot = true;
                 }
             }
 
@@ -807,7 +832,8 @@
             const examples = {
                 'simple': {
                     payload: {
-                        "sensor_names": ["HUM_Park_067", "PARK_Highway_052"]
+                        "sensor_names": ["HUM_Park_067", "PARK_Highway_052"],
+                        "skip_initial_snapshot": false
                     },
                     endpoint: 'simple'
                 },
@@ -816,7 +842,8 @@
                         "timeseries_filter": {
                             "required_types": ["power_generation"]
                         },
-                        "limit": 10
+                        "limit": 10,
+                        "skip_initial_snapshot": false
                     },
                     endpoint: 'advanced'
                 },
@@ -829,7 +856,8 @@
                             "latest_only": true,
                             "expression": "power_generation.gteq.100"
                         },
-                        "limit": 10
+                        "limit": 10,
+                        "skip_initial_snapshot": false
                     },
                     endpoint: 'advanced'
                 },
@@ -842,7 +870,8 @@
                             "expression": "location.bbi.(11.6,46.4,11.65,46.5)",
                             "latest_only": true
                         },
-                        "limit": 10
+                        "limit": 10,
+                        "skip_initial_snapshot": false
                     },
                     endpoint: 'advanced'
                 },
@@ -855,7 +884,8 @@
                             "expression": "coverage_area.bbi.(11.0,46.0,12.0,47.0)",
                             "latest_only": true
                         },
-                        "limit": 10
+                        "limit": 10,
+                        "skip_initial_snapshot": false
                     },
                     endpoint: 'advanced'
                 },
@@ -868,7 +898,8 @@
                             "expression": "location.dlt.(11.354,46.498,5000)",
                             "latest_only": true
                         },
-                        "limit": 10
+                        "limit": 10,
+                        "skip_initial_snapshot": false
                     },
                     endpoint: 'advanced'
                 }

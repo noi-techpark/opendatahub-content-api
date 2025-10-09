@@ -28,16 +28,17 @@ type WebSocketManager struct {
 
 // Subscription represents a client's subscription with filters
 type Subscription struct {
-	conn              *websocket.Conn
-	sensorNames       []string
-	typeNames         []string
-	timeseriesFilter  *filter.TimeseriesFilter
-	measurementFilter *filter.MeasurementFilter
-	spatialFilters    []SpatialFilterCondition // Extracted from measurementFilter.Expression
-	updatesChan       chan MeasurementUpdate
-	ctx               context.Context
-	cancel            context.CancelFunc
-	mu                sync.Mutex
+	conn                *websocket.Conn
+	sensorNames         []string
+	typeNames           []string
+	timeseriesFilter    *filter.TimeseriesFilter
+	measurementFilter   *filter.MeasurementFilter
+	skipInitialSnapshot bool                     // 🎯 SNAPSHOT CONTROL: Whether to skip existing records
+	spatialFilters      []SpatialFilterCondition // Extracted from measurementFilter.Expression
+	updatesChan         chan MeasurementUpdate
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	mu                  sync.Mutex
 }
 
 // SpatialFilterCondition is imported from streaming.MaterializeClient
@@ -63,6 +64,11 @@ type ConnectionInitPayload struct {
 	TimeseriesFilter  *filter.TimeseriesFilter  `json:"timeseries_filter,omitempty"`
 	MeasurementFilter *filter.MeasurementFilter `json:"measurement_filter,omitempty"`
 	Limit             int                       `json:"limit,omitempty"`
+
+	// 🎯 SNAPSHOT CONTROL: Set to true to skip existing records and only receive new updates
+	// When false (default), you'll receive all existing records plus new updates
+	// When true, you'll only receive updates that occur AFTER subscription
+	SkipInitialSnapshot bool `json:"skip_initial_snapshot,omitempty"`
 }
 
 // NewWebSocketManager creates a new WebSocket manager
@@ -160,14 +166,15 @@ func (wsm *WebSocketManager) handleConnectionWithMode(conn *websocket.Conn, expe
 	// Create subscription
 	ctx, cancel := context.WithCancel(context.Background())
 	sub := &Subscription{
-		conn:              conn,
-		sensorNames:       payload.SensorNames,
-		typeNames:         payload.TypeNames,
-		timeseriesFilter:  payload.TimeseriesFilter,
-		measurementFilter: payload.MeasurementFilter,
-		updatesChan:       make(chan MeasurementUpdate, 100),
-		ctx:               ctx,
-		cancel:            cancel,
+		conn:                conn,
+		sensorNames:         payload.SensorNames,
+		typeNames:           payload.TypeNames,
+		timeseriesFilter:    payload.TimeseriesFilter,
+		measurementFilter:   payload.MeasurementFilter,
+		skipInitialSnapshot: payload.SkipInitialSnapshot, // 🎯 SNAPSHOT CONTROL
+		updatesChan:         make(chan MeasurementUpdate, 100),
+		ctx:                 ctx,
+		cancel:              cancel,
 	}
 
 	wsm.mu.Lock()

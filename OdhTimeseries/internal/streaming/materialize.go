@@ -189,6 +189,7 @@ func (mc *MaterializeClient) getDataTypesForTypeNames(ctx context.Context, typeN
 // SubscribeWithFilters subscribes to measurements using discovery filters
 // Filters are applied directly in the Materialize TAIL query for real-time evaluation
 // Returns extracted spatial filters that must be applied at application layer
+// 🎯 SNAPSHOT CONTROL: If sub.skipInitialSnapshot is true, skips existing records
 func (mc *MaterializeClient) SubscribeWithFilters(
 	ctx context.Context,
 	sub *Subscription,
@@ -327,6 +328,7 @@ func (mc *MaterializeClient) SubscribeWithFilters(
 				dtTypeNames,
 				timeseriesFilter,
 				valueConditions,
+				sub.skipInitialSnapshot, // 🎯 SNAPSHOT CONTROL
 				updatesChan,
 			)
 			if err != nil && err != context.Canceled {
@@ -353,6 +355,7 @@ func (mc *MaterializeClient) SubscribeWithFilters(
 
 // subscribeSingleDataType handles TAIL subscription for a single data type
 // Runs in its own goroutine and transaction, sending updates to the shared channel
+// 🎯 SNAPSHOT CONTROL: If skipInitialSnapshot is true, only sends new updates (not existing records)
 func (mc *MaterializeClient) subscribeSingleDataType(
 	ctx context.Context,
 	dataType models.DataType,
@@ -360,6 +363,7 @@ func (mc *MaterializeClient) subscribeSingleDataType(
 	typeNames []string,
 	timeseriesFilter *filter.TimeseriesFilter,
 	valueConditions []filter.ValueCondition,
+	skipInitialSnapshot bool,
 	updatesChan chan<- MeasurementUpdate,
 ) error {
 	tableName := fmt.Sprintf("latest_measurements_%s", dataType)
@@ -372,6 +376,7 @@ func (mc *MaterializeClient) subscribeSingleDataType(
 		typeNames,
 		timeseriesFilter,
 		valueConditions,
+		skipInitialSnapshot, // 🎯 SNAPSHOT CONTROL
 	)
 
 	logrus.WithFields(logrus.Fields{
@@ -510,6 +515,7 @@ func (mc *MaterializeClient) subscribeSingleDataType(
 }
 
 // buildSingleDataTypeQuery builds a DECLARE CURSOR FOR SUBSCRIBE query for a single data type
+// 🎯 SNAPSHOT CONTROL: If skipInitialSnapshot is true, uses "AS OF mz_now()" to skip existing records
 func (mc *MaterializeClient) buildSingleDataTypeQuery(
 	tableName string,
 	dataType models.DataType,
@@ -517,6 +523,7 @@ func (mc *MaterializeClient) buildSingleDataTypeQuery(
 	typeNames []string,
 	timeseriesFilter *filter.TimeseriesFilter,
 	valueConditions []filter.ValueCondition,
+	skipInitialSnapshot bool,
 ) (string, []interface{}) {
 	args := []interface{}{}
 	argIndex := 1
@@ -596,6 +603,13 @@ FROM %s`, valueColumn, tableName)
 	}
 
 	query += "\n)"
+
+	// 🎯 SNAPSHOT CONTROL: Skip initial snapshot using WITH (SNAPSHOT = false)
+	// When skipInitialSnapshot is true, don't send existing records, only new updates
+	// When false (default), receive all existing records in the view plus new updates
+	if skipInitialSnapshot {
+		query += " WITH (SNAPSHOT = false)"
+	}
 
 	return query, args
 }
