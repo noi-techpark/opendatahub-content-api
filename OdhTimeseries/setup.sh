@@ -198,7 +198,10 @@ if [ "$MODE" = "clean" ]; then
     fi
 
     # Initialize content database (create sensors table)
-    if PGPASSWORD=your_password psql -h localhost -p 5432 -U postgres -d postgres -f ../Helper/PGDBScripts/Sensors.sql > /dev/null 2>&1; then
+    if PGPASSWORD=your_password psql -h localhost -p 5432 -U postgres -d postgres \
+        -f ../Helper/PGDBScripts/Sensors.sql \
+        -f ../Helper/PGDBScripts/GeoShapes.sql \
+        > /dev/null 2>&1; then
         print_success "Content database schema initialized"
     else
         print_error "Failed to initialize content database schema"
@@ -214,13 +217,31 @@ echo ""
 if [ "$MODE" = "clean" ] && [ "$POPULATE" = true ]; then
     print_info "Step 5: Populating databases with sample data (both timeseries and content)"
     if [ -f ./populate_db.py ]; then
-        if python3 populate_db.py --clean --sensors 100 --timeseries 300 --days 30 > /dev/null 2>&1; then
+        if python3 populate_db.py --clean --sensors 100 --timeseries 500 --days 30 > /dev/null 2>&1; then
             print_success "Sample data populated in both databases"
         else
             print_warning "Sample data population failed (continuing anyway)"
         fi
     else
         print_warning "populate_db.py not found, skipping sample data"
+    fi
+    if [ -f ./populate_municipalities.py ]; then
+        if python3 populate_municipalities.py --clean --days 10 > /dev/null 2>&1; then
+            print_success "Municipialities data populated in both databases"
+        else
+            print_warning "Municipialities data population failed (continuing anyway)"
+        fi
+    else
+        print_warning "populate_municipalities.py not found, skipping municipialities data"
+    fi
+    if [ -f ./populate_typhoons.py ]; then
+        if python3 populate_typhoons.py --clean --days 10 > /dev/null 2>&1; then
+            print_success "Typhoon data populated in both databases"
+        else
+            print_warning "Typhoon data population failed (continuing anyway)"
+        fi
+    else
+        print_warning "populate_typhoons.py not found, skipping typhoon data"
     fi
 elif [ "$MODE" = "clean" ] && [ "$POPULATE" = false ]; then
     print_info "Step 5: Skipping data population (--no-populate flag)"

@@ -42,13 +42,21 @@ CREATE TABLE IF NOT EXISTS public.sensors (
 	gen_access_role text[] GENERATED ALWAYS AS (calculate_access_array(data#>>'{_Meta,Source}',(data#>'{LicenseInfo,ClosedData}')::bool)) STORED NULL,
 	gen_position public.geography GENERATED ALWAYS AS (
 		CASE
-			WHEN (data #>> '{Latitude}'::text[])::double precision IS NOT NULL
-			 AND (data #>> '{Longitude}'::text[])::double precision IS NOT NULL
-			THEN ST_SetSRID(ST_MakePoint(
-				(data #>> '{Longitude}'::text[])::double precision,
-				(data #>> '{Latitude}'::text[])::double precision
-			), 4326)::geography
-			ELSE NULL
+			-- CASE 1: Check for WKT string in 'Geometry' key
+			WHEN (data ? 'Geometry') AND ((data #>> '{Geometry}')::text) IS NOT NULL THEN
+				-- Attempt to convert WKT string to GEOMETRY, then cast to GEOGRAPHY
+				ST_GeomFromText((data #>> '{Geometry}')::text, 4326)::geography
+
+			-- CASE 2: Fallback to Latitude and Longitude keys
+			WHEN ((data #>> '{Latitude}'::text[])::double precision) IS NOT NULL AND ((data #>> '{Longitude}'::text[])::double precision) IS NOT NULL THEN
+				ST_SetSRID(
+					ST_MakePoint(
+						(data #>> '{Longitude}'::text[])::double precision,
+						(data #>> '{Latitude}'::text[])::double precision
+					), 4326
+				)::geography
+
+			ELSE NULL::geography
 		END
 	) STORED NULL,
 	CONSTRAINT sensors_pkey PRIMARY KEY (id)
