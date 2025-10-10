@@ -109,7 +109,7 @@ func (mc *MaterializeClient) WaitForInitialSync(ctx context.Context) error {
 			return nil
 		}
 
-		if err != nil && err != sql.ErrNoRows {
+		if err != sql.ErrNoRows {
 			logrus.WithError(err).Warn("Error checking Materialize sync status")
 		}
 
@@ -135,21 +135,6 @@ func (mc *MaterializeClient) GetSourceStatus(ctx context.Context) (string, error
 	}
 
 	return status, nil
-}
-
-// getDataTypeForTypeName queries Materialize to get the data type for a type name
-func (mc *MaterializeClient) getDataTypeForTypeName(ctx context.Context, typeName string) (models.DataType, error) {
-	var dataType models.DataType
-	err := mc.db.QueryRowContext(ctx,
-		`SELECT data_type FROM types WHERE name = $1`,
-		typeName,
-	).Scan(&dataType)
-
-	if err != nil {
-		return "", fmt.Errorf("failed to get data type for %s: %w", typeName, err)
-	}
-
-	return dataType, nil
 }
 
 // getDataTypesForTypeNames gets data types for multiple type names

@@ -89,6 +89,19 @@ definitions:
           type: string
         type: array
     type: object
+  handlers.BatchSensorTimeseriesRequest:
+    properties:
+      sensor_names:
+        items:
+          type: string
+        type: array
+      type_names:
+        items:
+          type: string
+        type: array
+    required:
+    - sensor_names
+    type: object
   models.AddTypesToDatasetRequest:
     properties:
       is_required:
@@ -106,6 +119,15 @@ definitions:
         type: array
       provenance:
         $ref: '#/definitions/models.Provenance'
+    type: object
+  models.BatchSensorTimeseriesResponse:
+    properties:
+      sensors:
+        items:
+          $ref: '#/definitions/models.SensorTimeseriesResponse'
+        type: array
+      total:
+        type: integer
     type: object
   models.CreateDatasetRequest:
     properties:
@@ -197,6 +219,19 @@ definitions:
           type: string
         type: array
     type: object
+  models.ListTypesResponse:
+    properties:
+      limit:
+        type: integer
+      offset:
+        type: integer
+      total:
+        type: integer
+      types:
+        items:
+          $ref: '#/definitions/models.TypeWithSensors'
+        type: array
+    type: object
   models.MeasurementWithMeta:
     properties:
       sensor_name:
@@ -220,6 +255,35 @@ definitions:
       uuid:
         type: string
     type: object
+  models.SensorTimeseriesInfo:
+    properties:
+      sensor_name:
+        type: string
+      timeseries_id:
+        type: string
+    type: object
+  models.SensorTimeseriesResponse:
+    properties:
+      sensor_id:
+        type: integer
+      sensor_name:
+        type: string
+      timeseries:
+        items:
+          $ref: '#/definitions/models.TimeseriesInfo'
+        type: array
+      total:
+        type: integer
+    type: object
+  models.TimeseriesInfo:
+    properties:
+      timeseries_id:
+        type: string
+      type_info:
+        $ref: '#/definitions/models.Type'
+      type_name:
+        type: string
+    type: object
   models.Type:
     properties:
       data_type:
@@ -240,6 +304,15 @@ definitions:
     properties:
       is_required:
         type: boolean
+      type:
+        $ref: '#/definitions/models.Type'
+    type: object
+  models.TypeWithSensors:
+    properties:
+      sensors:
+        items:
+          $ref: '#/definitions/models.SensorTimeseriesInfo'
+        type: array
       type:
         $ref: '#/definitions/models.Type'
     type: object
@@ -313,76 +386,6 @@ paths:
             additionalProperties: true
             type: object
       summary: Create new dataset
-      tags:
-      - datasets
-  /datasets/{id}:
-    get:
-      description: Retrieve dataset details with all associated measurement types
-      parameters:
-      - description: Dataset ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Dataset details with types
-          schema:
-            $ref: '#/definitions/models.DatasetResponse'
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Dataset not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get dataset details
-      tags:
-      - datasets
-  /datasets/{id}/sensors:
-    get:
-      description: Retrieve all sensors that have timeseries associated with a specific
-        dataset
-      parameters:
-      - description: Dataset ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Sensors in the dataset
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Dataset not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get all sensors that have timeseries in dataset
       tags:
       - datasets
   /datasets/{id}/types:
@@ -468,6 +471,76 @@ paths:
             additionalProperties: true
             type: object
       summary: Add measurement types to dataset
+      tags:
+      - datasets
+  /datasets/{name}:
+    get:
+      description: Retrieve dataset details with all associated measurement types
+      parameters:
+      - description: Dataset Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dataset details with types
+          schema:
+            $ref: '#/definitions/models.DatasetResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dataset not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get dataset details
+      tags:
+      - datasets
+  /datasets/{name}/sensors:
+    get:
+      description: Retrieve all sensors that have timeseries associated with a specific
+        dataset
+      parameters:
+      - description: Dataset Name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sensors in the dataset
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Dataset not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all sensors that have timeseries in dataset
       tags:
       - datasets
   /health:
@@ -763,7 +836,6 @@ paths:
             type: string
       summary: Simple WebSocket subscription (GraphQL-style)
       tags:
-      - measurements
       - streaming
   /measurements/subscribe/advanced:
     get:
@@ -842,7 +914,6 @@ paths:
             type: string
       summary: Advanced WebSocket subscription with discovery filters (GraphQL-style)
       tags:
-      - measurements
       - streaming
   /sensors:
     post:
@@ -875,6 +946,40 @@ paths:
             additionalProperties: true
             type: object
       summary: Discover sensors by measurement conditions
+      tags:
+      - sensors
+  /sensors/{name}:
+    get:
+      description: Get all timeseries associated with a sensor, optionally filtered
+        by type names
+      parameters:
+      - description: Sensor name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Type names to filter (comma-separated)
+        in: query
+        name: type_names
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sensor with timeseries info
+          schema:
+            $ref: '#/definitions/models.SensorTimeseriesResponse'
+        "404":
+          description: Sensor not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get timeseries for a sensor
       tags:
       - sensors
   /sensors/discover:
@@ -934,6 +1039,39 @@ paths:
       summary: Discover sensors (legacy query params)
       tags:
       - sensors
+  /sensors/timeseries:
+    post:
+      consumes:
+      - application/json
+      description: Get timeseries for a batch of sensors, optionally filtered by type
+        names
+      parameters:
+      - description: Batch request with sensor names and optional type names
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.BatchSensorTimeseriesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Batch response with sensors and their timeseries
+          schema:
+            $ref: '#/definitions/models.BatchSensorTimeseriesResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get timeseries for multiple sensors
+      tags:
+      - sensors
   /sensors/verify:
     post:
       consumes:
@@ -968,6 +1106,75 @@ paths:
       summary: Verify sensors against discovery filters
       tags:
       - sensors
+  /types:
+    get:
+      description: Get a paginated list of all types, optionally including sensors
+        that have timeseries for each type
+      parameters:
+      - default: 0
+        description: Offset for pagination
+        in: query
+        name: offset
+        type: integer
+      - default: 50
+        description: Limit for pagination
+        in: query
+        name: limit
+        type: integer
+      - description: Include sensors with timeseries for each type
+        in: query
+        name: include_sensors
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of types with pagination info
+          schema:
+            $ref: '#/definitions/models.ListTypesResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all types
+      tags:
+      - types
+  /types/{name}:
+    get:
+      description: Get a specific type by name along with all sensors that have timeseries
+        for this type
+      parameters:
+      - description: Type name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Type with sensors and timeseries info
+          schema:
+            $ref: '#/definitions/models.TypeWithSensors'
+        "404":
+          description: Type not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a type by name
+      tags:
+      - types
 produces:
 - application/json
 schemes:

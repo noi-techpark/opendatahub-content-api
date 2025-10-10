@@ -84,7 +84,7 @@ func NewStreamingHandler(wsManager *streaming.WebSocketManager) *StreamingHandle
 // @Description   }
 // @Description }
 // @Description ```
-// @Tags measurements, streaming
+// @Tags streaming
 // @Success 101 {string} string "Switching Protocols - WebSocket connection established"
 // @Router /measurements/subscribe [get]
 func (h *StreamingHandler) SubscribeToMeasurements(c *gin.Context) {
@@ -168,7 +168,7 @@ func (h *StreamingHandler) SubscribeToMeasurements(c *gin.Context) {
 // @Description - AND: `and(temperature.gt.20, humidity.lt.80)`
 // @Description - OR: `or(temperature.gt.30, pm25.gt.90)`
 // @Description - Operators: eq, neq, gt, gte/gteq, lt, lte/lteq, re (regex)
-// @Tags measurements, streaming
+// @Tags streaming
 // @Success 101 {string} string "Switching Protocols - WebSocket connection established"
 // @Router /measurements/subscribe/advanced [get]
 func (h *StreamingHandler) SubscribeToMeasurementsAdvanced(c *gin.Context) {

@@ -98,6 +98,7 @@ func main() {
 	queryHandler := handlers.NewQueryHandler(repo)
 	datasetHandler := handlers.NewDatasetHandler(repo)
 	sensorDiscoveryHandler := handlers.NewSensorDiscoveryHandler(repo)
+	typeHandler := handlers.NewTypeHandler(repo)
 
 	// Initialize streaming handler if Materialize is available
 	var streamingHandler *handlers.StreamingHandler
@@ -107,7 +108,7 @@ func main() {
 	}
 
 	// Setup Gin router
-	router := setupRouter(mutationHandler, queryHandler, datasetHandler, sensorDiscoveryHandler, streamingHandler)
+	router := setupRouter(mutationHandler, queryHandler, datasetHandler, sensorDiscoveryHandler, typeHandler, streamingHandler)
 
 	// Setup HTTP server
 	srv := &http.Server{
@@ -157,7 +158,7 @@ func setupLogging(level string) {
 	logrus.SetLevel(logLevel)
 }
 
-func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handlers.QueryHandler, datasetHandler *handlers.DatasetHandler, sensorDiscoveryHandler *handlers.SensorDiscoveryHandler, streamingHandler *handlers.StreamingHandler) *gin.Engine {
+func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handlers.QueryHandler, datasetHandler *handlers.DatasetHandler, sensorDiscoveryHandler *handlers.SensorDiscoveryHandler, typeHandler *handlers.TypeHandler, streamingHandler *handlers.StreamingHandler) *gin.Engine {
 	// Set Gin mode based on log level
 	if logrus.GetLevel() == logrus.DebugLevel {
 		gin.SetMode(gin.DebugMode)
@@ -209,8 +210,14 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 			// Sensor verification endpoint
 			sensors.POST("/verify", sensorDiscoveryHandler.VerifySensors)
 
+			// Batch sensor timeseries endpoint (must be before /:name to avoid conflicts)
+			sensors.POST("/timeseries", sensorDiscoveryHandler.GetBatchSensorTimeseries)
+
 			// Legacy compatibility endpoints
 			sensors.GET("/discover", sensorDiscoveryHandler.DiscoverSensorsLegacy)
+
+			// Single sensor timeseries endpoint
+			sensors.GET("/:name", sensorDiscoveryHandler.GetSensorTimeseries)
 		}
 
 		// Dataset endpoints
@@ -222,6 +229,13 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 			datasets.POST("/:id/types", datasetHandler.AddTypesToDataset)
 			datasets.DELETE("/:id/types", datasetHandler.RemoveTypesFromDataset)
 			datasets.GET("/:id/sensors", datasetHandler.GetSensorsByDataset)
+		}
+
+		// Type endpoints
+		types := v1.Group("/types")
+		{
+			types.GET("", typeHandler.ListTypes)
+			types.GET("/:name", typeHandler.GetType)
 		}
 	}
 

@@ -111,107 +111,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/datasets/{id}": {
-            "get": {
-                "description": "Retrieve dataset details with all associated measurement types",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Get dataset details",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Dataset ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Dataset details with types",
-                        "schema": {
-                            "$ref": "#/definitions/models.DatasetResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Dataset not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/datasets/{id}/sensors": {
-            "get": {
-                "description": "Retrieve all sensors that have timeseries associated with a specific dataset",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Get all sensors that have timeseries in dataset",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Dataset ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sensors in the dataset",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Dataset not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/datasets/{id}/types": {
             "post": {
                 "description": "Add measurement types to an existing dataset with required/optional flag",
@@ -305,6 +204,107 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "Types removed successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Dataset not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/{name}": {
+            "get": {
+                "description": "Retrieve dataset details with all associated measurement types",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "datasets"
+                ],
+                "summary": "Get dataset details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dataset Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dataset details with types",
+                        "schema": {
+                            "$ref": "#/definitions/models.DatasetResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Dataset not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/datasets/{name}/sensors": {
+            "get": {
+                "description": "Retrieve all sensors that have timeseries associated with a specific dataset",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "datasets"
+                ],
+                "summary": "Get all sensors that have timeseries in dataset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Dataset Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sensors in the dataset",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -669,7 +669,6 @@ const docTemplate = `{
             "get": {
                 "description": "Establishes a WebSocket connection for real-time measurement streaming from specific sensors.\n\n**Protocol Flow (GraphQL-style):**\n1. Client connects to WebSocket (GET /api/v1/measurements/subscribe)\n2. Client immediately sends ` + "`" + `connection_init` + "`" + ` message with sensor_names\n3. Server validates configuration and responds with ` + "`" + `connection_ack` + "`" + ` or ` + "`" + `error` + "`" + `\n4. Server streams measurement updates as ` + "`" + `data` + "`" + ` messages\n5. Client closes connection to unsubscribe\n\n**Client Message (connection_init):**\n` + "`" + `` + "`" + `` + "`" + `json\n{\n\"type\": \"connection_init\",\n\"payload\": {\n\"sensor_names\": [\"sensor1\", \"sensor2\"],\n\"type_names\": [\"temperature\", \"humidity\"]\n}\n}\n` + "`" + `` + "`" + `` + "`" + `\n\n**Server Response (connection_ack):**\n` + "`" + `` + "`" + `` + "`" + `json\n{\n\"type\": \"connection_ack\",\n\"payload\": {\n\"mode\": \"simple\"\n}\n}\n` + "`" + `` + "`" + `` + "`" + `\n\n**Server Data Messages:**\n` + "`" + `` + "`" + `` + "`" + `json\n{\n\"type\": \"data\",\n\"payload\": {\n\"timeseries_id\": \"uuid\",\n\"sensor_name\": \"sensor1\",\n\"type_name\": \"temperature\",\n\"timestamp\": \"2024-01-01T00:00:00Z\",\n\"value\": \"23.5\"\n}\n}\n` + "`" + `` + "`" + `` + "`" + `\n\n**Server Error Messages:**\n` + "`" + `` + "`" + `` + "`" + `json\n{\n\"type\": \"error\",\n\"payload\": {\n\"message\": \"Invalid configuration\"\n}\n}\n` + "`" + `` + "`" + `` + "`" + `",
                 "tags": [
-                    "measurements",
                     "streaming"
                 ],
                 "summary": "Simple WebSocket subscription (GraphQL-style)",
@@ -687,7 +686,6 @@ const docTemplate = `{
             "get": {
                 "description": "Establishes a WebSocket connection for real-time measurement streaming using discovery filters.\n\n**Protocol Flow (GraphQL-style):**\n1. Client connects to WebSocket (GET /api/v1/measurements/subscribe/advanced)\n2. Client immediately sends ` + "`" + `connection_init` + "`" + ` message with filters\n3. Server validates configuration and responds with ` + "`" + `connection_ack` + "`" + ` or ` + "`" + `error` + "`" + `\n4. Server streams measurement updates as ` + "`" + `data` + "`" + ` messages\n5. Client closes connection to unsubscribe\n\n**Client Message (connection_init):**\n` + "`" + `` + "`" + `` + "`" + `json\n{\n\"type\": \"connection_init\",\n\"payload\": {\n\"timeseries_filter\": {\n\"required_types\": [\"temperature\"],\n\"optional_types\": [\"humidity\"],\n\"dataset_ids\": [\"weather_stations\"]\n},\n\"measurement_filter\": {\n\"expression\": \"temperature.gt.20\",\n\"latest_only\": true\n},\n\"limit\": 100\n}\n}\n` + "`" + `` + "`" + `` + "`" + `\n\n**Server Response (connection_ack):**\n` + "`" + `` + "`" + `` + "`" + `json\n{\n\"type\": \"connection_ack\",\n\"payload\": {\n\"mode\": \"advanced\"\n}\n}\n` + "`" + `` + "`" + `` + "`" + `\n\n**Server Data Messages:**\n` + "`" + `` + "`" + `` + "`" + `json\n{\n\"type\": \"data\",\n\"payload\": {\n\"timeseries_id\": \"uuid\",\n\"sensor_name\": \"sensor1\",\n\"type_name\": \"temperature\",\n\"timestamp\": \"2024-01-01T00:00:00Z\",\n\"value\": \"23.5\"\n}\n}\n` + "`" + `` + "`" + `` + "`" + `\n\n**Server Error Messages:**\n` + "`" + `` + "`" + `` + "`" + `json\n{\n\"type\": \"error\",\n\"payload\": {\n\"message\": \"Invalid configuration\"\n}\n}\n` + "`" + `` + "`" + `` + "`" + `\n\n**Filter Expression Syntax:**\n- Simple: ` + "`" + `temperature.gt.20` + "`" + ` (temperature \u003e 20)\n- AND: ` + "`" + `and(temperature.gt.20, humidity.lt.80)` + "`" + `\n- OR: ` + "`" + `or(temperature.gt.30, pm25.gt.90)` + "`" + `\n- Operators: eq, neq, gt, gte/gteq, lt, lte/lteq, re (regex)",
                 "tags": [
-                    "measurements",
                     "streaming"
                 ],
                 "summary": "Advanced WebSocket subscription with discovery filters (GraphQL-style)",
@@ -835,6 +833,54 @@ const docTemplate = `{
                 }
             }
         },
+        "/sensors/timeseries": {
+            "post": {
+                "description": "Get timeseries for a batch of sensors, optionally filtered by type names",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sensors"
+                ],
+                "summary": "Get timeseries for multiple sensors",
+                "parameters": [
+                    {
+                        "description": "Batch request with sensor names and optional type names",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.BatchSensorTimeseriesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Batch response with sensors and their timeseries",
+                        "schema": {
+                            "$ref": "#/definitions/models.BatchSensorTimeseriesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/sensors/verify": {
             "post": {
                 "description": "Verify if a list of sensor names satisfy the same filters used in sensor discovery",
@@ -868,6 +914,154 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/sensors/{name}": {
+            "get": {
+                "description": "Get all timeseries associated with a sensor, optionally filtered by type names",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sensors"
+                ],
+                "summary": "Get timeseries for a sensor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Sensor name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Type names to filter (comma-separated)",
+                        "name": "type_names",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sensor with timeseries info",
+                        "schema": {
+                            "$ref": "#/definitions/models.SensorTimeseriesResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Sensor not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/types": {
+            "get": {
+                "description": "Get a paginated list of all types, optionally including sensors that have timeseries for each type",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "types"
+                ],
+                "summary": "List all types",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset for pagination",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Limit for pagination",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Include sensors with timeseries for each type",
+                        "name": "include_sensors",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of types with pagination info",
+                        "schema": {
+                            "$ref": "#/definitions/models.ListTypesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/types/{name}": {
+            "get": {
+                "description": "Get a specific type by name along with all sensors that have timeseries for this type",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "types"
+                ],
+                "summary": "Get a type by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Type name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Type with sensors and timeseries info",
+                        "schema": {
+                            "$ref": "#/definitions/models.TypeWithSensors"
+                        }
+                    },
+                    "404": {
+                        "description": "Type not found",
                         "schema": {
                             "type": "object",
                             "additionalProperties": true
@@ -1027,6 +1221,26 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.BatchSensorTimeseriesRequest": {
+            "type": "object",
+            "required": [
+                "sensor_names"
+            ],
+            "properties": {
+                "sensor_names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type_names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.AddTypesToDatasetRequest": {
             "type": "object",
             "properties": {
@@ -1052,6 +1266,20 @@ const docTemplate = `{
                 },
                 "provenance": {
                     "$ref": "#/definitions/models.Provenance"
+                }
+            }
+        },
+        "models.BatchSensorTimeseriesResponse": {
+            "type": "object",
+            "properties": {
+                "sensors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SensorTimeseriesResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -1188,6 +1416,26 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ListTypesResponse": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "types": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TypeWithSensors"
+                    }
+                }
+            }
+        },
         "models.MeasurementWithMeta": {
             "type": "object",
             "properties": {
@@ -1223,6 +1471,51 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SensorTimeseriesInfo": {
+            "type": "object",
+            "properties": {
+                "sensor_name": {
+                    "type": "string"
+                },
+                "timeseries_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SensorTimeseriesResponse": {
+            "type": "object",
+            "properties": {
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "sensor_name": {
+                    "type": "string"
+                },
+                "timeseries": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TimeseriesInfo"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.TimeseriesInfo": {
+            "type": "object",
+            "properties": {
+                "timeseries_id": {
+                    "type": "string"
+                },
+                "type_info": {
+                    "$ref": "#/definitions/models.Type"
+                },
+                "type_name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Type": {
             "type": "object",
             "properties": {
@@ -1252,6 +1545,20 @@ const docTemplate = `{
             "properties": {
                 "is_required": {
                     "type": "boolean"
+                },
+                "type": {
+                    "$ref": "#/definitions/models.Type"
+                }
+            }
+        },
+        "models.TypeWithSensors": {
+            "type": "object",
+            "properties": {
+                "sensors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SensorTimeseriesInfo"
+                    }
                 },
                 "type": {
                     "$ref": "#/definitions/models.Type"

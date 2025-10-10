@@ -206,3 +206,42 @@ type AddTypesToDatasetRequest struct {
 	TypeNames  []string `json:"type_names"`
 	IsRequired bool     `json:"is_required"`
 }
+
+// Type management DTOs
+
+type SensorTimeseriesInfo struct {
+	SensorName   string    `json:"sensor_name"`
+	TimeseriesID uuid.UUID `json:"timeseries_id"`
+}
+
+type TypeWithSensors struct {
+	Type    Type                   `json:"type"`
+	Sensors []SensorTimeseriesInfo `json:"sensors,omitempty"`
+}
+
+type ListTypesResponse struct {
+	Types  []TypeWithSensors `json:"types"`
+	Total  int               `json:"total"`
+	Offset int               `json:"offset"`
+	Limit  int               `json:"limit"`
+}
+
+// Sensor timeseries DTOs
+
+type TimeseriesInfo struct {
+	TimeseriesID uuid.UUID `json:"timeseries_id"`
+	TypeName     string    `json:"type_name"`
+	TypeInfo     Type      `json:"type_info"`
+}
+
+type SensorTimeseriesResponse struct {
+	SensorName  string           `json:"sensor_name"`
+	SensorID    int64            `json:"sensor_id"`
+	Timeseries  []TimeseriesInfo `json:"timeseries"`
+	Total       int              `json:"total"`
+}
+
+type BatchSensorTimeseriesResponse struct {
+	Sensors []SensorTimeseriesResponse `json:"sensors"`
+	Total   int                        `json:"total"`
+}

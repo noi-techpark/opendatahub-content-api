@@ -76,14 +76,14 @@ func (h *DatasetHandler) CreateDataset(c *gin.Context) {
 // @Description Retrieve dataset details with all associated measurement types
 // @Tags datasets
 // @Produce json
-// @Param id path string true "Dataset ID (UUID)"
+// @Param name path string true "Dataset Name"
 // @Success 200 {object} models.DatasetResponse "Dataset details with types"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 404 {object} map[string]interface{} "Dataset not found"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Router /datasets/{id} [get]
+// @Router /datasets/{name} [get]
 func (h *DatasetHandler) GetDataset(c *gin.Context) {
-	datasetIDStr := c.Param("id")
+	datasetIDStr := c.Param("name")
 
 	datasetResponse, err := h.repo.GetDatasetWithTypes(datasetIDStr)
 	if err != nil {
@@ -213,14 +213,14 @@ func (h *DatasetHandler) RemoveTypesFromDataset(c *gin.Context) {
 // @Description Retrieve all sensors that have timeseries associated with a specific dataset
 // @Tags datasets
 // @Produce json
-// @Param id path string true "Dataset ID (UUID)"
+// @Param name path string true "Dataset Name"
 // @Success 200 {object} map[string]interface{} "Sensors in the dataset"
 // @Failure 400 {object} map[string]interface{} "Bad request"
 // @Failure 404 {object} map[string]interface{} "Dataset not found"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
-// @Router /datasets/{id}/sensors [get]
+// @Router /datasets/{name}/sensors [get]
 func (h *DatasetHandler) GetSensorsByDataset(c *gin.Context) {
-	datasetIDStr := c.Param("id")
+	datasetIDStr := c.Param("name")
 
 	sensors, err := h.repo.FindSensorsByDatasetUpdated(datasetIDStr)
 	if err != nil {

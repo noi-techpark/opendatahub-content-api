@@ -219,3 +219,88 @@ func (h *SensorDiscoveryHandler) VerifySensors(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// GetSensorTimeseries retrieves all timeseries for a specific sensor
+// @Summary Get timeseries for a sensor
+// @Description Get all timeseries associated with a sensor, optionally filtered by type names
+// @Tags sensors
+// @Produce json
+// @Param name path string true "Sensor name"
+// @Param type_names query string false "Type names to filter (comma-separated)"
+// @Success 200 {object} models.SensorTimeseriesResponse "Sensor with timeseries info"
+// @Failure 404 {object} map[string]interface{} "Sensor not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /sensors/{name} [get]
+func (h *SensorDiscoveryHandler) GetSensorTimeseries(c *gin.Context) {
+	sensorName := c.Param("name")
+
+	// Parse optional type_names query parameter
+	var typeNames []string
+	if typeNamesStr := c.Query("type_names"); typeNamesStr != "" {
+		typeNames = h.parseCommaSeparated(typeNamesStr)
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"sensor_name": sensorName,
+		"type_names":  typeNames,
+	}).Info("Getting sensor timeseries")
+
+	// Fetch sensor timeseries from repository
+	result, err := h.repo.GetSensorTimeseriesByName(sensorName, typeNames)
+	if err != nil {
+		if err.Error() == "sensor '"+sensorName+"' not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Sensor not found", "sensor_name": sensorName})
+			return
+		}
+		logrus.WithError(err).Error("Failed to get sensor timeseries")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get sensor timeseries", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// BatchSensorTimeseriesRequest is the request body for batch sensor timeseries
+type BatchSensorTimeseriesRequest struct {
+	SensorNames []string `json:"sensor_names" binding:"required"`
+	TypeNames   []string `json:"type_names,omitempty"`
+}
+
+// GetBatchSensorTimeseries retrieves timeseries for multiple sensors
+// @Summary Get timeseries for multiple sensors
+// @Description Get timeseries for a batch of sensors, optionally filtered by type names
+// @Tags sensors
+// @Accept json
+// @Produce json
+// @Param request body BatchSensorTimeseriesRequest true "Batch request with sensor names and optional type names"
+// @Success 200 {object} models.BatchSensorTimeseriesResponse "Batch response with sensors and their timeseries"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /sensors/timeseries [post]
+func (h *SensorDiscoveryHandler) GetBatchSensorTimeseries(c *gin.Context) {
+	var req BatchSensorTimeseriesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format", "details": err.Error()})
+		return
+	}
+
+	if len(req.SensorNames) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "sensor_names array cannot be empty"})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"sensor_count": len(req.SensorNames),
+		"type_names":   req.TypeNames,
+	}).Info("Getting batch sensor timeseries")
+
+	// Fetch batch sensor timeseries from repository
+	result, err := h.repo.GetBatchSensorTimeseries(req.SensorNames, req.TypeNames)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get batch sensor timeseries")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get batch sensor timeseries", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+

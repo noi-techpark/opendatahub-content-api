@@ -1231,3 +1231,358 @@ func (r *Repository) buildMeasurementConditions(valueConditions []filter.ValueCo
 
 	return result, nil
 }
+
+// Type management methods
+
+// ListTypes fetches all types with optional pagination and sensor inclusion
+func (r *Repository) ListTypes(offset, limit int, includeSensors bool) ([]models.TypeWithSensors, int, error) {
+	// Get total count
+	countQuery := fmt.Sprintf(`SELECT COUNT(*) FROM %s."types"`, r.db.Schema)
+	var total int
+	if err := r.db.QueryRow(countQuery).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("failed to count types: %w", err)
+	}
+
+	// Build query for types
+	typeQuery := fmt.Sprintf(`
+		SELECT id, name, description, unit, data_type, metadata
+		FROM %s."types"
+		ORDER BY name
+		LIMIT $1 OFFSET $2`,
+		r.db.Schema)
+
+	rows, err := r.db.Query(typeQuery, limit, offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list types: %w", err)
+	}
+	defer rows.Close()
+
+	var results []models.TypeWithSensors
+	typeIDs := []int64{}
+
+	for rows.Next() {
+		var t models.Type
+		if err := rows.Scan(&t.ID, &t.Name, &t.Description, &t.Unit, &t.DataType, &t.Metadata); err != nil {
+			return nil, 0, fmt.Errorf("failed to scan type: %w", err)
+		}
+		results = append(results, models.TypeWithSensors{
+			Type:    t,
+			Sensors: []models.SensorTimeseriesInfo{},
+		})
+		typeIDs = append(typeIDs, t.ID)
+	}
+
+	// If includeSensors is true, fetch sensor-timeseries info for each type
+	if includeSensors && len(typeIDs) > 0 {
+		// Build query to get sensors and timeseries for these types
+		placeholders := make([]string, len(typeIDs))
+		args := make([]interface{}, len(typeIDs))
+		for i, id := range typeIDs {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			args[i] = id
+		}
+
+		sensorQuery := fmt.Sprintf(`
+			SELECT t.id, s.name, ts.id
+			FROM %s."types" t
+			JOIN %s.timeseries ts ON t.id = ts.type_id
+			JOIN %s.sensors s ON ts.sensor_id = s.id
+			WHERE t.id IN (%s) AND s.is_active = true
+			ORDER BY t.id, s.name`,
+			r.db.Schema, r.db.Schema, r.db.Schema, strings.Join(placeholders, ","))
+
+		sensorRows, err := r.db.Query(sensorQuery, args...)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to fetch sensors for types: %w", err)
+		}
+		defer sensorRows.Close()
+
+		// Map type ID to index in results
+		typeIndexMap := make(map[int64]int)
+		for i, typeID := range typeIDs {
+			typeIndexMap[typeID] = i
+		}
+
+		for sensorRows.Next() {
+			var typeID int64
+			var sensorName string
+			var timeseriesID uuid.UUID
+
+			if err := sensorRows.Scan(&typeID, &sensorName, &timeseriesID); err != nil {
+				return nil, 0, fmt.Errorf("failed to scan sensor info: %w", err)
+			}
+
+			if idx, ok := typeIndexMap[typeID]; ok {
+				results[idx].Sensors = append(results[idx].Sensors, models.SensorTimeseriesInfo{
+					SensorName:   sensorName,
+					TimeseriesID: timeseriesID,
+				})
+			}
+		}
+	}
+
+	return results, total, nil
+}
+
+// GetTypeByName fetches a type by name with all sensors that have timeseries for this type
+func (r *Repository) GetTypeByName(typeName string) (*models.TypeWithSensors, error) {
+	// Get the type
+	var t models.Type
+	typeQuery := fmt.Sprintf(`
+		SELECT id, name, description, unit, data_type, metadata
+		FROM %s."types"
+		WHERE name = $1`,
+		r.db.Schema)
+
+	err := r.db.QueryRow(typeQuery, typeName).Scan(
+		&t.ID, &t.Name, &t.Description, &t.Unit, &t.DataType, &t.Metadata)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("type '%s' not found", typeName)
+		}
+		return nil, fmt.Errorf("failed to get type: %w", err)
+	}
+
+	// Get all sensors that have timeseries for this type
+	sensorQuery := fmt.Sprintf(`
+		SELECT s.name, ts.id
+		FROM %s.timeseries ts
+		JOIN %s.sensors s ON ts.sensor_id = s.id
+		WHERE ts.type_id = $1 AND s.is_active = true
+		ORDER BY s.name`,
+		r.db.Schema, r.db.Schema)
+
+	rows, err := r.db.Query(sensorQuery, t.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sensors for type: %w", err)
+	}
+	defer rows.Close()
+
+	var sensors []models.SensorTimeseriesInfo
+	for rows.Next() {
+		var sensorName string
+		var timeseriesID uuid.UUID
+
+		if err := rows.Scan(&sensorName, &timeseriesID); err != nil {
+			return nil, fmt.Errorf("failed to scan sensor info: %w", err)
+		}
+
+		sensors = append(sensors, models.SensorTimeseriesInfo{
+			SensorName:   sensorName,
+			TimeseriesID: timeseriesID,
+		})
+	}
+
+	return &models.TypeWithSensors{
+		Type:    t,
+		Sensors: sensors,
+	}, nil
+}
+
+// Sensor timeseries methods
+
+// GetSensorTimeseriesByName fetches all timeseries for a sensor by name, optionally filtered by type names
+func (r *Repository) GetSensorTimeseriesByName(sensorName string, typeNames []string) (*models.SensorTimeseriesResponse, error) {
+	// First get the sensor
+	var sensor models.Sensor
+	sensorQuery := fmt.Sprintf(`
+		SELECT id, name, parent_id, metadata, created_on, is_active, is_available
+		FROM %s.sensors
+		WHERE name = $1`,
+		r.db.Schema)
+
+	err := r.db.QueryRow(sensorQuery, sensorName).Scan(
+		&sensor.ID, &sensor.Name, &sensor.ParentID, &sensor.Metadata,
+		&sensor.CreatedOn, &sensor.IsActive, &sensor.IsAvailable)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("sensor '%s' not found", sensorName)
+		}
+		return nil, fmt.Errorf("failed to get sensor: %w", err)
+	}
+
+	// Build query for timeseries
+	var timeseriesQuery string
+	var args []interface{}
+	args = append(args, sensor.ID)
+
+	if len(typeNames) > 0 {
+		// Filter by type names
+		placeholders := make([]string, len(typeNames))
+		for i, typeName := range typeNames {
+			placeholders[i] = fmt.Sprintf("$%d", i+2)
+			args = append(args, typeName)
+		}
+		timeseriesQuery = fmt.Sprintf(`
+			SELECT ts.id, t.name, t.id, t.description, t.unit, t.data_type, t.metadata
+			FROM %s.timeseries ts
+			JOIN %s."types" t ON ts.type_id = t.id
+			WHERE ts.sensor_id = $1 AND t.name IN (%s)
+			ORDER BY t.name`,
+			r.db.Schema, r.db.Schema, strings.Join(placeholders, ","))
+	} else {
+		// Get all timeseries
+		timeseriesQuery = fmt.Sprintf(`
+			SELECT ts.id, t.name, t.id, t.description, t.unit, t.data_type, t.metadata
+			FROM %s.timeseries ts
+			JOIN %s."types" t ON ts.type_id = t.id
+			WHERE ts.sensor_id = $1
+			ORDER BY t.name`,
+			r.db.Schema, r.db.Schema)
+	}
+
+	rows, err := r.db.Query(timeseriesQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get timeseries for sensor: %w", err)
+	}
+	defer rows.Close()
+
+	var timeseries []models.TimeseriesInfo
+	for rows.Next() {
+		var ts models.TimeseriesInfo
+		err := rows.Scan(
+			&ts.TimeseriesID, &ts.TypeName,
+			&ts.TypeInfo.ID, &ts.TypeInfo.Description, &ts.TypeInfo.Unit,
+			&ts.TypeInfo.DataType, &ts.TypeInfo.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan timeseries: %w", err)
+		}
+		ts.TypeInfo.Name = ts.TypeName
+		timeseries = append(timeseries, ts)
+	}
+
+	return &models.SensorTimeseriesResponse{
+		SensorName: sensor.Name,
+		SensorID:   sensor.ID,
+		Timeseries: timeseries,
+		Total:      len(timeseries),
+	}, nil
+}
+
+// GetBatchSensorTimeseries fetches timeseries for multiple sensors
+func (r *Repository) GetBatchSensorTimeseries(sensorNames []string, typeNames []string) (*models.BatchSensorTimeseriesResponse, error) {
+	if len(sensorNames) == 0 {
+		return &models.BatchSensorTimeseriesResponse{
+			Sensors: []models.SensorTimeseriesResponse{},
+			Total:   0,
+		}, nil
+	}
+
+	// First get all sensors
+	placeholders := make([]string, len(sensorNames))
+	args := make([]interface{}, len(sensorNames))
+	for i, name := range sensorNames {
+		placeholders[i] = fmt.Sprintf("$%d", i+1)
+		args[i] = name
+	}
+
+	sensorQuery := fmt.Sprintf(`
+		SELECT id, name, parent_id, metadata, created_on, is_active, is_available
+		FROM %s.sensors
+		WHERE name IN (%s)
+		ORDER BY name`,
+		r.db.Schema, strings.Join(placeholders, ","))
+
+	rows, err := r.db.Query(sensorQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sensors: %w", err)
+	}
+	defer rows.Close()
+
+	var sensors []models.Sensor
+	sensorIDMap := make(map[int64]int) // Map sensor ID to index in result array
+	for rows.Next() {
+		var s models.Sensor
+		err := rows.Scan(&s.ID, &s.Name, &s.ParentID, &s.Metadata, &s.CreatedOn, &s.IsActive, &s.IsAvailable)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan sensor: %w", err)
+		}
+		sensorIDMap[s.ID] = len(sensors)
+		sensors = append(sensors, s)
+	}
+
+	// Build query for timeseries
+	if len(sensors) == 0 {
+		return &models.BatchSensorTimeseriesResponse{
+			Sensors: []models.SensorTimeseriesResponse{},
+			Total:   0,
+		}, nil
+	}
+
+	sensorIDs := make([]interface{}, len(sensors))
+	sensorPlaceholders := make([]string, len(sensors))
+	for i, s := range sensors {
+		sensorPlaceholders[i] = fmt.Sprintf("$%d", i+1)
+		sensorIDs[i] = s.ID
+	}
+
+	var timeseriesQuery string
+	var timeseriesArgs []interface{}
+	timeseriesArgs = append(timeseriesArgs, sensorIDs...)
+
+	if len(typeNames) > 0 {
+		// Filter by type names
+		typePlaceholders := make([]string, len(typeNames))
+		for i, typeName := range typeNames {
+			typePlaceholders[i] = fmt.Sprintf("$%d", len(sensors)+i+1)
+			timeseriesArgs = append(timeseriesArgs, typeName)
+		}
+		timeseriesQuery = fmt.Sprintf(`
+			SELECT ts.sensor_id, ts.id, t.name, t.id, t.description, t.unit, t.data_type, t.metadata
+			FROM %s.timeseries ts
+			JOIN %s."types" t ON ts.type_id = t.id
+			WHERE ts.sensor_id IN (%s) AND t.name IN (%s)
+			ORDER BY ts.sensor_id, t.name`,
+			r.db.Schema, r.db.Schema, strings.Join(sensorPlaceholders, ","), strings.Join(typePlaceholders, ","))
+	} else {
+		// Get all timeseries
+		timeseriesQuery = fmt.Sprintf(`
+			SELECT ts.sensor_id, ts.id, t.name, t.id, t.description, t.unit, t.data_type, t.metadata
+			FROM %s.timeseries ts
+			JOIN %s."types" t ON ts.type_id = t.id
+			WHERE ts.sensor_id IN (%s)
+			ORDER BY ts.sensor_id, t.name`,
+			r.db.Schema, r.db.Schema, strings.Join(sensorPlaceholders, ","))
+	}
+
+	tsRows, err := r.db.Query(timeseriesQuery, timeseriesArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get timeseries: %w", err)
+	}
+	defer tsRows.Close()
+
+	// Initialize result array
+	results := make([]models.SensorTimeseriesResponse, len(sensors))
+	for i, s := range sensors {
+		results[i] = models.SensorTimeseriesResponse{
+			SensorName: s.Name,
+			SensorID:   s.ID,
+			Timeseries: []models.TimeseriesInfo{},
+			Total:      0,
+		}
+	}
+
+	// Add timeseries to corresponding sensors
+	for tsRows.Next() {
+		var sensorID int64
+		var ts models.TimeseriesInfo
+		err := tsRows.Scan(
+			&sensorID, &ts.TimeseriesID, &ts.TypeName,
+			&ts.TypeInfo.ID, &ts.TypeInfo.Description, &ts.TypeInfo.Unit,
+			&ts.TypeInfo.DataType, &ts.TypeInfo.Metadata)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan timeseries: %w", err)
+		}
+		ts.TypeInfo.Name = ts.TypeName
+
+		if idx, ok := sensorIDMap[sensorID]; ok {
+			results[idx].Timeseries = append(results[idx].Timeseries, ts)
+			results[idx].Total++
+		}
+	}
+
+	return &models.BatchSensorTimeseriesResponse{
+		Sensors: results,
+		Total:   len(results),
+	}, nil
+}
