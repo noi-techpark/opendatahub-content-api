@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"timeseries-api/internal/filter"
@@ -299,13 +298,8 @@ func (mc *MaterializeClient) SubscribeWithFilters(
 
 	// Start a separate TAIL subscription for each data type in parallel
 	// This avoids UNION type casting issues and maintains typed values
-	var wg sync.WaitGroup
-	errChan := make(chan error, len(dataTypeGroups))
-
 	for dataType, typeNamesForDataType := range dataTypeGroups {
-		wg.Add(1)
 		go func(dt models.DataType, dtTypeNames []string) {
-			defer wg.Done()
 			err := mc.subscribeSingleDataType(
 				ctx,
 				dt,
@@ -317,25 +311,13 @@ func (mc *MaterializeClient) SubscribeWithFilters(
 				updatesChan,
 			)
 			if err != nil && err != context.Canceled {
-				errChan <- fmt.Errorf("subscription for %s failed: %w", dt, err)
+				logrus.WithError(err).WithField("dataType", dt).Error("Subscription failed")
 			}
 		}(dataType, typeNamesForDataType)
 	}
 
-	// Wait for all subscriptions to finish (will block until context is cancelled)
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
-
-	// Check for errors from any subscription
-	for err := range errChan {
-		if err != nil {
-			return spatialFilters, err
-		}
-	}
-
-	return spatialFilters, ctx.Err()
+	// Return immediately - subscriptions run in background until context is cancelled
+	return spatialFilters, nil
 }
 
 // subscribeSingleDataType handles TAIL subscription for a single data type
