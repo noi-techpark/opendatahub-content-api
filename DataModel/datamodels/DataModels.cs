@@ -3741,7 +3741,7 @@ namespace DataModel
         }
 
         public string? Id { get; set; }
-        public IDictionary<string, string> GpxTrackDesc { get; set; }
+        public IDictionary<string, string>? GpxTrackDesc { get; set; }
         public string? GpxTrackUrl { get; set; }
         public string? Type { get; set; }
         public string? Format { get; set; }
