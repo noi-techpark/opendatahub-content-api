@@ -259,6 +259,31 @@ info:
   version: 1.0.0
 paths:
   /datasets:
+    get:
+      description: Retrieve a list of all datasets. Use the 'with_types' query parameter
+        to include associated types.
+      parameters:
+      - description: Include associated measurement types (true/false)
+        in: query
+        name: with_types
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of datasets
+          schema:
+            items:
+              $ref: '#/definitions/models.DatasetResponse'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all datasets
+      tags:
+      - datasets
     post:
       consumes:
       - application/json

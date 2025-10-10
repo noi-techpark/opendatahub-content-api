@@ -50,7 +50,7 @@ type MeasurementUpdate struct {
 	DataType       models.DataType `json:"data_type"`
 	Unit           string          `json:"unit"`
 	SensorMetadata json.RawMessage `json:"sensor_metadata"`
-	Diff           int             `json:"diff"` // 1 for insert, -1 for delete
+	Diff           int             `json:"-"` // Internal field: 1 for insert, -1 for delete (not sent to client)
 }
 
 // SpatialFilterCondition represents a spatial filter extracted from expression
@@ -440,6 +440,12 @@ func (mc *MaterializeClient) subscribeSingleDataType(
 
 				update.Diff = mzDiff
 
+				// 🎯 FILTER DELETIONS: Only send insertions (diff=1), skip deletions (diff=-1)
+				// Materialize sends both when a view updates, but we only want new values
+				if mzDiff != 1 {
+					continue // Skip this update - it's a deletion
+				}
+
 				// Convert value based on data type (same pattern as repository.go getMeasurements)
 				switch dataType {
 				case models.DataTypeNumeric:
@@ -585,6 +591,28 @@ FROM %s`, valueColumn, tableName)
 			}
 			whereClauses = append(whereClauses, fmt.Sprintf("type_name IN (%s)", strings.Join(placeholders, ",")))
 		}
+
+		// ! At the moment this do not work because we need at least one type, and honetly the usefulness of this feature is doubtful
+		// Handle dataset membership filter (using DatasetIDs field for names)
+		if len(timeseriesFilter.DatasetIDs) > 0 {
+			// Treat timeseriesFilter.DatasetIDs as a list of Dataset Names for the filter
+			datasetNames := timeseriesFilter.DatasetIDs
+
+			// The MV already contains the 'dataset_names' array.
+			// We'll use the 'ANY' operator to check if any of the filter names
+			// are present in the MV's dataset_names array.
+
+			placeholders := make([]string, len(datasetNames))
+			for i, datasetName := range datasetNames {
+				placeholders[i] = fmt.Sprintf("$%d", argIndex)
+				args = append(args, datasetName)
+				argIndex++
+			}
+
+			// Check if the dataset_names array in the MV INTERSECTS with the input array
+			datasetClause := fmt.Sprintf("ARRAY[%s] <@ m.dataset_names", strings.Join(placeholders, ","))
+			whereClauses = append(whereClauses, datasetClause)
+		}
 	}
 
 	// Handle value conditions (DB-level filtering on typed columns!)
@@ -657,291 +685,6 @@ func (mc *MaterializeClient) buildValueConditionForDataType(
 			for i, val := range list {
 				placeholders[i] = fmt.Sprintf("$%d", startArgIndex+i)
 				args[i] = val
-			}
-			return fmt.Sprintf("value NOT IN (%s)", strings.Join(placeholders, ",")), args
-		}
-	}
-
-	return "", nil
-}
-
-// convertValueToString converts a value to string based on data type
-func (mc *MaterializeClient) convertValueToString(value interface{}, dataType models.DataType) string {
-	if value == nil {
-		return ""
-	}
-
-	switch v := value.(type) {
-	case string:
-		return v
-	case []byte:
-		return string(v)
-	case int, int32, int64:
-		return fmt.Sprintf("%d", v)
-	case float32, float64:
-		return fmt.Sprintf("%v", v)
-	case bool:
-		return fmt.Sprintf("%t", v)
-	default:
-		return fmt.Sprintf("%v", v)
-	}
-}
-
-// buildTailQuery builds a TAIL query with filters applied at DB level
-// Similar to buildMeasurementConditions in repository.go
-func (mc *MaterializeClient) buildTailQuery(
-	sensorNames []string,
-	typeNames []string,
-	timeseriesFilter *filter.TimeseriesFilter,
-	measurementFilter *filter.MeasurementFilter,
-	valueConditions []filter.ValueCondition,
-	typeDataTypes map[string]models.DataType,
-) (string, []interface{}, error) {
-
-	// Determine which data types we need to query
-	dataTypesToQuery := make(map[models.DataType]bool)
-
-	if len(typeDataTypes) > 0 {
-		for _, dt := range typeDataTypes {
-			dataTypesToQuery[dt] = true
-		}
-	} else {
-		// Subscribe to all data types
-		dataTypesToQuery[models.DataTypeNumeric] = true
-		dataTypesToQuery[models.DataTypeString] = true
-		dataTypesToQuery[models.DataTypeJSON] = true
-		dataTypesToQuery[models.DataTypeBoolean] = true
-		dataTypesToQuery[models.DataTypeGeoposition] = true
-		dataTypesToQuery[models.DataTypeGeoshape] = true
-	}
-
-	// Build UNION query for multiple data types
-	var unionParts []string
-	args := []interface{}{}
-	argIndex := 1
-
-	// If querying multiple data types, we need to cast value to text for UNION compatibility
-	castToText := len(dataTypesToQuery) > 1
-
-	for dataType := range dataTypesToQuery {
-		part, partArgs, nextArgIndex := mc.buildSingleTypeQuery(
-			dataType,
-			sensorNames,
-			typeNames,
-			timeseriesFilter,
-			measurementFilter,
-			valueConditions,
-			argIndex,
-			castToText,
-		)
-
-		unionParts = append(unionParts, part)
-		args = append(args, partArgs...)
-		argIndex = nextArgIndex
-	}
-
-	var query string
-	if len(unionParts) == 1 {
-		query = "DECLARE c CURSOR FOR SUBSCRIBE TO (\n" + unionParts[0] + "\n)"
-	} else {
-		query = "DECLARE c CURSOR FOR SUBSCRIBE TO (\n" + strings.Join(unionParts, "\nUNION ALL\n") + "\n)"
-	}
-
-	return query, args, nil
-}
-
-// buildSingleTypeQuery builds a query for a single data type
-func (mc *MaterializeClient) buildSingleTypeQuery(
-	dataType models.DataType,
-	sensorNames []string,
-	typeNames []string,
-	timeseriesFilter *filter.TimeseriesFilter,
-	measurementFilter *filter.MeasurementFilter,
-	valueConditions []filter.ValueCondition,
-	startArgIndex int,
-	castToText bool,
-) (string, []interface{}, int) {
-
-	tableName := fmt.Sprintf("latest_measurements_%s", dataType)
-	args := []interface{}{}
-	argIndex := startArgIndex
-	whereClauses := []string{}
-	joins := []string{}
-
-	// Determine value column (cast to text if doing UNION across multiple types)
-	valueColumn := "value"
-	if castToText {
-		valueColumn = "value::text"
-	}
-
-	// Base SELECT
-	query := fmt.Sprintf(`SELECT
-		timeseries_id,
-		timestamp,
-		%s as value,
-		provenance_id,
-		created_on,
-		sensor_id,
-		type_id,
-		sensor_name,
-		type_name,
-		data_type,
-		unit,
-		sensor_metadata
-	FROM %s`, valueColumn, tableName)
-
-	// Filter by sensor names
-	if len(sensorNames) > 0 {
-		placeholders := make([]string, len(sensorNames))
-		for i, name := range sensorNames {
-			placeholders[i] = fmt.Sprintf("$%d", argIndex)
-			args = append(args, name)
-			argIndex++
-		}
-		whereClauses = append(whereClauses, fmt.Sprintf("sensor_name IN (%s)", strings.Join(placeholders, ",")))
-	}
-
-	// Filter by type names
-	if len(typeNames) > 0 {
-		placeholders := make([]string, len(typeNames))
-		for i, name := range typeNames {
-			placeholders[i] = fmt.Sprintf("$%d", argIndex)
-			args = append(args, name)
-			argIndex++
-		}
-		whereClauses = append(whereClauses, fmt.Sprintf("type_name IN (%s)", strings.Join(placeholders, ",")))
-	}
-
-	// Handle timeseries filter
-	if timeseriesFilter != nil {
-		if len(timeseriesFilter.RequiredTypes) > 0 {
-			placeholders := make([]string, len(timeseriesFilter.RequiredTypes))
-			for i, typeName := range timeseriesFilter.RequiredTypes {
-				placeholders[i] = fmt.Sprintf("$%d", argIndex)
-				args = append(args, typeName)
-				argIndex++
-			}
-			whereClauses = append(whereClauses, fmt.Sprintf("type_name IN (%s)", strings.Join(placeholders, ",")))
-		}
-
-		// Handle dataset filter if specified
-		if len(timeseriesFilter.DatasetIDs) > 0 {
-			placeholders := make([]string, len(timeseriesFilter.DatasetIDs))
-			for i, datasetID := range timeseriesFilter.DatasetIDs {
-				placeholders[i] = fmt.Sprintf("$%d", argIndex)
-				args = append(args, datasetID)
-				argIndex++
-			}
-
-			// Join with dataset_types table
-			alias := tableName
-			joins = append(joins, fmt.Sprintf("JOIN dataset_types dt ON %s.type_id = dt.type_id", alias))
-			whereClauses = append(whereClauses, fmt.Sprintf("dt.dataset_id::text IN (%s)", strings.Join(placeholders, ",")))
-		}
-	}
-
-	// Handle value conditions (non-spatial)
-	for _, cond := range valueConditions {
-		// Only apply conditions for this data type
-		if len(typeDataTypes) > 0 {
-			if dt, ok := typeDataTypes[cond.TypeName]; !ok || dt != dataType {
-				continue
-			}
-		}
-
-		valueClause, valueArgs := mc.buildValueConditionClause(cond, dataType, tableName, argIndex)
-		if valueClause != "" {
-			whereClauses = append(whereClauses, valueClause)
-			args = append(args, valueArgs...)
-			argIndex += len(valueArgs)
-		}
-	}
-
-	// Add joins
-	if len(joins) > 0 {
-		query += "\n" + strings.Join(joins, "\n")
-	}
-
-	// Add WHERE clauses
-	if len(whereClauses) > 0 {
-		query += "\nWHERE " + strings.Join(whereClauses, " AND ")
-	}
-
-	return query, args, argIndex
-}
-
-// Declare typeDataTypes at package level for buildSingleTypeQuery
-var typeDataTypes map[string]models.DataType
-
-// buildValueConditionClause builds a WHERE clause for a value condition
-func (mc *MaterializeClient) buildValueConditionClause(
-	cond filter.ValueCondition,
-	dataType models.DataType,
-	tableName string,
-	startArgIndex int,
-) (string, []interface{}) {
-	args := []interface{}{}
-
-	// Build value condition based on operator
-	switch cond.Operator {
-	case filter.OpEqual:
-		if len(cond.JSONPath) > 0 {
-			jsonPath := strings.Join(cond.JSONPath, ".")
-			args = append(args, cond.Value)
-			return fmt.Sprintf("value->>'%s' = $%d", jsonPath, startArgIndex), args
-		}
-		args = append(args, cond.Value)
-		return fmt.Sprintf("value = $%d", startArgIndex), args
-
-	case filter.OpNotEqual:
-		if len(cond.JSONPath) > 0 {
-			jsonPath := strings.Join(cond.JSONPath, ".")
-			args = append(args, cond.Value)
-			return fmt.Sprintf("value->>'%s' != $%d", jsonPath, startArgIndex), args
-		}
-		args = append(args, cond.Value)
-		return fmt.Sprintf("value != $%d", startArgIndex), args
-
-	case filter.OpGreaterThan:
-		if dataType == models.DataTypeNumeric {
-			args = append(args, cond.Value)
-			return fmt.Sprintf("value > $%d", startArgIndex), args
-		}
-
-	case filter.OpGreaterThanOrEqual:
-		if dataType == models.DataTypeNumeric {
-			args = append(args, cond.Value)
-			return fmt.Sprintf("value >= $%d", startArgIndex), args
-		}
-
-	case filter.OpLessThan:
-		if dataType == models.DataTypeNumeric {
-			args = append(args, cond.Value)
-			return fmt.Sprintf("value < $%d", startArgIndex), args
-		}
-
-	case filter.OpLessThanOrEqual:
-		if dataType == models.DataTypeNumeric {
-			args = append(args, cond.Value)
-			return fmt.Sprintf("value <= $%d", startArgIndex), args
-		}
-
-	case filter.OpIn:
-		if list, ok := cond.Value.([]interface{}); ok {
-			placeholders := make([]string, len(list))
-			for i, val := range list {
-				placeholders[i] = fmt.Sprintf("$%d", startArgIndex+i)
-				args = append(args, val)
-			}
-			return fmt.Sprintf("value IN (%s)", strings.Join(placeholders, ",")), args
-		}
-
-	case filter.OpNotIn:
-		if list, ok := cond.Value.([]interface{}); ok {
-			placeholders := make([]string, len(list))
-			for i, val := range list {
-				placeholders[i] = fmt.Sprintf("$%d", startArgIndex+i)
-				args = append(args, val)
 			}
 			return fmt.Sprintf("value NOT IN (%s)", strings.Join(placeholders, ",")), args
 		}

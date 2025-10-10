@@ -28,6 +28,42 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/datasets": {
+            "get": {
+                "description": "Retrieve a list of all datasets. Use the 'with_types' query parameter to include associated types.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "datasets"
+                ],
+                "summary": "Get all datasets",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Include associated measurement types (true/false)",
+                        "name": "with_types",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of datasets",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DatasetResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new dataset with optional measurement type associations",
                 "consumes": [

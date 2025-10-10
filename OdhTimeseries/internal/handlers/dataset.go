@@ -61,7 +61,7 @@ func (h *DatasetHandler) CreateDataset(c *gin.Context) {
 	}
 
 	// Return the complete dataset with types
-	datasetResponse, err := h.repo.GetDatasetWithTypes(dataset.ID)
+	datasetResponse, err := h.repo.GetDatasetWithTypes(dataset.Name)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to get created dataset with types")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve created dataset"})
@@ -84,13 +84,8 @@ func (h *DatasetHandler) CreateDataset(c *gin.Context) {
 // @Router /datasets/{id} [get]
 func (h *DatasetHandler) GetDataset(c *gin.Context) {
 	datasetIDStr := c.Param("id")
-	datasetID, err := uuid.Parse(datasetIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid dataset ID format"})
-		return
-	}
 
-	datasetResponse, err := h.repo.GetDatasetWithTypes(datasetID)
+	datasetResponse, err := h.repo.GetDatasetWithTypes(datasetIDStr)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to get dataset")
 		c.JSON(http.StatusNotFound, gin.H{"error": "Dataset not found"})
@@ -98,6 +93,33 @@ func (h *DatasetHandler) GetDataset(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, datasetResponse)
+}
+
+// ListDatasets retrieves a list of all datasets, optionally including their types
+// @Summary Get all datasets
+// @Description Retrieve a list of all datasets. Use the 'with_types' query parameter to include associated types.
+// @Tags datasets
+// @Produce json
+// @Param with_types query bool false "Include associated measurement types (true/false)"
+// @Success 200 {array} models.DatasetResponse "List of datasets"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /datasets [get]
+func (h *DatasetHandler) ListDatasets(c *gin.Context) {
+	// Check for the 'with_types' query parameter
+	withTypesStr := c.DefaultQuery("with_types", "false")
+	withTypes := withTypesStr == "true"
+
+	datasets, err := h.repo.ListDatasets(withTypes)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to list datasets")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve datasets"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"datasets": datasets,
+		"count":    len(datasets),
+	})
 }
 
 // AddTypesToDataset adds types to an existing dataset
@@ -199,13 +221,8 @@ func (h *DatasetHandler) RemoveTypesFromDataset(c *gin.Context) {
 // @Router /datasets/{id}/sensors [get]
 func (h *DatasetHandler) GetSensorsByDataset(c *gin.Context) {
 	datasetIDStr := c.Param("id")
-	datasetID, err := uuid.Parse(datasetIDStr)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid dataset ID format"})
-		return
-	}
 
-	sensors, err := h.repo.FindSensorsByDatasetUpdated(datasetID)
+	sensors, err := h.repo.FindSensorsByDatasetUpdated(datasetIDStr)
 	if err != nil {
 		logrus.WithError(err).Error("Failed to find sensors by dataset")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve sensors"})

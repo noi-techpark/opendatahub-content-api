@@ -65,11 +65,22 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.name as type_name,
     t.data_type,
     t.unit,
-    s.metadata as sensor_metadata
+    s.metadata as sensor_metadata,
+    --- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+    dt_agg.dataset_names as dataset_names
 FROM measurements_numeric m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
+--- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+JOIN (
+    SELECT
+        dt.type_id,
+        ARRAY_AGG(d.name) AS dataset_names
+    FROM dataset_types dt
+    JOIN datasets d ON dt.dataset_id = d.id
+    GROUP BY dt.type_id
+) AS dt_agg ON t.id = dt_agg.type_id
 WHERE s.is_active = true
 ORDER BY m.timeseries_id, m.timestamp DESC;
 
@@ -87,11 +98,22 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.name as type_name,
     t.data_type,
     t.unit,
-    s.metadata as sensor_metadata
+    s.metadata as sensor_metadata,
+    --- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+    dt_agg.dataset_names as dataset_names
 FROM measurements_string m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
+--- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+JOIN (
+    SELECT
+        dt.type_id,
+        ARRAY_AGG(d.name) AS dataset_names
+    FROM dataset_types dt
+    JOIN datasets d ON dt.dataset_id = d.id
+    GROUP BY dt.type_id
+) AS dt_agg ON t.id = dt_agg.type_id
 WHERE s.is_active = true
 ORDER BY m.timeseries_id, m.timestamp DESC;
 
@@ -109,11 +131,22 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.name as type_name,
     t.data_type,
     t.unit,
-    s.metadata as sensor_metadata
+    s.metadata as sensor_metadata,
+    --- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+    dt_agg.dataset_names as dataset_names
 FROM measurements_json m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
+--- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+JOIN (
+    SELECT
+        dt.type_id,
+        ARRAY_AGG(d.name) AS dataset_names
+    FROM dataset_types dt
+    JOIN datasets d ON dt.dataset_id = d.id
+    GROUP BY dt.type_id
+) AS dt_agg ON t.id = dt_agg.type_id
 WHERE s.is_active = true
 ORDER BY m.timeseries_id, m.timestamp DESC;
 
@@ -131,11 +164,22 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.name as type_name,
     t.data_type,
     t.unit,
-    s.metadata as sensor_metadata
+    s.metadata as sensor_metadata,
+    --- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+    dt_agg.dataset_names as dataset_names
 FROM measurements_geoposition m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
+--- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+JOIN (
+    SELECT
+        dt.type_id,
+        ARRAY_AGG(d.name) AS dataset_names
+    FROM dataset_types dt
+    JOIN datasets d ON dt.dataset_id = d.id
+    GROUP BY dt.type_id
+) AS dt_agg ON t.id = dt_agg.type_id
 WHERE s.is_active = true
 ORDER BY m.timeseries_id, m.timestamp DESC;
 
@@ -153,11 +197,22 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.name as type_name,
     t.data_type,
     t.unit,
-    s.metadata as sensor_metadata
+    s.metadata as sensor_metadata,
+    --- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+    dt_agg.dataset_names as dataset_names
 FROM measurements_geoshape m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
+--- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+JOIN (
+    SELECT
+        dt.type_id,
+        ARRAY_AGG(d.name) AS dataset_names
+    FROM dataset_types dt
+    JOIN datasets d ON dt.dataset_id = d.id
+    GROUP BY dt.type_id
+) AS dt_agg ON t.id = dt_agg.type_id
 WHERE s.is_active = true
 ORDER BY m.timeseries_id, m.timestamp DESC;
 
@@ -175,10 +230,21 @@ SELECT DISTINCT ON (m.timeseries_id)
     t.name as type_name,
     t.data_type,
     t.unit,
-    s.metadata as sensor_metadata
+    s.metadata as sensor_metadata,
+    --- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+    dt_agg.dataset_names as dataset_names
 FROM measurements_boolean m
 JOIN timeseries ts ON m.timeseries_id = ts.id
 JOIN sensors s ON ts.sensor_id = s.id
 JOIN types t ON ts.type_id = t.id
+--- USEFUL ONLY IF REALLY WANT TO SUBSCRIBE TO DATASET
+JOIN (
+    SELECT
+        dt.type_id,
+        ARRAY_AGG(d.name) AS dataset_names
+    FROM dataset_types dt
+    JOIN datasets d ON dt.dataset_id = d.id
+    GROUP BY dt.type_id
+) AS dt_agg ON t.id = dt_agg.type_id
 WHERE s.is_active = true
 ORDER BY m.timeseries_id, m.timestamp DESC;

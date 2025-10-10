@@ -13,6 +13,7 @@ import (
 	"timeseries-api/pkg/database"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/wkt"
 )
@@ -550,15 +551,15 @@ func (r *Repository) CreateDataset(name, description string) (*models.Dataset, e
 	return &dataset, nil
 }
 
-func (r *Repository) GetDataset(datasetID uuid.UUID) (*models.Dataset, error) {
+func (r *Repository) GetDataset(datasetName string) (*models.Dataset, error) {
 	var dataset models.Dataset
 	query := fmt.Sprintf(`
 		SELECT id, name, description, created_on
 		FROM %s.datasets
-		WHERE id = $1`,
+		WHERE name = $1`,
 		r.db.Schema)
 
-	err := r.db.QueryRow(query, datasetID).Scan(
+	err := r.db.QueryRow(query, datasetName).Scan(
 		&dataset.ID, &dataset.Name, &dataset.Description, &dataset.CreatedOn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get dataset: %w", err)
@@ -567,8 +568,85 @@ func (r *Repository) GetDataset(datasetID uuid.UUID) (*models.Dataset, error) {
 	return &dataset, nil
 }
 
-func (r *Repository) GetDatasetWithTypes(datasetID uuid.UUID) (*models.DatasetResponse, error) {
-	dataset, err := r.GetDataset(datasetID)
+// ListDatasets fetches all datasets, optionally including their associated types.
+func (r *Repository) ListDatasets(withTypes bool) ([]models.DatasetResponse, error) {
+	// 1. Fetch all base datasets
+	datasetQuery := fmt.Sprintf(`
+        SELECT id, name, description, created_on
+        FROM %s.datasets
+        ORDER BY name`,
+		r.db.Schema)
+
+	rows, err := r.db.Query(datasetQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list datasets: %w", err)
+	}
+	defer rows.Close()
+
+	// Map to hold results: dataset ID -> DatasetResponse
+	datasetsMap := make(map[string]models.DatasetResponse)
+	var datasetIDs []string
+
+	for rows.Next() {
+		var ds models.Dataset
+		if err := rows.Scan(&ds.ID, &ds.Name, &ds.Description, &ds.CreatedOn); err != nil {
+			return nil, fmt.Errorf("failed to scan dataset: %w", err)
+		}
+		datasetsMap[ds.ID.String()] = models.DatasetResponse{Dataset: ds, Types: []models.TypeInDataset{}}
+		datasetIDs = append(datasetIDs, ds.ID.String())
+	}
+
+	// 2. Conditionally fetch types
+	if withTypes && len(datasetIDs) > 0 {
+
+		typeQuery := fmt.Sprintf(`
+            SELECT
+                dt.dataset_id, t.id, t.name, t.description, t.unit, t.data_type, t.metadata, dt.is_required
+            FROM %s.dataset_types dt
+            JOIN %s."types" t ON dt.type_id = t.id
+            WHERE dt.dataset_id = ANY($1::uuid[])
+            ORDER BY dt.dataset_id, t.name`,
+			r.db.Schema, r.db.Schema)
+
+		typeRows, err := r.db.Query(typeQuery, pq.Array(datasetIDs))
+		if err != nil {
+			// Updated error message to include the SQL error correctly
+			return nil, fmt.Errorf("failed to list dataset types: %w", err)
+		}
+		defer typeRows.Close()
+
+		for typeRows.Next() {
+			var datasetID uuid.UUID
+			var typeInDataset models.TypeInDataset
+
+			err := typeRows.Scan(
+				&datasetID, &typeInDataset.Type.ID, &typeInDataset.Type.Name,
+				&typeInDataset.Type.Description, &typeInDataset.Type.Unit,
+				&typeInDataset.Type.DataType, &typeInDataset.Type.Metadata,
+				&typeInDataset.IsRequired)
+			if err != nil {
+				return nil, fmt.Errorf("failed to scan dataset type during list: %w", err)
+			}
+
+			// Append the type to the correct dataset in the map
+			dsResponse := datasetsMap[datasetID.String()]
+			dsResponse.Types = append(dsResponse.Types, typeInDataset)
+			datasetsMap[datasetID.String()] = dsResponse
+		}
+	}
+
+	// 3. Convert map values back to a slice
+	var finalResponse []models.DatasetResponse
+	// Iterate over the sorted original IDs to maintain order
+	for _, id := range datasetIDs {
+		finalResponse = append(finalResponse, datasetsMap[id])
+	}
+
+	return finalResponse, nil
+}
+
+func (r *Repository) GetDatasetWithTypes(datasetName string) (*models.DatasetResponse, error) {
+	dataset, err := r.GetDataset(datasetName)
 	if err != nil {
 		return nil, err
 	}
@@ -577,11 +655,12 @@ func (r *Repository) GetDatasetWithTypes(datasetID uuid.UUID) (*models.DatasetRe
 		SELECT t.id, t.name, t.description, t.unit, t.data_type, t.metadata, dt.is_required
 		FROM %s.dataset_types dt
 		JOIN %s."types" t ON dt.type_id = t.id
-		WHERE dt.dataset_id = $1
+		JOIN %s.datasets d ON dt.dataset_id = d.id
+		WHERE d.name = $1
 		ORDER BY t.name`,
-		r.db.Schema, r.db.Schema)
+		r.db.Schema, r.db.Schema, r.db.Schema)
 
-	rows, err := r.db.Query(query, datasetID)
+	rows, err := r.db.Query(query, datasetName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get dataset types: %w", err)
 	}
@@ -693,17 +772,18 @@ func (r *Repository) RemoveTypesFromDataset(datasetID uuid.UUID, typeNames []str
 	return nil
 }
 
-func (r *Repository) FindSensorsByDatasetUpdated(datasetID uuid.UUID) ([]models.Sensor, error) {
+func (r *Repository) FindSensorsByDatasetUpdated(datasetName string) ([]models.Sensor, error) {
 	query := fmt.Sprintf(`
 		SELECT DISTINCT s.id, s.name, s.parent_id, s.metadata, s.created_on, s.is_active, s.is_available
 		FROM %s.sensors s
 		JOIN %s.timeseries ts ON s.id = ts.sensor_id
 		JOIN %s.types t ON ts.type_id = t.id
 		JOIN %s.dataset_types dt ON t.id = dt.type_id
-		WHERE dt.dataset_id = $1 AND s.is_active = true`,
-		r.db.Schema, r.db.Schema, r.db.Schema, r.db.Schema)
+		JOIN %s.datasets d ON d.id = dt.dataset_id
+		WHERE d.name = $1 AND s.is_active = true`,
+		r.db.Schema, r.db.Schema, r.db.Schema, r.db.Schema, r.db.Schema)
 
-	rows, err := r.db.Query(query, datasetID)
+	rows, err := r.db.Query(query, datasetName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find sensors by dataset: %w", err)
 	}
@@ -782,15 +862,22 @@ func (r *Repository) DiscoverSensorsByConditions(req *filter.SensorDiscoveryRequ
 
 		// Handle dataset membership filter
 		if len(tf.DatasetIDs) > 0 {
-			placeholders := make([]string, len(tf.DatasetIDs))
-			for i, datasetID := range tf.DatasetIDs {
+			// Treat tf.DatasetIDs as a list of Dataset Names for this logic.
+			datasetNames := tf.DatasetIDs
+
+			placeholders := make([]string, len(datasetNames))
+			for i, datasetName := range datasetNames {
 				placeholders[i] = fmt.Sprintf("$%d", argIndex)
-				args = append(args, datasetID)
+				args = append(args, datasetName)
 				argIndex++
 			}
-			// Join with dataset_types to filter by dataset membership
+
+			// Join with dataset_types (dt) AND datasets (d) to filter by dataset name
 			joins = append(joins, fmt.Sprintf("JOIN %s.dataset_types dt ON t.id = dt.type_id", r.db.Schema))
-			datasetClause := fmt.Sprintf("dt.dataset_id::text IN (%s)", strings.Join(placeholders, ","))
+			joins = append(joins, fmt.Sprintf("JOIN %s.datasets d ON dt.dataset_id = d.id", r.db.Schema))
+
+			// Filter using the dataset name
+			datasetClause := fmt.Sprintf("d.name IN (%s)", strings.Join(placeholders, ","))
 			whereClauses = append(whereClauses, datasetClause)
 		}
 	}

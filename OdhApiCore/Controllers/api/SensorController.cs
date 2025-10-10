@@ -71,6 +71,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="longitude">GeoFilter FLOAT Longitude Format: '11.369909', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="radius">Radius INTEGER to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
+        /// <param name="polygon">valid WKT (Well-known text representation of geometry) Format, Examples (POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))) / By Using the GeoShapes Api (v1/GeoShapes) and passing Country.Type.Id OR Country.Type.Name Example (it.municipality.3066) / Bounding Box Filter bbc: 'Bounding Box Contains', 'bbi': 'Bounding Box Intersects', followed by a List of Comma Separated Longitude Latitude Tuples, 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#polygon-filter-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="updatefrom">Returns data changed after this date Format (yyyy-MM-dd), (default: 'null')</param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed)</param>
@@ -115,6 +116,7 @@ namespace OdhApiCore.Controllers.api
             string? latitude = null,
             string? longitude = null,
             string? radius = null,
+            string? polygon = null,
             DateTime? updatefrom = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? searchfilter = null,
@@ -132,6 +134,16 @@ namespace OdhApiCore.Controllers.api
             CancellationToken cancellationToken = default
         )
         {
+            var geosearchresult = Helper.GeoSearchHelper.GetPGGeoSearchResult(
+                latitude,
+                longitude,
+                radius
+            );
+            var polygonsearchresult = await Helper.GeoSearchHelper.GetPolygon(
+                polygon,
+                QueryFactory
+            );
+
             try
             {
                 return await GetFiltered(
@@ -156,9 +168,8 @@ namespace OdhApiCore.Controllers.api
                     publishedon: publishedon,
                     active: active,
                     odhactive: odhactive,
-                    latitude: latitude,
-                    longitude: longitude,
-                    radius: radius,
+                    polygonsearchresult,
+                    geosearchresult,
                     updatefrom: updatefrom,
                     getasidarray: getasidarray,
                     tsdatasetids: tsdatasetids,
@@ -366,9 +377,8 @@ namespace OdhApiCore.Controllers.api
             string? publishedon,
             LegacyBool active,
             LegacyBool odhactive,
-            string? latitude,
-            string? longitude,
-            string? radius,
+            GeoPolygonSearchResult? polygonsearchresult,
+            PGGeoSearchResult geosearchresult,
             DateTime? updatefrom,
             bool getasidarray,
             string? tsdatasetids,
@@ -385,8 +395,6 @@ namespace OdhApiCore.Controllers.api
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
-
-                var geosearchresult = Helper.GeoSearchHelper.GetPGGeoSearchResult(latitude, longitude, radius);
 
                 SensorHelper myhelper = SensorHelper.Create(
                     QueryFactory,
@@ -430,6 +438,19 @@ namespace OdhApiCore.Controllers.api
                         userroles: UserRolesToFilter
                     )
                     .ApplyRawFilter(rawfilter)
+                    .When(
+                        polygonsearchresult != null,
+                        x =>
+                            x.WhereRaw(
+                                PostgresSQLHelper.GetGeoWhereInPolygon_GeneratedColumns(
+                                    polygonsearchresult.wktstring,
+                                    polygonsearchresult.polygon,
+                                    polygonsearchresult.srid,
+                                    polygonsearchresult.operation,
+                                    polygonsearchresult.reduceprecision
+                                )
+                            )
+                    )
                     .ApplyOrdering(ref seed, geosearchresult, rawsort);
 
                 // Check if timeseries filtering should be applied

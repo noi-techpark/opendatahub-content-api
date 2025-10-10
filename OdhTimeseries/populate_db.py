@@ -19,7 +19,7 @@ import sys
 import json
 import random
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 import uuid
 
@@ -238,7 +238,7 @@ class DatabasePopulator:
                 "SmgActive": True,
                 "_Meta": {
                     "Type": "sensor",
-                    "LastUpdate": datetime.now().isoformat(),
+                    "LastUpdate": datetime.now(timezone.utc).isoformat(),
                     "Source": "populate_script"
                 },
                 "LicenseInfo": {
@@ -247,8 +247,8 @@ class DatabasePopulator:
                     "ClosedData": False
                 },
                 "Source": "populate_script",
-                "FirstImport": datetime.now().isoformat(),
-                "LastChange": datetime.now().isoformat(),
+                "FirstImport": datetime.now(timezone.utc).isoformat(),
+                "LastChange": datetime.now(timezone.utc).isoformat(),
                 "SensorType": sensor_type,
                 "SensorName": sensor_name,
                 "Latitude": metadata["coordinates"]["lat"],
@@ -592,9 +592,14 @@ class DatabasePopulator:
             return
 
         total_measurements = 0
-        # Capture 'now' once to use as the absolute upper bound
-        end_date = datetime.now()
+        # Capture 'now' in UTC once to use as the absolute upper bound
+        # This ensures timestamps are never in the future regardless of local timezone
+        end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=days_back)
+
+        print(f"🕐 Timestamp bounds (UTC):")
+        print(f"   Start: {start_date.isoformat()}")
+        print(f"   End:   {end_date.isoformat()}")
 
         # Group timeseries by data type for batch processing
         timeseries_by_type = {}
@@ -625,10 +630,11 @@ class DatabasePopulator:
                             microseconds=random.randint(0, 999999)
                         )
                         
-                        # This check should theoretically not be needed here if the while loop is correct,
-                        # but it's a safe guard for the timestamp generation logic.
+                        # Safety check: ensure timestamp is never in the future (UTC)
+                        # This should not happen with correct logic, but it's a critical safeguard
                         if timestamp > end_date:
-                            continue # Skip this measurement as it is in the future
+                            # print(f"⚠️  WARNING: Generated future timestamp {timestamp.isoformat()}, skipping")
+                            continue
 
                         value = self._generate_measurement_value(data_type, ts['type_id'])
                         provenance_id = random.choice(self.provenance_ids) if random.random() < 0.8 else None
@@ -654,9 +660,10 @@ class DatabasePopulator:
                         random_seconds = random.uniform(0, max_delta.total_seconds())
                         timestamp = current_date + timedelta(seconds=random_seconds)
 
-                        # Ensure we haven't somehow exceeded the limit (should be unnecessary with uniform)
+                        # Safety check: ensure timestamp is never in the future (UTC)
                         if timestamp > end_date:
-                            continue 
+                            # print(f"⚠️  WARNING: Generated future timestamp {timestamp.isoformat()}, skipping")
+                            continue
 
                         value = self._generate_measurement_value(data_type, ts['type_id'])
                         provenance_id = random.choice(self.provenance_ids) if random.random() < 0.8 else None

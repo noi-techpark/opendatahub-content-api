@@ -217,6 +217,7 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 		datasets := v1.Group("/datasets")
 		{
 			datasets.POST("", datasetHandler.CreateDataset)
+			datasets.GET("", datasetHandler.ListDatasets)
 			datasets.GET("/:id", datasetHandler.GetDataset)
 			datasets.POST("/:id/types", datasetHandler.AddTypesToDataset)
 			datasets.DELETE("/:id/types", datasetHandler.RemoveTypesFromDataset)
