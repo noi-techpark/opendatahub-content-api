@@ -594,25 +594,25 @@ FROM %s`, valueColumn, tableName)
 
 		// ! At the moment this do not work because we need at least one type, and honetly the usefulness of this feature is doubtful
 		// Handle dataset membership filter (using DatasetIDs field for names)
-		if len(timeseriesFilter.DatasetIDs) > 0 {
-			// Treat timeseriesFilter.DatasetIDs as a list of Dataset Names for the filter
-			datasetNames := timeseriesFilter.DatasetIDs
+		// if len(timeseriesFilter.DatasetIDs) > 0 {
+		// 	// Treat timeseriesFilter.DatasetIDs as a list of Dataset Names for the filter
+		// 	datasetNames := timeseriesFilter.DatasetIDs
 
-			// The MV already contains the 'dataset_names' array.
-			// We'll use the 'ANY' operator to check if any of the filter names
-			// are present in the MV's dataset_names array.
+		// 	// The MV already contains the 'dataset_names' array.
+		// 	// We'll use the 'ANY' operator to check if any of the filter names
+		// 	// are present in the MV's dataset_names array.
 
-			placeholders := make([]string, len(datasetNames))
-			for i, datasetName := range datasetNames {
-				placeholders[i] = fmt.Sprintf("$%d", argIndex)
-				args = append(args, datasetName)
-				argIndex++
-			}
+		// 	placeholders := make([]string, len(datasetNames))
+		// 	for i, datasetName := range datasetNames {
+		// 		placeholders[i] = fmt.Sprintf("$%d", argIndex)
+		// 		args = append(args, datasetName)
+		// 		argIndex++
+		// 	}
 
-			// Check if the dataset_names array in the MV INTERSECTS with the input array
-			datasetClause := fmt.Sprintf("ARRAY[%s] <@ m.dataset_names", strings.Join(placeholders, ","))
-			whereClauses = append(whereClauses, datasetClause)
-		}
+		// 	// Check if the dataset_names array in the MV INTERSECTS with the input array
+		// 	datasetClause := fmt.Sprintf("ARRAY[%s] <@ m.dataset_names", strings.Join(placeholders, ","))
+		// 	whereClauses = append(whereClauses, datasetClause)
+		// }
 	}
 
 	// Handle value conditions (DB-level filtering on typed columns!)
