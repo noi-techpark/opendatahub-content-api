@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 5: Interactive Map with Content Filtering</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <!-- Chart.js for timeseries plot -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .top-section {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left-panel {
+            width: 350px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .panel-header h2 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #805ad5;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .btn-primary {
+            background: #805ad5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #6b46c1;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        #map {
+            flex: 1;
+            position: relative;
+        }
+
+        .bottom-panel {
+            height: 300px;
+            background: white;
+            border-top: 2px solid #dee2e6;
+            display: none;
+            flex-direction: row;
+            overflow: hidden;
+        }
+
+        .bottom-panel.visible {
+            display: flex;
+        }
+
+        .chart-container {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .sensor-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sensor-item {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sensor-item:hover {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-color: #805ad5;
+        }
+
+        .sensor-item.selected {
+            background: #f5f3ff;
+            border-color: #805ad5;
+        }
+
+        .sensor-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .sensor-meta {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .drawing-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-size: 12px;
+            max-width: 250px;
+        }
+
+        .drawing-info strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #805ad5;
+        }
+
+        .sensor-marker {
+            background: #805ad5;
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .sensor-marker.selected {
+            background: #f56565;
+            width: 16px;
+            height: 16px;
+        }
+
+        .loading {
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .timeseries-list {
+            width: 250px;
+            padding: 15px;
+            overflow-y: auto;
+            border-right: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .timeseries-list h3 {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .timeseries-item {
+            padding: 8px;
+            margin-bottom: 6px;
+            background: white;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .timeseries-item label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .timeseries-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #6c757d;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Interactive Map with Content Filtering</h1>
+        <p>Filter sensors by metadata, draw polygons to filter by location, click sensors to view timeseries</p>
+    </div>
+
+    <div class="main-container">
+        <!-- Top Section: Filters + Map -->
+        <div class="top-section">
+            <!-- Left Panel: Filters -->
+            <div class="left-panel">
+                <div class="panel-header">
+                    <h2>Sensor Filters</h2>
+                    <div id="filter-status"></div>
+                </div>
+                <div class="panel-content">
+                    <div class="form-group">
+                        <label for="dataset-id">Dataset ID</label>
+                        <input type="text" id="dataset-id" placeholder="e.g., solar_plants">
+                        <small>Filter by dataset identifier</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sensor-type">Sensor Type</label>
+                        <input type="text" id="sensor-type" placeholder="e.g., weather_station">
+                        <small>Filter by sensor type</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tags">Tags (comma-separated)</label>
+                        <input type="text" id="tags" placeholder="e.g., outdoor, public">
+                        <small>Filter by sensor tags</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rawfilter">Raw Filter</label>
+                        <input type="text" id="rawfilter" placeholder="e.g., and(eq(active,true))">
+                        <small>Advanced ODH rawfilter syntax</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Spatial Filter Mode</label>
+                        <select id="spatial-mode">
+                            <option value="bbox">Bounding Box (BBI - Map Bounds)</option>
+                            <option value="draw">Draw Polygon</option>
+                        </select>
+                        <small id="spatial-help">Automatically uses map bounds</small>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="loadSensors()">Load Sensors</button>
+                    <button class="btn btn-secondary" onclick="clearMap()">Clear Map</button>
+
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                        <h3 style="font-size: 14px; margin-bottom: 10px; color: #333;">Sensors on Map</h3>
+                        <div class="sensor-list" id="sensor-list">
+                            <div class="empty-state" style="padding: 20px;">
+                                <small>No sensors loaded</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map -->
+            <div id="map">
+                <div class="drawing-info" id="drawing-info" style="display: none;">
+                    <strong>Draw a Polygon</strong>
+                    Use the polygon tool to filter sensors by drawn area
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel: Timeseries Chart -->
+        <div class="bottom-panel" id="bottom-panel">
+            <div class="timeseries-list" id="timeseries-types">
+                <h3>Select Timeseries</h3>
+                <div class="loading">Click a sensor to load timeseries...</div>
+            </div>
+            <div class="chart-container">
+                <button class="close-btn" onclick="closeChart()">&times;</button>
+                <h2 id="chart-title" style="font-size: 16px; margin-bottom: 5px;">Sensor Timeseries</h2>
+                <div id="chart-sensor-info" style="font-size: 12px; color: #6c757d; margin-bottom: 15px;"></div>
+                <div class="chart-wrapper">
+                    <canvas id="timeseries-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Draw JS -->
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+
+    <script>
+        const CONTENT_API_URL = 'http://localhost:8082/v1/Sensor';
+        const MEASUREMENTS_API_URL = 'http://localhost:8080/api/v1/measurements/historical';
+
+        let map;
+        let markers = {};
+        let sensors = [];
+        let selectedSensorId = null;
+        let drawnPolygon = null;
+        let drawControl = null;
+        let chart = null;
+
+        function initMap() {
+            map = L.map('map').setView([46.5, 11.35], 9);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Initialize Leaflet Draw
+            const drawnItems = new L.FeatureGroup();
+            map.addLayer(drawnItems);
+
+            drawControl = new L.Control.Draw({
+                draw: {
+                    polygon: true,
+                    polyline: false,
+                    rectangle: false,
+                    circle: false,
+                    marker: false,
+                    circlemarker: false
+                },
+                edit: {
+                    featureGroup: drawnItems,
+                    remove: true
+                }
+            });
+
+            map.on(L.Draw.Event.CREATED, (event) => {
+                drawnItems.clearLayers();
+                const layer = event.layer;
+                drawnItems.addLayer(layer);
+                drawnPolygon = layer.toGeoJSON().geometry;
+                console.log('Polygon drawn:', drawnPolygon);
+                loadSensors();
+            });
+
+            map.on(L.Draw.Event.DELETED, () => {
+                drawnPolygon = null;
+                loadSensors();
+            });
+
+            // Update spatial mode handler
+            document.getElementById('spatial-mode').addEventListener('change', (e) => {
+                const mode = e.target.value;
+                if (mode === 'draw') {
+                    map.addControl(drawControl);
+                    document.getElementById('spatial-help').textContent = 'Draw a polygon on the map';
+                    document.getElementById('drawing-info').style.display = 'block';
+                } else {
+                    if (map.hasControl(drawControl)) {
+                        map.removeControl(drawControl);
+                    }
+                    document.getElementById('spatial-help').textContent = 'Automatically uses map bounds';
+                    document.getElementById('drawing-info').style.display = 'none';
+                }
+            });
+        }
+
+        async function loadSensors() {
+            const datasetId = document.getElementById('dataset-id').value.trim();
+            const sensorType = document.getElementById('sensor-type').value.trim();
+            const tags = document.getElementById('tags').value.trim();
+            const rawfilter = document.getElementById('rawfilter').value.trim();
+            const spatialMode = document.getElementById('spatial-mode').value;
+
+            // Build query parameters
+            const params = new URLSearchParams();
+            params.append('pagesize', '100');
+
+            if (datasetId) params.append('tsdatasetids', datasetId);
+            if (sensorType) params.append('tsrequiredtypes', sensorType);
+            if (tags) params.append('odhtagfilter', tags);
+            if (rawfilter) params.append('rawfilter', rawfilter);
+
+            // Add spatial filter
+            if (spatialMode === 'bbox') {
+                const bounds = map.getBounds();
+                const sw = bounds.getSouthWest();
+                const ne = bounds.getNorthEast();
+                // Convert bounding box to WKT POLYGON
+                const wkt = `POLYGON ((${sw.lng} ${sw.lat}, ${ne.lng} ${sw.lat}, ${ne.lng} ${ne.lat}, ${sw.lng} ${ne.lat}, ${sw.lng} ${sw.lat}))`;
+                params.append('polygon', wkt);
+            } else if (spatialMode === 'draw' && drawnPolygon) {
+                // Convert GeoJSON to WKT
+                const wkt = geoJsonToWKT(drawnPolygon);
+                params.append('polygon', wkt);
+            }
+
+            document.getElementById('filter-status').innerHTML = '<span class="status-badge" style="background: #fff3cd; color: #856404;">Loading...</span>';
+
+            try {
+                const url = `${CONTENT_API_URL}?${params.toString()}`;
+                console.log('Fetching sensors from:', url);
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // Get raw text first for debugging
+                const textResponse = await response.text();
+                console.log('Raw response (first 500 chars):', textResponse.substring(0, 500));
+
+                // Try to parse JSON
+                let data;
+                try {
+                    data = JSON.parse(textResponse);
+                } catch (jsonError) {
+                    console.error('JSON parse error:', jsonError);
+                    console.error('Response text:', textResponse);
+                    throw new Error(`Invalid JSON response: ${jsonError.message}`);
+                }
+
+                console.log('Parsed data:', data);
+
+                // Handle different response formats
+                if (Array.isArray(data)) {
+                    sensors = data;
+                } else if (data.Items && Array.isArray(data.Items)) {
+                    // OdhApiCore JSON storage format
+                    sensors = data.Items.map(item => {
+                        const sensorData = item.data || item;
+                        return {
+                            ...sensorData,
+                            id: sensorData.Id || item.id,
+                            name: sensorData.SensorName || sensorData.Id || item.id,
+                            type: sensorData.SensorType,
+                            dataset_id: sensorData.DatasetId,
+                            location: {
+                                lat: sensorData.Latitude,
+                                lng: sensorData.Longitude
+                            }
+                        };
+                    });
+                } else {
+                    console.warn('Unexpected response format:', data);
+                    sensors = [];
+                }
+
+                console.log('Processed sensors:', sensors);
+                renderSensors();
+
+                document.getElementById('filter-status').innerHTML = `<span class="status-badge success">Found ${sensors.length} sensors</span>`;
+            } catch (error) {
+                console.error('Error loading sensors:', error);
+                document.getElementById('filter-status').innerHTML = `<span class="status-badge error">Error: ${error.message}</span>`;
+            }
+        }
+
+        function geoJsonToWKT(geometry) {
+            if (geometry.type === 'Polygon') {
+                const coords = geometry.coordinates[0];
+                const wktCoords = coords.map(c => `${c[0]} ${c[1]}`).join(', ');
+                return `POLYGON ((${wktCoords}))`;
+            }
+            return '';
+        }
+
+        function renderSensors() {
+            // Clear existing markers
+            Object.values(markers).forEach(marker => marker.remove());
+            markers = {};
+
+            if (sensors.length === 0) {
+                document.getElementById('sensor-list').innerHTML = '<div class="empty-state" style="padding: 20px;"><small>No sensors found</small></div>';
+                return;
+            }
+
+            // Render markers
+            sensors.forEach(sensor => {
+                if (sensor.location && sensor.location.lat && sensor.location.lng) {
+                    const icon = L.divIcon({
+                        className: 'sensor-marker',
+                        iconSize: [12, 12]
+                    });
+
+                    const marker = L.marker([sensor.location.lat, sensor.location.lng], { icon: icon })
+                        .addTo(map)
+                        .bindTooltip(sensor.Id, { permanent: false, direction: 'top' });
+
+                    marker.on('click', () => selectSensor(sensor.id));
+                    markers[sensor.id] = marker;
+                }
+            });
+
+            // Render sidebar list
+            const listHtml = sensors.map(sensor => `
+                <div class="sensor-item ${selectedSensorId === sensor.id ? 'selected' : ''}"
+                     onclick="selectSensor(${sensor.id})">
+                    <div class="sensor-name">${sensor.Id}</div>
+                    <div class="sensor-meta">
+                        ${sensor.type || 'N/A'} • ${sensor.dataset_id || 'N/A'}
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('sensor-list').innerHTML = listHtml;
+        }
+
+        async function selectSensor(sensorId) {
+            selectedSensorId = sensorId;
+            renderSensors();
+
+            // Update marker styles
+            Object.entries(markers).forEach(([id, marker]) => {
+                const isSelected = id == sensorId;
+                marker.getElement().className = isSelected ? 'sensor-marker selected' : 'sensor-marker';
+            });
+
+            const sensor = sensors.find(s => s.id == sensorId);
+            if (!sensor) return;
+
+            // Pan to sensor
+            if (sensor.location && sensor.location.lat && sensor.location.lng) {
+                map.setView([sensor.location.lat, sensor.location.lng], 13);
+            }
+
+            // Show bottom panel
+            document.getElementById('bottom-panel').classList.add('visible');
+            document.getElementById('chart-title').textContent = sensor.Id || sensor.name;
+            document.getElementById('chart-sensor-info').textContent = `${sensor.type || 'N/A'} • ${sensor.dataset_id || 'N/A'}`;
+
+            // Load timeseries types
+            await loadTimeseriesTypes(sensorId);
+        }
+
+        async function loadTimeseriesTypes(sensorId) {
+            const container = document.getElementById('timeseries-types');
+            container.innerHTML = '<div class="loading">Loading timeseries...</div>';
+
+            try {
+                const sensor = sensors.find(s => s.id == sensorId);
+                if (!sensor) return;
+
+                // Fetch recent measurements to discover available types
+                const now = new Date();
+                const past = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+
+                const response = await fetch(MEASUREMENTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sensor_names: [sensor.Id],
+                        start_time: past.toISOString(),
+                        end_time: now.toISOString(),
+                        limit: 100
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                const measurements = data.measurements || [];
+
+                // Extract unique type names
+                const types = [...new Set(measurements.map(m => m.type_name))];
+
+                if (types.length === 0) {
+                    container.innerHTML = '<div class="empty-state" style="padding: 10px;"><small>No timeseries found</small></div>';
+                    return;
+                }
+
+                container.innerHTML = types.map(type => `
+                    <div class="timeseries-item">
+                        <label>
+                            <input type="checkbox" value="${type}" onchange="updateChart()">
+                            ${type}
+                        </label>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading timeseries:', error);
+                container.innerHTML = `<div class="empty-state" style="padding: 10px;"><small style="color: #dc3545;">Error loading timeseries</small></div>`;
+            }
+        }
+
+        async function updateChart() {
+            const checkboxes = document.querySelectorAll('#timeseries-types input[type="checkbox"]:checked');
+            const selectedTypes = Array.from(checkboxes).map(cb => cb.value);
+
+            if (!chart) {
+                initChart();
+            }
+
+            chart.data.datasets = [];
+
+            for (const type of selectedTypes) {
+                const data = await fetchTimeseries(selectedSensorId, type);
+                chart.data.datasets.push({
+                    label: type,
+                    data: data,
+                    borderColor: getRandomColor(),
+                    tension: 0.1,
+                    // fill: false
+                });
+            }
+
+            chart.update();
+        }
+
+        async function fetchTimeseries(sensorId, typeName) {
+            const sensor = sensors.find(s => s.id == sensorId);
+            if (!sensor) return [];
+
+            // Fetch last 30 days of data
+            const now = new Date();
+            const past = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+            const response = await fetch(MEASUREMENTS_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sensor_names: [sensor.Id],
+                    type_names: [typeName],
+                    start_time: past.toISOString(),
+                    end_time: now.toISOString(),
+                })
+            });
+
+            if (!response.ok) {
+                console.error(`Failed to fetch timeseries: ${response.status}`);
+                return [];
+            }
+
+            const data = await response.json();
+            const measurements = data.measurements || [];
+
+            return measurements.map(item => ({
+                x: new Date(item.timestamp),
+                y: item.value
+            }));
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('timeseries-chart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            }
+                        },
+                        y: {
+                            beginAtZero: false
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function closeChart() {
+            document.getElementById('bottom-panel').classList.remove('visible');
+            selectedSensorId = null;
+            renderSensors();
+
+            Object.values(markers).forEach(marker => {
+                marker.getElement().className = 'sensor-marker';
+            });
+        }
+
+        function clearMap() {
+            Object.values(markers).forEach(marker => marker.remove());
+            markers = {};
+            sensors = [];
+            selectedSensorId = null;
+            document.getElementById('sensor-list').innerHTML = '<div class="empty-state" style="padding: 20px;"><small>No sensors loaded</small></div>';
+            closeChart();
+        }
+
+        function getRandomColor() {
+            const colors = ['#667eea', '#f56565', '#48bb78', '#ed8936', '#9f7aea', '#38b2ac'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Initialize
+        initMap();
+    </script>
+</body>
+</html>

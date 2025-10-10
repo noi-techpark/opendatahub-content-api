@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 3: Real-time Plotting</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4c51bf 0%, #667eea 100%);
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .config-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .config-panel h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .sensor-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            min-height: 32px;
+        }
+
+        .sensor-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #e0e7ff;
+            color: #4c51bf;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .sensor-tag button {
+            background: none;
+            border: none;
+            color: #4c51bf;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4c51bf;
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-badge.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stat {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .stat strong {
+            color: #333;
+            font-size: 16px;
+            margin-left: 5px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            height: 500px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 100%;
+        }
+
+        .legend-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .legend-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .legend-value {
+            color: #6c757d;
+            margin-left: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        small {
+            color: #6c757d;
+            font-size: 12px;
+            display: block;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Real-time Data Plotting</h1>
+        <p>Subscribe to sensors and visualize streaming measurements in real-time</p>
+    </div>
+
+    <div class="container">
+        <!-- Configuration Panel -->
+        <div class="config-panel">
+            <h2>Sensor Selection</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="sensor-name">Sensor Name</label>
+                    <input type="text" id="sensor-name" placeholder="e.g., HUM_Park_067">
+                    <small>Enter sensor name and press "Add Sensor"</small>
+                </div>
+                <div class="form-group">
+                    <label for="type-filter">Type Filter (optional)</label>
+                    <input type="text" id="type-filter" placeholder="e.g., temperature, humidity">
+                    <small>Leave empty to plot all types for selected sensors</small>
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555; font-size: 14px;">
+                    Selected Sensors:
+                </label>
+                <div class="sensor-tags" id="sensor-tags">
+                    <small style="color: #6c757d;">No sensors selected. Add sensors above.</small>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="max-points">Max Data Points per Sensor</label>
+                    <input type="number" id="max-points" value="50" min="10" max="500">
+                    <small>Older data will be removed to keep chart responsive</small>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="skip-snapshot" style="width: auto; margin-right: 8px;">
+                        Skip Initial Snapshot (only stream new data)
+                    </label>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="addSensor()">Add Sensor</button>
+                <button class="btn btn-primary" id="btn-start" onclick="startStreaming()">Start Streaming</button>
+                <button class="btn btn-secondary" id="btn-stop" onclick="stopStreaming()" disabled>Stop Streaming</button>
+                <button class="btn" onclick="clearChart()" style="margin-left: auto;">Clear Chart</button>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-badge disconnected" id="status">⚫ Disconnected</span>
+            <span class="stat">Data Points: <strong id="stat-points">0</strong></span>
+            <span class="stat">Updates: <strong id="stat-updates">0</strong></span>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WS_URL = 'ws://localhost:8080/api/v1/measurements/subscribe';
+
+        let ws = null;
+        let chart = null;
+        let sensors = [];
+        let datasets = {};
+        let updateCount = 0;
+        let maxPoints = 50;
+        let colors = [
+            '#667eea', '#f56565', '#48bb78', '#ed8936', '#9f7aea',
+            '#38b2ac', '#ecc94b', '#ed64a6', '#4299e1', '#fc8181'
+        ];
+
+        function initChart() {
+            const ctx = document.getElementById('chart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'minute',
+                                displayFormats: {
+                                    minute: 'HH:mm',
+                                    second: 'HH:mm:ss'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function addSensor() {
+            const sensorName = document.getElementById('sensor-name').value.trim();
+            if (!sensorName) {
+                alert('Please enter a sensor name');
+                return;
+            }
+
+            if (sensors.includes(sensorName)) {
+                alert('Sensor already added');
+                return;
+            }
+
+            sensors.push(sensorName);
+            document.getElementById('sensor-name').value = '';
+            updateSensorTags();
+        }
+
+        function removeSensor(sensorName) {
+            sensors = sensors.filter(s => s !== sensorName);
+            updateSensorTags();
+
+            // Remove datasets for this sensor
+            Object.keys(datasets).forEach(key => {
+                if (key.startsWith(sensorName + ':')) {
+                    delete datasets[key];
+                }
+            });
+            updateChart();
+        }
+
+        function updateSensorTags() {
+            const container = document.getElementById('sensor-tags');
+
+            if (sensors.length === 0) {
+                container.innerHTML = '<small style="color: #6c757d;">No sensors selected. Add sensors above.</small>';
+                return;
+            }
+
+            container.innerHTML = sensors.map(sensor => `
+                <div class="sensor-tag">
+                    ${sensor}
+                    <button onclick="removeSensor('${sensor}')">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function startStreaming() {
+            if (sensors.length === 0) {
+                alert('Please add at least one sensor');
+                return;
+            }
+
+            maxPoints = parseInt(document.getElementById('max-points').value) || 50;
+            const typeFilter = document.getElementById('type-filter').value.trim();
+            const skipSnapshot = document.getElementById('skip-snapshot').checked;
+
+            document.getElementById('btn-start').disabled = true;
+            document.getElementById('btn-stop').disabled = false;
+
+            updateStatus('connecting');
+
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                const payload = {
+                    sensor_names: sensors,
+                    skip_initial_snapshot: skipSnapshot
+                };
+
+                if (typeFilter) {
+                    payload.type_names = typeFilter.split(',').map(t => t.trim());
+                }
+
+                const initMessage = {
+                    type: 'connection_init',
+                    payload: payload
+                };
+
+                ws.send(JSON.stringify(initMessage));
+                console.log('Sent connection_init:', initMessage);
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+
+                if (message.type === 'connection_ack') {
+                    updateStatus('connected');
+                    console.log('Connection acknowledged');
+                } else if (message.type === 'data') {
+                    handleMeasurement(message.payload);
+                } else if (message.type === 'error') {
+                    console.error('WebSocket error:', message.payload);
+                    alert('Error: ' + JSON.stringify(message.payload));
+                    stopStreaming();
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateStatus('error');
+            };
+
+            ws.onclose = () => {
+                updateStatus('disconnected');
+                document.getElementById('btn-start').disabled = false;
+                document.getElementById('btn-stop').disabled = true;
+            };
+        }
+
+        function stopStreaming() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function handleMeasurement(update) {
+            updateCount++;
+            document.getElementById('stat-updates').textContent = updateCount;
+
+            const sensorName = update.sensor_name;
+            const typeName = update.type_name;
+            const value = update.value;
+            const timestamp = new Date(update.timestamp);
+
+            // Only process numeric values
+            if (typeof value !== 'number') {
+                return;
+            }
+
+            // Create dataset key
+            const datasetKey = `${sensorName}:${typeName}`;
+
+            // Initialize dataset if needed
+            if (!datasets[datasetKey]) {
+                const colorIndex = Object.keys(datasets).length % colors.length;
+                datasets[datasetKey] = {
+                    label: `${sensorName} (${typeName})`,
+                    data: [],
+                    borderColor: colors[colorIndex],
+                    backgroundColor: colors[colorIndex] + '20',
+                    tension: 0.1,
+                    fill: false
+                };
+            }
+
+            // Add data point
+            datasets[datasetKey].data.push({
+                x: timestamp,
+                y: value
+            });
+
+            // Limit data points
+            if (datasets[datasetKey].data.length > maxPoints) {
+                datasets[datasetKey].data.shift();
+            }
+
+            updateChart();
+        }
+
+        function updateChart() {
+            chart.data.datasets = Object.values(datasets);
+            chart.update('none'); // No animation for better performance
+
+            // Update stats
+            const totalPoints = Object.values(datasets).reduce((sum, ds) => sum + ds.data.length, 0);
+            document.getElementById('stat-points').textContent = totalPoints;
+        }
+
+        function clearChart() {
+            if (confirm('Clear all chart data?')) {
+                datasets = {};
+                updateCount = 0;
+                document.getElementById('stat-updates').textContent = '0';
+                updateChart();
+            }
+        }
+
+        function updateStatus(status) {
+            const statusEl = document.getElementById('status');
+
+            if (status === 'connected') {
+                statusEl.className = 'status-badge connected';
+                statusEl.textContent = '🟢 Connected';
+            } else if (status === 'connecting') {
+                statusEl.className = 'status-badge';
+                statusEl.style.background = '#fff3cd';
+                statusEl.style.color = '#856404';
+                statusEl.textContent = '🟡 Connecting...';
+            } else {
+                statusEl.className = 'status-badge disconnected';
+                statusEl.textContent = '⚫ Disconnected';
+            }
+        }
+
+        // Initialize
+        initChart();
+    </script>
+</body>
+</html>

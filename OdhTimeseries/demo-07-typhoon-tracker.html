@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 7 - Typhoon Tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 1rem;
+            border-bottom: 2px solid #dc2626;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #dc2626, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid #dc2626;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #dc2626;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #map {
+            flex: 1;
+            background: #0a0e1a;
+        }
+
+        .time-controls {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.25rem 2rem;
+            border-radius: 1rem;
+            border: 2px solid #dc2626;
+            z-index: 1000;
+            min-width: 600px;
+            box-shadow: 0 20px 50px rgba(220, 38, 38, 0.3);
+        }
+
+        .time-display {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #f87171;
+        }
+
+        .mode-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #dc2626;
+            color: white;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+        }
+
+        .mode-badge.playback {
+            background: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        .slider-container {
+            margin-bottom: 1rem;
+        }
+
+        .time-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #334155 0%, #475569 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .time-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #dc2626;
+            cursor: pointer;
+            border: 2px solid #0f172a;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+        }
+
+        .time-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #dc2626;
+            cursor: pointer;
+            border: 2px solid #0f172a;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+        }
+
+        .playback-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .playback-controls button {
+            padding: 0.625rem 1.5rem;
+            font-weight: 600;
+            background: #334155;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .playback-controls button:hover {
+            background: #475569;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .playback-controls button.primary {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border: none;
+        }
+
+        .playback-controls button.primary:hover {
+            background: linear-gradient(135deg, #b91c1c, #991b1b);
+        }
+
+        .typhoon-list {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 2px solid #dc2626;
+            z-index: 1000;
+            max-width: 350px;
+            max-height: calc(100vh - 14rem);
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(220, 38, 38, 0.3);
+        }
+
+        .typhoon-list h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #f87171;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .typhoon-card {
+            background: rgba(30, 41, 59, 0.8);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .typhoon-card:hover {
+            border-color: #dc2626;
+            background: rgba(220, 38, 38, 0.15);
+            transform: translateX(-4px);
+        }
+
+        .typhoon-card.selected {
+            border-color: #dc2626;
+            background: rgba(220, 38, 38, 0.2);
+        }
+
+        .typhoon-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f87171;
+            margin-bottom: 0.25rem;
+        }
+
+        .typhoon-stats {
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.25rem;
+        }
+
+        .legend {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 1rem;
+            border: 2px solid #dc2626;
+            z-index: 1000;
+            min-width: 200px;
+            box-shadow: 0 20px 50px rgba(220, 38, 38, 0.3);
+        }
+
+        .legend h3 {
+            font-size: 0.875rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: #f87171;
+            text-transform: uppercase;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .legend-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.95);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 2px solid #dc2626;
+            z-index: 2000;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #334155;
+            border-top-color: #dc2626;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Custom Leaflet styles */
+        .leaflet-container {
+            background: #0a0e1a;
+        }
+
+        .typhoon-popup {
+            font-family: inherit;
+        }
+
+        .typhoon-popup .leaflet-popup-content-wrapper {
+            background: rgba(15, 23, 42, 0.95);
+            color: #e2e8f0;
+            border: 2px solid #dc2626;
+            border-radius: 0.5rem;
+        }
+
+        .typhoon-popup .leaflet-popup-tip {
+            background: rgba(15, 23, 42, 0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌀 Real-Time Typhoon Tracker</h1>
+            <div class="controls">
+                <div class="status">
+                    <span class="status-dot"></span>
+                    <span id="typhoon-count">0 typhoons tracked</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="map"></div>
+
+            <div class="time-controls">
+                <div class="time-display">
+                    <span id="current-time">--</span>
+                    <span class="mode-badge" id="mode-badge">● LIVE</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" class="time-slider" id="time-slider" min="0" max="100" value="100">
+                </div>
+                <div class="playback-controls">
+                    <button id="play-pause-btn">▶️ Play</button>
+                    <button id="go-live-btn" class="primary">📡 Go Live</button>
+                </div>
+            </div>
+
+            <div class="legend">
+                <h3>🗺️ Legend</h3>
+                <div class="legend-item">
+                    <div class="legend-icon" style="background: #dc2626;">📍</div>
+                    <span>Current Position</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon" style="background: #ef4444; opacity: 0.3;">⭕</div>
+                    <span>Typhoon Radius</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon" style="background: #3b82f6;">🔵</div>
+                    <span>Historical Path</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon" style="background: #fbbf24;">⚠️</div>
+                    <span>Predictions</span>
+                </div>
+            </div>
+
+            <div class="typhoon-list">
+                <h3>Active Typhoons</h3>
+                <div id="typhoon-cards"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading typhoon data...</p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Configuration
+        const DISCOVER_API_URL = 'http://localhost:8080/api/v1/sensors/discover';
+        const MEASUREMENTS_API_URL = 'http://localhost:8080/api/v1/measurements/historical';
+        const WEBSOCKET_URL = 'ws://localhost:8080/api/v1/measurements/subscribe';
+        const HOURS_OF_HISTORY = 168; // 7 days
+
+        // State
+        let map;
+        let typhoonData = {}; // sensorId -> { sensor, markers, paths, timeline }
+        let currentTimeIndex = -1;
+        let timelineData = [];
+        let isPlaying = false;
+        let playInterval = null;
+        let selectedTyphoonId = null;
+        let websocket = null;
+        let isLiveMode = true;
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([15.0, 145.0], 6); // Western Pacific
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Load typhoons when map moves
+            map.on('moveend', () => {
+                loadTyphoonsInView();
+            });
+
+            // Initial load
+            loadTyphoonsInView();
+        }
+
+        // Get current map bounds as BBI string
+        function getMapBoundsBBI() {
+            const bounds = map.getBounds();
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+
+            // Format: coordinate.bbi.(left_lon,bottom_lat,right_lon,top_lat)
+            return `typhoon_position.bbi.(${sw.lng},${sw.lat},${ne.lng},${ne.lat})`;
+        }
+
+        // Load typhoons in current view using discover API
+        async function loadTyphoonsInView() {
+            showLoading(true);
+
+            try {
+                const bbi = getMapBoundsBBI();
+
+                // Use discover endpoint to find typhoons with latest position in map bounds
+                const params = new URLSearchParams({
+                    type_names: 'typhoon_position',
+                    value_filter: bbi,
+                    latest_only: 'true',
+                });
+
+                const response = await fetch(`${DISCOVER_API_URL}?${params}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const sensors = data.sensors || [];
+                console.log(`Found ${sensors.length} typhoons in view`);
+
+                document.getElementById('typhoon-count').textContent =
+                    `${sensors.length} typhoons tracked`;
+
+                // Load measurements for each typhoon
+                for (const sensor of sensors) {
+                    await loadTyphoonData(sensor);
+                }
+
+                // Update typhoon list
+                updateTyphoonList();
+
+                // Subscribe to updates if in live mode
+                if (isLiveMode) {
+                    subscribeToTyphoons(sensors.map(s => s.name));
+                }
+
+                // Go to latest
+                goToLatest();
+
+            } catch (error) {
+                console.error('Error loading typhoons:', error);
+                alert('Failed to load typhoons. Check console for details.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Load all data for a specific typhoon
+        async function loadTyphoonData(sensor) {
+            const sensorId = sensor.name;
+
+            try {
+                const now = new Date();
+                const past = new Date(now - HOURS_OF_HISTORY * 60 * 60 * 1000);
+
+                const response = await fetch(MEASUREMENTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sensor_names: [sensorId],
+                        type_names: [
+                            'typhoon_position',
+                            'typhoon_radius',
+                            'typhoon_wind_speed',
+                            'typhoon_prediction_30min',
+                            'typhoon_prediction_60min',
+                            'typhoon_prediction_120min'
+                        ],
+                        start_time: past.toISOString(),
+                        end_time: now.toISOString()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const measurements = (await response.json()).measurements;
+                console.log(`Loaded ${measurements.length} measurements for ${sensorId}`);
+
+                // Organize by timestamp and type
+                const timeline = {};
+
+                measurements.forEach(m => {
+                    const time = m.timestamp;
+                    if (!timeline[time]) {
+                        timeline[time] = {};
+                    }
+
+                    // Parse position from WKT
+                    if (m.type_name.includes('position') || m.type_name.includes('prediction')) {
+                        const coords = parseWKT(m.value);
+                        timeline[time][m.type_name] = coords;
+                    } else {
+                        timeline[time][m.type_name] = m.value;
+                    }
+                });
+
+                // Convert to sorted array
+                const timelineArray = Object.entries(timeline)
+                    .map(([time, data]) => ({ time: new Date(time), data }))
+                    .sort((a, b) => a.time - b.time);
+
+                // Store typhoon data
+                typhoonData[sensorId] = {
+                    sensor,
+                    timeline: timelineArray,
+                    currentMarker: null,
+                    radiusCircle: null,
+                    pathLine: null,
+                    predictionMarkers: {}
+                };
+
+                // Merge into global timeline
+                mergeTimelines();
+
+            } catch (error) {
+                console.error(`Error loading data for typhoon ${sensorId}:`, error);
+            }
+        }
+
+        // Parse WKT POINT to [lat, lon]
+        function parseWKT(wkt) {
+            const match = wkt.match(/POINT\(([^ ]+) ([^ ]+)\)/);
+            if (match) {
+                return [parseFloat(match[2]), parseFloat(match[1])]; // [lat, lon]
+            }
+            return null;
+        }
+
+        // Merge all typhoon timelines into global timeline
+        function mergeTimelines() {
+            const allTimes = new Set();
+
+            Object.values(typhoonData).forEach(typhoon => {
+                typhoon.timeline.forEach(entry => {
+                    allTimes.add(entry.time.getTime());
+                });
+            });
+
+            timelineData = Array.from(allTimes)
+                .sort((a, b) => a - b)
+                .map(time => new Date(time));
+
+            const slider = document.getElementById('time-slider');
+            slider.max = timelineData.length - 1;
+            slider.value = timelineData.length - 1;
+
+            currentTimeIndex = timelineData.length - 1;
+        }
+
+        // Update map visualization
+        function updateMap() {
+            if (currentTimeIndex < 0 || currentTimeIndex >= timelineData.length) return;
+
+            const currentTime = timelineData[currentTimeIndex];
+
+            Object.entries(typhoonData).forEach(([sensorId, typhoon]) => {
+                // Find closest data point
+                let closestData = null;
+                let minDiff = Infinity;
+
+                typhoon.timeline.forEach(entry => {
+                    const diff = Math.abs(entry.time - currentTime);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestData = entry.data;
+                    }
+                });
+
+                if (!closestData || !closestData.typhoon_position) {
+                    // Hide this typhoon
+                    if (typhoon.currentMarker) map.removeLayer(typhoon.currentMarker);
+                    if (typhoon.radiusCircle) map.removeLayer(typhoon.radiusCircle);
+                    if (typhoon.pathLine) map.removeLayer(typhoon.pathLine);
+                    Object.values(typhoon.predictionMarkers).forEach(m => map.removeLayer(m));
+                    return;
+                }
+
+                const position = closestData.typhoon_position;
+                const radius = closestData.typhoon_radius || 200;
+                const windSpeed = closestData.typhoon_wind_speed || 0;
+
+                // Current position marker
+                if (typhoon.currentMarker) {
+                    typhoon.currentMarker.setLatLng(position);
+                } else {
+                    typhoon.currentMarker = L.marker(position, {
+                        icon: L.divIcon({
+                            className: 'typhoon-icon',
+                            html: '🌀',
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                        })
+                    }).addTo(map);
+
+                    const name = typhoon.sensor.SensorName || sensorId;
+                    typhoon.currentMarker.bindPopup(`
+                        <div class="typhoon-popup">
+                            <strong style="font-size: 1.1em; color: #f87171;">${name}</strong><br>
+                            <strong>Wind:</strong> ${windSpeed.toFixed(0)} km/h<br>
+                            <strong>Radius:</strong> ${radius.toFixed(0)} km<br>
+                            <strong>Position:</strong> ${position[0].toFixed(2)}°N, ${position[1].toFixed(2)}°E
+                        </div>
+                    `);
+                }
+
+                // Radius circle
+                if (typhoon.radiusCircle) {
+                    typhoon.radiusCircle.setLatLng(position);
+                    typhoon.radiusCircle.setRadius(radius * 1000); // km to meters
+                } else {
+                    typhoon.radiusCircle = L.circle(position, {
+                        radius: radius * 1000,
+                        color: '#dc2626',
+                        fillColor: '#ef4444',
+                        fillOpacity: 0.2,
+                        weight: 2
+                    }).addTo(map);
+                }
+
+                // Historical path
+                const pathPoints = typhoon.timeline
+                    .filter(entry => entry.time <= currentTime)
+                    .map(entry => entry.data.typhoon_position)
+                    .filter(pos => pos);
+
+                if (pathPoints.length > 1) {
+                    if (typhoon.pathLine) {
+                        typhoon.pathLine.setLatLngs(pathPoints);
+                    } else {
+                        typhoon.pathLine = L.polyline(pathPoints, {
+                            color: '#3b82f6',
+                            weight: 3,
+                            opacity: 0.7
+                        }).addTo(map);
+                    }
+                }
+
+                // Prediction markers
+                const predictions = [
+                    { key: 'typhoon_prediction_30min', color: '#fbbf24', label: '+30min' },
+                    { key: 'typhoon_prediction_60min', color: '#f59e0b', label: '+60min' },
+                    { key: 'typhoon_prediction_120min', color: '#dc2626', label: '+120min' }
+                ];
+
+                predictions.forEach(pred => {
+                    const predPos = closestData[pred.key];
+                    if (predPos) {
+                        if (typhoon.predictionMarkers[pred.key]) {
+                            typhoon.predictionMarkers[pred.key].setLatLng(predPos);
+                        } else {
+                            typhoon.predictionMarkers[pred.key] = L.circleMarker(predPos, {
+                                radius: 8,
+                                color: pred.color,
+                                fillColor: pred.color,
+                                fillOpacity: 0.7,
+                                weight: 2
+                            }).addTo(map);
+
+                            typhoon.predictionMarkers[pred.key].bindPopup(`
+                                <div class="typhoon-popup">
+                                    <strong>Prediction ${pred.label}</strong><br>
+                                    ${predPos[0].toFixed(2)}°N, ${predPos[1].toFixed(2)}°E
+                                </div>
+                            `);
+                        }
+                    }
+                });
+            });
+
+            // Update time display
+            const timeStr = currentTime.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeStr;
+
+            // Update mode badge
+            const isLive = currentTimeIndex === timelineData.length - 1;
+            const badge = document.getElementById('mode-badge');
+            badge.textContent = isLive ? '● LIVE' : '⏯️ PLAYBACK';
+            badge.className = isLive ? 'mode-badge' : 'mode-badge playback';
+        }
+
+        // WebSocket subscription management
+        function subscribeToTyphoons(sensorNames) {
+            if (!sensorNames || sensorNames.length === 0) return;
+
+            // Close existing connection
+            if (websocket) {
+                websocket.close();
+            }
+
+            console.log(`Subscribing to ${sensorNames.length} typhoons via WebSocket`);
+
+            websocket = new WebSocket(WEBSOCKET_URL);
+
+            websocket.onopen = () => {
+                console.log('WebSocket connected');
+
+                // Send subscription message
+                const subscribeMessage = {
+                    type: 'connection_init',
+                    payload: {
+                        sensor_names: sensorNames,
+                        type_names: [
+                            'typhoon_position',
+                            'typhoon_radius',
+                            'typhoon_wind_speed',
+                            'typhoon_prediction_30min',
+                            'typhoon_prediction_60min',
+                            'typhoon_prediction_120min'
+                        ]
+                    }
+                };
+
+                websocket.send(JSON.stringify(subscribeMessage));
+            };
+
+            websocket.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    console.log(event)
+
+                    if (message.type === 'data' && message.measurement) {
+                        handleLiveUpdate(message.measurement);
+                    }
+                } catch (error) {
+                    console.error('Error processing WebSocket message:', error);
+                }
+            };
+
+            websocket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+
+            websocket.onclose = () => {
+                console.log('WebSocket disconnected');
+
+                // // Reconnect if still in live mode
+                // if (isLiveMode) {
+                //     setTimeout(() => {
+                //         const activeSensors = Object.keys(typhoonData);
+                //         if (activeSensors.length > 0) {
+                //             subscribeToTyphoons(activeSensors);
+                //         }
+                //     }, 3000);
+                // }
+            };
+        }
+
+        // Handle live measurement update from WebSocket
+        function handleLiveUpdate(measurement) {
+            const sensorId = measurement.sensor_name;
+            const typhoon = typhoonData[sensorId];
+
+            if (!typhoon) return;
+
+            const timestamp = new Date(measurement.timestamp);
+
+            // Create or update timeline entry
+            let timelineEntry = typhoon.timeline.find(e => e.time.getTime() === timestamp.getTime());
+
+            if (!timelineEntry) {
+                timelineEntry = { time: timestamp, data: {} };
+                typhoon.timeline.push(timelineEntry);
+                typhoon.timeline.sort((a, b) => a.time - b.time);
+            }
+
+            // Parse position from WKT if applicable
+            if (measurement.type_name.includes('position') || measurement.type_name.includes('prediction')) {
+                const coords = parseWKT(measurement.value);
+                timelineEntry.data[measurement.type_name] = coords;
+            } else {
+                timelineEntry.data[measurement.type_name] = measurement.value;
+            }
+
+            // Update global timeline
+            mergeTimelines();
+
+            // Update display if in live mode
+            if (isLiveMode && currentTimeIndex === timelineData.length - 2) {
+                goToLatest();
+            }
+
+            // Update typhoon list
+            updateTyphoonList();
+        }
+
+        // Update typhoon list
+        function updateTyphoonList() {
+            const container = document.getElementById('typhoon-cards');
+            container.innerHTML = '';
+
+            Object.entries(typhoonData).forEach(([sensorId, typhoon]) => {
+                const latestData = typhoon.timeline[typhoon.timeline.length - 1]?.data;
+                const name = typhoon.sensor.metadata?.typhoon_name || sensorId;
+                const wind = latestData?.typhoon_wind_speed?.toFixed(0) || '--';
+                const radius = latestData?.typhoon_radius?.toFixed(0) || '--';
+
+                const card = document.createElement('div');
+                card.className = 'typhoon-card';
+                if (selectedTyphoonId === sensorId) {
+                    card.classList.add('selected');
+                }
+
+                card.innerHTML = `
+                    <div class="typhoon-name">🌀 ${name}</div>
+                    <div class="typhoon-stats">
+                        <div>💨 ${wind} km/h</div>
+                        <div>📏 ${radius} km</div>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => {
+                    selectedTyphoonId = sensorId;
+                    updateTyphoonList();
+
+                    // Center map on typhoon
+                    const pos = latestData?.typhoon_position;
+                    if (pos) {
+                        map.setView(pos, 8);
+                    }
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+        // Time travel functions
+        function goToLatest() {
+            currentTimeIndex = timelineData.length - 1;
+            document.getElementById('time-slider').value = currentTimeIndex;
+            isLiveMode = true;
+            updateMap();
+        }
+
+        function goToTime(index) {
+            currentTimeIndex = Math.max(0, Math.min(index, timelineData.length - 1));
+            document.getElementById('time-slider').value = currentTimeIndex;
+
+            // Exit live mode when scrubbing to past
+            if (currentTimeIndex < timelineData.length - 1) {
+                isLiveMode = false;
+            }
+
+            updateMap();
+        }
+
+        function togglePlayback() {
+            if (isPlaying) {
+                stopPlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            if (currentTimeIndex >= timelineData.length - 1) {
+                currentTimeIndex = 0;
+            }
+
+            isPlaying = true;
+            isLiveMode = false;
+            document.getElementById('play-pause-btn').textContent = '⏸️ Pause';
+
+            playInterval = setInterval(() => {
+                currentTimeIndex++;
+                if (currentTimeIndex >= timelineData.length) {
+                    currentTimeIndex = 0;
+                }
+                goToTime(currentTimeIndex);
+            }, 200); // 5 frames per second
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            document.getElementById('play-pause-btn').textContent = '▶️ Play';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        // Event listeners
+        document.getElementById('time-slider').addEventListener('input', (e) => {
+            stopPlayback();
+            goToTime(parseInt(e.target.value));
+        });
+
+        document.getElementById('play-pause-btn').addEventListener('click', togglePlayback);
+
+        document.getElementById('go-live-btn').addEventListener('click', () => {
+            stopPlayback();
+            goToLatest();
+
+            // Resubscribe to WebSocket
+            const activeSensors = Object.keys(typhoonData);
+            if (activeSensors.length > 0) {
+                subscribeToTyphoons(activeSensors);
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (websocket) {
+                websocket.close();
+            }
+        });
+
+        // Initialize
+        initMap();
+    </script>
+</body>
+</html>

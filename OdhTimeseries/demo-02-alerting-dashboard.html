@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 2: Alerting Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .config-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .config-panel h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #f56565;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #e53e3e;
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .btn-danger {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #4a5568;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-badge.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stat {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .stat strong {
+            color: #333;
+            font-size: 18px;
+            margin-left: 5px;
+        }
+
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .alert-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #f56565;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .alert-card.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .alert-card.critical {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .alert-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .alert-time {
+            font-size: 12px;
+            color: #6c757d;
+            white-space: nowrap;
+        }
+
+        .alert-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #f56565;
+            margin: 10px 0;
+        }
+
+        .alert-details {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px 15px;
+            font-size: 13px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .alert-details .label {
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .alert-details .value {
+            color: #333;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.new {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.repeated {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .consecutive-count {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚨 Real-time Alerting Dashboard</h1>
+        <p>Subscribe to timeseries with threshold monitoring - get alerted when sensors cross limits</p>
+    </div>
+
+    <div class="container">
+        <!-- Configuration Panel -->
+        <div class="config-panel">
+            <h2>Alert Configuration</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="type-name">Measurement Type</label>
+                    <input type="text" id="type-name" placeholder="e.g., temperature, power_generation" value="power_generation">
+                </div>
+                <div class="form-group">
+                    <label for="threshold">Threshold Value</label>
+                    <input type="number" id="threshold" placeholder="e.g., 100" value="100">
+                </div>
+                <div class="form-group">
+                    <label for="operator">Operator</label>
+                    <select id="operator">
+                        <option value="gteq">Greater than or equal (≥)</option>
+                        <option value="gt">Greater than (>)</option>
+                        <option value="lteq">Less than or equal (≤)</option>
+                        <option value="lt">Less than (<)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="skip-snapshot" style="width: auto; margin-right: 8px;">
+                        Skip Initial Snapshot (only new alerts)
+                    </label>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" id="btn-start" onclick="startMonitoring()">Start Monitoring</button>
+                <button class="btn btn-danger" id="btn-stop" onclick="stopMonitoring()" disabled>Stop Monitoring</button>
+                <button class="btn" onclick="clearAlerts()" style="margin-left: auto;">Clear Alerts</button>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-badge disconnected" id="status">⚫ Disconnected</span>
+            </div>
+            <div class="status-item">
+                <span class="stat">Active Alerts: <strong id="stat-alerts">0</strong></span>
+            </div>
+            <div class="status-item">
+                <span class="stat">Total Messages: <strong id="stat-messages">0</strong></span>
+            </div>
+            <div class="status-item" style="margin-left: auto;">
+                <span class="stat" id="monitoring-info"></span>
+            </div>
+        </div>
+
+        <!-- Alerts Grid -->
+        <div class="alerts-grid" id="alerts-container">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <h3>No Alerts Yet</h3>
+                <p>Configure threshold monitoring and start to see alerts</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WS_URL = 'ws://localhost:8080/api/v1/measurements/subscribe/advanced';
+
+        let ws = null;
+        let alerts = {};
+        let messageCount = 0;
+        let alertSequence = {};
+
+        function startMonitoring() {
+            const typeName = document.getElementById('type-name').value.trim();
+            const threshold = parseFloat(document.getElementById('threshold').value);
+            const operator = document.getElementById('operator').value;
+            const skipSnapshot = document.getElementById('skip-snapshot').checked;
+
+            if (!typeName) {
+                alert('Please enter a measurement type');
+                return;
+            }
+
+            if (isNaN(threshold)) {
+                alert('Please enter a valid threshold value');
+                return;
+            }
+
+            // Build filter expression
+            const expression = `${typeName}.${operator}.${threshold}`;
+
+            document.getElementById('btn-start').disabled = true;
+            document.getElementById('btn-stop').disabled = false;
+            document.getElementById('monitoring-info').textContent = `Monitoring: ${expression}`;
+
+            updateStatus('connecting');
+
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                const initMessage = {
+                    type: 'connection_init',
+                    payload: {
+                        timeseries_filter: {
+                            required_types: [typeName]
+                        },
+                        measurement_filter: {
+                            expression: expression,
+                            latest_only: true
+                        },
+                        skip_initial_snapshot: skipSnapshot,
+                        limit: 100
+                    }
+                };
+
+                ws.send(JSON.stringify(initMessage));
+                console.log('Sent connection_init:', initMessage);
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+
+                if (message.type === 'connection_ack') {
+                    updateStatus('connected');
+                    console.log('Connection acknowledged');
+                } else if (message.type === 'data') {
+                    handleAlert(message.payload, threshold, operator);
+                } else if (message.type === 'error') {
+                    console.error('WebSocket error:', message.payload);
+                    alert('Error: ' + JSON.stringify(message.payload));
+                    stopMonitoring();
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateStatus('error');
+            };
+
+            ws.onclose = () => {
+                updateStatus('disconnected');
+                document.getElementById('btn-start').disabled = false;
+                document.getElementById('btn-stop').disabled = true;
+            };
+        }
+
+        function stopMonitoring() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            document.getElementById('btn-start').disabled = false;
+            document.getElementById('btn-stop').disabled = true;
+            document.getElementById('monitoring-info').textContent = '';
+        }
+
+        function handleAlert(update, threshold, operator) {
+            messageCount++;
+            document.getElementById('stat-messages').textContent = messageCount;
+
+            const sensorId = update.sensor_id;
+            const sensorName = update.sensor_name;
+            const typeName = update.type_name;
+            const value = update.value;
+            const timestamp = update.timestamp;
+
+            // Track consecutive alerts
+            if (!alertSequence[sensorId]) {
+                alertSequence[sensorId] = {
+                    count: 0,
+                    lastTimestamp: null
+                };
+            }
+
+            alertSequence[sensorId].count++;
+            alertSequence[sensorId].lastTimestamp = timestamp;
+
+            // Determine severity
+            let severity = 'warning';
+            if (alertSequence[sensorId].count >= 5) {
+                severity = 'critical';
+            }
+
+            // Create or update alert
+            const alertId = `${sensorId}-${typeName}`;
+            const isNew = !alerts[alertId];
+
+            alerts[alertId] = {
+                id: alertId,
+                sensorId: sensorId,
+                sensorName: sensorName,
+                typeName: typeName,
+                value: value,
+                threshold: threshold,
+                operator: operator,
+                timestamp: timestamp,
+                severity: severity,
+                consecutiveCount: alertSequence[sensorId].count,
+                firstSeen: isNew ? timestamp : (alerts[alertId]?.firstSeen || timestamp)
+            };
+
+            renderAlerts();
+        }
+
+        function renderAlerts() {
+            const container = document.getElementById('alerts-container');
+            const alertList = Object.values(alerts).sort((a, b) =>
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+
+            document.getElementById('stat-alerts').textContent = alertList.length;
+
+            if (alertList.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                        </svg>
+                        <h3>No Alerts Yet</h3>
+                        <p>Waiting for sensors to cross threshold...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = alertList.map(alert => {
+                const operatorSymbol = {
+                    'gteq': '≥',
+                    'gt': '>',
+                    'lteq': '≤',
+                    'lt': '<'
+                }[alert.operator] || '';
+
+                const timeDiff = Math.floor((new Date() - new Date(alert.timestamp)) / 1000);
+                const timeAgo = timeDiff < 60 ? `${timeDiff}s ago` :
+                               timeDiff < 3600 ? `${Math.floor(timeDiff/60)}m ago` :
+                               `${Math.floor(timeDiff/3600)}h ago`;
+
+                return `
+                    <div class="alert-card ${alert.severity}">
+                        <div class="alert-header">
+                            <div>
+                                <div class="alert-title">${alert.sensorName}</div>
+                                ${alert.consecutiveCount > 1 ?
+                                    `<div class="consecutive-count">🔥 ${alert.consecutiveCount} consecutive alerts</div>` :
+                                    '<span class="badge new">NEW</span>'}
+                            </div>
+                            <div class="alert-time">${timeAgo}</div>
+                        </div>
+                        <div class="alert-value">
+                            ${typeof alert.value === 'number' ? alert.value.toFixed(2) : alert.value}
+                        </div>
+                        <div class="alert-details">
+                            <span class="label">Type:</span>
+                            <span class="value">${alert.typeName}</span>
+
+                            <span class="label">Condition:</span>
+                            <span class="value">${alert.typeName} ${operatorSymbol} ${alert.threshold}</span>
+
+                            <span class="label">Sensor ID:</span>
+                            <span class="value">${alert.sensorId}</span>
+
+                            <span class="label">Timestamp:</span>
+                            <span class="value">${new Date(alert.timestamp).toLocaleString()}</span>
+
+                            <span class="label">First Seen:</span>
+                            <span class="value">${new Date(alert.firstSeen).toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearAlerts() {
+            if (confirm('Clear all alerts?')) {
+                alerts = {};
+                alertSequence = {};
+                messageCount = 0;
+                document.getElementById('stat-messages').textContent = '0';
+                renderAlerts();
+            }
+        }
+
+        function updateStatus(status) {
+            const statusEl = document.getElementById('status');
+
+            if (status === 'connected') {
+                statusEl.className = 'status-badge connected';
+                statusEl.textContent = '🟢 Connected';
+            } else if (status === 'connecting') {
+                statusEl.className = 'status-badge';
+                statusEl.style.background = '#fff3cd';
+                statusEl.style.color = '#856404';
+                statusEl.textContent = '🟡 Connecting...';
+            } else {
+                statusEl.className = 'status-badge disconnected';
+                statusEl.textContent = '⚫ Disconnected';
+            }
+        }
+    </script>
+</body>
+</html>

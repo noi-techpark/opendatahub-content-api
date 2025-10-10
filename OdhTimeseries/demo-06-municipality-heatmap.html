@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 6 - Municipality Heatmap with Time Travel</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background: #1e293b;
+            padding: 1rem;
+            border-bottom: 2px solid #334155;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        select, button {
+            background: #334155;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+        select:hover, button:hover {
+            background: #475569;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #334155;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #map {
+            flex: 1;
+        }
+
+        .time-controls {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+            z-index: 1000;
+            min-width: 600px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .time-display {
+            text-align: center;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #38bdf8;
+        }
+
+        .mode-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #10b981;
+            color: white;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .mode-badge.playback {
+            background: #f59e0b;
+        }
+
+        .slider-container {
+            margin-bottom: 1rem;
+        }
+
+        .time-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #334155;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .time-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            border: 2px solid #0f172a;
+        }
+
+        .time-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            border: 2px solid #0f172a;
+        }
+
+        .playback-controls {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .playback-controls button {
+            padding: 0.5rem 1.25rem;
+            font-weight: 500;
+        }
+
+        .legend {
+            position: absolute;
+            top: 6rem;
+            right: 1rem;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+            z-index: 1000;
+            min-width: 200px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .legend h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 0.25rem;
+            border: 1px solid #475569;
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 6rem;
+            left: 1rem;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #334155;
+            z-index: 1000;
+            max-width: 300px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-panel h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #94a3b8;
+        }
+
+        .info-panel p {
+            font-size: 0.875rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 41, 59, 0.95);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            z-index: 2000;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #334155;
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ Municipality Environmental Heatmap</h1>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="timeseries-select">Measurement Type:</label>
+                    <select id="timeseries-select">
+                        <option value="air_temperature">🌡️ Temperature (°C)</option>
+                        <option value="pollution_level">💨 Air Quality (AQI)</option>
+                    </select>
+                </div>
+                <div class="status">
+                    <span class="status-dot"></span>
+                    <span id="municipality-count">0 municipalities loaded</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="map"></div>
+
+            <div class="time-controls">
+                <div class="time-display">
+                    <span id="current-time">--</span>
+                    <span class="mode-badge" id="mode-badge">● LIVE</span>
+                </div>
+                <div class="slider-container">
+                    <input type="range" class="time-slider" id="time-slider" min="0" max="100" value="100">
+                </div>
+                <div class="playback-controls">
+                    <button id="play-pause-btn">▶️ Play</button>
+                    <button id="go-live-btn">📡 Go Live</button>
+                </div>
+            </div>
+
+            <div class="legend">
+                <h3 id="legend-title">Temperature Scale</h3>
+                <div id="legend-items"></div>
+            </div>
+
+            <div class="info-panel">
+                <h3>ℹ️ About</h3>
+                <p>
+                    Interactive map showing Italian municipalities colored by environmental data.
+                    Move the map to load municipalities in view. Use the time slider to explore historical data.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading municipalities...</p>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wellknown@0.5.0/wellknown.js"></script>
+    <script>
+        // Configuration
+        const CONTENT_API_URL = 'http://localhost:8082/api/Sensor';
+        const MEASUREMENTS_API_URL = 'http://localhost:8080/api/v1/measurements/historical';
+        const HOURS_OF_HISTORY = 72; // 3 days of history
+
+        // State
+        let map;
+        let municipalityLayers = {};
+        let currentMeasurements = {};
+        let timelineData = [];
+        let currentTimeIndex = -1;
+        let isPlaying = false;
+        let playInterval = null;
+        let selectedTimeseries = 'air_temperature';
+        let currentSensorIds = [];
+
+        // Color scales
+        const temperatureScale = [
+            { value: -10, color: '#1e3a8a', label: '< -10°C' },
+            { value: 0, color: '#3b82f6', label: '0°C' },
+            { value: 10, color: '#10b981', label: '10°C' },
+            { value: 20, color: '#fbbf24', label: '20°C' },
+            { value: 30, color: '#f97316', label: '30°C' },
+            { value: 40, color: '#dc2626', label: '> 40°C' }
+        ];
+
+        const pollutionScale = [
+            { value: 0, color: '#10b981', label: 'Good (0-50)' },
+            { value: 50, color: '#84cc16', label: 'Moderate (50-100)' },
+            { value: 100, color: '#fbbf24', label: 'Unhealthy (100-150)' },
+            { value: 150, color: '#f97316', label: 'Very Unhealthy (150-200)' },
+            { value: 200, color: '#dc2626', label: 'Hazardous (200+)' }
+        ];
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([46.5, 11.35], 8); // Centered on South Tyrol
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Load municipalities when map moves
+            map.on('moveend', () => {
+                loadMunicipalitiesInView();
+            });
+
+            // Initial load
+            loadMunicipalitiesInView();
+        }
+
+        // Get current map bounds as WKT
+        function getMapBoundsWKT() {
+            const bounds = map.getBounds();
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+
+            return `POLYGON((${sw.lng} ${sw.lat}, ${ne.lng} ${sw.lat}, ${ne.lng} ${ne.lat}, ${sw.lng} ${ne.lat}, ${sw.lng} ${sw.lat}))`;
+        }
+
+        // Load municipalities in current view
+        async function loadMunicipalitiesInView() {
+            showLoading(true);
+
+            try {
+                const wkt = getMapBoundsWKT();
+
+                // Fetch sensors from content API with spatial filter
+                const response = await fetch(`${CONTENT_API_URL}?polygon=${encodeURIComponent(wkt)}&sensortype=MUNICIPALITY&pagesize=1000`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const sensors = (await response.json()).Items;
+                console.log(`Loaded ${sensors.length} municipalities in view`);
+
+                // Extract sensor IDs
+                currentSensorIds = sensors.map(s => s.Id);
+
+                // Clear existing layers
+                Object.values(municipalityLayers).forEach(layer => map.removeLayer(layer));
+                municipalityLayers = {};
+
+                // Add new layers
+                sensors.forEach(sensor => {
+                    addMunicipalityLayer(sensor);
+                });
+
+                document.getElementById('municipality-count').textContent =
+                    `${sensors.length} municipalities loaded`;
+
+                // Load measurements
+                await loadMeasurements();
+
+            } catch (error) {
+                console.error('Error loading municipalities:', error);
+                alert('Failed to load municipalities. Check console for details.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Add municipality polygon to map
+        function addMunicipalityLayer(sensor) {
+            const wkt = sensor.Geometry || sensor.GeometryWKT;
+
+            if (!wkt) {
+                console.warn(`No geometry for sensor ${sensor.Id}`);
+                return;
+            }
+
+            try {
+                // Parse WKT to GeoJSON
+                const geojson = wellknown.parse(wkt);
+
+                if (!geojson) {
+                    console.warn(`Failed to parse WKT for sensor ${sensor.Id}`);
+                    return;
+                }
+
+                // Create Leaflet layer
+                const layer = L.geoJSON(geojson, {
+                    style: {
+                        fillColor: '#475569',
+                        fillOpacity: 0.5,
+                        color: '#64748b',
+                        weight: 1
+                    }
+                });
+
+                // Add popup
+                const name = sensor.SensorName || sensor.Municipality || sensor.Id;
+                layer.bindPopup(`
+                    <strong>${name}</strong><br>
+                    <small>${sensor.Province}, ${sensor.Region}</small><br>
+                    <span id="popup-${sensor.Id}">Loading...</span>
+                `);
+
+                layer.addTo(map);
+                municipalityLayers[sensor.Id] = layer;
+
+            } catch (error) {
+                console.error(`Error adding layer for ${sensor.Id}:`, error);
+            }
+        }
+
+        // Load measurements for current sensors
+        async function loadMeasurements() {
+            if (currentSensorIds.length === 0) return;
+
+            showLoading(true);
+
+            try {
+                const now = new Date();
+                const past = new Date(now - HOURS_OF_HISTORY * 60 * 60 * 1000);
+
+                const response = await fetch(MEASUREMENTS_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sensor_names: currentSensorIds,
+                        type_names: [selectedTimeseries],
+                        start_time: past.toISOString(),
+                        end_time: now.toISOString()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = (await response.json()).measurements;
+                console.log(`Loaded ${data.length} measurements`);
+
+                // Organize data by timestamp
+                buildTimeline(data);
+
+                // Update display
+                goToLatest();
+
+            } catch (error) {
+                console.error('Error loading measurements:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Build timeline from measurements
+        function buildTimeline(measurements) {
+            // Group by timestamp
+            const byTimestamp = {};
+
+            measurements.forEach(m => {
+                const time = m.timestamp;
+                if (!byTimestamp[time]) {
+                    byTimestamp[time] = {};
+                }
+                byTimestamp[time][m.sensor_name] = m.value;
+            });
+
+            // Convert to sorted array
+            timelineData = Object.entries(byTimestamp)
+                .map(([time, values]) => ({ time: new Date(time), values }))
+                .sort((a, b) => a.time - b.time);
+
+            console.log(`Timeline has ${timelineData.length} timestamps`);
+
+            // Update slider
+            const slider = document.getElementById('time-slider');
+            slider.max = timelineData.length - 1;
+            slider.value = timelineData.length - 1;
+
+            currentTimeIndex = timelineData.length - 1;
+        }
+
+        // Get color for value
+        function getColorForValue(value, scale) {
+            for (let i = scale.length - 1; i >= 0; i--) {
+                if (value >= scale[i].value) {
+                    return scale[i].color;
+                }
+            }
+            return scale[0].color;
+        }
+
+        // Update map colors based on current time
+        function updateMapColors() {
+            if (currentTimeIndex < 0 || currentTimeIndex >= timelineData.length) return;
+
+            const currentData = timelineData[currentTimeIndex];
+            const scale = selectedTimeseries === 'air_temperature' ? temperatureScale : pollutionScale;
+
+            Object.entries(municipalityLayers).forEach(([sensorId, layer]) => {
+                const value = currentData.values[sensorId];
+
+                if (value !== undefined) {
+                    const color = getColorForValue(value, scale);
+                    layer.setStyle({
+                        fillColor: color,
+                        fillOpacity: 0.7
+                    });
+
+                    // Update popup
+                    const popupElement = document.getElementById(`popup-${sensorId}`);
+                    if (popupElement) {
+                        const unit = selectedTimeseries === 'air_temperature' ? '°C' : ' AQI';
+                        popupElement.innerHTML = `<strong>${value.toFixed(1)}${unit}</strong>`;
+                    }
+                } else {
+                    layer.setStyle({
+                        fillColor: '#475569',
+                        fillOpacity: 0.3
+                    });
+                }
+            });
+
+            // Update time display
+            const timeStr = currentData.time.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('current-time').textContent = timeStr;
+
+            // Update mode badge
+            const isLive = currentTimeIndex === timelineData.length - 1;
+            const badge = document.getElementById('mode-badge');
+            badge.textContent = isLive ? '● LIVE' : '⏯️ PLAYBACK';
+            badge.className = isLive ? 'mode-badge' : 'mode-badge playback';
+        }
+
+        // Update legend
+        function updateLegend() {
+            const scale = selectedTimeseries === 'air_temperature' ? temperatureScale : pollutionScale;
+            const title = selectedTimeseries === 'air_temperature' ? 'Temperature Scale' : 'Air Quality Index';
+
+            document.getElementById('legend-title').textContent = title;
+
+            const legendItems = document.getElementById('legend-items');
+            legendItems.innerHTML = scale.map(item => `
+                <div class="legend-item">
+                    <div class="legend-color" style="background: ${item.color}"></div>
+                    <span>${item.label}</span>
+                </div>
+            `).join('');
+        }
+
+        // Time travel functions
+        function goToLatest() {
+            currentTimeIndex = timelineData.length - 1;
+            document.getElementById('time-slider').value = currentTimeIndex;
+            updateMapColors();
+        }
+
+        function goToTime(index) {
+            currentTimeIndex = Math.max(0, Math.min(index, timelineData.length - 1));
+            document.getElementById('time-slider').value = currentTimeIndex;
+            updateMapColors();
+        }
+
+        function togglePlayback() {
+            if (isPlaying) {
+                stopPlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            if (currentTimeIndex >= timelineData.length - 1) {
+                currentTimeIndex = 0;
+            }
+
+            isPlaying = true;
+            document.getElementById('play-pause-btn').textContent = '⏸️ Pause';
+
+            playInterval = setInterval(() => {
+                currentTimeIndex++;
+                if (currentTimeIndex >= timelineData.length) {
+                    currentTimeIndex = 0;
+                }
+                goToTime(currentTimeIndex);
+            }, 200); // 5 frames per second
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            document.getElementById('play-pause-btn').textContent = '▶️ Play';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        // Event listeners
+        document.getElementById('timeseries-select').addEventListener('change', (e) => {
+            selectedTimeseries = e.target.value;
+            updateLegend();
+            loadMeasurements(); // Reload with new timeseries
+        });
+
+        document.getElementById('time-slider').addEventListener('input', (e) => {
+            stopPlayback();
+            goToTime(parseInt(e.target.value));
+        });
+
+        document.getElementById('play-pause-btn').addEventListener('click', togglePlayback);
+
+        document.getElementById('go-live-btn').addEventListener('click', () => {
+            stopPlayback();
+            goToLatest();
+        });
+
+        // Initialize
+        initMap();
+        updateLegend();
+    </script>
+</body>
+</html>

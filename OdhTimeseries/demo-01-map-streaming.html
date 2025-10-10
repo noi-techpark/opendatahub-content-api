@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 1: Real-time Map Streaming with Path History</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .map-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #map {
+            flex: 1;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #f8f9fa;
+            border-left: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .sensor-card {
+            background: white;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .sensor-card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .sensor-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .sensor-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .sensor-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .sensor-timestamp {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .sensor-path-count {
+            font-size: 11px;
+            color: #667eea;
+            margin-top: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        /* Smooth marker transition */
+        .sensor-marker {
+            background: #667eea;
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sensor-marker.selected {
+            background: #f6ad55;
+            width: 20px;
+            height: 20px;
+            box-shadow: 0 0 0 4px rgba(246, 173, 85, 0.3);
+        }
+
+        /* Time travel controls */
+        .time-controls {
+            background: white;
+            border-top: 2px solid #dee2e6;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .time-controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time-controls-header h3 {
+            font-size: 14px;
+            color: #333;
+            margin: 0;
+        }
+
+        .mode-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .mode-badge.live {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .mode-badge.playback {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .time-slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .time-slider {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #dee2e6;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .time-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .time-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #667eea;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .time-display {
+            font-size: 12px;
+            color: #6c757d;
+            min-width: 150px;
+            text-align: right;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🗺️ Real-time Location Streaming with Path History</h1>
+        <p>Watch sensors move in real-time • Use the slider to replay their journey</p>
+    </div>
+
+    <div class="main-container">
+        <div class="map-wrapper">
+            <div id="map"></div>
+
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Active Sensors</h2>
+                    <div id="connection-status" class="status disconnected">⚫ Disconnected</div>
+                </div>
+                <div class="sidebar-content" id="sensor-list">
+                    <div class="empty-state">
+                        <p>Starting connection...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="time-controls">
+            <div class="time-controls-header">
+                <h3>📍 Journey Playback</h3>
+                <span id="mode-badge" class="mode-badge live">● LIVE</span>
+            </div>
+            <div class="time-slider-wrapper">
+                <div class="control-buttons">
+                    <button class="btn btn-secondary" id="play-btn" onclick="togglePlayback()" disabled>▶️ Play</button>
+                    <button class="btn btn-success" id="live-btn" onclick="returnToLive()" disabled>🔴 Go Live</button>
+                </div>
+                <input type="range" class="time-slider" id="time-slider" min="0" max="100" value="100" disabled>
+                <div class="time-display" id="time-display">Live Mode</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Configuration
+        const WS_URL = 'ws://localhost:8080/api/v1/measurements/subscribe/advanced';
+
+        // Global state
+        let map;
+        let ws = null;
+        let markers = {};
+        let polylines = {};
+        let sensorHistory = {}; // { sensorId: { name: string, points: [{coords, timestamp, value}] } }
+        let selectedSensorId = null;
+        let reconnectTimeout = null;
+
+        // Time travel state
+        let isLiveMode = true;
+        let isPlaying = false;
+        let playbackIndex = 0;
+        let playbackInterval = null;
+        let allHistoryTimestamps = [];
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([46.5, 11.35], 10);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Subscribe when map stops moving
+            map.on('moveend', onMapMove);
+
+            // Start immediately on page load
+            setTimeout(() => {
+                onMapMove();
+            }, 500);
+        }
+
+        function onMapMove() {
+            const bounds = map.getBounds();
+            reconnectWithBounds(bounds);
+        }
+
+        function reconnectWithBounds(bounds) {
+            // Disconnect existing connection
+            if (ws) {
+                ws.close();
+            }
+
+            // Don't clear history, but clear markers and polylines
+            Object.values(markers).forEach(marker => marker.remove());
+            markers = {};
+            Object.values(polylines).forEach(line => line.remove());
+            polylines = {};
+
+            // Clear reconnect timeout
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+            }
+
+            // Wait before reconnecting
+            reconnectTimeout = setTimeout(() => {
+                connectWebSocket(bounds);
+            }, 500);
+        }
+
+        function connectWebSocket(bounds) {
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+
+            const bbiFilter = `location.bbi.(${sw.lng},${sw.lat},${ne.lng},${ne.lat})`;
+
+            updateStatus('connecting');
+
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                const initMessage = {
+                    type: 'connection_init',
+                    payload: {
+                        timeseries_filter: {
+                            required_types: ['location']
+                        },
+                        measurement_filter: {
+                            expression: bbiFilter,
+                            latest_only: true
+                        },
+                        skip_initial_snapshot: false,
+                        limit: 100
+                    }
+                };
+
+                ws.send(JSON.stringify(initMessage));
+                console.log('Sent connection_init:', initMessage);
+            };
+
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+
+                if (message.type === 'connection_ack') {
+                    updateStatus('connected');
+                    console.log('Connection acknowledged');
+                } else if (message.type === 'data') {
+                    if (isLiveMode) {
+                        handleMeasurementUpdate(message.payload);
+                    }
+                } else if (message.type === 'error') {
+                    console.error('WebSocket error:', message.payload);
+                    updateStatus('error');
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateStatus('error');
+            };
+
+            ws.onclose = () => {
+                updateStatus('disconnected');
+                console.log('WebSocket closed');
+            };
+        }
+
+        function handleMeasurementUpdate(update) {
+            console.log("update received", update);
+
+            const sensorId = update.sensor_id;
+            const sensorName = update.sensor_name;
+            const value = update.value;
+            const timestamp = new Date(update.timestamp);
+
+            const coords = parseWKT(value);
+            if (!coords) {
+                console.warn("Could not parse WKT:", value);
+                return;
+            }
+
+            // Initialize history for this sensor if needed
+            if (!sensorHistory[sensorId]) {
+                sensorHistory[sensorId] = {
+                    name: sensorName,
+                    points: []
+                };
+            }
+
+            // Add to history
+            sensorHistory[sensorId].points.push({
+                coords: coords,
+                timestamp: timestamp,
+                value: value
+            });
+
+            // Limit history to last 100 points
+            if (sensorHistory[sensorId].points.length > 100) {
+                sensorHistory[sensorId].points.shift();
+            }
+
+            // Update or create marker with smooth transition
+            if (markers[sensorId]) {
+                // Smoothly animate marker to new position
+                const marker = markers[sensorId];
+                const currentLatLng = marker.getLatLng();
+                const newLatLng = L.latLng(coords.lat, coords.lng);
+
+                // Use smooth animation
+                animateMarker(marker, currentLatLng, newLatLng, 1000);
+            } else {
+                createMarker(sensorId, coords, sensorName);
+            }
+
+            // Update polyline showing path
+            updatePolyline(sensorId);
+
+            // Update sidebar
+            updateSensorList();
+
+            // Update time slider range
+            updateTimeSlider();
+        }
+
+        function animateMarker(marker, from, to, duration) {
+            const start = Date.now();
+            const latDiff = to.lat - from.lat;
+            const lngDiff = to.lng - from.lng;
+
+            function step() {
+                const now = Date.now();
+                const progress = Math.min((now - start) / duration, 1);
+
+                // Easing function for smooth animation
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                const lat = from.lat + latDiff * eased;
+                const lng = from.lng + lngDiff * eased;
+
+                marker.setLatLng([lat, lng]);
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                }
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        function parseWKT(wkt) {
+            const match = wkt.match(/POINT\s*\(\s*([-\d.]+)\s+([-\d.]+)\s*\)/i);
+            if (match) {
+                return {
+                    lng: parseFloat(match[1]),
+                    lat: parseFloat(match[2])
+                };
+            }
+            return null;
+        }
+
+        function createMarker(sensorId, coords, sensorName) {
+            const icon = L.divIcon({
+                className: 'sensor-marker',
+                iconSize: [16, 16]
+            });
+
+            const marker = L.marker([coords.lat, coords.lng], { icon: icon })
+                .addTo(map)
+                .bindTooltip(sensorName, { permanent: false, direction: 'top' });
+
+            marker.on('click', () => {
+                selectSensor(sensorId);
+            });
+
+            markers[sensorId] = marker;
+        }
+
+        function updatePolyline(sensorId) {
+            const history = sensorHistory[sensorId];
+            if (!history || history.points.length < 2) return;
+
+            const latLngs = history.points.map(p => [p.coords.lat, p.coords.lng]);
+
+            if (polylines[sensorId]) {
+                polylines[sensorId].setLatLngs(latLngs);
+            } else {
+                const polyline = L.polyline(latLngs, {
+                    color: '#667eea',
+                    weight: 3,
+                    opacity: 0.6,
+                    smoothFactor: 1
+                }).addTo(map);
+
+                polylines[sensorId] = polyline;
+            }
+        }
+
+        function updateSensorList() {
+            const listEl = document.getElementById('sensor-list');
+            const sensors = Object.keys(sensorHistory);
+
+            if (sensors.length === 0) {
+                listEl.innerHTML = '<div class="empty-state"><p>Waiting for sensor updates...</p></div>';
+                return;
+            }
+
+            listEl.innerHTML = sensors.map(sensorId => {
+                const history = sensorHistory[sensorId];
+                const latest = history.points[history.points.length - 1];
+
+                return `
+                    <div class="sensor-card ${selectedSensorId == sensorId ? 'selected' : ''}"
+                         onclick="selectSensor(${sensorId})">
+                        <div class="sensor-name">${history.name}</div>
+                        <div class="sensor-value">${latest.coords.lat.toFixed(4)}, ${latest.coords.lng.toFixed(4)}</div>
+                        <div class="sensor-timestamp">${latest.timestamp.toLocaleString()}</div>
+                        <div class="sensor-path-count">📍 ${history.points.length} positions tracked</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectSensor(sensorId) {
+            selectedSensorId = sensorId;
+            updateSensorList();
+            updateMarkerStyles();
+
+            // Highlight the selected sensor's polyline
+            Object.entries(polylines).forEach(([id, line]) => {
+                if (id == sensorId) {
+                    line.setStyle({ color: '#f6ad55', weight: 4, opacity: 0.8 });
+                } else {
+                    line.setStyle({ color: '#667eea', weight: 3, opacity: 0.6 });
+                }
+            });
+        }
+
+        function updateMarkerStyles() {
+            Object.entries(markers).forEach(([id, marker]) => {
+                const element = marker.getElement();
+                if (element) {
+                    if (id == selectedSensorId) {
+                        element.classList.add('selected');
+                    } else {
+                        element.classList.remove('selected');
+                    }
+                }
+            });
+        }
+
+        function updateStatus(status) {
+            const statusEl = document.getElementById('connection-status');
+
+            if (status === 'connected') {
+                statusEl.className = 'status connected';
+                statusEl.textContent = '🟢 Connected';
+            } else if (status === 'connecting') {
+                statusEl.className = 'status';
+                statusEl.style.background = '#fff3cd';
+                statusEl.style.color = '#856404';
+                statusEl.textContent = '🟡 Connecting...';
+            } else {
+                statusEl.className = 'status disconnected';
+                statusEl.textContent = '⚫ Disconnected';
+            }
+        }
+
+        // Time travel functions
+        function updateTimeSlider() {
+            // Collect all timestamps from all sensors
+            allHistoryTimestamps = [];
+            Object.values(sensorHistory).forEach(history => {
+                history.points.forEach(point => {
+                    allHistoryTimestamps.push(point.timestamp.getTime());
+                });
+            });
+
+            // Sort and deduplicate
+            allHistoryTimestamps = [...new Set(allHistoryTimestamps)].sort((a, b) => a - b);
+
+            if (allHistoryTimestamps.length > 0) {
+                document.getElementById('time-slider').disabled = false;
+                document.getElementById('play-btn').disabled = false;
+                document.getElementById('live-btn').disabled = !isLiveMode;
+
+                const slider = document.getElementById('time-slider');
+                slider.max = allHistoryTimestamps.length - 1;
+                if (isLiveMode) {
+                    slider.value = allHistoryTimestamps.length - 1;
+                }
+            }
+        }
+
+        function togglePlayback() {
+            if (isPlaying) {
+                pausePlayback();
+            } else {
+                startPlayback();
+            }
+        }
+
+        function startPlayback() {
+            if (allHistoryTimestamps.length === 0) return;
+
+            isLiveMode = false;
+            isPlaying = true;
+            document.getElementById('play-btn').textContent = '⏸️ Pause';
+            document.getElementById('mode-badge').className = 'mode-badge playback';
+            document.getElementById('mode-badge').textContent = '⏯️ PLAYBACK';
+            document.getElementById('live-btn').disabled = false;
+
+            const slider = document.getElementById('time-slider');
+            playbackIndex = parseInt(slider.value);
+
+            playbackInterval = setInterval(() => {
+                playbackIndex++;
+                if (playbackIndex >= allHistoryTimestamps.length) {
+                    playbackIndex = 0;
+                }
+                slider.value = playbackIndex;
+                renderAtTimestamp(playbackIndex);
+            }, 200);
+        }
+
+        function pausePlayback() {
+            isPlaying = false;
+            document.getElementById('play-btn').textContent = '▶️ Play';
+            if (playbackInterval) {
+                clearInterval(playbackInterval);
+                playbackInterval = null;
+            }
+        }
+
+        function returnToLive() {
+            pausePlayback();
+            isLiveMode = true;
+            isPlaying = false;
+
+            document.getElementById('play-btn').textContent = '▶️ Play';
+            document.getElementById('mode-badge').className = 'mode-badge live';
+            document.getElementById('mode-badge').textContent = '● LIVE';
+            document.getElementById('live-btn').disabled = true;
+            document.getElementById('time-display').textContent = 'Live Mode';
+
+            const slider = document.getElementById('time-slider');
+            slider.value = allHistoryTimestamps.length - 1;
+
+            // Restore all markers to latest positions
+            Object.entries(sensorHistory).forEach(([sensorId, history]) => {
+                if (history.points.length > 0 && markers[sensorId]) {
+                    const latest = history.points[history.points.length - 1];
+                    markers[sensorId].setLatLng([latest.coords.lat, latest.coords.lng]);
+                }
+            });
+
+            updateSensorList();
+        }
+
+        document.getElementById('time-slider').addEventListener('input', (e) => {
+            if (!isPlaying) {
+                isLiveMode = false;
+                document.getElementById('mode-badge').className = 'mode-badge playback';
+                document.getElementById('mode-badge').textContent = '⏯️ PLAYBACK';
+                document.getElementById('live-btn').disabled = false;
+
+                const index = parseInt(e.target.value);
+                renderAtTimestamp(index);
+            }
+        });
+
+        function renderAtTimestamp(index) {
+            if (index < 0 || index >= allHistoryTimestamps.length) return;
+
+            const targetTime = allHistoryTimestamps[index];
+            const targetDate = new Date(targetTime);
+
+            document.getElementById('time-display').textContent = targetDate.toLocaleString();
+
+            // Update each sensor's marker to its position at this timestamp
+            Object.entries(sensorHistory).forEach(([sensorId, history]) => {
+                if (!markers[sensorId]) return;
+
+                // Find the latest point before or at the target time
+                let point = null;
+                for (let i = history.points.length - 1; i >= 0; i--) {
+                    if (history.points[i].timestamp.getTime() <= targetTime) {
+                        point = history.points[i];
+                        break;
+                    }
+                }
+
+                if (point) {
+                    markers[sensorId].setLatLng([point.coords.lat, point.coords.lng]);
+                    markers[sensorId].getElement().style.opacity = '1';
+                } else {
+                    // Sensor didn't exist at this time
+                    markers[sensorId].getElement().style.opacity = '0.2';
+                }
+            });
+        }
+
+        // Initialize
+        initMap();
+    </script>
+</body>
+</html>
