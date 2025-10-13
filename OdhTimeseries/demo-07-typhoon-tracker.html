@@ -473,12 +473,50 @@
                 const sensors = data.sensors || [];
                 console.log(`Found ${sensors.length} typhoons in view`);
 
+                // Clear old typhoons that are no longer in view
+                const newSensorIds = new Set(sensors.map(s => s.name));
+                const oldSensorIds = Object.keys(typhoonData);
+                console.log('Current typhoons:', oldSensorIds);
+                console.log('New typhoons in view:', Array.from(newSensorIds));
+
+                oldSensorIds.forEach(sensorId => {
+                    if (!newSensorIds.has(sensorId)) {
+                        console.log(`Removing typhoon ${sensorId} - no longer in view`);
+                        // Remove all markers for typhoons no longer in view
+                        const typhoon = typhoonData[sensorId];
+                        if (typhoon.currentMarker) {
+                            map.removeLayer(typhoon.currentMarker);
+                            typhoon.currentMarker = null;
+                        }
+                        if (typhoon.radiusCircle) {
+                            map.removeLayer(typhoon.radiusCircle);
+                            typhoon.radiusCircle = null;
+                        }
+                        if (typhoon.pathLine) {
+                            map.removeLayer(typhoon.pathLine);
+                            typhoon.pathLine = null;
+                        }
+                        if (typhoon.predictionMarkers) {
+                            Object.values(typhoon.predictionMarkers).forEach(m => {
+                                if (m) map.removeLayer(m);
+                            });
+                            typhoon.predictionMarkers = {};
+                        }
+                        delete typhoonData[sensorId];
+                    }
+                });
+
                 document.getElementById('typhoon-count').textContent =
                     `${sensors.length} typhoons tracked`;
 
-                // Load measurements for each typhoon
+                // Load measurements only for NEW typhoons (not already loaded)
                 for (const sensor of sensors) {
-                    await loadTyphoonData(sensor);
+                    if (!typhoonData[sensor.name]) {
+                        console.log(`Loading data for new typhoon: ${sensor.name}`);
+                        await loadTyphoonData(sensor);
+                    } else {
+                        console.log(`Typhoon ${sensor.name} already loaded, skipping`);
+                    }
                 }
 
                 // Update typhoon list
@@ -604,6 +642,34 @@
             currentTimeIndex = timelineData.length - 1;
         }
 
+        // Smooth marker animation (from demo-01)
+        function animateMarker(marker, from, to, duration) {
+            const start = Date.now();
+            const latDiff = to[0] - from[0];
+            const lngDiff = to[1] - from[1];
+
+            function step() {
+                const now = Date.now();
+                const progress = Math.min((now - start) / duration, 1);
+
+                // Easing function for smooth animation
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                const lat = from[0] + latDiff * eased;
+                const lng = from[1] + lngDiff * eased;
+
+                marker.setLatLng([lat, lng]);
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                }
+            }
+
+            requestAnimationFrame(step);
+        }
+
         // Update map visualization
         function updateMap() {
             if (currentTimeIndex < 0 || currentTimeIndex >= timelineData.length) return;
@@ -638,7 +704,15 @@
 
                 // Current position marker
                 if (typhoon.currentMarker) {
-                    typhoon.currentMarker.setLatLng(position);
+                    // Use smooth animation when in live mode
+                    if (isLiveMode) {
+                        const currentLatLng = typhoon.currentMarker.getLatLng();
+                        const from = [currentLatLng.lat, currentLatLng.lng];
+                        animateMarker(typhoon.currentMarker, from, position, 1000);
+                    } else {
+                        // Jump immediately when scrubbing
+                        typhoon.currentMarker.setLatLng(position);
+                    }
                 } else {
                     typhoon.currentMarker = L.marker(position, {
                         icon: L.divIcon({
@@ -660,9 +734,15 @@
                     `);
                 }
 
-                // Radius circle
+                // Radius circle - animate in live mode, jump otherwise
                 if (typhoon.radiusCircle) {
-                    typhoon.radiusCircle.setLatLng(position);
+                    if (isLiveMode) {
+                        const currentLatLng = typhoon.radiusCircle.getLatLng();
+                        const from = [currentLatLng.lat, currentLatLng.lng];
+                        animateMarker(typhoon.radiusCircle, from, position, 1000);
+                    } else {
+                        typhoon.radiusCircle.setLatLng(position);
+                    }
                     typhoon.radiusCircle.setRadius(radius * 1000); // km to meters
                 } else {
                     typhoon.radiusCircle = L.circle(position, {
@@ -703,7 +783,14 @@
                     const predPos = closestData[pred.key];
                     if (predPos) {
                         if (typhoon.predictionMarkers[pred.key]) {
-                            typhoon.predictionMarkers[pred.key].setLatLng(predPos);
+                            // Animate prediction markers in live mode
+                            if (isLiveMode) {
+                                const currentLatLng = typhoon.predictionMarkers[pred.key].getLatLng();
+                                const from = [currentLatLng.lat, currentLatLng.lng];
+                                animateMarker(typhoon.predictionMarkers[pred.key], from, predPos, 1000);
+                            } else {
+                                typhoon.predictionMarkers[pred.key].setLatLng(predPos);
+                            }
                         } else {
                             typhoon.predictionMarkers[pred.key] = L.circleMarker(predPos, {
                                 radius: 8,
@@ -743,14 +830,19 @@
 
         // WebSocket subscription management
         function subscribeToTyphoons(sensorNames) {
-            if (!sensorNames || sensorNames.length === 0) return;
+            if (!sensorNames || sensorNames.length === 0) {
+                console.log('No sensors to subscribe to');
+                return;
+            }
 
             // Close existing connection
             if (websocket) {
+                console.log('Closing existing WebSocket connection');
                 websocket.close();
+                websocket = null;
             }
 
-            console.log(`Subscribing to ${sensorNames.length} typhoons via WebSocket`);
+            console.log(`Subscribing to ${sensorNames.length} typhoons via WebSocket:`, sensorNames);
 
             websocket = new WebSocket(WEBSOCKET_URL);
 
@@ -779,13 +871,18 @@
             websocket.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
-                    console.log(event)
+                    console.log('WebSocket message received:', message);
 
-                    if (message.type === 'data' && message.measurement) {
-                        handleLiveUpdate(message.measurement);
+                    if (message.type === 'data' && message.payload) {
+                        console.log('Processing measurement:', message.payload);
+                        handleLiveUpdate(message.payload);
+                    } else if (message.type === 'connection_ack') {
+                        console.log('WebSocket subscription acknowledged');
+                    } else {
+                        console.log('Received other message type:', message.type);
                     }
                 } catch (error) {
-                    console.error('Error processing WebSocket message:', error);
+                    console.error('Error processing WebSocket message:', error, event.data);
                 }
             };
 
@@ -810,12 +907,18 @@
 
         // Handle live measurement update from WebSocket
         function handleLiveUpdate(measurement) {
+            console.log('handleLiveUpdate called with:', measurement);
+
             const sensorId = measurement.sensor_name;
             const typhoon = typhoonData[sensorId];
 
-            if (!typhoon) return;
+            if (!typhoon) {
+                console.warn(`Received measurement for unknown typhoon: ${sensorId}. Known typhoons:`, Object.keys(typhoonData));
+                return;
+            }
 
             const timestamp = new Date(measurement.timestamp);
+            console.log(`Updating ${sensorId} with ${measurement.type_name} at ${timestamp}`);
 
             // Create or update timeline entry
             let timelineEntry = typhoon.timeline.find(e => e.time.getTime() === timestamp.getTime());
@@ -824,25 +927,34 @@
                 timelineEntry = { time: timestamp, data: {} };
                 typhoon.timeline.push(timelineEntry);
                 typhoon.timeline.sort((a, b) => a.time - b.time);
+                console.log(`Created new timeline entry for ${sensorId} at ${timestamp}`);
             }
 
             // Parse position from WKT if applicable
             if (measurement.type_name.includes('position') || measurement.type_name.includes('prediction')) {
                 const coords = parseWKT(measurement.value);
-                timelineEntry.data[measurement.type_name] = coords;
+                if (coords) {
+                    timelineEntry.data[measurement.type_name] = coords;
+                    console.log(`Updated ${measurement.type_name} to:`, coords);
+                }
             } else {
                 timelineEntry.data[measurement.type_name] = measurement.value;
+                console.log(`Updated ${measurement.type_name} to:`, measurement.value);
             }
 
             // Update global timeline
             mergeTimelines();
 
-            // Update display if in live mode
-            if (isLiveMode && currentTimeIndex === timelineData.length - 2) {
-                goToLatest();
+            // If in live mode, advance to latest and update display
+            console.log('isLiveMode:', isLiveMode, 'currentTimeIndex:', currentTimeIndex, 'timelineData.length:', timelineData.length);
+            if (isLiveMode) {
+                currentTimeIndex = timelineData.length - 1;
+                document.getElementById('time-slider').value = currentTimeIndex;
+                console.log('Calling updateMap() from handleLiveUpdate');
+                updateMap();
             }
 
-            // Update typhoon list
+            // Update typhoon list to show latest stats
             updateTyphoonList();
         }
 

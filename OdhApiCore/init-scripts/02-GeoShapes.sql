@@ -2,7 +2,6 @@
 --
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 
-
 CREATE TABLE public.geoshapes (
 	id varchar(50) NOT NULL,
 	country varchar(2) NULL,

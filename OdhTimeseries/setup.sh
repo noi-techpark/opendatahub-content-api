@@ -198,15 +198,15 @@ if [ "$MODE" = "clean" ]; then
     fi
 
     # Initialize content database (create sensors table)
-    if PGPASSWORD=your_password psql -h localhost -p 5432 -U postgres -d postgres \
-        -f ../Helper/PGDBScripts/Sensors.sql \
-        -f ../Helper/PGDBScripts/GeoShapes.sql \
-        > /dev/null 2>&1; then
-        print_success "Content database schema initialized"
-    else
-        print_error "Failed to initialize content database schema"
-        exit 1
-    fi
+    # if PGPASSWORD=your_password psql -h localhost -p 5432 -U postgres -d postgres \
+    #     -f ../Helper/PGDBScripts/Sensors.sql \
+    #     -f ../Helper/PGDBScripts/GeoShapes.sql \
+    #     > /dev/null 2>&1; then
+    #     print_success "Content database schema initialized"
+    # else
+    #     print_error "Failed to initialize content database schema"
+    #     exit 1
+    # fi
 else
     print_info "Step 4: Skipping schema initialization (restart mode)"
     print_info "Using existing database schemas"
