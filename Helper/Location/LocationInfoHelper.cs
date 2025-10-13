@@ -327,8 +327,10 @@ namespace Helper.Location
                                 30000,
                                 tvid
                             );
-
-                            return await GetTheLocationInfoDistrict(queryFactory, district.Id);
+                            if(district != null)
+                                return await GetTheLocationInfoDistrict(queryFactory, district.Id);
+                            else
+                                return new LocationInfoLinked();
                         }
                         else
                             return new LocationInfoLinked();
@@ -395,7 +397,19 @@ namespace Helper.Location
                 .When(tvid != null, x => x.WhereRaw("data#>>'\\{TourismvereinId\\}' = $$", tvid))
                 .OrderByRaw(orderbygeo);
 
-            return await query.GetObjectSingleAsync<District>();
+            var district = await query.GetObjectSingleAsync<District>();
+
+            //if TV is somewhere else redo the calculation without TV
+            if (district == null) {
+                var query2 = QueryFactory
+                .Query("districts")
+                .Select("data")
+                .WhereRaw(wheregeo)
+                .OrderByRaw(orderbygeo);
+                district = await query2.GetObjectSingleAsync<District>();
+            }
+
+            return district;
         }
 
         public static async Task<LocationInfoLinked> GetTheLocationInfoDistrict(
