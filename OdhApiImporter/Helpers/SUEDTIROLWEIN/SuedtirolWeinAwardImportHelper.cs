@@ -50,23 +50,19 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             CancellationToken cancellationToken = default
         )
         {
-            var wineawarddatalistde = await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
+            IDictionary<string, XDocument> mywinedata = new Dictionary<string, XDocument>();
+            mywinedata.Add("de", await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
                 "de"
-            );
-            var wineawarddatalistit = await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
+            ));
+            mywinedata.Add("it", await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
                 "it"
-            );
-            var wineawarddatalisten = await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
+            ));
+            mywinedata.Add("en", await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
                 "en"
-            );
-
-            IDictionary<string, XDocument> mywinedata = new Dictionary<string, XDocument>();
-            mywinedata.Add("de", wineawarddatalistde);
-            mywinedata.Add("it", wineawarddatalistit);
-            mywinedata.Add("en", wineawarddatalisten);
+            ));
 
             return mywinedata;
         }

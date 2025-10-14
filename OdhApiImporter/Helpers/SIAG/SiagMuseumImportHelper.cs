@@ -720,5 +720,17 @@ namespace OdhApiImporter.Helpers
                 }
             );
         }
+
+        #region Helpers
+
+        //Assign ODHTags and preserve old Tags
+
+        //Assign Tags
+
+        //Assign Categorization
+
+        //Add Additional Properties (SiagMuseumDataProperties)
+
+        #endregion
     }
 }
