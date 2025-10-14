@@ -632,13 +632,33 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
         #region CompatibilityHelpers
 
+        //Adds all Redactional Assigned Tags from the old Record to the new Record
+        private async Task MergeTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        {
+            if (poiOld != null)
+            {
+                //Readd all Redactional Tags to check if this query fits
+                var redactionalassignedTags = poiOld.Tags != null ? poiOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                if (redactionalassignedTags != null)
+                {
+                    foreach (var tag in redactionalassignedTags)
+                    {
+                        poiNew.TagIds.Add(tag.Id);
+                    }
+                }
+            }
+
+            //TODO import the Redactional Tags from SmgTags into Tags?
+
+            //TODO same procedure on Tags? (Remove all Tags that come from the sync and readd the redactional assigned Tags)
+        }
+
+
         //Assign ODHTags and preserve old Tags
 
         //Assign Tags
 
         //Assign Categorization
-
-        //Add Additional Properties (SuedtirolWeinCompanyDataProperties)    
 
         #endregion
     }

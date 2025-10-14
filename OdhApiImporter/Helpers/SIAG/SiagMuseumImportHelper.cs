@@ -12,6 +12,7 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Location;
+using Newtonsoft.Json.Linq;
 using SIAG;
 using SqlKata.Execution;
 
@@ -723,13 +724,76 @@ namespace OdhApiImporter.Helpers
 
         #region Helpers
 
+        //Adds all Redactional Assigned Tags from the old Record to the new Record
+        private async Task MergeTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        {
+            if (poiOld != null)
+            {
+                //Readd all Redactional Tags to check if this query fits
+                var redactionalassignedTags = poiOld.Tags != null ? poiOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                if (redactionalassignedTags != null)
+                {
+                    foreach (var tag in redactionalassignedTags)
+                    {
+                        poiNew.TagIds.Add(tag.Id);
+                    }
+                }
+            }
+
+            //TODO import the Redactional Tags from SmgTags into Tags?
+
+            //TODO same procedure on Tags? (Remove all Tags that come from the sync and readd the redactional assigned Tags)
+        }
+
         //Assign ODHTags and preserve old Tags
 
         //Assign Tags
 
-        //Assign Categorization
+        //Merge Tags
 
-        //Add Additional Properties (SiagMuseumDataProperties)
+        //Assign Categorization
+        private static void SetAdditionalInfosCategoriesByODHTags(ODHActivityPoiLinked activityNew, IDictionary<string, JArray>? jsonfiles)
+        {
+            //TO CHECK
+            //SET ADDITIONALINFOS
+            //Setting Categorization by Valid Tags
+            var validcategorylist = jsonfiles != null && jsonfiles["ActivityPoiDisplayAsCategory"] != null ? jsonfiles["ActivityPoiDisplayAsCategory"].ToObject<List<CategoriesTags>>() : null;
+
+            if (validcategorylist != null && activityNew.SmgTags != null)
+            {
+                var currentcategories = validcategorylist.Where(x => activityNew.SmgTags.Select(y => y.ToLower()).Contains(x.Id.ToLower())).ToList();
+
+                if (currentcategories != null)
+                {
+                    if (activityNew.AdditionalPoiInfos == null)
+                        activityNew.AdditionalPoiInfos = new Dictionary<string, AdditionalPoiInfos>();
+
+                    foreach (var languagecategory in new List<string>() { "de", "it", "en", "nl", "cs", "pl", "fr", "ru" })
+                    {
+                        //Do not overwrite Novelty
+                        string? novelty = null;
+                        if (activityNew.AdditionalPoiInfos.ContainsKey(languagecategory) && !String.IsNullOrEmpty(activityNew.AdditionalPoiInfos[languagecategory].Novelty))
+                            novelty = activityNew.AdditionalPoiInfos[languagecategory].Novelty;
+
+
+                        AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string>(), Novelty = novelty };
+
+                        //Reassigning Categories
+                        foreach (var smgtagtotranslate in currentcategories)
+                        {
+                            if (smgtagtotranslate.TagName.ContainsKey(languagecategory))
+                            {
+                                if (!additionalPoiInfos.Categories.Contains(smgtagtotranslate.TagName[languagecategory].Trim()))
+                                    additionalPoiInfos.Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
+                            }
+                        }
+
+                        activityNew.AdditionalPoiInfos.TryAddOrUpdate(languagecategory, additionalPoiInfos);
+                    }
+                }
+            }
+        }
+
 
         #endregion
     }
