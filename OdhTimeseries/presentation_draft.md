@@ -106,6 +106,9 @@ Ninja must specialize on sensor discovery and timeseries deliver
 - - Give me all types and all sensors-timeseries pairs
 - - 
 
+!! Since sensor disable/enable info is in the content, timeseries can't answer to "give me enabled sensors for type X".
+!! This is mitigated by the fact that when a sensor is disabled, the timeseries should be disabled as well.
+
 CONTENT ---------
 use all the existing logic to implement the concept of sensor.
 use free geometry (point,polygon,lines) as sensor position to be able to represent areas, munipalities, roads, ....

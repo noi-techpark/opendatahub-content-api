@@ -225,10 +225,10 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 		{
 			datasets.POST("", datasetHandler.CreateDataset)
 			datasets.GET("", datasetHandler.ListDatasets)
-			datasets.GET("/:id", datasetHandler.GetDataset)
+			datasets.GET("/:name", datasetHandler.GetDataset)
 			datasets.POST("/:id/types", datasetHandler.AddTypesToDataset)
 			datasets.DELETE("/:id/types", datasetHandler.RemoveTypesFromDataset)
-			datasets.GET("/:id/sensors", datasetHandler.GetSensorsByDataset)
+			datasets.GET("/:name/sensors", datasetHandler.GetSensorsByDataset)
 		}
 
 		// Type endpoints
