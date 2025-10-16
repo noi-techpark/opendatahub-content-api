@@ -1883,61 +1883,95 @@ namespace OdhApiImporter.Helpers
             var data = await query.GetObjectListAsync<ODHTagLinked>();
             int i = 0;
 
+            List<string> notfoundtags = new List<string>();
+
             foreach (var odhtag in data)
             {
-                //remove , and & and / from id
-                var idtoload = odhtag.TagName["en"].ToLower();
-                idtoload = idtoload.Replace(",", "").Replace("&", "").Replace("/", "").Replace("-", "");
+                
+                    var tagquery = QueryFactory
+                        .Query("tags")
+                        .Select("data")
+                        .WhereInJsonb(new List<string>() { odhtag.Id }, tag => new { ODHTagIds = new[] { tag.ToLower() } });
 
-                //Load the Tag and update the Translations
-                var tagquery = QueryFactory
-                    .Query("tags")
-                    .Select("data")
-                    .Where("id", idtoload);
+                    var taglist = await tagquery.GetObjectListAsync<TagLinked>();
 
-                var tag = await tagquery.GetObjectSingleAsync<TagLinked>();
+                    var tag = taglist.FirstOrDefault();
 
-                if (tag != null)
-                {
-                    bool save = false;
-                    if (odhtag.TagName.ContainsKey("cs") || odhtag.TagName.ContainsKey("fr") || odhtag.TagName.ContainsKey("nl") || odhtag.TagName.ContainsKey("pl"))
-                        save = true;
-
-                    //Update Translations in FR/CS/PL/NL
-                    if(odhtag.TagName.ContainsKey("cs"))
-                        tag.TagName.TryAddOrUpdate("cs", odhtag.TagName["cs"]);
-                                             
-                    if (odhtag.TagName.ContainsKey("cs"))
-                        tag.TagName.TryAddOrUpdate("cs", odhtag.TagName["cs"]);
-
-                    if (odhtag.TagName.ContainsKey("fr"))
-                        tag.TagName.TryAddOrUpdate("fr", odhtag.TagName["fr"]);
-                    
-                    if (odhtag.TagName.ContainsKey("nl"))
-                        tag.TagName.TryAddOrUpdate("nl", odhtag.TagName["nl"]);
-                    
-                    if (odhtag.TagName.ContainsKey("pl"))
-                        tag.TagName.TryAddOrUpdate("pl", odhtag.TagName["pl"]);
-                    
-
-                    if (save)
+                    if (tag != null)
                     {
-                        var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
-                           tag,
-                           new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
-                           new EditInfo("tag.modify", "importer"),
-                           new CRUDConstraints(),
-                           new CompareConfig(false, false)
-                       );
+                        bool save = false;
+                        if (odhtag.TagName.ContainsKey("cs") || odhtag.TagName.ContainsKey("fr") || odhtag.TagName.ContainsKey("nl") || odhtag.TagName.ContainsKey("pl"))
+                            save = true;
+
+                        //Update Translations in FR/CS/PL/NL                                            
+                        if (odhtag.TagName.ContainsKey("cs"))
+                            tag.TagName.TryAddOrUpdate("cs", odhtag.TagName["cs"]);
+
+                        if (odhtag.TagName.ContainsKey("fr"))
+                            tag.TagName.TryAddOrUpdate("fr", odhtag.TagName["fr"]);
+
+                        if (odhtag.TagName.ContainsKey("nl"))
+                            tag.TagName.TryAddOrUpdate("nl", odhtag.TagName["nl"]);
+
+                        if (odhtag.TagName.ContainsKey("pl"))
+                            tag.TagName.TryAddOrUpdate("pl", odhtag.TagName["pl"]);
+
+
+                        if (save)
+                        {
+                            var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                               tag,
+                               new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                               new EditInfo("tag.modify", "importer"),
+                               new CRUDConstraints(),
+                               new CompareConfig(false, false)
+                           );
+
+                        if(pgcrudresult.updated != null && pgcrudresult.updated > 0)
+                            i++;
                     }
 
-                    i++;
-                }
-                else
-                {
 
+                    }
+                    else
+                    {
+                    //cannot find tag
+                        notfoundtags.Add(odhtag.Id);
+                    }                
+            }            
+
+            return i;
+        }
+
+        public async Task<int> TagsValidForEntityFix()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("tags")
+                  .SourceFilter_GeneratedColumn(new List<string>() { "idm" });
+
+            var data = await query.GetObjectListAsync<TagLinked>();
+            int i = 0;
+
+            List<string> updatedid = new List<string>();
+
+            foreach (var tag in data)
+            {
+                if (tag.ValidForEntity != null && tag.ValidForEntity.Contains("smgpoi") && !tag.ValidForEntity.Contains("odhactivitypoi"))
+                {
+                    tag.ValidForEntity.Add("odhactivitypoi");
+                    updatedid.Add(tag.Id);
+
+                    var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                                     tag,
+                                     new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                                     new EditInfo("tag.modify", "importer"),
+                                     new CRUDConstraints(),
+                                     new CompareConfig(false, false)
+                                 );
+
+                    if (pgcrudresult.updated != null && pgcrudresult.updated > 0)
+                        i++;
                 }
-   
             }
 
             return i;
