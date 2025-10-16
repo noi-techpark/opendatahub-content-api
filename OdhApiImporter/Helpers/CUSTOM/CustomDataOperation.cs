@@ -1899,19 +1899,37 @@ namespace OdhApiImporter.Helpers
 
                 if (tag != null)
                 {
-                    //Update Translations in FR/CS/PL/NL
-                    tag.TagName["cs"] = odhtag.TagName["cs"];
-                    tag.TagName["fr"] = odhtag.TagName["fr"];
-                    tag.TagName["nl"] = odhtag.TagName["nl"];
-                    tag.TagName["pl"] = odhtag.TagName["pl"];
+                    bool save = false;
+                    if (odhtag.TagName.ContainsKey("cs") || odhtag.TagName.ContainsKey("fr") || odhtag.TagName.ContainsKey("nl") || odhtag.TagName.ContainsKey("pl"))
+                        save = true;
 
-                   // var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
-                   //    tag,
-                   //    new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
-                   //    new EditInfo("tag.modify", "importer"),
-                   //    new CRUDConstraints(),
-                   //    new CompareConfig(false, false)
-                   //);
+                    //Update Translations in FR/CS/PL/NL
+                    if(odhtag.TagName.ContainsKey("cs"))
+                        tag.TagName.TryAddOrUpdate("cs", odhtag.TagName["cs"]);
+                                             
+                    if (odhtag.TagName.ContainsKey("cs"))
+                        tag.TagName.TryAddOrUpdate("cs", odhtag.TagName["cs"]);
+
+                    if (odhtag.TagName.ContainsKey("fr"))
+                        tag.TagName.TryAddOrUpdate("fr", odhtag.TagName["fr"]);
+                    
+                    if (odhtag.TagName.ContainsKey("nl"))
+                        tag.TagName.TryAddOrUpdate("nl", odhtag.TagName["nl"]);
+                    
+                    if (odhtag.TagName.ContainsKey("pl"))
+                        tag.TagName.TryAddOrUpdate("pl", odhtag.TagName["pl"]);
+                    
+
+                    if (save)
+                    {
+                        var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                           tag,
+                           new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                           new EditInfo("tag.modify", "importer"),
+                           new CRUDConstraints(),
+                           new CompareConfig(false, false)
+                       );
+                    }
 
                     i++;
                 }
