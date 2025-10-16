@@ -2568,6 +2568,98 @@ namespace OdhApiImporter.Controllers
 
         #region UPDATE DATA DIRECTLY FROM LTS API
 
+        //Dispatcher (to redirect type odhactivitypoi to the right interface)
+        [HttpGet, Route("SyncDataFromLTS/{datatype}/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> SyncDataFromLTSDispatcher(
+            string id,
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update LTS";
+            string updatetype = "single.synctrigger";
+            string source = "api";
+            string otherinfo = datatype.ToLower();
+
+            try
+            {
+                string datatypecalculated = datatype;
+                if (datatype.ToLower() == "odhactivitypoi")
+                {
+                    var data = await QueryFactory
+                   .Query("smgpois")
+                   .Select("data")
+                   .Where("id", id.ToLower())                   
+                   .FilterDataByAccessRoles(new List<string>() { "IDM" })
+                   .FirstOrDefaultAsync<ODHActivityPoiLinked>();
+
+                    if (data == null)
+                        throw new Exception("Data not found");
+                    else
+                    {
+                        switch(data.SyncSourceInterface)
+                        {
+                            case "gastronomicdata": datatypecalculated = "gastronomy";
+                                break;
+                            case "activitydata":
+                                datatypecalculated = "activity";
+                                break;
+                            case "poidata":
+                                datatypecalculated = "poi";
+                                break;
+                            default: datatypecalculated = datatypecalculated;
+                                break;
+                        }
+                    }
+                }
+
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatypecalculated),
+                    OdhPushnotifier
+                );
+                var resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
+                    id,
+                    datatypecalculated,
+                    cancellationToken
+                );
+                updatedetail = resulttuple.Item2;
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    resulttuple.Item1,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update LTS failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }    
+        }
+        
+
         //Generic Update Single Dataset
         [HttpGet, Route("LTS/{datatype}/Update/{id}")]
         [Authorize(Roles = "DataPush")]
