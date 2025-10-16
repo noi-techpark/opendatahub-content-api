@@ -52,39 +52,31 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             CancellationToken cancellationToken = default
         )
         {
-            var winedatalistde = await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
+            IDictionary<string, XDocument> mywinedata = new Dictionary<string, XDocument>();
+            mywinedata.Add("de", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
                 "de"
-            );
-            var winedatalistit = await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
+            ));
+            mywinedata.Add("it", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
                 "it"
-            );
-            var winedatalisten = await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
+            ));
+            mywinedata.Add("en", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
                 "en"
-            );
-            //New getting in jp and ru and us
-            var winedatalistjp = await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "jp"
-            );
-            var winedatalistru = await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
+            ));
+            mywinedata.Add("ru", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
                 "ru"
-            );
-            var winedatalistus = await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
+            ));
+            mywinedata.Add("jp", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
+                settings.SuedtirolWeinConfig.ServiceUrl,
+                "jp"
+            ));
+            mywinedata.Add("us", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
                 "us"
-            );
-
-            IDictionary<string, XDocument> mywinedata = new Dictionary<string, XDocument>();
-            mywinedata.Add("de", winedatalistde);
-            mywinedata.Add("it", winedatalistit);
-            mywinedata.Add("en", winedatalisten);
-            mywinedata.Add("ru", winedatalistru);
-            mywinedata.Add("jp", winedatalistjp);
-            mywinedata.Add("us", winedatalistus);
+            ));
 
             return mywinedata;
         }
@@ -637,5 +629,17 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 }
             );
         }
+
+        #region CompatibilityHelpers
+
+        //Assign ODHTags and preserve old Tags
+
+        //Assign Tags
+
+        //Assign Categorization
+
+        //Add Additional Properties (SuedtirolWeinCompanyDataProperties)    
+
+        #endregion
     }
 }
