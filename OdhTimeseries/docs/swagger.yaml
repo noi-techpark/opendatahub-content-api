@@ -129,6 +129,20 @@ definitions:
       total:
         type: integer
     type: object
+  models.BatchSensorTypesResponse:
+    properties:
+      sensors:
+        items:
+          $ref: '#/definitions/models.SensorTypesResponse'
+        type: array
+      total:
+        type: integer
+      types:
+        description: Only populated when distinct=true
+        items:
+          $ref: '#/definitions/models.TypeWithTimeseries'
+        type: array
+    type: object
   models.CreateDatasetRequest:
     properties:
       description:
@@ -275,6 +289,30 @@ definitions:
       total:
         type: integer
     type: object
+  models.SensorTypesRequest:
+    properties:
+      distinct:
+        type: boolean
+      sensor_names:
+        items:
+          type: string
+        type: array
+    required:
+    - sensor_names
+    type: object
+  models.SensorTypesResponse:
+    properties:
+      sensor_id:
+        type: integer
+      sensor_name:
+        type: string
+      total:
+        type: integer
+      types:
+        items:
+          $ref: '#/definitions/models.TypeWithTimeseries'
+        type: array
+    type: object
   models.TimeseriesInfo:
     properties:
       timeseries_id:
@@ -314,6 +352,15 @@ definitions:
           $ref: '#/definitions/models.SensorTimeseriesInfo'
         type: array
       type:
+        $ref: '#/definitions/models.Type'
+    type: object
+  models.TypeWithTimeseries:
+    properties:
+      sensor_name:
+        type: string
+      timeseries_id:
+        type: string
+      type_info:
         $ref: '#/definitions/models.Type'
     type: object
 host: localhost:8080
@@ -1070,6 +1117,40 @@ paths:
             additionalProperties: true
             type: object
       summary: Get timeseries for multiple sensors
+      tags:
+      - sensors
+  /sensors/types:
+    post:
+      consumes:
+      - application/json
+      description: Get all types for a batch of sensors with their timeseries IDs.
+        Use distinct=true to get unique types across all sensors.
+      parameters:
+      - description: Request with sensor names and optional distinct flag
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.SensorTypesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Batch response with sensors and their types, plus distinct
+            types if requested
+          schema:
+            $ref: '#/definitions/models.BatchSensorTypesResponse'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get types for multiple sensors
       tags:
       - sensors
   /sensors/verify:

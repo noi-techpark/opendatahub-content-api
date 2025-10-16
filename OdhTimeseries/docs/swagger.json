@@ -879,6 +879,54 @@
                 }
             }
         },
+        "/sensors/types": {
+            "post": {
+                "description": "Get all types for a batch of sensors with their timeseries IDs. Use distinct=true to get unique types across all sensors.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sensors"
+                ],
+                "summary": "Get types for multiple sensors",
+                "parameters": [
+                    {
+                        "description": "Request with sensor names and optional distinct flag",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.SensorTypesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Batch response with sensors and their types, plus distinct types if requested",
+                        "schema": {
+                            "$ref": "#/definitions/models.BatchSensorTypesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/sensors/verify": {
             "post": {
                 "description": "Verify if a list of sensor names satisfy the same filters used in sensor discovery",
@@ -1281,6 +1329,27 @@
                 }
             }
         },
+        "models.BatchSensorTypesResponse": {
+            "type": "object",
+            "properties": {
+                "sensors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.SensorTypesResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "types": {
+                    "description": "Only populated when distinct=true",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TypeWithTimeseries"
+                    }
+                }
+            }
+        },
         "models.CreateDatasetRequest": {
             "type": "object",
             "properties": {
@@ -1500,6 +1569,43 @@
                 }
             }
         },
+        "models.SensorTypesRequest": {
+            "type": "object",
+            "required": [
+                "sensor_names"
+            ],
+            "properties": {
+                "distinct": {
+                    "type": "boolean"
+                },
+                "sensor_names": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.SensorTypesResponse": {
+            "type": "object",
+            "properties": {
+                "sensor_id": {
+                    "type": "integer"
+                },
+                "sensor_name": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "types": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TypeWithTimeseries"
+                    }
+                }
+            }
+        },
         "models.TimeseriesInfo": {
             "type": "object",
             "properties": {
@@ -1559,6 +1665,20 @@
                     }
                 },
                 "type": {
+                    "$ref": "#/definitions/models.Type"
+                }
+            }
+        },
+        "models.TypeWithTimeseries": {
+            "type": "object",
+            "properties": {
+                "sensor_name": {
+                    "type": "string"
+                },
+                "timeseries_id": {
+                    "type": "string"
+                },
+                "type_info": {
                     "$ref": "#/definitions/models.Type"
                 }
             }

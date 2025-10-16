@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"timeseries-api/internal/filter"
+	"timeseries-api/internal/models"
 	"timeseries-api/internal/repository"
 
 	"github.com/gin-gonic/gin"
@@ -298,6 +299,45 @@ func (h *SensorDiscoveryHandler) GetBatchSensorTimeseries(c *gin.Context) {
 	if err != nil {
 		logrus.WithError(err).Error("Failed to get batch sensor timeseries")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get batch sensor timeseries", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
+// GetBatchSensorTypes retrieves types for multiple sensors with optional distinct filtering
+// @Summary Get types for multiple sensors
+// @Description Get all types for a batch of sensors with their timeseries IDs. Use distinct=true to get unique types across all sensors.
+// @Tags sensors
+// @Accept json
+// @Produce json
+// @Param request body models.SensorTypesRequest true "Request with sensor names and optional distinct flag"
+// @Success 200 {object} models.BatchSensorTypesResponse "Batch response with sensors and their types, plus distinct types if requested"
+// @Failure 400 {object} map[string]interface{} "Bad request"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /sensors/types [post]
+func (h *SensorDiscoveryHandler) GetBatchSensorTypes(c *gin.Context) {
+	var req models.SensorTypesRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format", "details": err.Error()})
+		return
+	}
+
+	if len(req.SensorNames) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "sensor_names array cannot be empty"})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"sensor_count": len(req.SensorNames),
+		"distinct":     req.Distinct,
+	}).Info("Getting batch sensor types")
+
+	// Fetch batch sensor types from repository
+	result, err := h.repo.GetBatchSensorTypes(req.SensorNames, req.Distinct)
+	if err != nil {
+		logrus.WithError(err).Error("Failed to get batch sensor types")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get batch sensor types", "details": err.Error()})
 		return
 	}
 

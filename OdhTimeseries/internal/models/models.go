@@ -245,3 +245,29 @@ type BatchSensorTimeseriesResponse struct {
 	Sensors []SensorTimeseriesResponse `json:"sensors"`
 	Total   int                        `json:"total"`
 }
+
+// Sensor types request/response models
+
+type SensorTypesRequest struct {
+	SensorNames []string `json:"sensor_names" binding:"required"`
+	Distinct    bool     `json:"distinct"`
+}
+
+type TypeWithTimeseries struct {
+	TypeInfo     Type        `json:"type_info"`
+	TimeseriesID uuid.UUID   `json:"timeseries_id"`
+	SensorName   string      `json:"sensor_name"`
+}
+
+type SensorTypesResponse struct {
+	SensorName string               `json:"sensor_name"`
+	SensorID   int64                `json:"sensor_id"`
+	Types      []TypeWithTimeseries `json:"types"`
+	Total      int                  `json:"total"`
+}
+
+type BatchSensorTypesResponse struct {
+	Sensors []SensorTypesResponse `json:"sensors,omitempty"` // Only populated when distinct=false
+	Types   []Type                `json:"types,omitempty"`   // Only populated when distinct=true
+	Total   int                   `json:"total"`
+}

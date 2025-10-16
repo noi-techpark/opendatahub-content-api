@@ -213,6 +213,9 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 			// Batch sensor timeseries endpoint (must be before /:name to avoid conflicts)
 			sensors.POST("/timeseries", sensorDiscoveryHandler.GetBatchSensorTimeseries)
 
+			// Batch sensor types endpoint
+			sensors.POST("/types", sensorDiscoveryHandler.GetBatchSensorTypes)
+
 			// Legacy compatibility endpoints
 			sensors.GET("/discover", sensorDiscoveryHandler.DiscoverSensorsLegacy)
 

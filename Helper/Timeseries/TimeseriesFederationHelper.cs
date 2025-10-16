@@ -174,6 +174,52 @@ namespace Helper.Timeseries
 
             return filter;
         }
+
+        /// <summary>
+        /// Gets sensor types from timeseries API
+        /// </summary>
+        public async Task<TimeseriesTypesResponse?> GetSensorTypesAsync(
+            List<string> sensorNames,
+            bool distinct,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var request = new TimeseriesTypesRequest
+                {
+                    SensorNames = sensorNames,
+                    Distinct = distinct
+                };
+
+                var jsonContent = JsonSerializer.Serialize(request, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                var apiUrl = $"{_config.TimeseriesApiBaseUrl.TrimEnd('/')}/api/v1/sensors/types";
+                var response = await _httpClient.PostAsync(apiUrl, content, cancellationToken);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError(
+                        "Timeseries types API returned error: {StatusCode} - {Reason}",
+                        response.StatusCode, response.ReasonPhrase);
+                    return null;
+                }
+
+                var responseJson = await response.Content.ReadAsStringAsync(cancellationToken);
+                return JsonSerializer.Deserialize<TimeseriesTypesResponse>(responseJson,
+                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling timeseries types API");
+                return null;
+            }
+        }
     }
 
     #region DTOs for Timeseries API
@@ -190,6 +236,44 @@ namespace Helper.Timeseries
         public bool Ok { get; set; }
         public List<string> Verified { get; set; } = new();
         public List<string> Unverified { get; set; } = new();
+    }
+
+    public class TimeseriesTypesRequest
+    {
+        public List<string> SensorNames { get; set; } = new();
+        public bool Distinct { get; set; }
+    }
+
+    public class TimeseriesTypesResponse
+    {
+        public List<SensorTypesInfo>? Sensors { get; set; }
+        public List<TypeInfo>? Types { get; set; }
+        public int Total { get; set; }
+    }
+
+    public class SensorTypesInfo
+    {
+        public string SensorName { get; set; } = string.Empty;
+        public long SensorId { get; set; }
+        public List<TypeWithTimeseries> Types { get; set; } = new();
+        public int Total { get; set; }
+    }
+
+    public class TypeWithTimeseries
+    {
+        public TypeInfo TypeInfo { get; set; } = new();
+        public string TimeseriesId { get; set; } = string.Empty;
+        public string SensorName { get; set; } = string.Empty;
+    }
+
+    public class TypeInfo
+    {
+        public long Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? Unit { get; set; }
+        public string DataType { get; set; } = string.Empty;
+        public System.Text.Json.JsonElement? Metadata { get; set; }
     }
 
     public class TimeseriesFilter
