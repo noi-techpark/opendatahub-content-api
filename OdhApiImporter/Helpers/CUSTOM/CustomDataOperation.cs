@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using DataModel;
@@ -720,6 +721,59 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
+
+        public async Task<int> CleanODHActivityPoiNullTags()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("smgpois")
+                .WhereRaw("data->'TagIds' @> '\\[null\\]'::jsonb")
+                .Where("gen_source", "lts")
+                .FilterReducedDataByRoles(new List<string>() { "IDM" });
+
+            var data = await query.GetObjectListAsync<ODHActivityPoiLinked>();
+            int i = 0;
+            
+            foreach (var stapoi in data)
+            {
+                bool save = false;
+
+                if (stapoi.TagIds != null)
+                {
+                    if (stapoi.TagIds.Contains(null))
+                    {
+                        stapoi.TagIds.Remove(null);
+                        save = true;
+                    }
+
+                   
+                    if(save)
+                    { 
+                        //Save tp DB
+                      //TODO CHECK IF THIS WORKS
+                        var queryresult = await QueryFactory
+                            .Query("smgpois")
+                            .Where("id", stapoi.Id)
+                            .UpdateAsync(
+                                new JsonBData()
+                                {
+                                    id = stapoi.Id,
+                                    data = new JsonRaw(stapoi),
+                                }
+                            );
+
+                        i++;
+
+                    }
+                   
+                }
+            }
+
+            return i;
+        }
+
 
         #endregion
 
