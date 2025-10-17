@@ -433,6 +433,38 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("CleanODHActivityPoiNullTags")]
+        public async Task<IActionResult> CleanODHActivityPoiNullTags(            
+            CancellationToken cancellationToken
+        )
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.CleanODHActivityPoiNullTags(                
+            );
+            //var objectscount2 = await customdataoperation.UpdateAllODHActivityPoiOldTags("dss");
+
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify ODHActivityPoi",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
         #endregion
 
         #region MetaData
@@ -1007,6 +1039,33 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("TagsValidForEntityFix")]
+        public async Task<IActionResult> TagsValidForEntityFix(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.TagsValidForEntityFix();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "TagsValidForEntityFix",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+        
 
         #endregion
 
