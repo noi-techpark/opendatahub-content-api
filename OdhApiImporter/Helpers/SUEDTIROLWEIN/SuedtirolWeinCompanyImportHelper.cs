@@ -2,6 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Amazon.Runtime.Internal.Transform;
+using DataModel;
+using Helper;
+using Helper.Generic;
+using Helper.Location;
+using LTSAPI.Parser;
+using Newtonsoft.Json.Linq;
+using SqlKata.Execution;
+using SuedtirolWein;
+using SuedtirolWein.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,14 +20,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Amazon.Runtime.Internal.Transform;
-using DataModel;
-using Helper;
-using Helper.Generic;
-using Helper.Location;
-using SqlKata.Execution;
-using SuedtirolWein;
-using SuedtirolWein.Parser;
 
 namespace OdhApiImporter.Helpers.SuedtirolWein
 {
@@ -90,38 +92,43 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             int newcounter = 0;
             int errorcounter = 0;
 
-            //For AdditionalInfos
-            List<string> languagelistcategories = new List<string>()
-            {
-                "de",
-                "it",
-                "en",
-                "nl",
-                "cs",
-                "pl",
-                "fr",
-                "ru",
-            };
+            ////For AdditionalInfos
+            //List<string> languagelistcategories = new List<string>()
+            //{
+            //    "de",
+            //    "it",
+            //    "en",
+            //    "nl",
+            //    "cs",
+            //    "pl",
+            //    "fr",
+            //    "ru",
+            //};
 
-            //Getting valid Tags for Weinkellereien
-            var validtagsforcategories = await ODHTagHelper.GetODHTagsValidforCategories(
-                QueryFactory,
-                new List<string>() { "Essen Trinken" }
-            ); //Essen Trinken ??
+            ////Getting valid Tags for Weinkellereien
+            //var validtagsforcategories = await ODHTagHelper.GetODHTagsValidforCategories(
+            //    QueryFactory,
+            //    new List<string>() { "Essen Trinken" }
+            //); //Essen Trinken ??
 
-            //Load Type + Subtype fore each language
-            var suedtiroltypemain = await ODHTagHelper.GeODHTagByID(QueryFactory, "Essen Trinken");
-            var suedtiroltypesub = await ODHTagHelper.GeODHTagByID(QueryFactory, "Weinkellereien");
+            //Load the json Data
+            IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
 
-            //Loading District & Municipality data
-            var districtreducedinfo = await GpsHelper.GetReducedWithGPSInfoList(
-                QueryFactory,
-                "districts"
+            jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+            settings.JsonConfig.Jsondir,
+            new List<string>()
+                {
+                        "ODHTagsSourceIDMLTS",                        
+                        "ActivityPoiDisplayAsCategory",
+                }
             );
-            var municipalityreducedinfo = await GpsHelper.GetReducedWithGPSInfoList(
-                QueryFactory,
-                "municipalities"
-            );
+
+            var metainfosidm = await QueryFactory
+                .Query("odhactivitypoimetainfos")
+                .Select("data")
+                .Where("id", "metainfoexcelsmgpoi")
+                .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
+
 
             //Loading WineAwards
             var wineawardlist = await WineAwardHelper.GetReducedWithWineAwardList(QueryFactory);
@@ -134,13 +141,9 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 var importresult = await ImportDataSingle(
                     winedata,
                     wineddatalist,
-                    languagelistcategories,
-                    validtagsforcategories,
-                    suedtiroltypemain,
-                    suedtiroltypesub,
                     wineawardlist.ToList(),
-                    municipalityreducedinfo.ToList(),
-                    districtreducedinfo.ToList()
+                    metainfosidm,
+                    jsondata
                 );
 
                 newcounter = newcounter + importresult.created ?? newcounter;
@@ -159,14 +162,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
         public async Task<UpdateDetail> ImportDataSingle(
             XElement winedata,
-            IDictionary<string, XDocument> winedatalist,
-            List<string> languagelistcategories,
-            IEnumerable<SmgTags> validtagsforcategories,
-            SmgTags suedtiroltypemain,
-            SmgTags suedtiroltypesub,
+            IDictionary<string, XDocument> winedatalist,                       
             List<ReducedWineAward> wineawardreducelist,
-            List<ReducedWithGPSInfo> municipalityreducedlist,
-            List<ReducedWithGPSInfo> districtreducedlist
+            MetaInfosOdhActivityPoi metainfosidm,
+            IDictionary<string, JArray> jsondata
         )
         {
             int updatecounter = 0;
@@ -177,64 +176,27 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
             try
             {
-                var winedatait = winedatalist["it"]
-                    .Root.Elements("item")
-                    .Where(x => x.Element("id").Value == dataid)
-                    .FirstOrDefault();
-                var winedataen = winedatalist["en"]
-                    .Root.Elements("item")
-                    .Where(x => x.Element("id").Value == dataid)
-                    .FirstOrDefault();
-                var winedataru = winedatalist["ru"]
-                    .Root.Elements("item")
-                    .Where(x => x.Element("id").Value == dataid)
-                    .FirstOrDefault();
-                var winedatajp = winedatalist["jp"]
-                    .Root.Elements("item")
-                    .Where(x => x.Element("id").Value == dataid)
-                    .FirstOrDefault();
-                var winedataus = winedatalist["us"]
-                    .Root.Elements("item")
-                    .Where(x => x.Element("id").Value == dataid)
-                    .FirstOrDefault();
-
                 IDictionary<string, XElement> mywinecompanies = new Dictionary<string, XElement>();
-                mywinecompanies.Add("de", winedata);
-
                 List<string> haslanguage = new List<string>();
+
+                //language de is always present
+                mywinecompanies.Add("de", winedata);
                 haslanguage.Add("de");
+
+                foreach (var winedatalang in winedatalist)
+                {
+                    if(winedatalang.Value?.Root?.Elements("item")
+                    .Where(x => x.Element("id").Value == dataid)
+                    .FirstOrDefault() != null)
+                    {
+                        haslanguage.Add(winedatalang.Key);
+                        mywinecompanies.Add(winedatalang.Key, winedatalang.Value?.Root?.Elements("item").Where(x => x.Element("id").Value == dataid).FirstOrDefault());                
+                    }
+                }
+
                 bool newwinecompany = false;
+                bool setinactive = false;
 
-                if (winedatait != null)
-                {
-                    haslanguage.Add("it");
-                    mywinecompanies.Add("it", winedatait);
-                }
-                if (winedataen != null)
-                {
-                    haslanguage.Add("en");
-                    mywinecompanies.Add("en", winedataen);
-                }
-                if (winedataru != null)
-                {
-                    haslanguage.Add("ru");
-                    mywinecompanies.Add("ru", winedataru);
-                }
-                if (winedatajp != null)
-                {
-                    haslanguage.Add("jp");
-                    mywinecompanies.Add("jp", winedatajp);
-                }
-                if (winedataus != null)
-                {
-                    haslanguage.Add("us");
-                    mywinecompanies.Add("us", winedataus);
-                }
-
-                //Improve Performance this query is very slow!!!!
-                //var mysuedtirolweinquery = QueryFactory.Query("smgpois")
-                //    .Select("data")
-                //    .WhereRaw("data->>'CustomId' = $$", dataid.ToLower());
                 var mysuedtirolweinquery = QueryFactory
                     .Query("smgpois")
                     .Select("data")
@@ -256,114 +218,101 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     haslanguage
                 );
 
-                //TODO Set locinfo based on GPS
-                bool setinactive = false;
+                suedtirolweinpoi.Active = true;
+                suedtirolweinpoi.SmgActive = true;
 
+                //Create LocationInfo
+                //We set the LocationInfo only on new Objects because often the LocationInfo is wrongly added so we can edit it 
                 if (newwinecompany)
                 {
-                    suedtirolweinpoi.Active = true;
-                    suedtirolweinpoi.SmgActive = true;
-
-                    if (
-                        suedtirolweinpoi.GpsInfo != null
-                        && suedtirolweinpoi.GpsInfo.Count > 0
-                        && suedtirolweinpoi.GpsInfo.FirstOrDefault()?.Latitude != 0
-                        && suedtirolweinpoi.GpsInfo.FirstOrDefault()?.Longitude != 0
-                    )
-                    {
-                        var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
-                            QueryFactory,
-                            suedtirolweinpoi.GpsInfo.FirstOrDefault()!.Latitude,
-                            suedtirolweinpoi.GpsInfo.FirstOrDefault()!.Longitude,
-                            30000
-                        );
-
-                        if (district != null)
-                        {
-                            var locinfo = await LocationInfoHelper.GetTheLocationInfoDistrict(
-                                QueryFactory,
-                                district.Id
-                            );
-
-                            suedtirolweinpoi.LocationInfo = locinfo;
-                            suedtirolweinpoi.TourismorganizationId = locinfo.TvInfo?.Id;
-                        }
-                        else
-                        {
-                            var locinfo = new LocationInfoLinked();
-
-                            suedtirolweinpoi.LocationInfo = locinfo;
-
-                            setinactive = true;
-                        }
-                    }
+                    suedtirolweinpoi.LocationInfo = await suedtirolweinpoi.UpdateLocationInfoExtension(
+                        QueryFactory
+                    );
                 }
-
-                //Hack if Locationinfo not set
-                if (suedtirolweinpoi.LocationInfo == null)
+                
+                //If no locationInfo is set set to inactive?
+                if(suedtirolweinpoi.LocationInfo.Equals(new LocationInfo()))
                 {
-                    suedtirolweinpoi.LocationInfo = new LocationInfoLinked();
+                    setinactive = true;
                 }
 
-                //Type Informations
+                //DistanceCalculation
+                await suedtirolweinpoi.UpdateDistanceCalculation(QueryFactory);
 
-                suedtirolweinpoi.Type = suedtiroltypemain?.Shortname;
-                suedtirolweinpoi.SubType = suedtiroltypesub?.Shortname;
+                //Fill AdditionalInfos.Categories
 
-                foreach (var langcat in languagelistcategories)
-                {
-                    AdditionalPoiInfos additional = new AdditionalPoiInfos();
-                    additional.Language = langcat;
-                    additional.MainType = suedtiroltypemain.TagName[langcat];
-                    additional.SubType = suedtiroltypesub.TagName[langcat];
-                    additional.PoiType = "";
-                    suedtirolweinpoi.AdditionalPoiInfos.TryAddOrUpdate(langcat, additional);
-                }
 
-                //Tags
-                suedtirolweinpoi.SmgTags ??= new List<string>();
-                if (
-                    suedtiroltypemain?.Id is { }
-                    && !suedtirolweinpoi.SmgTags.Contains(suedtiroltypemain.Id.ToLower())
-                )
-                    suedtirolweinpoi.SmgTags.Add(suedtiroltypemain.Id.ToLower());
-                if (
-                    suedtiroltypesub?.Id is { }
-                    && !suedtirolweinpoi.SmgTags.Contains(suedtiroltypesub.Id.ToLower())
-                )
-                    suedtirolweinpoi.SmgTags.Add(suedtiroltypesub.Id.ToLower());
+                //Fill RelatedContent
 
-                //Setting Categorization by Valid Tags
-                var currentcategories = validtagsforcategories.Where(x =>
-                    suedtirolweinpoi.SmgTags.Contains(x.Id.ToLower())
-                );
-                foreach (var smgtagtotranslate in currentcategories)
-                {
-                    foreach (var languagecategory in languagelistcategories)
-                    {
-                        if (
-                            suedtirolweinpoi.AdditionalPoiInfos[languagecategory].Categories == null
-                        )
-                            suedtirolweinpoi.AdditionalPoiInfos[languagecategory].Categories =
-                                new List<string>();
 
-                        if (
-                            smgtagtotranslate.TagName.ContainsKey(languagecategory)
-                            && (
-                                !suedtirolweinpoi
-                                    .AdditionalPoiInfos[languagecategory]
-                                    .Categories?.Contains(
-                                        smgtagtotranslate.TagName[languagecategory].Trim()
-                                    ) ?? false
-                            )
-                        )
-                            suedtirolweinpoi
-                                .AdditionalPoiInfos[languagecategory]
-                                .Categories?.Add(
-                                    smgtagtotranslate.TagName[languagecategory].Trim()
-                                );
-                    }
-                }
+                //Fill ODHTags (Essen Trinken, Weinkellereien)
+
+                //Fill TagIds
+
+                //Create Tags out of TagIds
+
+                //Fill AdditionalProperties
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                ////Tags
+                //suedtirolweinpoi.SmgTags ??= new List<string>();
+                //if (
+                //    suedtiroltypemain?.Id is { }
+                //    && !suedtirolweinpoi.SmgTags.Contains(suedtiroltypemain.Id.ToLower())
+                //)
+                //    suedtirolweinpoi.SmgTags.Add(suedtiroltypemain.Id.ToLower());
+                //if (
+                //    suedtiroltypesub?.Id is { }
+                //    && !suedtirolweinpoi.SmgTags.Contains(suedtiroltypesub.Id.ToLower())
+                //)
+                //    suedtirolweinpoi.SmgTags.Add(suedtiroltypesub.Id.ToLower());
+
+                ////Setting Categorization by Valid Tags
+                //var currentcategories = validtagsforcategories.Where(x =>
+                //    suedtirolweinpoi.SmgTags.Contains(x.Id.ToLower())
+                //);
+                //foreach (var smgtagtotranslate in currentcategories)
+                //{
+                //    foreach (var languagecategory in languagelistcategories)
+                //    {
+                //        if (
+                //            suedtirolweinpoi.AdditionalPoiInfos[languagecategory].Categories == null
+                //        )
+                //            suedtirolweinpoi.AdditionalPoiInfos[languagecategory].Categories =
+                //                new List<string>();
+
+                //        if (
+                //            smgtagtotranslate.TagName.ContainsKey(languagecategory)
+                //            && (
+                //                !suedtirolweinpoi
+                //                    .AdditionalPoiInfos[languagecategory]
+                //                    .Categories?.Contains(
+                //                        smgtagtotranslate.TagName[languagecategory].Trim()
+                //                    ) ?? false
+                //            )
+                //        )
+                //            suedtirolweinpoi
+                //                .AdditionalPoiInfos[languagecategory]
+                //                .Categories?.Add(
+                //                    smgtagtotranslate.TagName[languagecategory].Trim()
+                //                );
+                //    }
+                //}
+
+
+
 
                 //RELATED CONTENT
                 //Wineids als RElated Content
@@ -404,40 +353,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 suedtirolweinpoi.SyncSourceInterface = "suedtirolwein-company";
                 suedtirolweinpoi.SyncUpdateMode = "Full";
                 suedtirolweinpoi.LastChange = DateTime.Now;
-
-                //Calculate GPS Distance to District and Municipality
-                if (suedtirolweinpoi.LocationInfo != null)
-                {
-                    if (suedtirolweinpoi.LocationInfo.DistrictInfo != null)
-                    {
-                        var districtreduced = districtreducedlist
-                            .Where(x => x.Id == suedtirolweinpoi.LocationInfo.DistrictInfo.Id)
-                            .FirstOrDefault();
-                        if (districtreduced != null)
-                        {
-                            suedtirolweinpoi.ExtendGpsInfoToDistanceCalculationList(
-                                "district",
-                                districtreduced.Latitude,
-                                districtreduced.Longitude
-                            );
-                        }
-                    }
-                    if (suedtirolweinpoi.LocationInfo.MunicipalityInfo != null)
-                    {
-                        var municipalityreduced = municipalityreducedlist
-                            .Where(x => x.Id == suedtirolweinpoi.LocationInfo.MunicipalityInfo.Id)
-                            .FirstOrDefault();
-                        if (municipalityreduced != null)
-                        {
-                            suedtirolweinpoi.ExtendGpsInfoToDistanceCalculationList(
-                                "municipality",
-                                municipalityreduced.Latitude,
-                                municipalityreduced.Longitude
-                            );
-                        }
-                    }
-                }
-
+         
                 //Set Main Type
                 ODHActivityPoiHelper.SetMainCategorizationForODHActivityPoi(suedtirolweinpoi);
 
@@ -524,7 +440,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
                 var myquery = QueryFactory
                     .Query("smgpois")
-                    .SelectRaw("data->>'CustomId'")
+                    .SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")
                     .Where("gen_syncsourceinterface", "suedtirolwein");
 
                 var winecompaniesondb = await myquery.GetAsync<string>();
