@@ -128,5 +128,48 @@ namespace DataModel.helpers
             }
 
         }
+
+        public static void FillSuedtirolWeinCompanyAdditionalProperties(this ODHActivityPoi odhActivityPoi)
+        {
+            SuedtirolWeinCompanyDataProperties addprop = new SuedtirolWeinCompanyDataProperties();
+            //TODO Fill the properties here
+
+            var additionalpropertieskey = typeof(SuedtirolWeinCompanyDataProperties).Name;
+
+            if (odhActivityPoi.AdditionalProperties == null)
+            {
+                odhActivityPoi.AdditionalProperties = new Dictionary<string, dynamic>();
+                odhActivityPoi.AdditionalProperties.Add(additionalpropertieskey, addprop);
+            }
+            else
+            {
+                if (odhActivityPoi.AdditionalProperties.ContainsKey(additionalpropertieskey))
+                    odhActivityPoi.AdditionalProperties[additionalpropertieskey] = addprop;
+                else
+                    odhActivityPoi.AdditionalProperties.Add(additionalpropertieskey, addprop);
+            }
+        }
+
+        public static void FillSiagMuseumAdditionalProperties(this ODHActivityPoi odhActivityPoi)
+        {
+            SiagMuseumDataProperties addprop = new SiagMuseumDataProperties();
+            //TODO Fill the properties here
+
+            var additionalpropertieskey = typeof(SiagMuseumDataProperties).Name;
+
+            if (odhActivityPoi.AdditionalProperties == null)
+            {
+                odhActivityPoi.AdditionalProperties = new Dictionary<string, dynamic>();
+                odhActivityPoi.AdditionalProperties.Add(additionalpropertieskey, addprop);
+            }
+            else
+            {
+                if (odhActivityPoi.AdditionalProperties.ContainsKey(additionalpropertieskey))
+                    odhActivityPoi.AdditionalProperties[additionalpropertieskey] = addprop;
+                else
+                    odhActivityPoi.AdditionalProperties.Add(additionalpropertieskey, addprop);
+            }
+
+        }
     }
 }

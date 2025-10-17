@@ -11,8 +11,9 @@ using DataModel;
 
 namespace Helper
 {
-    public class ODHActivityPoiHelper
+    public static class ODHActivityPoiHelper
     {
+        //TO CHECK IF THIS WAS USED?
         public static void SetSustainableHikingTag(
             ODHActivityPoiLinked mysmgpoi,
             List<string> languagelist
@@ -57,7 +58,7 @@ namespace Helper
             }
         }
 
-        public static string SetMainCategorizationForODHActivityPoi(ODHActivityPoiLinked smgpoi)
+        public static void SetMainCategorizationForODHActivityPoi(ODHActivityPoiLinked smgpoi)
         {
             //Add LTS Id as Mapping
             var maintype = "Poi";
@@ -93,15 +94,33 @@ namespace Helper
                 if (!smgpoi.SmgTags.Contains(maintype))
                     smgpoi.SmgTags.Add(maintype);
             }
-
-            return maintype;
         }
 
-        public static void AddLTSMappingToODHActivityPoi(ODHActivityPoiLinked smgpoi)
+        /// <summary>
+        /// ReAdds all Tags that where not assigned from a list of sources
+        /// </summary>
+        /// <param name="poiNew"></param>
+        /// <param name="poiOld"></param>
+        /// <returns></returns>
+        public static async Task MergeActivityTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld, List<string> tagsourcestoremove)
         {
-            //Add Mapping
-            var mapping = new Dictionary<string, string>() { { "rid", smgpoi.CustomId } };
-            smgpoi.Mapping.TryAddOrUpdate("lts", mapping);
+            if (poiOld != null)
+            {
+                //Readd all Redactional Tags to check if this query fits
+                var redactionalassignedTags = poiOld.Tags != null ? poiOld.Tags.Where(x => tagsourcestoremove.Contains(x.Source)).ToList() : null;
+                if (redactionalassignedTags != null)
+                {
+                    foreach (var tag in redactionalassignedTags)
+                    {
+                        poiNew.TagIds.Add(tag.Id);
+                    }
+                }
+            }
+
+            //TODO import the Redactional Tags from SmgTags into Tags?
+
+            //TODO same procedure on Tags? (Remove all Tags that come from the sync and readd the redactional assigned Tags)
         }
+
     }
 }
