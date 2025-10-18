@@ -114,6 +114,13 @@
           >
             Distinct Values
           </button>
+          <button
+            @click="view = 'timeseries'"
+            class="tab"
+            :class="{ active: view === 'timeseries' }"
+          >
+            Timeseries
+          </button>
         </div>
 
         <div class="bulk-actions">
@@ -217,6 +224,17 @@
           @fetch-all-data="handleFetchAllData"
         />
       </div>
+
+      <!-- Timeseries View -->
+      <div v-else-if="view === 'timeseries'" class="timeseries-view">
+        <TimeseriesAnalyzer
+          :timeseries-analysis="timeseriesAnalysis"
+          :dataset-name="datasetName"
+          :current-filters="{ searchfilter, rawfilter }"
+          :total-entries="totalResults"
+          @fetch-all-data="handleFetchAllData"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -235,6 +253,7 @@ import JsonViewer from '../components/JsonViewer.vue'
 import DatasetStats from '../components/DatasetStats.vue'
 import FilterBuilder from '../components/FilterBuilder.vue'
 import DistinctValuesAnalyzer from '../components/DistinctValuesAnalyzer.vue'
+import TimeseriesAnalyzer from '../components/TimeseriesAnalyzer.vue'
 
 const props = defineProps({
   datasetName: {
@@ -424,12 +443,11 @@ function openBulkTimeseries() {
   // Store selections in the selection store
   selectionStore.setSelectedEntries(selectedEntries.value, props.datasetName)
 
-  // Navigate to bulk timeseries inspector with URL params
+  // Navigate to bulk measurements inspector with URL params
   router.push({
-    path: '/bulk-timeseries',
+    path: '/bulk-measurements',
     query: {
-      entries: selectedEntries.value.map(e => e.Id).join(','),
-      dataset: props.datasetName
+      sensors: selectedEntries.value.map(e => e.Id).join(','),
     }
   })
 }
@@ -450,12 +468,11 @@ async function openBulkTimeseriesAll() {
       return
     }
 
-    // Navigate to bulk timeseries inspector with all filtered IDs
+    // Navigate to bulk measurements inspector with all filtered IDs
     router.push({
-      path: '/bulk-timeseries',
+      path: '/bulk-measurements',
       query: {
-        entries: ids.join(','),
-        dataset: props.datasetName
+        sensors: ids.join(','),
       }
     })
   } catch (err) {

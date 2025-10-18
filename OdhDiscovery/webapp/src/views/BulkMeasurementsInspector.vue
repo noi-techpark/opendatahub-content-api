@@ -8,15 +8,23 @@
 
       <!-- Sensor Selection Info -->
       <div class="selection-info card">
-        <h3>Selected Sensors ({{ sensorNames.length }})</h3>
+        <div class="sensors-header">
+          <h3>Selected Sensors ({{ enabledSensors.length }} / {{ sensorNames.length }} enabled)</h3>
+        </div>
         <div class="sensor-chips">
-          <span
+          <label
             v-for="sensor in sensorNames"
             :key="sensor"
-            class="badge badge-secondary"
+            class="sensor-chip"
+            :class="{ 'sensor-disabled': isSensorDisabled(sensor) }"
           >
-            {{ sensor }}
-          </span>
+            <input
+              type="checkbox"
+              :checked="!isSensorDisabled(sensor)"
+              @change="toggleSensor(sensor)"
+            />
+            <span class="sensor-name">{{ sensor }}</span>
+          </label>
         </div>
       </div>
 
@@ -163,7 +171,7 @@
 
         <!-- Raw JSON View -->
         <div v-else-if="view === 'raw'" class="raw-view">
-          <JsonViewer :data="{ measurements, total: measurements.length, sensors: sensorNames, types: selectedTypes }" />
+          <JsonViewer :data="{ measurements, total: measurements.length, sensors: enabledSensors, allSensors: sensorNames, disabledSensors, types: selectedTypes }" />
         </div>
 
         <!-- Pretty View -->
@@ -207,9 +215,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTimeseriesStore } from '../stores/timeseriesStore'
+import { useBulkMeasurementsUrlState } from '../composables/useUrlState'
 import JsonViewer from '../components/JsonViewer.vue'
 import NumericTimeseriesView from '../components/NumericTimeseriesView.vue'
 import StringBooleanTimeseriesView from '../components/StringBooleanTimeseriesView.vue'
@@ -218,27 +227,35 @@ import JsonTimeseriesView from '../components/JsonTimeseriesView.vue'
 
 const route = useRoute()
 const timeseriesStore = useTimeseriesStore()
+const urlState = useBulkMeasurementsUrlState()
 
+// URL-synced state
+const selectedTypes = urlState.types
+const disabledSensors = urlState.disabledSensors
+const view = urlState.view
+
+// Local state
 const sensorNames = ref([])
 const availableTypes = ref([])
-const selectedTypes = ref([])
 const measurements = ref([])
 const loading = ref(false)
 const loadingTypes = ref(false)
 const error = ref(null)
-const view = ref('table')
 
 // Date range controls
 const fromDate = ref('')
 const toDate = ref('')
 
+// Computed list of enabled sensors
+const enabledSensors = computed(() => {
+  return sensorNames.value.filter(sensor => !disabledSensors.value.includes(sensor))
+})
+
 // Initialize from URL params
 onMounted(async () => {
-  const sensorsParam = route.query.sensors
-  const typeParam = route.query.type
-
-  if (sensorsParam) {
-    sensorNames.value = sensorsParam.split(',').map(s => s.trim())
+  // Load sensors from URL state
+  if (urlState.sensors.value && urlState.sensors.value.length > 0) {
+    sensorNames.value = urlState.sensors.value
   }
 
   // Set default date range (last 24 hours)
@@ -250,12 +267,33 @@ onMounted(async () => {
 
   // Load available types for these sensors
   await loadAvailableTypes()
-
-  // If type is specified in URL, pre-select it
-  if (typeParam) {
-    selectedTypes.value = [typeParam]
-  }
 })
+
+// Watch sensorNames and update URL
+watch(sensorNames, (newSensors) => {
+  urlState.sensors.value = newSensors
+}, { deep: true })
+
+// Watch disabledSensors and reload available types
+watch(disabledSensors, async () => {
+  await loadAvailableTypes()
+}, { deep: true })
+
+// Helper functions for sensor toggling
+function isSensorDisabled(sensor) {
+  return disabledSensors.value.includes(sensor)
+}
+
+function toggleSensor(sensor) {
+  const index = disabledSensors.value.indexOf(sensor)
+  if (index > -1) {
+    // Enable sensor (remove from disabled list)
+    disabledSensors.value = disabledSensors.value.filter(s => s !== sensor)
+  } else {
+    // Disable sensor (add to disabled list)
+    disabledSensors.value = [...disabledSensors.value, sensor]
+  }
+}
 
 const sortedMeasurements = computed(() => {
   return [...measurements.value].sort((a, b) => {
@@ -393,14 +431,14 @@ function isGeographic(value) {
 }
 
 async function loadAvailableTypes() {
-  if (sensorNames.value.length === 0) return
-
   loadingTypes.value = true
   error.value = null
 
   try {
-    const result = await timeseriesStore.getTypesForSensors(sensorNames.value, true)
+    // Use enabled sensors for querying types
+    const sensorsToQuery = enabledSensors.value.length > 0 ? enabledSensors.value : []
 
+    const result = await timeseriesStore.getTypesForSensors(sensorsToQuery, true)
     if (result && result.types) {
       availableTypes.value = result.types.map(t => t.type_name || t.name || t).filter(Boolean)
     } else {
@@ -415,11 +453,6 @@ async function loadAvailableTypes() {
 }
 
 async function loadLatestMeasurements() {
-  if (sensorNames.value.length === 0) {
-    error.value = 'No sensors selected'
-    return
-  }
-
   if (selectedTypes.value.length === 0) {
     error.value = 'Please select at least one measurement type'
     return
@@ -429,8 +462,9 @@ async function loadLatestMeasurements() {
   error.value = null
 
   try {
+    // Use only enabled sensors
     const result = await timeseriesStore.loadLatestMeasurements(
-      sensorNames.value,
+      enabledSensors.value,
       selectedTypes.value
     )
 
@@ -448,11 +482,6 @@ async function loadLatestMeasurements() {
 }
 
 async function loadHistoricalMeasurements() {
-  if (sensorNames.value.length === 0) {
-    error.value = 'No sensors selected'
-    return
-  }
-
   if (selectedTypes.value.length === 0) {
     error.value = 'Please select at least one measurement type'
     return
@@ -467,8 +496,9 @@ async function loadHistoricalMeasurements() {
   error.value = null
 
   try {
+    // Use only enabled sensors
     const payload = {
-      sensor_names: sensorNames.value,
+      sensor_names: enabledSensors.value,
       type_names: selectedTypes.value,
       from: new Date(fromDate.value).toISOString(),
       to: new Date(toDate.value).toISOString(),
@@ -550,6 +580,13 @@ function formatDateTimeLocal(date) {
   margin-bottom: 1rem;
 }
 
+.sensors-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .sensor-chips {
   display: flex;
   flex-wrap: wrap;
@@ -559,6 +596,44 @@ function formatDateTimeLocal(date) {
   padding: 0.5rem;
   background: var(--bg-color);
   border-radius: 0.375rem;
+}
+
+.sensor-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.sensor-chip:hover {
+  background: var(--bg-color);
+  border-color: var(--primary-color);
+}
+
+.sensor-chip input {
+  cursor: pointer;
+}
+
+.sensor-chip.sensor-disabled {
+  opacity: 0.5;
+  background: var(--bg-color);
+}
+
+.sensor-chip.sensor-disabled .sensor-name {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.sensor-name {
+  font-family: monospace;
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 .loading-inline {
@@ -753,10 +828,6 @@ function formatDateTimeLocal(date) {
 .type-header h3 {
   margin: 0;
   font-size: 1.25rem;
-}
-
-.type-visualization {
-  /* Container for type-specific visualizations */
 }
 
 .text-secondary {

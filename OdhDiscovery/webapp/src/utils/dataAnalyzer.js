@@ -197,7 +197,47 @@ function buildStructure(fields) {
 }
 
 /**
+ * Extract sensor names from dataset entries
+ * Looks in Mapping object for fields containing sensor names
+ * @param {Array} entries - Dataset entries
+ * @returns {Array<string>} Array of unique sensor names
+ */
+export function extractSensorNames(entries) {
+  const sensorNames = new Set()
+
+  entries.forEach(entry => {
+    const mapping = getValueAtPath(entry, 'Mapping')
+    if (mapping && typeof mapping === 'object') {
+      // Recursively find sensor name fields in the mapping
+      const findSensorNames = (obj) => {
+        if (!obj || typeof obj !== 'object') return
+
+        Object.entries(obj).forEach(([key, value]) => {
+          const lowerKey = key.toLowerCase()
+
+          // Check if this field contains a sensor name
+          if ((lowerKey === 'sensorname' || lowerKey === 'sensor_name' || lowerKey === 'sensor') &&
+              typeof value === 'string' && value.trim()) {
+            sensorNames.add(value.trim())
+          }
+
+          // Recurse into nested objects
+          if (value && typeof value === 'object' && !Array.isArray(value)) {
+            findSensorNames(value)
+          }
+        })
+      }
+
+      findSensorNames(mapping)
+    }
+  })
+
+  return Array.from(sensorNames)
+}
+
+/**
  * Analyze timeseries attachment to dataset entries
+ * This is a synchronous placeholder - actual analysis requires API call
  * @param {Array} entries - Dataset entries
  * @param {string} timeseriesField - Field containing timeseries data
  * @returns {object} Timeseries analysis
@@ -207,39 +247,33 @@ export function analyzeTimeseriesAttachment(entries, timeseriesField = 'Mapping'
     return {
       attachmentRate: 0,
       totalWithTimeseries: 0,
+      sensorNames: [],
       timeseriesTypes: [],
-      typeFrequency: {}
+      typeFrequency: {},
+      needsApiCall: false
     }
   }
 
-  let totalWithTimeseries = 0
-  const typeFrequency = {}
-
-  entries.forEach(entry => {
+  // Extract sensor names
+  const sensorNames = extractSensorNames(entries)
+  const totalWithTimeseries = sensorNames.length > 0 ? entries.filter(entry => {
     const mapping = getValueAtPath(entry, timeseriesField)
-    if (mapping && typeof mapping === 'object') {
-      const hasTimeseries = Object.keys(mapping).some(key =>
-        key.toLowerCase().includes('timeseries') ||
-        key.toLowerCase().includes('sensor')
-      )
+    if (!mapping || typeof mapping !== 'object') return false
 
-      if (hasTimeseries) {
-        totalWithTimeseries++
-        // Count specific types if available
-        Object.keys(mapping).forEach(key => {
-          typeFrequency[key] = (typeFrequency[key] || 0) + 1
-        })
-      }
-    }
-  })
+    // Check if this entry has any sensor name
+    const jsonStr = JSON.stringify(mapping).toLowerCase()
+    return jsonStr.includes('sensorname') || jsonStr.includes('sensor_name') || jsonStr.includes('"sensor"')
+  }).length : 0
 
-  const attachmentRate = (totalWithTimeseries / entries.length * 100).toFixed(2)
+  const attachmentRate = entries.length > 0 ? (totalWithTimeseries / entries.length * 100).toFixed(2) : 0
 
   return {
     attachmentRate: parseFloat(attachmentRate),
     totalWithTimeseries,
-    timeseriesTypes: Object.keys(typeFrequency),
-    typeFrequency
+    sensorNames,
+    timeseriesTypes: [],
+    typeFrequency: {},
+    needsApiCall: sensorNames.length > 0  // Flag that we need to call API for full analysis
   }
 }
 

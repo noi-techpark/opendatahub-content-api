@@ -212,7 +212,7 @@ function showMeasurementsForSelected() {
     path: '/bulk-measurements',
     query: {
       sensors: selectedSensors.value.map(s => s.sensor_name).join(','),
-      type: props.typeName
+      types: props.typeName
     }
   })
 }
@@ -228,7 +228,7 @@ function showMeasurementsForAll() {
     path: '/bulk-measurements',
     query: {
       sensors: sensors.value.map(s => s.sensor_name).join(','),
-      type: props.typeName
+      types: props.typeName
     }
   })
 }

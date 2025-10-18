@@ -186,6 +186,10 @@ export function useTimeseriesUrlState() {
   const { syncMultiple, serializers, updateUrlParams, getCurrentUrl } = useUrlState()
 
   const state = syncMultiple({
+    types: {
+      initial: [],
+      ...serializers.array
+    },
     view: {
       initial: 'table',
       ...serializers.string
@@ -208,16 +212,12 @@ export function useTimeseriesUrlState() {
 }
 
 /**
- * Composable specifically for bulk timeseries inspector URL state
+ * Composable specifically for bulk measurements inspector URL state
  */
-export function useBulkTimeseriesUrlState() {
+export function useBulkMeasurementsUrlState() {
   const { syncMultiple, serializers, updateUrlParams, getCurrentUrl } = useUrlState()
 
   const state = syncMultiple({
-    entries: {
-      initial: [],
-      ...serializers.array
-    },
     sensors: {
       initial: [],
       ...serializers.array
@@ -226,21 +226,13 @@ export function useBulkTimeseriesUrlState() {
       initial: [],
       ...serializers.array
     },
+    disabledSensors: {
+      initial: [],
+      ...serializers.array
+    },
     view: {
-      initial: 'formatted',
+      initial: 'table',
       ...serializers.string
-    },
-    startTime: {
-      initial: null,
-      ...serializers.string
-    },
-    endTime: {
-      initial: null,
-      ...serializers.string
-    },
-    timeIndex: {
-      initial: 0,
-      ...serializers.number
     }
   })
 

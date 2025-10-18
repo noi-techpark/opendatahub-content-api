@@ -4,7 +4,6 @@ import DatasetBrowser from '../views/DatasetBrowser.vue'
 import DatasetInspector from '../views/DatasetInspector.vue'
 import TimeseriesBrowser from '../views/TimeseriesBrowser.vue'
 import TimeseriesInspector from '../views/TimeseriesInspector.vue'
-import BulkTimeseriesInspector from '../views/BulkTimeseriesInspector.vue'
 import BulkMeasurementsInspector from '../views/BulkMeasurementsInspector.vue'
 
 const routes = [
@@ -34,11 +33,6 @@ const routes = [
     name: 'TimeseriesInspector',
     component: TimeseriesInspector,
     props: true
-  },
-  {
-    path: '/bulk-timeseries',
-    name: 'BulkTimeseriesInspector',
-    component: BulkTimeseriesInspector
   },
   {
     path: '/bulk-measurements',
