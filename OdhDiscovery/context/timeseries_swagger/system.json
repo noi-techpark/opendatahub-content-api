@@ -1,0 +1,48 @@
+{
+  "schemes": ["http","https"],
+  "produces": [
+    "application/json"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "A Go REST API server for managing timeseries data using Gin framework and PostgreSQL with a simplified, performance-optimized schema.",
+    "title": "Timeseries API - System",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.example.com/support",
+      "email": "support@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "paths": {
+    "/health": {
+      "get": {
+        "description": "Check the health status of the API",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "system"
+        ],
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {}
+}

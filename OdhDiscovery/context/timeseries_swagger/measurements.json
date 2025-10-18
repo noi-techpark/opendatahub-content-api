@@ -1,0 +1,283 @@
+{
+  "schemes": ["http","https"],
+  "produces": [
+    "application/json"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "A Go REST API server for managing timeseries data using Gin framework and PostgreSQL with a simplified, performance-optimized schema.",
+    "title": "Timeseries API - Measurements",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.example.com/support",
+      "email": "support@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "paths": {
+    "/measurements/historical": {
+      "get": {
+        "description": "Retrieve historical measurements for specified sensors and measurement types with time range filtering using query parameters",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "measurements"
+        ],
+        "summary": "Get historical measurements (query params)",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Comma-separated list of sensor names",
+            "name": "sensor_names",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Comma-separated list of measurement type names",
+            "name": "type_names",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Start time in RFC3339 format",
+            "name": "start_time",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End time in RFC3339 format",
+            "name": "end_time",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Maximum number of results",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historical measurements data",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Retrieve historical measurements for specified sensors and measurement types with time range filtering using JSON request body",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "measurements"
+        ],
+        "summary": "Get historical measurements (JSON body)",
+        "parameters": [
+          {
+            "description": "Historical measurements request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.HistoricalMeasurementsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historical measurements data",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/measurements/latest": {
+      "get": {
+        "description": "Retrieve the latest measurements for specified sensors and measurement types using query parameters",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "measurements"
+        ],
+        "summary": "Get latest measurements (query params)",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Comma-separated list of sensor names",
+            "name": "sensor_names",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Comma-separated list of measurement type names",
+            "name": "type_names",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest measurements data",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Retrieve the latest measurements for specified sensors and measurement types using JSON request body",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "measurements"
+        ],
+        "summary": "Get latest measurements (JSON body)",
+        "parameters": [
+          {
+            "description": "Latest measurements request",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.LatestMeasurementsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latest measurements data",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "models.HistoricalMeasurementsRequest": {
+      "type": "object",
+      "properties": {
+        "end_time": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer"
+        },
+        "sensor_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "type_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "models.LatestMeasurementsRequest": {
+      "type": "object",
+      "properties": {
+        "sensor_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

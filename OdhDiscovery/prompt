@@ -1,0 +1,136 @@
+we are about to create a discovery web application to let users, developers and maintainers to browse the data contained in my data sharing platform. before diving into that we need to create some meaningful context.
+we have 2 different services: content and timeseries. content handles and serves static / medatadata about the entries, timeseries handles and serves timeseriese which are linked to contet entries.
+the first task i assign you is to analyze content swagger, analyzing all endpoints and parameters. you then are tasked in the creation of an LLM readible document explaining each endpoint parameters, utility and response format, how
+ to use rawfilters, what are select clause doing. the deliverable is a document we can use later to build api calls when developing the discovery web app.
+
+i will provide you the swaggers diveided by entity in @OdhDiscovery/context/content_swaggers/*.json use them to perform calls against the correct server.
+
+To better undertand how to use the apis i provide you with some documentation @OdhDiscovery/context/content_rawsort_rawfilter.md @OdhDiscovery/context/content_field_selection.md 
+@OdhDiscovery/context/content_geosorting_locationfilter.md . You have to read and understand these files before analyzing the swaggers and i want the deliverable file to contains these notions (rewritten to be more LLM friendly) as 
+well.
+
+- Only analyze read operationa
+- Use local swagger for Sensors
+- Use the other Swagger for all other endpoints
+- Read/analyze/understand the existing documentation (md files)
+- Deliver an LLM ready file containing instructions on how to use rawfilters,sort,geofilter,selection, ... and the endpoint analysis results (parameters, endpoint, result strcture)
+- Deliverable is called "CONTEXT_CONTENT.md" in in @OdhDiscovery/
+
+DO NOT RUN A SUPERFICIAL ANALYSIS, THIS FILE WILL BE USED AS FUNDATION TO BUILD THE WE APPLICATION 
+
+--------
+we are about to create a discovery web application to let users, developers and maintainers to browse the data contained in my data sharing platform. before diving into that we need to create some meaningful context.
+we have 2 different services: content and timeseries. content handles and serves static / medatadata about the entries, timeseries handles and serves timeseriese which are linked to content entries.
+the first task i assign you is to analyze content swagger, analyzing all endpoints and parameters. you then are tasked in the creation of an LLM readible document explaining each endpoint parameters, utility and response format, how
+ to use rawfilters, what are select clause doing. the deliverable is a document we can use later to build api calls when developing the discovery web app.
+
+i will provide you the swaggers diveided by entity in @OdhDiscovery/context/timeseries_swagger/*.json use them to perform calls against the correct server.
+
+To better undertand how to use the apis i provide you with some documentation @OdhDiscovery/context/timeseries_value_filter.md . You have to read and understand these files before analyzing the swaggers and i want the deliverable file to contains these notions (rewritten to be more LLM friendly) as 
+well.
+
+- Only analyze read operationa
+- Use local swagger for Sensors
+- Use the other Swagger for all other endpoints
+- Read/analyze/understand the existing documentation (md files)
+- Deliver an LLM ready file containing instructions on how to use rawfilters,sort,geofilter,selection, ... and the endpoint analysis results (parameters, endpoint, result strcture)
+- Deliverable is called "CONTEXT_TIMESERIES.md" in in @OdhDiscovery/
+
+DO NOT RUN A SUPERFICIAL ANALYSIS, THIS FILE WILL BE USED AS FUNDATION TO BUILD THE WE APPLICATION 
+
+--------
+we are about to create a discovery web application to let users, developers and maintainers to browse the data contained in my data sharing platform. before diving into that we need to create some meaningful context.
+we have 2 different services: content and timeseries. content handles and serves static / medatadata about the entries, timeseries handles and serves timeseriese which are linked to contet entries.
+the first task i assign you is to read 2 swaggers, keep inly read endpoints, and output one swagger per tag/entity (swagegr section) to make them more readible and chunked.
+keep the server url in each output swagger since they refer to different servers. 
+@OdhDiscovery/context/content_swagger_local.json must be used ONLY for "sensor" endpoints.
+@OdhDiscovery/context/content_swagger.json must be used for all other endpoints.
+
+output swaggers in @OdhDiscovery/context/swaggers/
+
+--------
+we are about to create a discovery web application to let users, developers and maintainers to browse the data contained in my data sharing platform. before diving into that we need to create some meaningful context.
+we have 2 different services: content and timeseries. content handles and serves static / medatadata about the entries, timeseries handles and serves timeseriese which are linked to content entries.
+You are tasked with creating the web app following the below requirements:
+
+- Vue3
+- Pinia
+- Composition api
+
+api references:
+@OdhDiscovery/CONTEXT_CONTENT.md
+@OdhDiscovery/CONTEXT_TIMESERIES.md
+
+requisites:
+As a person approaching the open data hub trying to undestand what it does and if it fits my needs i want:
+
+- Be able to browser the concept of dataset
+What does the dataset describes
+How big is the dataset
+How complete is the dataset
+How the data structure looks like
+How complete are fields in the dataset (pct)
+How is the format of each field (examples)
+How to retrive the dataset from api call
+Are there timeseries attached to the dataset?
+What timeseries are attached to the dataset?
+What is the probability of each timeseries to be attached to an entry?
+
+- Inspect the dataset(s)
+Get a tableview of the entries of the dataset calling the api
+Button to switch to raw view (formatted collapsible searchable json response)
+Still visualize aggregated information of the dataset:
+    How the data structure looks like
+    How complete are fields in the dataset (pct)
+    How is the format of each field (examples)
+    Are there timeseries attached to the dataset?
+    What timeseries are attached to the dataset?
+    What is the probability of each timeseries to be attached to an entry?
+Filter data using 2 different approaches:
+    The presence (not null) of each property of the dataset (including mapping and dynamic and timeseries)
+    Normal filter about property values
+Every time a filter is applied the grid/raw json updates and the composed api request is still shown (curl) on top for reprudicibility.
+Every time a filter is applied the aggregated information of the dataset are updated using the filtered results.
+Button to open "Bulk inspect for timeseries(s)" page with all filtered entries
+
+- Be able to browse the concept of timeseries
+what datatypes are avaliable
+What do them represent
+How many sensors have this timeseries
+what is the value type (number, string, geometry, ...)
+what are the distinct entity types (datasets) implementing the timeseries
+what percentage of entries of each entity type (datset) implement the timeseries
+
+- Inspect the timeseries(s)
+Get a tableview of entries implementing the timeseries
+get a tableview of entity types (datasets) implementing the timeseries
+filter over them
+
+- Bulk inspect for timeseries(s)
+Once selected some entries (might them be filtered by "Inspect the dataset(s)" page or "Inspect the timeseries(s)") i want to see al selectable (multiselect) timeseries types.
+Selecting the timeseries types the timeseries gets loaded for all entries.
+I can unselect some entries.
+data is displayed depending on the type but simultaneously for all entries.
+display table tab:
+    all measurements are displayed as table, all together regardless the type
+display raw tab:
+    response is displayed as formatted collapsible searchable json response
+display formatted tab:
+    numeric timeseries 
+        are plotted in a chart.
+        can switch to table
+    string timeseries
+        table
+    boolean timeseries
+        table
+    geoshape/geoposition:
+        map witht the shole timeseries
+        can switch to "instant" view witha  slider where only the measurement at that time is shown on the map
+    json timeseries
+        are plotted as rable containing the jsons
+        can switch to detailed view
+            in detailed view the list of distinct keys is shown and by selecting them the section expands replicating the root visualizion (reference to "display formatted tab:" section)
+            detailed view is basically a "display formatted tab" inside the json timeseries section (display formatted tab in display formatted tab).
+
+
+

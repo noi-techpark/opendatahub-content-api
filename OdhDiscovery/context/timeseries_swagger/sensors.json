@@ -1,0 +1,691 @@
+{
+  "schemes": ["http","https"],
+  "produces": [
+    "application/json"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "A Go REST API server for managing timeseries data using Gin framework and PostgreSQL with a simplified, performance-optimized schema.",
+    "title": "Timeseries API - Sensors",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.example.com/support",
+      "email": "support@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "paths": {
+    "/sensors": {
+      "post": {
+        "description": "Find sensors that satisfy conditions over their timeseries measurements",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "sensors"
+        ],
+        "summary": "Discover sensors by measurement conditions",
+        "parameters": [
+          {
+            "description": "Sensor discovery criteria",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/filter.SensorDiscoveryRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discovered sensors",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/sensors/discover": {
+      "get": {
+        "description": "Find sensors using query parameters for backward compatibility",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "sensors"
+        ],
+        "summary": "Discover sensors (legacy query params)",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Required types (comma-separated)",
+            "name": "type_names",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Optional types (comma-separated)",
+            "name": "optional_types",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Dataset IDs (comma-separated)",
+            "name": "dataset_ids",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Value filter expression (type.operator.value)",
+            "name": "value_filter",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Start time (RFC3339)",
+            "name": "start_time",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End time (RFC3339)",
+            "name": "end_time",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "Only consider latest measurements",
+            "name": "latest_only",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Maximum results",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discovered sensors",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/sensors/timeseries": {
+      "post": {
+        "description": "Get timeseries for a batch of sensors, optionally filtered by type names",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "sensors"
+        ],
+        "summary": "Get timeseries for multiple sensors",
+        "parameters": [
+          {
+            "description": "Batch request with sensor names and optional type names",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/handlers.BatchSensorTimeseriesRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Batch response with sensors and their timeseries",
+            "schema": {
+              "$ref": "#/definitions/models.BatchSensorTimeseriesResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/sensors/types": {
+      "post": {
+        "description": "Get all types for a batch of sensors with their timeseries IDs. Use distinct=true to get unique types across all sensors.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "sensors"
+        ],
+        "summary": "Get types for multiple sensors",
+        "parameters": [
+          {
+            "description": "Request with sensor names and optional distinct flag",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/models.SensorTypesRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Batch response with sensors and their types, plus distinct types if requested",
+            "schema": {
+              "$ref": "#/definitions/models.BatchSensorTypesResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/sensors/verify": {
+      "post": {
+        "description": "Verify if a list of sensor names satisfy the same filters used in sensor discovery",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "sensors"
+        ],
+        "summary": "Verify sensors against discovery filters",
+        "parameters": [
+          {
+            "description": "Sensor verification request with filters and sensor names",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/filter.SensorVerifyRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification results with ok status and verified/unverified lists",
+            "schema": {
+              "$ref": "#/definitions/filter.SensorVerifyResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/sensors/{name}": {
+      "get": {
+        "description": "Get all timeseries associated with a sensor, optionally filtered by type names",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "sensors"
+        ],
+        "summary": "Get timeseries for a sensor",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Sensor name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Type names to filter (comma-separated)",
+            "name": "type_names",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sensor with timeseries info",
+            "schema": {
+              "$ref": "#/definitions/models.SensorTimeseriesResponse"
+            }
+          },
+          "404": {
+            "description": "Sensor not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "filter.MeasurementFilter": {
+      "type": "object",
+      "properties": {
+        "expression": {
+          "description": "Filter expression using legacy syntax (e.g., \"or(o2.eq.2, and(temp.gteq.20, temp.lteq.30))\")",
+          "type": "string"
+        },
+        "latest_only": {
+          "description": "Only consider latest measurements for each timeseries",
+          "type": "boolean"
+        },
+        "time_range": {
+          "description": "Time constraints for measurements",
+          "allOf": [
+            {
+              "$ref": "#/definitions/filter.TimeRange"
+            }
+          ]
+        }
+      }
+    },
+    "filter.SensorDiscoveryRequest": {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "description": "Result options",
+          "type": "integer"
+        },
+        "measurement_filter": {
+          "description": "Filter sensors by their measurement values",
+          "allOf": [
+            {
+              "$ref": "#/definitions/filter.MeasurementFilter"
+            }
+          ]
+        },
+        "timeseries_filter": {
+          "description": "Filter sensors by the timeseries types they \"own\"",
+          "allOf": [
+            {
+              "$ref": "#/definitions/filter.TimeseriesFilter"
+            }
+          ]
+        }
+      }
+    },
+    "filter.SensorVerifyRequest": {
+      "type": "object",
+      "properties": {
+        "measurement_filter": {
+          "description": "Filter sensors by their measurement values",
+          "allOf": [
+            {
+              "$ref": "#/definitions/filter.MeasurementFilter"
+            }
+          ]
+        },
+        "sensor_names": {
+          "description": "List of sensor names to verify against the filters",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "timeseries_filter": {
+          "description": "Filter sensors by the timeseries types they \"own\"",
+          "allOf": [
+            {
+              "$ref": "#/definitions/filter.TimeseriesFilter"
+            }
+          ]
+        }
+      }
+    },
+    "filter.SensorVerifyResponse": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "description": "Whether all sensors satisfy the filters",
+          "type": "boolean"
+        },
+        "request": {
+          "description": "Original request for reference",
+          "allOf": [
+            {
+              "$ref": "#/definitions/filter.SensorVerifyRequest"
+            }
+          ]
+        },
+        "unverified": {
+          "description": "List of sensor names that do not satisfy the filters",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verified": {
+          "description": "List of sensor names that satisfy the filters",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "filter.TimeRange": {
+      "type": "object",
+      "properties": {
+        "end_time": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        }
+      }
+    },
+    "filter.TimeseriesFilter": {
+      "type": "object",
+      "properties": {
+        "dataset_ids": {
+          "description": "Dataset membership filter",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "optional_types": {
+          "description": "Optional timeseries types - sensors may have ANY of these types",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_types": {
+          "description": "Required timeseries types - sensors must have ALL of these types",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "handlers.BatchSensorTimeseriesRequest": {
+      "type": "object",
+      "required": [
+        "sensor_names"
+      ],
+      "properties": {
+        "sensor_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "type_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "models.BatchSensorTimeseriesResponse": {
+      "type": "object",
+      "properties": {
+        "sensors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SensorTimeseriesResponse"
+          }
+        },
+        "total": {
+          "type": "integer"
+        }
+      }
+    },
+    "models.BatchSensorTypesResponse": {
+      "type": "object",
+      "properties": {
+        "sensors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.SensorTypesResponse"
+          }
+        },
+        "total": {
+          "type": "integer"
+        },
+        "types": {
+          "description": "Only populated when distinct=true",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.TypeWithTimeseries"
+          }
+        }
+      }
+    },
+    "models.DataType": {
+      "type": "string",
+      "enum": [
+        "numeric",
+        "string",
+        "json",
+        "geoposition",
+        "geoshape",
+        "boolean"
+      ],
+      "x-enum-varnames": [
+        "DataTypeNumeric",
+        "DataTypeString",
+        "DataTypeJSON",
+        "DataTypeGeoposition",
+        "DataTypeGeoshape",
+        "DataTypeBoolean"
+      ]
+    },
+    "models.SensorTimeseriesInfo": {
+      "type": "object",
+      "properties": {
+        "sensor_name": {
+          "type": "string"
+        },
+        "timeseries_id": {
+          "type": "string"
+        }
+      }
+    },
+    "models.SensorTimeseriesResponse": {
+      "type": "object",
+      "properties": {
+        "sensor_id": {
+          "type": "integer"
+        },
+        "sensor_name": {
+          "type": "string"
+        },
+        "timeseries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.TimeseriesInfo"
+          }
+        },
+        "total": {
+          "type": "integer"
+        }
+      }
+    },
+    "models.SensorTypesRequest": {
+      "type": "object",
+      "required": [
+        "sensor_names"
+      ],
+      "properties": {
+        "distinct": {
+          "type": "boolean"
+        },
+        "sensor_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "models.SensorTypesResponse": {
+      "type": "object",
+      "properties": {
+        "sensor_id": {
+          "type": "integer"
+        },
+        "sensor_name": {
+          "type": "string"
+        },
+        "total": {
+          "type": "integer"
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.TypeWithTimeseries"
+          }
+        }
+      }
+    },
+    "models.TimeseriesInfo": {
+      "type": "object",
+      "properties": {
+        "timeseries_id": {
+          "type": "string"
+        },
+        "type_info": {
+          "$ref": "#/definitions/models.Type"
+        },
+        "type_name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.Type": {
+      "type": "object",
+      "properties": {
+        "data_type": {
+          "$ref": "#/definitions/models.DataType"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "metadata": {
+          "type": "string",
+          "example": "{\"category\":\"environmental\"}"
+        },
+        "name": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        }
+      }
+    },
+    "models.TypeWithTimeseries": {
+      "type": "object",
+      "properties": {
+        "sensor_name": {
+          "type": "string"
+        },
+        "timeseries_id": {
+          "type": "string"
+        },
+        "type_info": {
+          "$ref": "#/definitions/models.Type"
+        }
+      }
+    }
+  }
+}

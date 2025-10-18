@@ -1,0 +1,252 @@
+{
+  "schemes": ["http","https"],
+  "produces": [
+    "application/json"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "A Go REST API server for managing timeseries data using Gin framework and PostgreSQL with a simplified, performance-optimized schema.",
+    "title": "Timeseries API - Datasets",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.example.com/support",
+      "email": "support@example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/api/v1",
+  "paths": {
+    "/datasets": {
+      "get": {
+        "description": "Retrieve a list of all datasets. Use the 'with_types' query parameter to include associated types.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Get all datasets",
+        "parameters": [
+          {
+            "type": "boolean",
+            "description": "Include associated measurement types (true/false)",
+            "name": "with_types",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of datasets",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/models.DatasetResponse"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/datasets/{name}": {
+      "get": {
+        "description": "Retrieve dataset details with all associated measurement types",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Get dataset details",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Dataset Name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dataset details with types",
+            "schema": {
+              "$ref": "#/definitions/models.DatasetResponse"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Dataset not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    },
+    "/datasets/{name}/sensors": {
+      "get": {
+        "description": "Retrieve all sensors that have timeseries associated with a specific dataset",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "datasets"
+        ],
+        "summary": "Get all sensors that have timeseries in dataset",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Dataset Name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sensors in the dataset",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "404": {
+            "description": "Dataset not found",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "models.Dataset": {
+      "type": "object",
+      "properties": {
+        "created_on": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "models.DatasetResponse": {
+      "type": "object",
+      "properties": {
+        "dataset": {
+          "$ref": "#/definitions/models.Dataset"
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.TypeInDataset"
+          }
+        }
+      }
+    },
+    "models.DataType": {
+      "type": "string",
+      "enum": [
+        "numeric",
+        "string",
+        "json",
+        "geoposition",
+        "geoshape",
+        "boolean"
+      ],
+      "x-enum-varnames": [
+        "DataTypeNumeric",
+        "DataTypeString",
+        "DataTypeJSON",
+        "DataTypeGeoposition",
+        "DataTypeGeoshape",
+        "DataTypeBoolean"
+      ]
+    },
+    "models.Type": {
+      "type": "object",
+      "properties": {
+        "data_type": {
+          "$ref": "#/definitions/models.DataType"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "metadata": {
+          "type": "string",
+          "example": "{\"category\":\"environmental\"}"
+        },
+        "name": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        }
+      }
+    },
+    "models.TypeInDataset": {
+      "type": "object",
+      "properties": {
+        "is_required": {
+          "type": "boolean"
+        },
+        "type": {
+          "$ref": "#/definitions/models.Type"
+        }
+      }
+    }
+  }
+}
