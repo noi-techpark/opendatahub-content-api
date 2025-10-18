@@ -134,3 +134,16 @@ display formatted tab:
 
 
 
+------------
+
+read @WEBAPP_DOCUMENTATION.md . now that you know how the application works i want you to help planning the next steps.
+  i woud like to create a chatbot integrated in the webapp.
+  the chatbot shoult be able to anwser user question about the timeseries and datasets by performin live ondemand analysis using the same endpoints and logic used by the webapp, basically making the work of
+  analyze the webapp result in behalf of the user.
+  additionally i woult like the bot to navigate, when needed or appriopriate, the web app to the right page with the right url configuration, to justify and show the user the results (or from what he got) the
+  results.
+  i am not experienced in chatbot and agents built with langchain or langgraph. i expect i should have a bit of vector dabase to store contextual or static informations, but other than that i don't know what kind
+  of reasoning flow, tools to create and how to properly integrate the bot backand with the frontend so that it can "control" the web app.
+  i'm also very concerned about the length of the api responses, i think we should foresee some tools to filter, aggreagate and handle very long api response to avoid contxt exhaustion or high costs; are there best-practices, packages or approacesh to adopt?
+
+  can you make a detailed and appriopriate plan on the design, architecture, stack and implementataion of this bot?
