@@ -27,6 +27,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/v1\/content/, '/v1')
       },
+      '/api/v2/timeseries': {
+        target: 'https://mobility.api.opendatahub.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/v2\/timeseries/, '')
+      },
       '/api/v1/timeseries': {
         target: 'http://localhost:8080',
         changeOrigin: true,

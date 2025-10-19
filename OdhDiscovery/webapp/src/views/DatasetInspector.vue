@@ -322,7 +322,7 @@ const curlCommand = computed(() => {
     pagesize: pagesize.value,
     searchfilter: searchfilter.value || undefined,
     rawfilter: rawfilter.value || undefined
-  })
+  }, 'GET', datasetStore.currentMetadata)
 })
 
 // Watch for filter changes
@@ -461,7 +461,7 @@ async function openBulkTimeseriesAll() {
     const ids = await getAllFilteredIds(props.datasetName, {
       searchfilter: searchfilter.value || undefined,
       rawfilter: rawfilter.value || undefined
-    })
+    }, datasetStore.currentMetadata)
 
     if (!ids || ids.length === 0) {
       error.value = 'No entries found matching the filter'
@@ -517,7 +517,8 @@ async function handleFetchAllData(callback) {
       (progress) => {
         // Progress updates can be handled here if needed
         console.log(`Fetching page ${progress.current} of ${progress.total}`)
-      }
+      },
+      datasetStore.currentMetadata
     )
 
     callback(allData)

@@ -9,6 +9,7 @@ export const useDatasetStore = defineStore('dataset', () => {
   const datasets = ref([])
   const currentDataset = ref(null)
   const currentDatasetName = ref(null)
+  const currentMetadata = ref(null) // Store metadata for current dataset
   const entries = ref([])
   const analysis = ref(null)
   const timeseriesAnalysis = ref(null)
@@ -41,14 +42,27 @@ export const useDatasetStore = defineStore('dataset', () => {
       error.value = null
       currentDatasetName.value = datasetName
 
+      // Fetch metadata for this dataset (if not already loaded)
+      if (!currentMetadata.value || currentMetadata.value.Shortname !== datasetName) {
+        try {
+          currentMetadata.value = await contentApi.getMetadataByShortname(datasetName)
+        } catch (metaErr) {
+          console.warn('Could not fetch metadata for dataset:', datasetName, metaErr)
+          currentMetadata.value = null
+        }
+      }
+
+      // Call API with metadata - the URL will be built from metadata.BaseUrl + metadata.PathParam
+      // datasetName is used as fallback if metadata is not available
       const result = await contentApi.getDatasetEntries(datasetName, {
         pagenumber: currentPage.value,
         pagesize: pageSize.value,
         ...params
-      })
+      }, currentMetadata.value)
 
-      entries.value = result.Items || []
-      totalResults.value = result.TotalResults || 0
+      // Handle different response formats
+      entries.value = result.Items || result.data || []
+      totalResults.value = result.TotalResults || (result.data?.length || 0)
       currentDataset.value = result
 
       // Analyze the dataset
@@ -207,6 +221,7 @@ export const useDatasetStore = defineStore('dataset', () => {
   function reset() {
     currentDataset.value = null
     currentDatasetName.value = null
+    currentMetadata.value = null
     entries.value = []
     analysis.value = null
     timeseriesAnalysis.value = null
@@ -219,6 +234,7 @@ export const useDatasetStore = defineStore('dataset', () => {
     datasets,
     currentDataset,
     currentDatasetName,
+    currentMetadata,
     entries,
     analysis,
     timeseriesAnalysis,

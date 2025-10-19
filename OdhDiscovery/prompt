@@ -147,3 +147,124 @@ read @WEBAPP_DOCUMENTATION.md . now that you know how the application works i wa
   i'm also very concerned about the length of the api responses, i think we should foresee some tools to filter, aggreagate and handle very long api response to avoid contxt exhaustion or high costs; are there best-practices, packages or approacesh to adopt?
 
   can you make a detailed and appriopriate plan on the design, architecture, stack and implementataion of this bot?
+
+
+  -------------
+  content api has an endpoint containing information about datasets. it also contain the path, query params and other data about how to build the url to get the entries of the datasets. basically is a blueprint for datasets.
+  the url is content_host/v1?pagenumber=1&removenullvalues=true where the host is https://tourism.opendatahub.com.
+  you have to anlyze all entries of the medata to undestand the structure and then you have to build a query builder in the webapp so that we can populate Dataset page with real datasets. Metadata dataset must be included as well and you must hardcode Sensor since it is not registered. modify @OdhDiscovery/webapp/src/api/contentApi.js where datasets were hardcoded.
+  the behavuoir must be that the DatasetPage calls metadataapi to get all datasets plus sensors plus metadata. @OdhDiscovery/webapp/src/views/DatasetInspector.vue must look at url path to get the metadata searching for Shortnameand build the url to get entries using that as key. every time the page loads you have to get the metadata from metadataapi to build the api url.
+  the result looks like:
+
+  {
+  "TotalResults": 173,
+  "TotalPages": 18,
+  "CurrentPage": 1,
+  "PreviousPage": null,
+  "NextPage": "https://tourism.opendatahub.com/v1/MetaData?pagenumber=2&removenullvalues=true",
+  "Seed": null,
+  "Items": [
+    {
+      "Id": "00109544-2a58-4051-b619-b350e0035d20",
+      "Self": "https://tourism.opendatahub.com/v1/MetaData/00109544-2a58-4051-b619-b350e0035d20",
+      "Type": "odhactivitypoi",
+      "_Meta": {
+        "Id": "00109544-2a58-4051-b619-b350e0035d20",
+        "Type": "odhmetadata",
+        "Source": "noi",
+        "Reduced": false,
+        "LastUpdate": "2024-11-07T16:19:36.1074157+00:00",
+        "UpdateInfo": {
+          "UpdatedBy": "r.thoeni@noi.bz.it",
+          "UpdateSource": "https://databrowser.opendatahub.com/"
+        }
+      },
+      "ApiUrl": "https://tourism.api.opendatahub.com/v1/ODHActivityPoi?tagfilter=museums",
+      "ApiType": "content",
+      "BaseUrl": "https://tourism.api.opendatahub.com",
+      "ApiFilter": [
+        "tagfilter=museums"
+      ],
+      "Dataspace": "tourism",
+      "PathParam": [
+        "v1",
+        "ODHActivityPoi"
+      ],
+      "Shortname": "Museums",
+      "Deprecated": false,
+      "LastChange": "2024-11-07T16:19:36.1074157+00:00",
+      "SwaggerUrl": "https://tourism.api.opendatahub.com/swagger/index.html#/ODHActivityPoi",
+      "FirstImport": "2023-09-18T07:48:09.6544784+00:00",
+      "LicenseInfo": {
+        "Author": "https://noi.bz.it",
+        "License": "CC0",
+        "ClosedData": false,
+        "LicenseHolder": "https://noi.bz.it"
+      },
+      "DataProvider": [
+        "SIAG",
+        "LTS"
+      ],
+      "ImageGallery": [
+        {
+          "License": "CC0",
+          "ImageUrl": "https://images.opendatahub.com/api/Image/GetImage?imageurl=a308d8ba-b7d0-4cb2-9dc9-143c2af150f8.jpg",
+          "ImageSource": "pexels.com"
+        }
+      ],
+      "ApiDescription": {
+        "en": "This dataset contains all points of interest that have the tag 'museums' assigned by IDM."
+      }
+    },
+    {
+      "Id": "044e4651-2e05-45fd-8bb8-1f795806ffde",
+      "Self": "https://tourism.opendatahub.com/v1/MetaData/044e4651-2e05-45fd-8bb8-1f795806ffde",
+      "Type": "odhactivitypoi",
+      "_Meta": {
+        "Id": "044e4651-2e05-45fd-8bb8-1f795806ffde",
+        "Type": "odhmetadata",
+        "Source": "noi",
+        "Reduced": false,
+        "LastUpdate": "2024-11-07T16:20:06.1569607+00:00",
+        "UpdateInfo": {
+          "UpdatedBy": "r.thoeni@noi.bz.it",
+          "UpdateSource": "https://databrowser.opendatahub.com/"
+        }
+      },
+      "ApiUrl": "https://tourism.api.opendatahub.com/v1/ODHActivityPoi?tagfilter=traffic and transport",
+      "ApiType": "content",
+      "BaseUrl": "https://tourism.api.opendatahub.com",
+      "ApiFilter": [
+        "tagfilter=traffic and transport"
+      ],
+      "Dataspace": "mobility",
+      "PathParam": [
+        "v1",
+        "ODHActivityPoi"
+      ],
+      "Shortname": "Traffic and Transport",
+      "Deprecated": false,
+      "LastChange": "2024-11-07T16:20:06.1569607+00:00",
+      "SwaggerUrl": "https://tourism.api.opendatahub.com/swagger/index.html#/ODHActivityPoi",
+      "FirstImport": "2023-09-18T07:53:23.9016077+00:00",
+      "LicenseInfo": {
+        "Author": "https://noi.bz.it",
+        "License": "CC0",
+        "ClosedData": false,
+        "LicenseHolder": "https://noi.bz.it"
+      },
+      "DataProvider": [
+        "STA",
+        "LTS"
+      ],
+      "ImageGallery": [
+        {
+          "License": "CC0",
+          "ImageUrl": "https://images.opendatahub.com/api/Image/GetImage?imageurl=98b1743e-0117-4ab6-8a7f-92128980c703.jpg",
+          "ImageSource": "pexels.com"
+        }
+      ],
+      "ApiDescription": {
+        "en": " This dataset profiles transportation services such as taxis, chauffeured rental cars, and buses, offering detailed insights including service types, locations, GPS coordinates, and contact information, along with language and update details."
+      }
+    },
