@@ -203,18 +203,18 @@ watch(
   { immediate: true, deep: true }
 )
 
-// Filter to only leaf fields (primitives, not objects or arrays)
+// Filter fields for distinct value analysis
+// Exclude array item fields (those with []) but allow array fields themselves
+// Arrays will be stringified for comparison
 const leafFields = computed(() => {
   return props.fields.filter(field => {
-    // Exclude array fields
+    // Exclude array item fields (e.g., "ApiFilter[]", "items[].name")
+    // but allow array fields themselves (e.g., "ApiFilter", "Sources")
     if (field.path.includes('[]')) return false
 
-    // Only include fields with primitive types
-    const hasOnlyPrimitives = field.types.every(type =>
-      ['string', 'number', 'boolean', 'null'].includes(type)
-    )
-
-    return hasOnlyPrimitives
+    // Allow all other fields (primitives, arrays, objects)
+    // Non-primitive values will be stringified for comparison
+    return true
   }).sort((a, b) => b.completeness - a.completeness)
 })
 
