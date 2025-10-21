@@ -341,14 +341,18 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Announcement")]
-        public Task<IActionResult> Post([FromBody] Announcement announcement)
+        public Task<IActionResult> Post([FromBody] Announcement announcement, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
 
-                announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
+                if (generateid)
+                    announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
+                else
+                    if (announcement.Id == null)
+                        throw new Exception("Id is null");
 
                 if (announcement.LicenseInfo == null)
                     announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
