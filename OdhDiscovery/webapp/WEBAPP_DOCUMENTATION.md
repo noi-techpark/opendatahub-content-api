@@ -75,7 +75,7 @@ The app uses a custom composable (`/src/composables/useUrlState.js`) to sync com
 
 **Purpose**: Browse available dataset types and view statistics.
 
-**Query Parameters**: None
+**Query Parameters**: See [URL Parameters Reference](#route-datasets-datasetbrowser) for complete list and examples.
 
 **API Calls**:
 
@@ -103,16 +103,7 @@ User clicks "Explore" → Navigate to /datasets/{datasetName}
 **Route Parameters**:
 - `datasetName` - Name of the dataset (e.g., "Accommodation", "Activity")
 
-**Query Parameters** (all synced with URL):
-- `page` (number, default: 1) - Current page number
-- `pagesize` (number, default: 50) - Entries per page
-- `view` (string, default: "table") - View mode: "table", "raw", "analysis"
-- `rawfilter` (string) - Raw filter expression (ODH filter syntax)
-- `rawsort` (string) - Raw sort expression
-- `fields` (array) - Selected fields to display
-- `language` (string) - Language filter
-- `searchfilter` (string) - Full-text search
-- `selectedIds` (array) - Selected entry IDs
+**Query Parameters**: See [URL Parameters Reference](#route-datasetsdatasetname-datasetinspector) for complete list and examples.
 
 **Tabs**:
 1. **Data Tab** - View dataset entries
@@ -186,7 +177,7 @@ User selects types in Timeseries tab → Navigate to /bulk-measurements
 
 **Purpose**: Browse and search available timeseries types.
 
-**Query Parameters**: None (could be extended)
+**Query Parameters**: See [URL Parameters Reference](#route-timeseries-timeseriesbrowser) for complete list and examples.
 
 **API Calls**:
 
@@ -225,11 +216,7 @@ User clicks type → Navigate to /timeseries/{typeName}
 **Route Parameters**:
 - `typeName` - Name of the timeseries type (legacy, now supports multiple types)
 
-**Query Parameters** (all synced with URL):
-- `types` (array) - Selected timeseries type names (e.g., `?types=temperature,humidity`)
-- `view` (string, default: "table") - View mode: "table" or "raw"
-- `filter` (JSON object) - Advanced filters
-- `selectedSensors` (array) - Selected sensor names
+**Query Parameters**: See [URL Parameters Reference](#route-timeseriestypename-timeseriesinspector) for complete list and examples.
 
 **API Calls**:
 
@@ -272,11 +259,7 @@ User clicks "Show Measurements" → Navigate to /bulk-measurements with sensors 
 
 **Purpose**: Load and visualize measurements for multiple sensors and types.
 
-**Query Parameters** (all synced with URL):
-- `sensors` (array) - Sensor names to query (e.g., `?sensors=sensor1,sensor2`)
-- `types` (array) - Selected measurement type names
-- `disabledSensors` (array) - Sensors that should be excluded from queries
-- `view` (string, default: "table") - View mode: "table", "raw", "pretty"
+**Query Parameters**: See [URL Parameters Reference](#route-bulk-measurements-bulkmeasurementsinspector) for complete list and examples.
 
 **API Calls**:
 
@@ -366,6 +349,167 @@ View Modes:
   - String/Boolean → Table (StringBooleanTimeseriesView)
   - JSON → Expandable tree (JsonTimeseriesView)
 ```
+
+---
+
+## URL Parameters Reference
+
+This section provides a comprehensive reference of all URL query parameters supported by each route. All parameters are optional unless otherwise specified.
+
+### Route: `/datasets` (DatasetBrowser)
+
+Browse and filter available dataset types.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dataspace` | string | `null` | Filter datasets by dataspace (e.g., "tourism", "mobility") |
+| `apiType` | string | `null` | Filter datasets by API type (e.g., "content", "timeseries") |
+| `datasets` | array | `[]` | Comma-separated list of dataset names to filter (multiselect filter) |
+| `page` | number | `1` | Current page number for pagination (20 items per page) |
+
+**Example URLs:**
+```
+/datasets
+/datasets?search=accommodation
+/datasets?dataspace=tourism&page=2
+/datasets?datasets=Accommodation,Activity&apiType=content
+```
+
+---
+
+### Route: `/datasets/:datasetName` (DatasetInspector)
+
+Inspect and analyze a specific dataset with its entries.
+
+**Route Parameters:**
+- `:datasetName` - Name of the dataset (e.g., "Accommodation", "Activity", "Poi")
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | number | `1` | Current page number for entry pagination |
+| `pagesize` | number | `50` | Number of entries to display per page (max depends on API) |
+| `view` | string | `'table'` | Active view tab: `'table'`, `'raw'`, `'analysis'`, `'distinct'`, `'timeseries'` |
+| `rawsort` | string | `null` | ODH raw sort expression (e.g., `'Id desc'`, `'Name asc'`) |
+| `fields` | array | `[]` | Comma-separated list of field names to display in table view |
+| `language` | string | `null` | Language code for filtering content (e.g., `'en'`, `'de'`, `'it'`) |
+| `searchfilter` | string | `null` | Full-text search query across all fields |
+| `selectedIds` | array | `[]` | Comma-separated list of selected entry IDs |
+| `presenceFilters` | array | `[]` | Comma-separated list of field names to filter for non-null values |
+| `distinctProperties` | array | `[]` | Comma-separated list of field paths to analyze for distinct values |
+
+**Special Notes:**
+- `rawfilter` parameter is auto-generated from `presenceFilters` and not directly modifiable via URL
+- `presenceFilters` generates queries like `field1 ne null and field2 ne null`
+- `distinctProperties` triggers distinct value analysis when non-empty and `view=distinct`
+
+**Example URLs:**
+```
+/datasets/Accommodation
+/datasets/Accommodation?page=2&pagesize=100
+/datasets/Activity?view=analysis
+/datasets/Poi?searchfilter=bolzano&language=en
+/datasets/Event?presenceFilters=EventDate,LocationInfo.Name
+/datasets/Accommodation?view=distinct&distinctProperties=Type,Features
+/datasets/GastronomicData?rawsort=Name asc&fields=Id,Name,ContactInfos
+```
+
+---
+
+### Route: `/timeseries` (TimeseriesBrowser)
+
+Browse and filter available timeseries measurement types.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `dataType` | string | `null` | Filter by data type: `'numeric'`, `'string'`, `'boolean'`, `'json'`, `'geoposition'`, `'geoshape'` |
+| `timeseries` | array | `[]` | Comma-separated list of timeseries type names to filter (multiselect filter) |
+| `page` | number | `1` | Current page number for pagination (20 items per page) |
+
+**Example URLs:**
+```
+/timeseries
+/timeseries?dataType=numeric
+/timeseries?timeseries=temperature,humidity&page=1
+/timeseries?page=2
+```
+
+---
+
+### Route: `/timeseries/:typeName` (TimeseriesInspector)
+
+Inspect sensors and measurements for specific timeseries types.
+
+**Route Parameters:**
+- `:typeName` - Name of the timeseries type (legacy parameter, now supports multiple types via query params)
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `types` | array | `[]` | Comma-separated list of timeseries type names to inspect (e.g., `'temperature,humidity'`) |
+| `view` | string | `'table'` | Display mode: `'table'` (sensor table), `'raw'` (JSON viewer) |
+| `filter` | JSON | `null` | Advanced filter object (JSON-encoded, reserved for future filtering features) |
+| `selectedSensors` | array | `[]` | Comma-separated list of selected sensor names for bulk operations |
+
+**Special Notes:**
+- If `types` array is empty, the route parameter `:typeName` is used as the single type
+- Multiple types can be selected and viewed simultaneously
+- `selectedSensors` is used when navigating to bulk measurements view
+
+**Example URLs:**
+```
+/timeseries/temperature
+/timeseries/temperature?types=temperature,humidity
+/timeseries/air_quality?view=raw
+/timeseries/temperature?selectedSensors=sensor1,sensor2,sensor3
+/timeseries/weather?types=temperature,humidity,pressure&view=table
+```
+
+---
+
+### Route: `/bulk-measurements` (BulkMeasurementsInspector)
+
+Load and visualize measurements for multiple sensors and types.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `sensors` | array | `[]` | **Required.** Comma-separated list of sensor names to query for measurements |
+| `types` | array | `[]` | Comma-separated list of measurement type names currently selected for loading |
+| `disabledSensors` | array | `[]` | Comma-separated list of sensor names to exclude from API queries (shown with strikethrough in UI) |
+| `view` | string | `'table'` | Display mode: `'table'`, `'raw'`, `'pretty'` |
+
+**View Modes:**
+- `'table'` - Simple tabular view of measurements
+- `'raw'` - Raw JSON viewer with full measurement data
+- `'pretty'` - Auto-detected visualizations based on data type:
+  - **Numeric** → Chart.js time-series line chart
+  - **Geographic** → Leaflet map with WKT/GeoJSON support
+  - **String/Boolean** → Enhanced table view
+  - **JSON** → Expandable tree viewer
+
+**Special Notes:**
+- `sensors` parameter is required - without it, the page shows an empty state
+- Enabled sensors = `sensors` minus `disabledSensors`
+- Only enabled sensors are sent to API when loading measurements
+- The `types` array determines which checkboxes are pre-selected but doesn't trigger loading until user clicks "Load Latest" or "Load Historical"
+- Disabling a sensor updates `disabledSensors` in URL and reloads available types
+
+**Example URLs:**
+```
+/bulk-measurements?sensors=sensor1,sensor2,sensor3
+/bulk-measurements?sensors=hotel-1,hotel-2&types=temperature,humidity
+/bulk-measurements?sensors=s1,s2,s3,s4&disabledSensors=s2,s4&view=pretty
+/bulk-measurements?sensors=air-quality-1,air-quality-2&types=pm10,pm25&view=table
+```
+
+**Typical Workflow:**
+1. User navigates from Dataset Inspector or Timeseries Inspector with `sensors` param populated
+2. Page loads available types for enabled sensors via API call
+3. User selects desired types (updates `types` in URL)
+4. User clicks "Load Latest" or "Load Historical Range"
+5. Measurements are fetched and displayed in selected view mode
 
 ---
 

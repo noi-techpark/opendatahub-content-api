@@ -8,15 +8,6 @@
 
       <!-- Search and Filters -->
       <div class="filters-bar card">
-        <div class="search-box">
-          <input
-            v-model="searchQuery"
-            type="text"
-            class="input"
-            placeholder="Search datasets..."
-          />
-        </div>
-
         <div class="filter-section">
           <div class="filter-label">Filter by Dataspace:</div>
           <div class="filter-chips">
@@ -253,7 +244,6 @@ const urlState = syncMultiple({
   }
 })
 
-const searchQuery = urlState.search
 const selectedDataspace = urlState.dataspace
 const selectedApiType = urlState.apiType
 const selectedDatasetNames = urlState.datasets
@@ -262,7 +252,7 @@ const currentPage = urlState.page
 const PAGE_SIZE = 20
 
 // Reset page to 1 when filters change
-watch([searchQuery, selectedDataspace, selectedApiType, selectedDatasetNames], () => {
+watch([selectedDataspace, selectedApiType, selectedDatasetNames], () => {
   currentPage.value = 1
 })
 
@@ -316,16 +306,6 @@ async function loadDatasets() {
 // Computed properties for filtering
 const filteredDatasets = computed(() => {
   let filtered = datasetsWithMeta.value
-
-  // Filter by search query
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(ds =>
-      ds.name.toLowerCase().includes(query) ||
-      (ds.description && ds.description.toLowerCase().includes(query)) ||
-      (ds.dataspace && ds.dataspace.toLowerCase().includes(query))
-    )
-  }
 
   // Filter by dataspace
   if (selectedDataspace.value) {
