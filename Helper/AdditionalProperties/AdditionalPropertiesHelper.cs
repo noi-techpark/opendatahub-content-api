@@ -19,7 +19,7 @@ namespace Helper.AdditionalProperties
     public static class AdditionalPropertiesHelper
     {
         /// <summary>
-        /// Extension Method to check Additionalproperties Model
+        /// Extension Method to check Additionalproperties Model TODO MAKE DYNAMIC
         /// </summary>
         /// <param name="oldlocationinfo"></param>
         /// <param name="queryFactory"></param>
@@ -39,18 +39,113 @@ namespace Helper.AdditionalProperties
                 {
                     case "EchargingDataProperties":
 
-                        var result = CastAs<EchargingDataProperties>(kvp.Value);
-                        success = result.Item1;
+                        var resultecharging = CastAs<EchargingDataProperties>(kvp.Value);
+                        success = resultecharging.Item1;
                         if (!success)
-                            errorlist.TryAddOrUpdate("error", (string)result.Item2);
+                            errorlist.TryAddOrUpdate("error", (string)resultecharging.Item2);
                         else
                         {
                             //Assign the Casted model
-                            if (result.Item3 != null)
+                            if (resultecharging.Item3 != null)
                             {
                                 data.AdditionalProperties.TryAddOrUpdate(
                                     "EchargingDataProperties",
-                                    (EchargingDataProperties)result.Item3
+                                    (EchargingDataProperties)resultecharging.Item3
+                                );
+                            }
+                        }
+
+                        break;
+                    case "ActivityLtsDataProperties":
+
+                        var resultactivitylts = CastAs<ActivityLtsDataProperties>(kvp.Value);
+                        success = resultactivitylts.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resultactivitylts.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resultactivitylts.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "ActivityLtsDataProperties",
+                                    (ActivityLtsDataProperties)resultactivitylts.Item3
+                                );
+                            }
+                        }
+
+                        break;
+                    case "PoiLtsDataProperties":
+
+                        var resultpoilts = CastAs<PoiLtsDataProperties>(kvp.Value);
+                        success = resultpoilts.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resultpoilts.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resultpoilts.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "PoiLtsDataProperties",
+                                    (PoiLtsDataProperties)resultpoilts.Item3
+                                );
+                            }
+                        }
+
+                        break;
+                    case "GastronomyLtsDataProperties":
+
+                        var resultgastronomylts = CastAs<GastronomyLtsDataProperties>(kvp.Value);
+                        success = resultgastronomylts.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resultgastronomylts.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resultgastronomylts.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "GastronomyLtsDataProperties",
+                                    (GastronomyLtsDataProperties)resultgastronomylts.Item3
+                                );
+                            }
+                        }
+
+                        break;
+                    case "PoiAgeDataProperties":
+
+                        var resultpoiage = CastAs<PoiAgeDataProperties>(kvp.Value);
+                        success = resultpoiage.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resultpoiage.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resultpoiage.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "PoiAgeDataProperties",
+                                    (PoiAgeDataProperties)resultpoiage.Item3
+                                );
+                            }
+                        }
+
+                        break;
+                    case "SuedtirolWeinCompanyDataProperties":
+
+                        var resultsuedtirolweincompany = CastAs<SuedtirolWeinCompanyDataProperties>(kvp.Value);
+                        success = resultsuedtirolweincompany.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resultsuedtirolweincompany.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resultsuedtirolweincompany.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "SuedtirolWeinCompanyDataProperties",
+                                    (SuedtirolWeinCompanyDataProperties)resultsuedtirolweincompany.Item3
                                 );
                             }
                         }
