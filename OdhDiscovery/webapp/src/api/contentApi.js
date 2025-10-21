@@ -291,8 +291,23 @@ export async function getAllFilteredIds(datasetName, params = {}, metadata = nul
 }
 
 /**
+ * Determine if an API URL is for mobility/timeseries API
+ * These APIs support limit=-1 to fetch all entries at once
+ * @param {string} apiUrl - The API URL
+ * @returns {boolean} True if mobility/timeseries API
+ */
+function isMobilityOrTimeseriesApi(apiUrl) {
+  if (!apiUrl) return false
+  const url = apiUrl.toLowerCase()
+  return url.includes('mobility.api.opendatahub') || url.includes('timeseries.api.opendatahub')
+}
+
+/**
  * Get all entries matching the filter (fetches all pages)
  * Warning: This can be resource-intensive for large datasets
+ * Handles two different API types:
+ * - Tourism/Content API: uses pagenumber & pagesize pagination
+ * - Mobility/Timeseries API: uses limit=-1 to fetch all at once
  * @param {string} datasetName - The dataset name (not used if metadata provided)
  * @param {object} params - Query parameters
  * @param {function} progressCallback - Optional callback for progress updates
@@ -301,48 +316,72 @@ export async function getAllFilteredIds(datasetName, params = {}, metadata = nul
 export async function getAllFilteredEntries(datasetName, params = {}, progressCallback = null, metadata = null) {
   // If metadata is provided, use ApiUrl
   if (metadata) {
-    const firstPageParams = { ...params, pagesize: 100, pagenumber: 1 }
-    const fullUrl = buildFullUrlFromMetadata(metadata, firstPageParams)
+    const apiUrl = metadata.ApiUrl || metadata.metadata?.ApiUrl
 
-    if (fullUrl) {
-      const firstResponse = await genericClient.get(fullUrl)
-      const data = firstResponse.data
+    // Check if this is a mobility/timeseries API
+    if (isMobilityOrTimeseriesApi(apiUrl)) {
+      // Mobility/Timeseries API: use limit=-1 to fetch all entries at once
+      const allParams = { ...params, limit: -1 }
+      const fullUrl = buildFullUrlFromMetadata(metadata, allParams)
 
-      // Handle different response formats
-      const items = data.Items || data.data || []
-      const totalPages = data.TotalPages || 1
-      let allEntries = [...items]
+      if (fullUrl) {
+        const response = await genericClient.get(fullUrl)
+        const data = response.data
 
-      if (progressCallback) {
-        progressCallback({ current: 1, total: totalPages, entries: allEntries.length })
-      }
-
-      // Fetch remaining pages
-      const batchSize = 5
-      for (let i = 2; i <= totalPages; i += batchSize) {
-        const batch = []
-        for (let j = i; j < i + batchSize && j <= totalPages; j++) {
-          const pageParams = { ...params, pagesize: 100, pagenumber: j }
-          const pageUrl = buildFullUrlFromMetadata(metadata, pageParams)
-          batch.push(genericClient.get(pageUrl))
-        }
-
-        const responses = await Promise.all(batch)
-        responses.forEach(response => {
-          const pageItems = response.data.Items || response.data.data || []
-          allEntries = allEntries.concat(pageItems)
-        })
+        // Mobility API returns data in "data" field
+        const allEntries = data.data || []
 
         if (progressCallback) {
-          progressCallback({ current: Math.min(i + batchSize - 1, totalPages), total: totalPages, entries: allEntries.length })
+          progressCallback({ current: 1, total: 1, entries: allEntries.length })
         }
-      }
 
-      return allEntries
+        return allEntries
+      }
+    } else {
+      // Tourism/Content API: use pagination with pagenumber & pagesize
+      const firstPageParams = { ...params, pagesize: 1000, pagenumber: 1 }
+      const fullUrl = buildFullUrlFromMetadata(metadata, firstPageParams)
+
+      if (fullUrl) {
+        const firstResponse = await genericClient.get(fullUrl)
+        const data = firstResponse.data
+
+        // Handle different response formats
+        const items = data.Items || data.data || []
+        const totalPages = data.TotalPages || 1
+        let allEntries = [...items]
+
+        if (progressCallback) {
+          progressCallback({ current: 1, total: totalPages, entries: allEntries.length })
+        }
+
+        // Fetch remaining pages
+        const batchSize = 5
+        for (let i = 2; i <= totalPages; i += batchSize) {
+          const batch = []
+          for (let j = i; j < i + batchSize && j <= totalPages; j++) {
+            const pageParams = { ...params, pagesize: 1000, pagenumber: j }
+            const pageUrl = buildFullUrlFromMetadata(metadata, pageParams)
+            batch.push(genericClient.get(pageUrl))
+          }
+
+          const responses = await Promise.all(batch)
+          responses.forEach(response => {
+            const pageItems = response.data.Items || response.data.data || []
+            allEntries = allEntries.concat(pageItems)
+          })
+
+          if (progressCallback) {
+            progressCallback({ current: Math.min(i + batchSize - 1, totalPages), total: totalPages, entries: allEntries.length })
+          }
+        }
+
+        return allEntries
+      }
     }
   }
 
-  // Fallback to contentClient
+  // Fallback to contentClient (tourism/content API style)
   const firstPageParams = { ...params, pagesize: 100, pagenumber: 1 }
   const queryString = buildQueryString(firstPageParams)
   const url = `/${datasetName}${queryString ? `?${queryString}` : ''}`

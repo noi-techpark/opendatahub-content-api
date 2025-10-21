@@ -10,6 +10,7 @@ export const useDatasetStore = defineStore('dataset', () => {
   const currentDataset = ref(null)
   const currentDatasetName = ref(null)
   const currentMetadata = ref(null) // Store metadata for current dataset
+  const currentAnalysisFilters = ref(null) // Track filters used for current analysis
   const entries = ref([])
   const analysis = ref(null)
   const timeseriesAnalysis = ref(null)
@@ -40,9 +41,19 @@ export const useDatasetStore = defineStore('dataset', () => {
     try {
       loading.value = true
       error.value = null
+
+      // Check if dataset has changed (need to reload metadata and analysis)
+      const datasetChanged = currentDatasetName.value !== datasetName
       currentDatasetName.value = datasetName
 
-      // Fetch metadata for this dataset (if not already loaded)
+      // Check if filters have changed (need to reload analysis)
+      const currentFilters = JSON.stringify({
+        searchfilter: params.searchfilter || '',
+        rawfilter: params.rawfilter || ''
+      })
+      const filtersChanged = currentAnalysisFilters.value !== currentFilters
+
+      // Fetch metadata for this dataset (if not already loaded or dataset changed)
       if (!currentMetadata.value || currentMetadata.value.Shortname !== datasetName) {
         try {
           currentMetadata.value = await contentApi.getMetadataByShortname(datasetName)
@@ -62,19 +73,63 @@ export const useDatasetStore = defineStore('dataset', () => {
 
       // Handle different response formats
       entries.value = result.Items || result.data || []
-      totalResults.value = result.TotalResults || (result.data?.length || 0)
       currentDataset.value = result
 
-      // Analyze the dataset
-      if (entries.value.length > 0) {
-        analysis.value = analyzeDataset(entries.value)
+      // Load analysis when:
+      // 1. Dataset changes
+      // 2. Filters change (searchfilter or rawfilter)
+      // 3. Analysis is not available
+      // This prevents re-analyzing on page-only changes
+      if (datasetChanged || filtersChanged || !analysis.value) {
+        currentAnalysisFilters.value = currentFilters
+        await loadDatasetAnalysis(datasetName, params)
+      }
+
+      // Set totalResults from analysis (which has the complete dataset count)
+      // Fallback to result.TotalResults if analysis not available
+      if (analysis.value && analysis.value.totalItems !== undefined) {
+        totalResults.value = analysis.value.totalItems
+      } else {
+        totalResults.value = result.TotalResults || (result.data?.length || 0)
+      }
+    } catch (err) {
+      error.value = err.message
+      console.error('Error loading dataset entries:', err)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function loadDatasetAnalysis(datasetName, params = {}) {
+    try {
+      console.log('Loading analysis for entire dataset:', datasetName)
+
+      // Fetch ALL entries for analysis (not just the current page)
+      const allEntries = await contentApi.getAllFilteredEntries(
+        datasetName,
+        {
+          searchfilter: params.searchfilter || undefined,
+          rawfilter: params.rawfilter || undefined
+        },
+        (progress) => {
+          console.log(`Fetching for analysis: page ${progress.current} of ${progress.total}`)
+        },
+        currentMetadata.value
+      )
+
+      console.log(`Analyzing ${allEntries.length} entries`)
+
+      // Analyze the complete dataset
+      if (allEntries.length > 0) {
+        analysis.value = analyzeDataset(allEntries)
 
         // Extract all entry Ids to use as potential sensor names
-        const entryIds = entries.value.map(entry => entry.Id).filter(id => id)
+        const entryIds = allEntries.map(entry => entry.Id).filter(id => id)
 
-        // Fetch timeseries data for all entry Ids
+        // Fetch timeseries data for all entry Ids (no sampling)
         if (entryIds.length > 0) {
           try {
+            console.log(`Fetching timeseries data for ${entryIds.length} sensors`)
             const timeseriesData = await fetchTimeseriesForSensors(entryIds)
             timeseriesAnalysis.value = {
               attachmentRate: timeseriesData.attachmentRate,
@@ -106,12 +161,27 @@ export const useDatasetStore = defineStore('dataset', () => {
             typeFrequency: {}
           }
         }
+      } else {
+        // No entries found
+        analysis.value = {
+          totalItems: 0,
+          fields: [],
+          structure: {}
+        }
+        timeseriesAnalysis.value = {
+          attachmentRate: 0,
+          totalWithTimeseries: 0,
+          sensorNames: [],
+          timeseriesData: {},
+          timeseriesTypes: [],
+          typeFrequency: {}
+        }
       }
     } catch (err) {
-      error.value = err.message
-      console.error('Error loading dataset entries:', err)
-    } finally {
-      loading.value = false
+      console.error('Error loading dataset analysis:', err)
+      // Set empty analysis on error
+      analysis.value = null
+      timeseriesAnalysis.value = null
     }
   }
 
@@ -222,6 +292,7 @@ export const useDatasetStore = defineStore('dataset', () => {
     currentDataset.value = null
     currentDatasetName.value = null
     currentMetadata.value = null
+    currentAnalysisFilters.value = null
     entries.value = []
     analysis.value = null
     timeseriesAnalysis.value = null

@@ -10,8 +10,12 @@
       <CurlDisplay :curlCommand="curlCommand" />
 
       <!-- Dataset Statistics -->
+      <div v-if="loading" class="loading-placeholder card">
+        <div class="spinner"></div>
+        <p>Loading dataset analysis...</p>
+      </div>
       <DatasetStats
-        v-if="analysis"
+        v-else-if="analysis"
         :analysis="analysis"
         :total-entries="totalResults"
         :timeseries-analysis="timeseriesAnalysis"
@@ -40,24 +44,45 @@
         </div>
 
         <div class="filter-group">
-          <label>Field Presence Filters (not null)</label>
-          <div class="presence-filters">
+          <label>
+            Field Presence Filters (not null)
+            <span v-if="hasUnappliedChanges" class="unapplied-badge">Unapplied changes</span>
+          </label>
+          <div v-if="loading" class="loading-placeholder-small">
+            <div class="spinner-small"></div>
+            <p>Loading fields...</p>
+          </div>
+          <div v-else class="field-list">
             <div
               v-for="field in allFields"
               :key="field.path"
-              class="filter-checkbox"
+              class="field-item"
+              :class="{ 'field-selected': presenceFilters.includes(field.path) }"
+              @click="togglePresenceFilter(field.path)"
             >
-              <label>
-                <input
-                  type="checkbox"
-                  :checked="presenceFilters.includes(field.path)"
-                  @change="togglePresenceFilter(field.path)"
-                />
-                {{ field.path }}
-                <span class="completeness-badge" :class="getCompletenessClass(field.completeness)">
+              <div class="field-header">
+                <div class="field-checkbox-wrapper">
+                  <input
+                    type="checkbox"
+                    :checked="presenceFilters.includes(field.path)"
+                    @change.stop="togglePresenceFilter(field.path)"
+                  />
+                  <span class="field-path">{{ field.path }}</span>
+                </div>
+                <span
+                  class="field-completeness"
+                  :class="getCompletenessClass(field.completeness)"
+                >
                   {{ field.completeness }}%
                 </span>
-              </label>
+              </div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill"
+                  :style="{ width: `${field.completeness}%` }"
+                  :class="getCompletenessClass(field.completeness)"
+                ></div>
+              </div>
             </div>
           </div>
           <button v-if="analysis && analysis.fields.length > 20" @click="showAllPresenceFilters = !showAllPresenceFilters" class="btn btn-outline btn-sm" style="margin-top: 1rem;">
@@ -66,18 +91,25 @@
         </div>
 
         <div class="filter-group">
-          <label>Raw Filter Expression (Advanced)</label>
+          <label>Generated Filter Expression</label>
           <input
-            v-model="rawfilter"
+            :value="generatedRawFilter"
             type="text"
             class="input"
-            placeholder="e.g., eq(Active,true)"
+            readonly
+            placeholder="Auto-generated from presence filters..."
           />
-          <small>Use Content API rawfilter syntax or use the Filter Builder above</small>
+          <small>This filter is auto-generated from the selected presence filters above</small>
         </div>
 
         <div class="filter-actions">
-          <button @click="applyFilters" class="btn btn-primary">Apply Filters</button>
+          <button
+            @click="applyFilters"
+            class="btn btn-primary"
+            :disabled="!hasUnappliedChanges"
+          >
+            Apply Filters{{ hasUnappliedChanges ? ' *' : '' }}
+          </button>
           <button @click="clearFilters" class="btn btn-outline">Clear All</button>
         </div>
       </div>
@@ -216,10 +248,15 @@
 
       <!-- Distinct Values View -->
       <div v-else-if="view === 'distinct'" class="distinct-view">
+        <div v-if="loading" class="loading-placeholder card">
+          <div class="spinner"></div>
+          <p>Loading distinct values analysis...</p>
+        </div>
         <DistinctValuesAnalyzer
+          v-else
           :fields="analysis?.fields || []"
           :dataset-name="datasetName"
-          :current-filters="{ searchfilter, rawfilter }"
+          :current-filters="{ searchfilter, rawfilter: generatedRawFilter }"
           :total-entries="totalResults"
           @fetch-all-data="handleFetchAllData"
         />
@@ -227,10 +264,15 @@
 
       <!-- Timeseries View -->
       <div v-else-if="view === 'timeseries'" class="timeseries-view">
+        <div v-if="loading" class="loading-placeholder card">
+          <div class="spinner"></div>
+          <p>Loading timeseries analysis...</p>
+        </div>
         <TimeseriesAnalyzer
+          v-else
           :timeseries-analysis="timeseriesAnalysis"
           :dataset-name="datasetName"
-          :current-filters="{ searchfilter, rawfilter }"
+          :current-filters="{ searchfilter, rawfilter: generatedRawFilter }"
           :total-entries="totalResults"
           @fetch-all-data="handleFetchAllData"
         />
@@ -271,17 +313,36 @@ const urlState = useDatasetUrlState()
 const page = urlState.page
 const pagesize = urlState.pagesize
 const view = urlState.view
-const rawfilter = urlState.rawfilter
 const searchfilter = urlState.searchfilter
 const selectedIds = urlState.selectedIds
+const presenceFilters = urlState.presenceFilters
 
 // Local state
 const loading = ref(false)
 const error = ref(null)
-const presenceFilters = ref([])
 const showAllPresenceFilters = ref(false)
 const selectedEntries = ref([])
 const filterBuilderOpen = ref(false)
+const appliedPresenceFilters = ref([]) // Actually applied filters (after clicking Apply)
+
+// Computed raw filter from APPLIED presence filters (not the current selection)
+const generatedRawFilter = computed(() => {
+  if (appliedPresenceFilters.value.length === 0) return ''
+
+  const builder = new ContentFilterBuilder()
+  appliedPresenceFilters.value.forEach(field => {
+    builder.isNotNull(field)
+  })
+
+  return builder.build()
+})
+
+// Check if there are unapplied filter changes
+const hasUnappliedChanges = computed(() => {
+  const current = [...presenceFilters.value].sort().join(',')
+  const applied = [...appliedPresenceFilters.value].sort().join(',')
+  return current !== applied
+})
 
 // Computed
 const entries = computed(() => datasetStore.entries)
@@ -321,12 +382,12 @@ const curlCommand = computed(() => {
     pagenumber: page.value,
     pagesize: pagesize.value,
     searchfilter: searchfilter.value || undefined,
-    rawfilter: rawfilter.value || undefined
+    rawfilter: generatedRawFilter.value || undefined
   }, 'GET', datasetStore.currentMetadata)
 })
 
 // Watch for filter changes
-watch([page, pagesize, searchfilter, rawfilter], () => {
+watch([page, pagesize, searchfilter, generatedRawFilter], () => {
   loadData()
 })
 
@@ -336,6 +397,9 @@ onMounted(() => {
   if (selectedIds.value && selectedIds.value.length > 0) {
     // Will be populated after data loads
   }
+
+  // Initialize applied filters from URL state
+  appliedPresenceFilters.value = [...presenceFilters.value]
 
   loadData()
 })
@@ -349,7 +413,7 @@ async function loadData() {
       pagenumber: page.value,
       pagesize: pagesize.value,
       searchfilter: searchfilter.value || undefined,
-      rawfilter: rawfilter.value || undefined
+      rawfilter: generatedRawFilter.value || undefined
     })
 
     // Restore selections after data loads
@@ -366,38 +430,24 @@ async function loadData() {
 function togglePresenceFilter(fieldPath) {
   const index = presenceFilters.value.indexOf(fieldPath)
   if (index > -1) {
-    presenceFilters.value.splice(index, 1)
+    presenceFilters.value = presenceFilters.value.filter((_, i) => i !== index)
   } else {
-    presenceFilters.value.push(fieldPath)
+    presenceFilters.value = [...presenceFilters.value, fieldPath]
   }
+  // Don't apply immediately - wait for user to click Apply button
 }
 
 function applyFilters() {
-  // Build rawfilter from presence filters
-  if (presenceFilters.value.length > 0) {
-    const builder = new ContentFilterBuilder()
-    presenceFilters.value.forEach(field => {
-      builder.isNotNull(field)
-    })
-
-    const presenceFilter = builder.build()
-
-    // Combine with existing rawfilter
-    if (rawfilter.value) {
-      rawfilter.value = `and(${presenceFilter},${rawfilter.value})`
-    } else {
-      rawfilter.value = presenceFilter
-    }
-  }
-
-  // Reset to page 1
+  // Apply the selected filters
+  appliedPresenceFilters.value = [...presenceFilters.value]
+  // Reset to page 1 when filters are applied
   page.value = 1
 }
 
 function clearFilters() {
-  rawfilter.value = null
   searchfilter.value = null
   presenceFilters.value = []
+  appliedPresenceFilters.value = []
   page.value = 1
 }
 
@@ -460,7 +510,7 @@ async function openBulkTimeseriesAll() {
     // Get all IDs matching the current filter
     const ids = await getAllFilteredIds(props.datasetName, {
       searchfilter: searchfilter.value || undefined,
-      rawfilter: rawfilter.value || undefined
+      rawfilter: generatedRawFilter.value || undefined
     }, datasetStore.currentMetadata)
 
     if (!ids || ids.length === 0) {
@@ -500,10 +550,11 @@ function openFilterBuilder() {
 }
 
 function applyFilterFromBuilder(filter) {
-  if (filter) {
-    rawfilter.value = filter
-    page.value = 1
-  }
+  // For now, the filter builder generates rawfilter syntax
+  // We could enhance this later to parse the filter and extract field presence filters
+  // For now, we'll just log it or ignore it since we're focusing on presence filters
+  console.log('Filter from builder:', filter)
+  // TODO: Parse filter builder output to extract presence filters
 }
 
 async function handleFetchAllData(callback) {
@@ -512,7 +563,7 @@ async function handleFetchAllData(callback) {
       props.datasetName,
       {
         searchfilter: searchfilter.value || undefined,
-        rawfilter: rawfilter.value || undefined
+        rawfilter: generatedRawFilter.value || undefined
       },
       (progress) => {
         // Progress updates can be handled here if needed
@@ -580,43 +631,6 @@ async function handleFetchAllData(callback) {
   margin-top: 0.25rem;
   color: var(--text-secondary);
   font-size: 0.875rem;
-}
-
-.presence-filters {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.filter-checkbox label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: normal;
-  cursor: pointer;
-}
-
-.completeness-badge {
-  margin-left: auto;
-  font-size: 0.75rem;
-  padding: 0.125rem 0.5rem;
-  border-radius: 9999px;
-}
-
-.completeness-badge.high {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success-color);
-}
-
-.completeness-badge.medium {
-  background: rgba(245, 158, 11, 0.1);
-  color: var(--warning-color);
-}
-
-.completeness-badge.low {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger-color);
 }
 
 .filter-actions {
@@ -724,5 +738,163 @@ async function handleFetchAllData(callback) {
 
 .distinct-view {
   margin-top: 1rem;
+}
+
+/* Loading placeholders */
+.loading-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: var(--surface-color);
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.loading-placeholder p {
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.loading-placeholder-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  background: var(--bg-color);
+  border-radius: 0.375rem;
+}
+
+.loading-placeholder-small p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Field list for presence filters */
+.field-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.field-item {
+  padding: 0.75rem;
+  background: var(--bg-color);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.field-item:hover {
+  background: var(--surface-color);
+  border-color: var(--border-color);
+}
+
+.field-item.field-selected {
+  background: var(--surface-color);
+  border-color: var(--primary-color);
+}
+
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.field-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.field-checkbox-wrapper input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.field-path {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.field-completeness {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.field-completeness.high {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+}
+
+.field-completeness.medium {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-color);
+}
+
+.field-completeness.low {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+}
+
+.progress-bar {
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.high {
+  background: var(--success-color);
+}
+
+.progress-fill.medium {
+  background: var(--warning-color);
+}
+
+.progress-fill.low {
+  background: var(--danger-color);
+}
+
+/* Unapplied changes badge */
+.unapplied-badge {
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning-color);
+}
+
+/* Disabled button state */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

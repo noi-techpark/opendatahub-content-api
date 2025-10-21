@@ -133,10 +133,10 @@ function analyzeField(items, path) {
       return
     }
 
-    if (value === '' || (Array.isArray(value) && value.length === 0)) {
-      emptyCount++
-      return
-    }
+    // if (value === '' || (Array.isArray(value) && value.length === 0)) {
+    //   emptyCount++
+    //   return
+    // }
 
     // Track type
     const type = Array.isArray(value) ? 'array' : typeof value

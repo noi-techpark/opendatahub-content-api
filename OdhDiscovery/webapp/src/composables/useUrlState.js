@@ -146,10 +146,6 @@ export function useDatasetUrlState() {
       initial: 'table',
       ...serializers.string
     },
-    rawfilter: {
-      initial: null,
-      ...serializers.string
-    },
     rawsort: {
       initial: null,
       ...serializers.string
@@ -167,6 +163,10 @@ export function useDatasetUrlState() {
       ...serializers.string
     },
     selectedIds: {
+      initial: [],
+      ...serializers.array
+    },
+    presenceFilters: {
       initial: [],
       ...serializers.array
     }
