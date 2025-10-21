@@ -155,6 +155,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { getValueAtPath } from '../utils/dataAnalyzer'
+import { useDatasetStore } from '../stores/datasetStore'
+
+const datasetStore = useDatasetStore()
 
 const props = defineProps({
   fields: {
@@ -172,11 +175,16 @@ const props = defineProps({
   totalEntries: {
     type: Number,
     default: 0
+  },
+  urlSelectedProperties: {
+    type: Array,
+    default: () => []
   }
 })
 
-const emit = defineEmits(['fetch-all-data'])
+const emit = defineEmits(['update-selected-properties'])
 
+// Local state for checkbox selection (not synced to URL until "Analyze" is clicked)
 const selectedProperties = ref([])
 const analyzing = ref(false)
 const analysisResults = ref(null)
@@ -184,6 +192,44 @@ const error = ref(null)
 const analysisProgress = ref('')
 
 const PAGE_SIZE = 1000
+
+// Track last watched state to prevent duplicate triggers
+let lastWatchedState = null
+
+// Initialize from URL and watch for external changes (dataset change, filter change)
+watch(
+  () => [props.urlSelectedProperties, props.datasetName, props.currentFilters],
+  () => {
+    // Deduplicate by comparing stringified state
+    const currentState = JSON.stringify({
+      urlSelectedProperties: props.urlSelectedProperties,
+      datasetName: props.datasetName,
+      currentFilters: props.currentFilters
+    })
+
+    if (currentState === lastWatchedState) {
+      console.log('DistinctValuesAnalyzer watcher skipped (duplicate)')
+      return
+    }
+    lastWatchedState = currentState
+
+    console.log('DistinctValuesAnalyzer watcher triggered:', {
+      urlSelectedProperties: props.urlSelectedProperties,
+      datasetName: props.datasetName
+    })
+
+    // Load from URL state
+    selectedProperties.value = [...(props.urlSelectedProperties || [])]
+
+    // Auto-analyze if properties are selected from URL
+    // Use performAnalysis() instead of analyzeDistinctValues() to avoid emitting and causing infinite loop
+    if (selectedProperties.value.length > 0) {
+      console.log('Auto-analyzing with properties:', selectedProperties.value)
+      performAnalysis()
+    }
+  },
+  { immediate: true, deep: true }
+)
 
 // Watch for search query changes and reset pagination
 watch(
@@ -226,7 +272,8 @@ function clearSelection() {
   selectedProperties.value = []
 }
 
-async function analyzeDistinctValues() {
+// Internal function that performs the analysis without emitting events
+async function performAnalysis() {
   if (selectedProperties.value.length === 0) return
 
   try {
@@ -234,19 +281,8 @@ async function analyzeDistinctValues() {
     error.value = null
     analysisProgress.value = 'Fetching data...'
 
-    // Emit event to parent to fetch all data
-    const allData = await new Promise((resolve, reject) => {
-      const handler = (data) => {
-        resolve(data)
-      }
-      emit('fetch-all-data', handler)
-    })
-
-    if (!allData || allData.length === 0) {
-      error.value = 'No data available for analysis'
-      return
-    }
-
+    // Use cached data from store or fetch if not available
+    let allData = datasetStore.allEntries
     analysisProgress.value = 'Computing distinct values...'
 
     // Compute distinct values for each selected property
@@ -295,6 +331,17 @@ async function analyzeDistinctValues() {
   } finally {
     analyzing.value = false
   }
+}
+
+// Public function called by button click - emits event to sync URL
+async function analyzeDistinctValues() {
+  if (selectedProperties.value.length === 0) return
+
+  // Sync selected properties to URL when analyze is clicked
+  emit('update-selected-properties', [...selectedProperties.value])
+
+  // Perform the analysis
+  await performAnalysis()
 }
 
 function getFilteredValues(result) {
@@ -388,6 +435,8 @@ function exportToCsv() {
 function clearResults() {
   analysisResults.value = null
   selectedProperties.value = []
+  // Clear URL state too
+  emit('update-selected-properties', [])
 }
 </script>
 

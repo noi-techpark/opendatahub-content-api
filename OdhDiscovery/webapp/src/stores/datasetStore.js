@@ -11,7 +11,14 @@ export const useDatasetStore = defineStore('dataset', () => {
   const currentDatasetName = ref(null)
   const currentMetadata = ref(null) // Store metadata for current dataset
   const currentAnalysisFilters = ref(null) // Track filters used for current analysis
+
+  // Paginated entries (for table view)
   const entries = ref([])
+
+  // Full dataset (for analysis) - cached to avoid duplicate fetches
+  const allEntries = ref([])
+  const allEntriesLoading = ref(false)
+
   const analysis = ref(null)
   const timeseriesAnalysis = ref(null)
   const loading = ref(false)
@@ -100,31 +107,52 @@ export const useDatasetStore = defineStore('dataset', () => {
     }
   }
 
-  async function loadDatasetAnalysis(datasetName, params = {}) {
+  async function loadAllEntries(datasetName, params = {}) {
     try {
-      console.log('Loading analysis for entire dataset:', datasetName)
+      allEntriesLoading.value = true
+      console.log('Loading all entries for dataset:', datasetName)
 
-      // Fetch ALL entries for analysis (not just the current page)
-      const allEntries = await contentApi.getAllFilteredEntries(
+      // Fetch ALL entries (cached for both dataset analysis and distinct analysis)
+      allEntries.value = await contentApi.getAllFilteredEntries(
         datasetName,
         {
           searchfilter: params.searchfilter || undefined,
           rawfilter: params.rawfilter || undefined
         },
         (progress) => {
-          console.log(`Fetching for analysis: page ${progress.current} of ${progress.total}`)
+          console.log(`Fetching all entries: page ${progress.current} of ${progress.total}`)
         },
         currentMetadata.value
       )
 
-      console.log(`Analyzing ${allEntries.length} entries`)
+      console.log(`Loaded ${allEntries.value.length} entries into cache`)
+      return allEntries.value
+    } catch (err) {
+      console.error('Error loading all entries:', err)
+      throw err
+    } finally {
+      allEntriesLoading.value = false
+    }
+  }
+
+  async function loadDatasetAnalysis(datasetName, params = {}) {
+    try {
+      console.log('Loading analysis for entire dataset:', datasetName)
+
+      // Use cached allEntries if available, otherwise fetch
+      let allData = allEntries.value
+      if (!allData || allData.length === 0) {
+        allData = await loadAllEntries(datasetName, params)
+      }
+
+      console.log(`Analyzing ${allData.length} entries`)
 
       // Analyze the complete dataset
-      if (allEntries.length > 0) {
-        analysis.value = analyzeDataset(allEntries)
+      if (allData.length > 0) {
+        analysis.value = analyzeDataset(allData)
 
         // Extract all entry Ids to use as potential sensor names
-        const entryIds = allEntries.map(entry => entry.Id).filter(id => id)
+        const entryIds = allData.map(entry => entry.Id).filter(id => id)
 
         // Fetch timeseries data for all entry Ids (no sampling)
         if (entryIds.length > 0) {
@@ -294,6 +322,7 @@ export const useDatasetStore = defineStore('dataset', () => {
     currentMetadata.value = null
     currentAnalysisFilters.value = null
     entries.value = []
+    allEntries.value = []
     analysis.value = null
     timeseriesAnalysis.value = null
     currentPage.value = 1
@@ -307,6 +336,8 @@ export const useDatasetStore = defineStore('dataset', () => {
     currentDatasetName,
     currentMetadata,
     entries,
+    allEntries,
+    allEntriesLoading,
     analysis,
     timeseriesAnalysis,
     loading,
@@ -321,6 +352,7 @@ export const useDatasetStore = defineStore('dataset', () => {
     // Actions
     loadDatasetTypes,
     loadDatasetEntries,
+    loadAllEntries,
     loadDatasetEntry,
     loadDatasetMetadata,
     setPage,

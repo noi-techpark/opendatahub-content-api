@@ -254,11 +254,13 @@
         </div>
         <DistinctValuesAnalyzer
           v-else
+          :key="`distinct-${(distinctProperties || []).join(',')}`"
           :fields="analysis?.fields || []"
           :dataset-name="datasetName"
           :current-filters="{ searchfilter, rawfilter: generatedRawFilter }"
           :total-entries="totalResults"
-          @fetch-all-data="handleFetchAllData"
+          :url-selected-properties="distinctProperties || []"
+          @update-selected-properties="handleUpdateDistinctProperties"
         />
       </div>
 
@@ -274,7 +276,6 @@
           :dataset-name="datasetName"
           :current-filters="{ searchfilter, rawfilter: generatedRawFilter }"
           :total-entries="totalResults"
-          @fetch-all-data="handleFetchAllData"
         />
       </div>
     </div>
@@ -287,7 +288,7 @@ import { useRouter } from 'vue-router'
 import { useDatasetStore } from '../stores/datasetStore'
 import { useSelectionStore } from '../stores/selectionStore'
 import { useDatasetUrlState } from '../composables/useUrlState'
-import { buildCurlCommand, getAllFilteredIds, getAllFilteredEntries } from '../api/contentApi'
+import { buildCurlCommand, getAllFilteredIds } from '../api/contentApi'
 import { getValueAtPath } from '../utils/dataAnalyzer'
 import { ContentFilterBuilder } from '../utils/filterBuilder'
 import CurlDisplay from '../components/CurlDisplay.vue'
@@ -316,6 +317,7 @@ const view = urlState.view
 const searchfilter = urlState.searchfilter
 const selectedIds = urlState.selectedIds
 const presenceFilters = urlState.presenceFilters
+const distinctProperties = urlState.distinctProperties
 
 // Local state
 const loading = ref(false)
@@ -400,6 +402,12 @@ onMounted(() => {
 
   // Initialize applied filters from URL state
   appliedPresenceFilters.value = [...presenceFilters.value]
+
+  console.log('DatasetInspector mounted:', {
+    presenceFilters: presenceFilters.value,
+    distinctProperties: distinctProperties.value,
+    view: view.value
+  })
 
   loadData()
 })
@@ -557,26 +565,8 @@ function applyFilterFromBuilder(filter) {
   // TODO: Parse filter builder output to extract presence filters
 }
 
-async function handleFetchAllData(callback) {
-  try {
-    const allData = await getAllFilteredEntries(
-      props.datasetName,
-      {
-        searchfilter: searchfilter.value || undefined,
-        rawfilter: generatedRawFilter.value || undefined
-      },
-      (progress) => {
-        // Progress updates can be handled here if needed
-        console.log(`Fetching page ${progress.current} of ${progress.total}`)
-      },
-      datasetStore.currentMetadata
-    )
-
-    callback(allData)
-  } catch (err) {
-    console.error('Failed to fetch all data:', err)
-    callback([])
-  }
+function handleUpdateDistinctProperties(properties) {
+  distinctProperties.value = properties
 }
 </script>
 

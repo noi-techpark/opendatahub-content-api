@@ -169,6 +169,10 @@ export function useDatasetUrlState() {
     presenceFilters: {
       initial: [],
       ...serializers.array
+    },
+    distinctProperties: {
+      initial: [],
+      ...serializers.array
     }
   })
 

@@ -17,42 +17,101 @@
           />
         </div>
 
-        <div class="filter-chips">
-          <button
-            @click="selectedDataspace = null"
-            class="chip"
-            :class="{ active: selectedDataspace === null }"
-          >
-            All ({{ totalDatasets }})
-          </button>
-          <button
-            v-for="(count, dataspace) in dataspaceStats"
-            :key="dataspace"
-            @click="selectedDataspace = dataspace"
-            class="chip"
-            :class="{ active: selectedDataspace === dataspace }"
-          >
-            {{ dataspace }} ({{ count }})
-          </button>
+        <div class="filter-section">
+          <div class="filter-label">Filter by Dataspace:</div>
+          <div class="filter-chips">
+            <button
+              @click="selectedDataspace = null"
+              class="chip"
+              :class="{ active: selectedDataspace === null }"
+            >
+              All ({{ totalDatasets }})
+            </button>
+            <button
+              v-for="(count, dataspace) in dataspaceStats"
+              :key="dataspace"
+              @click="selectedDataspace = dataspace"
+              class="chip"
+              :class="{ active: selectedDataspace === dataspace }"
+            >
+              {{ dataspace }} ({{ count }})
+            </button>
+          </div>
         </div>
 
-        <div class="filter-chips">
-          <button
-            @click="selectedApiType = null"
-            class="chip"
-            :class="{ active: selectedApiType === null }"
-          >
-            All Types
-          </button>
-          <button
-            v-for="(count, apiType) in apiTypeStats"
-            :key="apiType"
-            @click="selectedApiType = apiType"
-            class="chip chip-type"
-            :class="{ active: selectedApiType === apiType }"
-          >
-            {{ apiType }} ({{ count }})
-          </button>
+        <div class="filter-section">
+          <div class="filter-label">Filter by API Type:</div>
+          <div class="filter-chips">
+            <button
+              @click="selectedApiType = null"
+              class="chip"
+              :class="{ active: selectedApiType === null }"
+            >
+              All Types
+            </button>
+            <button
+              v-for="(count, apiType) in apiTypeStats"
+              :key="apiType"
+              @click="selectedApiType = apiType"
+              class="chip chip-type"
+              :class="{ active: selectedApiType === apiType }"
+            >
+              {{ apiType }} ({{ count }})
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-label">
+            Filter by Dataset Names
+            <span v-if="selectedDatasetNames.length > 0" class="filter-count">
+              ({{ selectedDatasetNames.length }} selected)
+            </span>
+          </div>
+          <div class="dataset-names-filter">
+            <div class="selected-datasets" v-if="selectedDatasetNames.length > 0">
+              <span
+                v-for="name in selectedDatasetNames"
+                :key="name"
+                class="selected-dataset-chip"
+              >
+                {{ name }}
+                <button @click="toggleDatasetName(name)" class="remove-btn">×</button>
+              </span>
+              <button @click="clearDatasetNamesFilter" class="btn btn-sm btn-outline">
+                Clear All
+              </button>
+            </div>
+            <details class="dataset-picker">
+              <summary class="picker-toggle">
+                {{ selectedDatasetNames.length > 0 ? 'Add more datasets...' : 'Select datasets...' }}
+              </summary>
+              <div class="picker-dropdown">
+                <div class="picker-search">
+                  <input
+                    type="text"
+                    class="input input-sm"
+                    placeholder="Search dataset names..."
+                    @click.stop
+                  />
+                </div>
+                <div class="picker-list">
+                  <label
+                    v-for="name in allDatasetNames"
+                    :key="name"
+                    class="picker-item"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="selectedDatasetNames.includes(name)"
+                      @change="toggleDatasetName(name)"
+                    />
+                    <span>{{ name }}</span>
+                  </label>
+                </div>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
 
@@ -62,12 +121,15 @@
 
       <div v-else>
         <div class="results-header">
-          <p>Showing {{ filteredDatasets.length }} of {{ totalDatasets }} datasets</p>
+          <p>
+            Showing {{ (currentPage - 1) * PAGE_SIZE + 1 }}-{{ Math.min(currentPage * PAGE_SIZE, filteredDatasets.length) }}
+            of {{ filteredDatasets.length }} filtered datasets ({{ totalDatasets }} total)
+          </p>
         </div>
 
         <div class="datasets-grid grid grid-3">
           <router-link
-            v-for="dataset in filteredDatasets"
+            v-for="dataset in paginatedDatasets"
             :key="dataset.name"
             :to="`/datasets/${dataset.name}`"
             class="dataset-card card"
@@ -117,22 +179,92 @@
             </div>
           </router-link>
         </div>
+
+        <!-- Pagination Controls -->
+        <div v-if="showPagination" class="pagination-controls">
+          <div class="pagination-info">
+            Page {{ currentPage }} of {{ totalPages }}
+          </div>
+          <div class="pagination-buttons">
+            <button
+              @click="previousPage"
+              :disabled="currentPage === 1"
+              class="btn btn-outline"
+            >
+              ← Previous
+            </button>
+            <div class="page-numbers">
+              <button
+                v-for="page in visiblePages"
+                :key="page"
+                @click="goToPage(page)"
+                class="btn btn-page"
+                :class="{ active: page === currentPage }"
+              >
+                {{ page }}
+              </button>
+            </div>
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="btn btn-outline"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useDatasetStore } from '../stores/datasetStore'
+import { useUrlState } from '../composables/useUrlState'
 import * as contentApi from '../api/contentApi'
 
 const datasetStore = useDatasetStore()
 const loading = ref(true)
 const datasetsWithMeta = ref([])
-const searchQuery = ref('')
-const selectedDataspace = ref(null)
-const selectedApiType = ref(null)
+
+// URL state management
+const { syncMultiple, serializers } = useUrlState()
+const urlState = syncMultiple({
+  search: {
+    initial: '',
+    ...serializers.string
+  },
+  dataspace: {
+    initial: null,
+    ...serializers.string
+  },
+  apiType: {
+    initial: null,
+    ...serializers.string
+  },
+  datasets: {
+    initial: [],
+    ...serializers.array
+  },
+  page: {
+    initial: 1,
+    ...serializers.number
+  }
+})
+
+const searchQuery = urlState.search
+const selectedDataspace = urlState.dataspace
+const selectedApiType = urlState.apiType
+const selectedDatasetNames = urlState.datasets
+const currentPage = urlState.page
+
+const PAGE_SIZE = 20
+
+// Reset page to 1 when filters change
+watch([searchQuery, selectedDataspace, selectedApiType, selectedDatasetNames], () => {
+  currentPage.value = 1
+})
 
 onMounted(async () => {
   await loadDatasets()
@@ -163,7 +295,7 @@ async function loadDatasets() {
         try {
           // Use metadata to get dataset counts
           // const metadata = await contentApi.getDatasetMetadata(dataset.name, dataset.metadata)
-          datasetsWithMeta.value[index].loadedMetadata = metadata
+          // datasetsWithMeta.value[index].loadedMetadata = metadata
           datasetsWithMeta.value[index].loading = false
         } catch (err) {
           console.error(`Error loading metadata for ${dataset.name}:`, err)
@@ -205,7 +337,45 @@ const filteredDatasets = computed(() => {
     filtered = filtered.filter(ds => ds.apiType === selectedApiType.value)
   }
 
+  // Filter by selected dataset names
+  if (selectedDatasetNames.value && selectedDatasetNames.value.length > 0) {
+    filtered = filtered.filter(ds => selectedDatasetNames.value.includes(ds.name))
+  }
+
   return filtered
+})
+
+// Paginated datasets
+const paginatedDatasets = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  const end = start + PAGE_SIZE
+  return filteredDatasets.value.slice(start, end)
+})
+
+const totalPages = computed(() => Math.ceil(filteredDatasets.value.length / PAGE_SIZE))
+
+const showPagination = computed(() => filteredDatasets.value.length > PAGE_SIZE)
+
+// Visible page numbers for pagination (show max 7 pages)
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  const maxVisible = 7
+
+  if (total <= maxVisible) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+
+  // Always show first page, last page, and pages around current
+  const pages = new Set([1, total])
+  const rangeStart = Math.max(2, current - 2)
+  const rangeEnd = Math.min(total - 1, current + 2)
+
+  for (let i = rangeStart; i <= rangeEnd; i++) {
+    pages.add(i)
+  }
+
+  return Array.from(pages).sort((a, b) => a - b)
 })
 
 const totalDatasets = computed(() => datasetsWithMeta.value.length)
@@ -231,9 +401,46 @@ const apiTypeStats = computed(() => {
   return stats
 })
 
+// All available dataset names for multifilter
+const allDatasetNames = computed(() => {
+  return datasetsWithMeta.value.map(ds => ds.name).sort()
+})
+
 function formatNumber(num) {
   if (!num) return '0'
   return new Intl.NumberFormat().format(num)
+}
+
+// Pagination functions
+function goToPage(page) {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+function nextPage() {
+  goToPage(currentPage.value + 1)
+}
+
+function previousPage() {
+  goToPage(currentPage.value - 1)
+}
+
+// Dataset names filter functions
+function toggleDatasetName(datasetName) {
+  const current = selectedDatasetNames.value || []
+  const index = current.indexOf(datasetName)
+  if (index > -1) {
+    selectedDatasetNames.value = current.filter(name => name !== datasetName)
+  } else {
+    selectedDatasetNames.value = [...current, datasetName]
+  }
+}
+
+function clearDatasetNamesFilter() {
+  selectedDatasetNames.value = []
 }
 </script>
 
@@ -264,7 +471,7 @@ function formatNumber(num) {
 }
 
 .search-box {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .search-box .input {
@@ -272,15 +479,34 @@ function formatNumber(num) {
   font-size: 1rem;
 }
 
+.filter-section {
+  margin-bottom: 1.5rem;
+}
+
+.filter-section:last-child {
+  margin-bottom: 0;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-count {
+  font-weight: 500;
+  color: var(--primary-color);
+  font-size: 0.875rem;
+}
+
 .filter-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.filter-chips:last-child {
-  margin-bottom: 0;
 }
 
 .chip {
@@ -310,6 +536,124 @@ function formatNumber(num) {
 .chip-type.active {
   background: #10b981;
   border-color: #10b981;
+}
+
+/* Dataset Names Filter */
+.dataset-names-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.selected-datasets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.selected-dataset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.remove-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dataset-picker {
+  position: relative;
+  width: fit-content;
+}
+
+.picker-toggle {
+  padding: 0.5rem 1rem;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  list-style: none;
+  transition: all 0.2s;
+}
+
+.picker-toggle:hover {
+  border-color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.picker-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.picker-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-lg);
+  min-width: 300px;
+  max-width: 500px;
+  z-index: 100;
+}
+
+.picker-search {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.picker-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  transition: background-color 0.15s;
+  font-size: 0.875rem;
+}
+
+.picker-item:hover {
+  background: var(--bg-color);
+}
+
+.picker-item input[type="checkbox"] {
+  cursor: pointer;
 }
 
 /* Results Header */
@@ -520,8 +864,116 @@ function formatNumber(num) {
   transform: translateX(4px);
 }
 
+/* Pagination Controls */
+.pagination-controls {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
+  background: white;
+  color: var(--text-primary);
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  border: 1px solid var(--border-color);
+  background: transparent;
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.btn-page {
+  min-width: 2.5rem;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.btn-page.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.btn-page.active:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  opacity: 0.9;
+}
+
+/* Input styles */
+.input {
+  padding: 0.625rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-sm {
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+  .filter-section {
+    margin-bottom: 1.25rem;
+  }
+
   .filter-chips {
     font-size: 0.8rem;
   }
@@ -532,6 +984,19 @@ function formatNumber(num) {
 
   .datasets-grid {
     grid-template-columns: 1fr;
+  }
+
+  .picker-dropdown {
+    min-width: 250px;
+  }
+
+  .pagination-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .page-numbers {
+    order: 1;
   }
 }
 </style>
