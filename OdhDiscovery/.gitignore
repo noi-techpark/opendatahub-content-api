@@ -1,1 +1,8 @@
 webapp/node_modules
+#chatbot/
+dist/
+
+# Temporary analysis files
+analyze_metadata.py
+all_metadata.json
+metadata_samples.json

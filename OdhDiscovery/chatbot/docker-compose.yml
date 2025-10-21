@@ -1,0 +1,53 @@
+services:
+  # API Proxy - routes requests to correct backends
+  proxy:
+    image: nginx:alpine
+    container_name: odh-chatbot-proxy
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # ChromaDB vector database for document storage
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: odh-chatbot-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+
+  # Chatbot backend service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: odh-chatbot-backend
+    ports:
+      - "${BACKEND_PORT:-8001}:${BACKEND_PORT:-8001}"
+    volumes:
+      - ./backend:/app
+      - ./docs:/docs:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
+    environment:
+      # Override specific values for Docker network
+      - CHROMA_HOST=chromadb
+      - BACKEND_HOST=0.0.0.0
+    depends_on:
+      - chromadb
+      - proxy
+    command: python main.py
+    restart: unless-stopped
+
+volumes:
+  chromadb_data:
+    driver: local
