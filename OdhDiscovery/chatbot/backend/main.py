@@ -8,6 +8,8 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from pydantic import BaseModel
+from typing import Optional
 
 from config import settings
 from agent import get_agent, AgentState
@@ -70,6 +72,22 @@ if settings.enable_cors:
     )
 
 
+# Request/Response models
+class QueryRequest(BaseModel):
+    """Request model for direct query endpoint"""
+    query: str
+    include_debug: bool = False
+
+
+class QueryResponse(BaseModel):
+    """Response model for direct query endpoint"""
+    response: str
+    navigation_commands: list = []
+    iterations: int = 0
+    tool_calls: list = []
+    debug_info: Optional[dict] = None
+
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
@@ -103,6 +121,67 @@ async def ingest_docs(
         return result
     except Exception as e:
         logger.error(f"Documentation ingestion failed: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Direct query endpoint (for testing)
+@app.post("/query", response_model=QueryResponse)
+async def query_endpoint(request: QueryRequest):
+    """
+    Direct query endpoint for testing
+
+    Executes agent and returns response with debug information
+    """
+    try:
+        logger.info(f"Processing query: {request.query}")
+
+        # Get agent
+        agent = get_agent()
+
+        # Create initial state
+        initial_state: AgentState = {
+            "messages": [],
+            "query": request.query,
+            "tool_results": [],
+            "navigation_commands": [],
+            "iterations": 0,
+            "should_continue": True
+        }
+
+        # Execute agent
+        result = await agent.ainvoke(initial_state)
+
+        # Extract response
+        messages = result.get("messages", [])
+        final_message = messages[-1] if messages else None
+
+        # Extract tool calls for debugging
+        tool_calls = []
+        for msg in messages:
+            if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                for tc in msg.tool_calls:
+                    tool_calls.append({
+                        "name": tc.get('name'),
+                        "args": tc.get('args', {})
+                    })
+
+        # Build response
+        response = QueryResponse(
+            response=final_message.content if final_message and hasattr(final_message, 'content') else str(final_message),
+            navigation_commands=result.get("navigation_commands", []),
+            iterations=result.get("iterations", 0),
+            tool_calls=tool_calls,
+            debug_info={
+                "message_count": len(messages),
+                "tool_result_count": len(result.get("tool_results", []))
+            } if request.include_debug else None
+        )
+
+        logger.info(f"Query complete: {response.iterations} iterations, {len(tool_calls)} tool calls")
+        return response
+
+    except Exception as e:
+        logger.error(f"Query execution failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

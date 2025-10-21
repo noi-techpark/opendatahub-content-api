@@ -18,7 +18,7 @@ from .timeseries_api import (
 )
 from .navigation import navigate_to_page_tool
 from .knowledge import search_documentation_tool
-from .aggregation import aggregate_data_tool
+from .aggregation import aggregate_data_tool, flatten_data_tool, dataframe_query_tool
 
 __all__ = [
     "SmartTool",
@@ -34,4 +34,6 @@ __all__ = [
     "navigate_to_page_tool",
     "search_documentation_tool",
     "aggregate_data_tool",
+    "flatten_data_tool",
+    "dataframe_query_tool",
 ]

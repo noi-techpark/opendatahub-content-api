@@ -81,48 +81,66 @@ async def _get_latest_measurements(
 # Tool definitions
 
 get_types_tool = SmartTool(
-    name="get_timeseries_types",
+    name="get_types",
     description="""Get list of all available timeseries types.
-    Returns metadata about each type including name and sensor count.
-    Use this to discover what timeseries data is available.
 
-    No parameters required.""",
+Returns metadata about each type including name, description, and sensor count.
+Use this to discover what timeseries measurement types are available.
+
+No parameters required.
+
+Example:
+  User: "What types of sensor data are available?"
+  → get_types()
+  → Returns list of types like: temperature, parking, weather, etc.""",
     func=_get_types,
     max_tokens=10000
 )
 
 get_sensors_tool = SmartTool(
-    name="get_sensors_by_type",
+    name="get_sensors",
     description="""Get sensors for a specific timeseries type.
-    Returns list of sensors with their metadata.
 
-    Parameters:
-    - type_name (required): Type name (e.g., 'temperature', 'parking', 'weather')
+Returns list of sensors with their metadata including location, status, etc.
 
-    Example:
-    - Get all temperature sensors: type_name='temperature'""",
+Parameters:
+  - type_name (required): Measurement type from get_types
+    Examples: 'temperature', 'parking', 'weather', 'traffic'
+
+Example:
+  User: "Show me all parking sensors"
+  → get_types() first to confirm 'parking' type exists
+  → get_sensors(type_name='parking')
+  → Returns list of parking sensors""",
     func=_get_sensors,
     max_tokens=20000
 )
 
 get_timeseries_tool = SmartTool(
-    name="get_timeseries_measurements",
+    name="get_timeseries",
     description="""Get timeseries measurements for one or more sensors.
-    Automatically summarizes large datasets with statistical analysis.
+Automatically summarizes large datasets with statistical analysis.
 
-    Parameters:
-    - sensor_names (required): List of sensor names (entry IDs from datasets)
-    - from_date: Start date in ISO format (e.g., '2024-01-01T00:00:00Z')
-    - to_date: End date in ISO format
-    - interval: Aggregation interval ('1h', '1d', '1w', etc.)
-    - summarize: Whether to summarize with statistics (default: true)
+Parameters:
+  - sensor_names (required): List of sensor names (entry IDs from get_sensors)
+  - from_date: Start date in ISO format (e.g., '2024-01-01T00:00:00Z')
+  - to_date: End date in ISO format
+  - interval: Aggregation interval ('1h', '1d', '1w', etc.)
+  - summarize: Whether to summarize with statistics (default: true)
 
-    Examples:
-    - Get last 24h: sensor_names=['sensor-1', 'sensor-2'], interval='1h'
-    - Get daily averages: sensor_names=['sensor-1'], interval='1d', from_date='2024-01-01T00:00:00Z'
-    - Get raw data: sensor_names=['sensor-1'], summarize=false
+Workflow:
+  User: "Show me parking occupancy for last week"
+  → get_types() to find 'parking' type
+  → get_sensors(type_name='parking') to get sensor IDs
+  → get_timeseries(
+      sensor_names=['sensor-1', 'sensor-2'],
+      from_date='2024-01-15T00:00:00Z',
+      interval='1d',
+      summarize=true
+    )
+  → Returns statistical summary of measurements
 
-    Note: When summarize=true, returns statistics (mean, min, max, std) instead of raw measurements.""",
+Note: When summarize=true, returns statistics (mean, min, max, std) instead of raw measurements.""",
     func=_get_timeseries,
     max_tokens=20000
 )
@@ -130,13 +148,19 @@ get_timeseries_tool = SmartTool(
 get_latest_measurements_tool = SmartTool(
     name="get_latest_measurements",
     description="""Get the most recent measurement for each sensor.
-    Very efficient - returns only the latest value per sensor.
+Very efficient - returns only the latest value per sensor.
 
-    Parameters:
-    - sensor_names (required): List of sensor names (entry IDs)
+Parameters:
+  - sensor_names (required): List of sensor names (entry IDs from get_sensors)
 
-    Example:
-    - Get current values: sensor_names=['sensor-1', 'sensor-2', 'sensor-3']""",
+Workflow:
+  User: "What's the current parking occupancy?"
+  → get_types() to find 'parking' type
+  → get_sensors(type_name='parking') to get sensor IDs
+  → get_latest_measurements(sensor_names=['sensor-1', 'sensor-2', 'sensor-3'])
+  → Returns current values only
+
+Note: Use this instead of get_timeseries when you only need the most recent value.""",
     func=_get_latest_measurements,
     max_tokens=10000
 )

@@ -86,21 +86,35 @@ async def _get_dataset_entries(
     raw_filter: str | None = None,
     raw_sort: str | None = None,
     fields: list[str] | None = None,
-    aggregate: bool = True,
+    return_cache_key: bool = False,
     **kwargs
 ) -> dict:
     """
-    Get entries from a dataset with optional aggregation
+    Get entries from a dataset
 
     Args:
         dataset_name: Dataset name (e.g., 'activity', 'accommodation')
-        page: Page number
-        pagesize: Entries per page
-        raw_filter: Filter expression
-        raw_sort: Sort expression
-        fields: Fields to include (field projection)
-        aggregate: Whether to aggregate results (default: True)
+        page: Page number (default: 1)
+        pagesize: Entries per page (default: 50, max: 200)
+        raw_filter: OData filter expression (e.g., "Active eq true")
+        raw_sort: OData sort expression (e.g., "Shortname asc")
+        fields: Fields to include in response (field projection)
+        return_cache_key: If True, stores large responses in cache and returns cache_key
+                          Recommended for >50 items to use with inspect/flatten/pandas tools
+
+    Returns:
+        If return_cache_key=True and items > 50:
+            {cache_key: "entries_xyz", total: N, next_step: "..."}
+        Otherwise:
+            {TotalResults: N, Items: [...], ...}
+
+    TIP: For large result sets, use return_cache_key=True, then:
+         1. inspect_api_structure(cache_key="...") to see available fields
+         2. flatten_data(cache_key="...", fields=[...]) to create DataFrame
+         3. dataframe_query(...) for filtering/sorting/grouping
     """
+    logger.info(f"📄 Fetching entries from {dataset_name} (page={page}, pagesize={pagesize}, return_cache_key={return_cache_key})")
+
     result = await content_client.get_dataset_entries(
         dataset_name=dataset_name,
         page=page,
@@ -110,17 +124,34 @@ async def _get_dataset_entries(
         fields=fields
     )
 
-    # Apply preprocessing based on parameters
+    # Apply field projection if requested
     if fields and 'Items' in result:
-        # Field projection already applied by API, but ensure clean output
         result = field_projection(result, fields)
 
-    if aggregate and 'Items' in result and len(result['Items']) > 5:
-        # Aggregate if we have many entries
-        entries = result['Items']
-        aggregated = aggregate_dataset_entries(entries)
-        result['Items'] = aggregated
-        result['_aggregated'] = True
+    total = result.get('TotalResults', len(result.get('Items', [])))
+    items = result.get('Items', [])
+
+    logger.info(f"   Retrieved {len(items)} entries (total: {total})")
+
+    # If return_cache_key requested and we have many items, cache them
+    if return_cache_key and len(items) > 50:
+        logger.warning(f"   ⚠️  Large response ({len(items)} entries) - storing in cache!")
+
+        cache_key = cache.store(
+            data=result,
+            key=f"entries_{dataset_name}_{page}"
+        )
+
+        return {
+            "dataset": dataset_name,
+            "total": total,
+            "page": page,
+            "pagesize": pagesize,
+            "items_in_cache": len(items),
+            "cache_key": cache_key,
+            "next_step": f"Use inspect_api_structure(cache_key='{cache_key}') or flatten_data(cache_key='{cache_key}', fields=[...]) to process this data",
+            "sample": items[:2] if items else []
+        }
 
     return result
 
@@ -379,30 +410,88 @@ get_dataset_entries_tool = SmartTool(
     name="get_dataset_entries",
     description="""Get entries from a specific dataset with filtering and pagination.
 
-    IMPORTANT: Use inspect_dataset_schema FIRST to see available fields, then use this tool.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 PARAMETERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    Parameters:
-    - dataset_name (required): Shortname of the dataset from MetaData API
-      Use get_datasets to find the correct Shortname
-    - page: Page number (default: 1)
-    - pagesize: Entries per page, max 200 (default: 50)
-    - raw_filter: OData-style filter (e.g., "Active eq true", "Type eq 'Hotel'")
-    - raw_sort: Sort expression (e.g., "Shortname asc")
-    - fields: List of specific fields to retrieve (RECOMMENDED - reduces data size significantly)
-      Use inspect_dataset_schema to see available fields first
-    - aggregate: Whether to aggregate results (default: true)
+- dataset_name (REQUIRED): Dataset Shortname from get_datasets
+  Examples: 'ODHActivityPoi', 'Accommodation', 'Gastronomy', 'Event'
 
-    Recommended workflow:
-    1. Call inspect_dataset_schema to see available fields
-    2. Choose relevant fields based on the question
-    3. Call this tool with fields parameter to get only needed data
-    4. Process and answer
+- page: Page number (default: 1)
+- pagesize: Entries per page, max 200 (default: 50)
 
-    Examples:
-    - Get hotel names: dataset_name='Accommodation', fields=['Id', 'Shortname', 'Type'], raw_filter='Type eq "Hotel"'
-    - Get activities: dataset_name='ODHActivityPoi', fields=['Shortname', 'GpsInfo'], pagesize=20""",
+- raw_filter: OData filter expression
+  Examples: "Active eq true", "Type eq 'Hotel'", "Rating gt 4"
+
+- raw_sort: OData sort expression
+  Examples: "Shortname asc", "LastChange desc"
+
+- fields: List of specific fields to retrieve (RECOMMENDED)
+  Use inspect_api_structure first to see available fields!
+
+- return_cache_key: Boolean (default: False)
+  Set to TRUE for large result sets (>50 items) to use with pandas workflow
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 WORKFLOW FOR SMALL DATA (<50 items)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Use raw_filter and raw_sort parameters to filter/sort at API level:
+
+User: "Show me 5 active hotels"
+  get_dataset_entries(
+    dataset_name='Accommodation',
+    raw_filter="Active eq true and Type eq 'Hotel'",
+    pagesize=5
+  )
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐼 WORKFLOW FOR LARGE DATA (>50 items) - Use Pandas Tools!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For complex filtering/sorting/grouping on large datasets:
+
+User: "Show me all hotels sorted by rating"
+  Step 1: get_dataset_entries(
+            dataset_name='Accommodation',
+            pagesize=200,
+            return_cache_key=True
+          )
+          → {cache_key: "entries_xyz", total: 150}
+
+  Step 2: inspect_api_structure(cache_key="entries_xyz")
+          → See available fields
+
+  Step 3: flatten_data(
+            cache_key="entries_xyz",
+            fields=["Shortname", "Type", "Rating"]
+          )
+          → {dataframe_cache_key: "df_xyz"}
+
+  Step 4: dataframe_query(
+            dataframe_cache_key="df_xyz",
+            operation="filter",
+            condition="Type == 'Hotel'"
+          )
+          → {cache_key: "result_1"}
+
+  Step 5: dataframe_query(
+            dataframe_cache_key="result_1",
+            operation="sort",
+            sort_by="Rating",
+            ascending=False
+          )
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️  IMPORTANT NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- For filtering/sorting on large data: Use return_cache_key=True + pandas workflow
+- For simple queries on small data: Use raw_filter/raw_sort directly
+- ALWAYS use fields parameter to reduce data size
+- Max pagesize is 200 (API limitation)""",
     func=_get_dataset_entries,
-    max_tokens=6000  # Increased for larger responses
+    max_tokens=60000
 )
 
 count_entries_tool = SmartTool(

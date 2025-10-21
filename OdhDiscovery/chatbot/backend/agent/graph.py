@@ -21,6 +21,8 @@ from tools import (
     get_entry_by_id_tool,
     inspect_api_structure_tool,
     aggregate_data_tool,
+    flatten_data_tool,
+    dataframe_query_tool,
     get_types_tool,
     get_sensors_tool,
     get_timeseries_tool,
@@ -79,7 +81,9 @@ def create_agent_graph():
     tools = [
         search_documentation_tool,  # Knowledge base first - agent should check docs first
         inspect_api_structure_tool,  # Structure inspection - use before fetching large data
-        aggregate_data_tool,  # Data aggregation - use after fetching to reduce data size
+        flatten_data_tool,  # Flatten nested JSON to tabular format for pandas
+        dataframe_query_tool,  # Pandas operations for filter/sort/groupby
+        aggregate_data_tool,  # Data aggregation - legacy tool, prefer flatten + dataframe_query
         get_datasets_tool,
         get_dataset_entries_tool,
         count_entries_tool,

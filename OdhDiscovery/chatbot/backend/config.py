@@ -110,9 +110,11 @@ class Settings(BaseSettings):
     )
 
     class Config:
-        env_file = ".env"
+        # Look for .env in parent directory (chatbot/.env) and also in current directory
+        env_file = "../.env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "ignore"  # Ignore extra env vars
 
 
 # Global settings instance
