@@ -270,13 +270,22 @@
           <div class="spinner"></div>
           <p>Loading timeseries analysis...</p>
         </div>
-        <TimeseriesAnalyzer
-          v-else
-          :timeseries-analysis="timeseriesAnalysis"
-          :dataset-name="datasetName"
-          :current-filters="{ searchfilter, rawfilter: generatedRawFilter }"
-          :total-entries="totalResults"
-        />
+        <template v-else>
+          <!-- Code examples for reproducing API calls -->
+          <ApiCallChainSnippets
+            :snippets="timeseriesSnippets"
+            title="Show Code Examples - How to Reproduce This Timeseries Discovery"
+            description="This code shows how to fetch dataset entries, extract their IDs, and query the timeseries API for those sensors."
+          />
+
+          <!-- Timeseries analysis results -->
+          <TimeseriesAnalyzer
+            :timeseries-analysis="timeseriesAnalysis"
+            :dataset-name="datasetName"
+            :current-filters="{ searchfilter, rawfilter: generatedRawFilter }"
+            :total-entries="totalResults"
+          />
+        </template>
       </div>
     </div>
   </div>
@@ -297,6 +306,7 @@ import DatasetStats from '../components/DatasetStats.vue'
 import FilterBuilder from '../components/FilterBuilder.vue'
 import DistinctValuesAnalyzer from '../components/DistinctValuesAnalyzer.vue'
 import TimeseriesAnalyzer from '../components/TimeseriesAnalyzer.vue'
+import ApiCallChainSnippets from '../components/ApiCallChainSnippets.vue'
 
 const props = defineProps({
   datasetName: {
@@ -386,6 +396,87 @@ const curlCommand = computed(() => {
     searchfilter: searchfilter.value || undefined,
     rawfilter: generatedRawFilter.value || undefined
   }, 'GET', datasetStore.currentMetadata)
+})
+
+const timeseriesSnippets = computed(() => {
+  const metadata = datasetStore.currentMetadata
+  const apiUrl = metadata?.ApiUrl || `https://tourism.opendatahub.com/api/v1/${props.datasetName}`
+  const timeseriesUrl = 'http://localhost:8080/api/v1/timeseries/sensors/timeseries'
+
+  // Build query params
+  const params = new URLSearchParams()
+  if (searchfilter.value) params.append('searchfilter', searchfilter.value)
+  if (generatedRawFilter.value) params.append('rawfilter', generatedRawFilter.value)
+  params.append('pagenumber', '1')
+  params.append('pagesize', '1000')
+
+  const fullUrl = params.toString() ? `${apiUrl}?${params.toString()}` : apiUrl
+
+  return {
+    Python: `import requests
+import json
+
+# 1. Fetch entries from dataset
+response = requests.get("${fullUrl}")
+entries = response.json()
+
+# 2. Extract IDs from entries
+ids = [entry['Id'] for entry in entries if 'Id' in entry]
+
+# 3. Query timeseries API with extracted IDs
+timeseries_response = requests.post(
+    "${timeseriesUrl}",
+    json={"sensor_names": ids}
+)
+timeseries_data = timeseries_response.json()`,
+
+    JavaScript: `// 1. Fetch entries from dataset
+const response = await fetch("${fullUrl}")
+const entries = await response.json()
+
+// 2. Extract IDs from entries
+const ids = entries
+    .filter(entry => entry.Id)
+    .map(entry => entry.Id)
+
+// 3. Query timeseries API with extracted IDs
+const timeseriesResponse = await fetch(
+    "${timeseriesUrl}",
+    {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sensor_names: ids })
+    }
+)
+const timeseriesData = await timeseriesResponse.json()`,
+
+    Go: `package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+)
+
+// 1. Fetch entries from dataset
+resp, _ := http.Get("${fullUrl}")
+var entries []map[string]interface{}
+json.NewDecoder(resp.Body).Decode(&entries)
+
+// 2. Extract IDs from entries
+var ids []string
+for _, entry := range entries {
+	if id, ok := entry["Id"].(string); ok {
+		ids = append(ids, id)
+	}
+}
+
+// 3. Query timeseries API with extracted IDs
+payload, _ := json.Marshal(map[string]interface{}{
+	"sensor_names": ids,
+})
+http.Post("${timeseriesUrl}", "application/json", bytes.NewBuffer(payload))`
+  }
 })
 
 // Watch for filter changes

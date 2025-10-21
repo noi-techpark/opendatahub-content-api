@@ -28,6 +28,14 @@
         </div>
       </div>
 
+      <!-- Code examples for reproducing API calls -->
+      <ApiCallChainSnippets
+        v-if="currentType"
+        :snippets="timeseriesTypeSnippets"
+        title="Show Code Examples - How to Fetch This Timeseries Type"
+        description="This code shows how to fetch a timeseries type with all its sensors in one API call."
+      />
+
       <!-- View Toggle and Actions -->
       <div class="controls">
         <div class="tabs">
@@ -127,6 +135,7 @@ import { useRouter } from 'vue-router'
 import { useTimeseriesStore } from '../stores/timeseriesStore'
 import { useSelectionStore } from '../stores/selectionStore'
 import JsonViewer from '../components/JsonViewer.vue'
+import ApiCallChainSnippets from '../components/ApiCallChainSnippets.vue'
 
 const props = defineProps({
   typeName: {
@@ -161,6 +170,65 @@ const displayFields = computed(() => {
   const fields = Object.keys(firstSensor).filter(key => key !== 'sensor_name')
 
   return fields
+})
+
+const timeseriesTypeSnippets = computed(() => {
+  const timeseriesUrl = `http://localhost:8080/api/v1/timeseries/types/${props.typeName}`
+
+  return {
+    Python: `import requests
+
+# Fetch timeseries type with sensors
+response = requests.get("${timeseriesUrl}")
+data = response.json()
+
+# Access type information
+type_info = data['type']
+print(f"Type: {type_info['name']}")
+print(f"Description: {type_info['description']}")
+print(f"Unit: {type_info['unit']}")
+
+# Access sensors
+sensors = data['sensors']
+print(f"Total sensors: {len(sensors)}")`,
+
+    JavaScript: `// Fetch timeseries type with sensors
+const response = await fetch("${timeseriesUrl}")
+const data = await response.json()
+
+// Access type information
+const typeInfo = data.type
+console.log(\`Type: \${typeInfo.name}\`)
+console.log(\`Description: \${typeInfo.description}\`)
+console.log(\`Unit: \${typeInfo.unit}\`)
+
+// Access sensors
+const sensors = data.sensors
+console.log(\`Total sensors: \${sensors.length}\`)`,
+
+    Go: `package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
+
+// Fetch timeseries type with sensors
+resp, _ := http.Get("${timeseriesUrl}")
+var data map[string]interface{}
+json.NewDecoder(resp.Body).Decode(&data)
+
+// Access type information
+typeInfo := data["type"].(map[string]interface{})
+fmt.Printf("Type: %v\\n", typeInfo["name"])
+fmt.Printf("Description: %v\\n", typeInfo["description"])
+fmt.Printf("Unit: %v\\n", typeInfo["unit"])
+
+// Access sensors
+sensors := data["sensors"].([]interface{})
+fmt.Printf("Total sensors: %d\\n", len(sensors))`
+  }
 })
 
 onMounted(async () => {
