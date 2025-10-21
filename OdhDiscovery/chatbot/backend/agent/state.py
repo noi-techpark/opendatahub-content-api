@@ -1,7 +1,7 @@
 """
 Agent state definition for LangGraph
 """
-from typing import TypedDict, Annotated, Sequence
+from typing import TypedDict, Annotated, Sequence, Any
 from langchain_core.messages import BaseMessage
 import operator
 
@@ -29,3 +29,6 @@ class AgentState(TypedDict):
 
     # Whether agent should continue or finish
     should_continue: bool
+
+    # Session-specific data cache (for multi-user isolation)
+    session_cache: Any  # DataCache instance from session

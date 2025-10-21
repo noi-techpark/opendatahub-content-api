@@ -437,3 +437,18 @@ Load and visualize measurements for multiple sensors and types.
 3. User selects desired types (updates `types` in URL)
 4. User clicks "Load Latest" or "Load Historical Range"
 5. Measurements are fetched and displayed in selected view mode
+
+---------------
+does the chatbot handle chatmemory? i want the user to be able to continue the conversation.
+lets use an inmemroy storage for now.
+i want the bot to answer in streaming mode to give the chatbot feeling
+
+----------------
+now is the time for the integration with the frontend.
+create a chatbot component in the webbap @OdhDiscovery/webapp.
+the webapp is in vue3 using composition api.
+the chat should of course connect to the ws and store the conversation id to continue it. should we store the conversation id in the local storage?
+the chat has a toggle to enable / disable the auto navigation. if the navigation is enabled, when the bot sends a navigtion command with the response we webbapp navigtes there (with router push). in any case the chat appends an href the user can click anyway.
+having it in streaming mode woule be nice.
+the chat must retrive all old messages, if a session is present and populate the chat with the message without "following" the navigation even if the toggle is activated.
+the chat must be a root level component, have a floating button activator like normal support chats, be resizable and must include a "new chat" button to reset the session and the chat.

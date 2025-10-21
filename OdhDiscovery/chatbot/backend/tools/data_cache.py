@@ -3,11 +3,15 @@ Data Cache for Large Responses
 Stores large data temporarily so agent can aggregate it in subsequent calls
 """
 import logging
-from typing import Any
+from typing import Any, Optional
 from datetime import datetime, timedelta
+from contextvars import ContextVar
 import uuid
 
 logger = logging.getLogger(__name__)
+
+# Context variable for session-specific cache (multi-user isolation)
+_session_cache: ContextVar[Optional['DataCache']] = ContextVar('session_cache', default=None)
 
 
 class DataCache:
@@ -131,10 +135,33 @@ class DataCache:
         }
 
 
-# Global cache instance
+# Global cache instance (fallback for non-session contexts)
 _data_cache = DataCache(ttl_minutes=5)
 
 
 def get_cache() -> DataCache:
-    """Get the global data cache instance"""
+    """
+    Get the appropriate data cache instance
+
+    Returns session-specific cache if set (multi-user isolation),
+    otherwise returns global cache (fallback for non-session contexts)
+    """
+    session_cache = _session_cache.get()
+    if session_cache is not None:
+        return session_cache
+
+    # Fallback to global cache (for tests, direct API calls, etc.)
+    logger.debug("Using global cache (no session context set)")
     return _data_cache
+
+
+def set_session_cache(cache: DataCache):
+    """Set the session-specific cache for current context"""
+    _session_cache.set(cache)
+    logger.debug(f"Set session cache in context")
+
+
+def clear_session_cache():
+    """Clear the session-specific cache from current context"""
+    _session_cache.set(None)
+    logger.debug(f"Cleared session cache from context")

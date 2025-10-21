@@ -14,6 +14,7 @@ from langchain_core.tools import StructuredTool
 
 from agent.state import AgentState
 from agent.prompts import SYSTEM_PROMPT
+from tools.data_cache import set_session_cache, clear_session_cache
 from tools import (
     get_datasets_tool,
     get_dataset_entries_tool,
@@ -178,64 +179,74 @@ def create_agent_graph():
         tool_results = []
         navigation_commands = []
 
-        # Check if last message has tool calls
-        if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
-            for idx, tool_call in enumerate(last_message.tool_calls, 1):
-                tool_name = tool_call['name']
-                tool_args = tool_call['args']
+        # Set session-specific cache for multi-user isolation
+        session_cache = state.get('session_cache')
+        if session_cache:
+            set_session_cache(session_cache)
+            logger.debug("Session cache context set for tool execution")
 
-                logger.info(f"▶️  Tool {idx}/{len(last_message.tool_calls)}: {tool_name}")
+        try:
+            # Check if last message has tool calls
+            if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+                for idx, tool_call in enumerate(last_message.tool_calls, 1):
+                    tool_name = tool_call['name']
+                    tool_args = tool_call['args']
 
-                # Log args (truncated if large)
-                args_str = str(tool_args)
-                if len(args_str) > 300:
-                    logger.info(f"   Args: {args_str[:300]}...")
-                else:
-                    logger.info(f"   Args: {args_str}")
+                    logger.info(f"▶️  Tool {idx}/{len(last_message.tool_calls)}: {tool_name}")
 
-                # Find and execute the tool
-                tool_result = None
-                tool_found = False
-                for tool in tools:
-                    if tool.name == tool_name:
-                        tool_found = True
-                        try:
-                            result = await tool.execute(**tool_args)
-                            tool_result = result
+                    # Log args (truncated if large)
+                    args_str = str(tool_args)
+                    if len(args_str) > 300:
+                        logger.info(f"   Args: {args_str[:300]}...")
+                    else:
+                        logger.info(f"   Args: {args_str}")
 
-                            # Log result size
-                            result_str = json.dumps(result)
-                            result_size = len(result_str)
-                            logger.info(f"   ✅ Result: {result_size} chars")
+                    # Find and execute the tool
+                    tool_result = None
+                    tool_found = False
+                    for tool in tools:
+                        if tool.name == tool_name:
+                            tool_found = True
+                            try:
+                                result = await tool.execute(**tool_args)
+                                tool_result = result
 
-                            # Show result preview
-                            if result_size > 500:
-                                logger.info(f"   Preview: {result_str[:500]}...")
-                            else:
-                                logger.info(f"   Result: {result_str}")
+                                # Log result size
+                                result_str = json.dumps(result)
+                                result_size = len(result_str)
+                                logger.info(f"   ✅ Result: {result_size} chars")
 
-                            # Check if it's a navigation command
-                            if isinstance(result, dict) and result.get('result', {}).get('type') == 'navigate':
-                                navigation_commands.append(result['result'])
+                                # Show result preview
+                                if result_size > 500:
+                                    logger.info(f"   Preview: {result_str[:500]}...")
+                                else:
+                                    logger.info(f"   Result: {result_str}")
 
-                            tool_results.append(result)
+                                # Check if it's a navigation command
+                                if isinstance(result, dict) and result.get('result', {}).get('type') == 'navigate':
+                                    navigation_commands.append(result['result'])
 
-                            # Add tool result as message
-                            message = ToolMessage(
-                                    content=json.dumps(result),
-                                    tool_call_id=tool_call['id']
-                                )
-                        except Exception as e:
-                            logger.error(f"   ❌ Tool execution failed: {e}", exc_info=True)
-                            error_result = {"error": str(e), "tool": tool_name}
-                            message = ToolMessage(
-                                    content=json.dumps(error_result),
-                                    tool_call_id=tool_call['id']
-                                )
-                        break
+                                tool_results.append(result)
 
-                if not tool_found:
-                    logger.error(f"   ❌ Tool '{tool_name}' not found!")
+                                # Add tool result as message
+                                message = ToolMessage(
+                                        content=json.dumps(result),
+                                        tool_call_id=tool_call['id']
+                                    )
+                            except Exception as e:
+                                logger.error(f"   ❌ Tool execution failed: {e}", exc_info=True)
+                                error_result = {"error": str(e), "tool": tool_name}
+                                message = ToolMessage(
+                                        content=json.dumps(error_result),
+                                        tool_call_id=tool_call['id']
+                                    )
+                            break
+
+                    if not tool_found:
+                        logger.error(f"   ❌ Tool '{tool_name}' not found!")
+        finally:
+            # Always clear session cache context after tool execution
+            clear_session_cache()
 
         logger.info(f"{'─'*60}")
         return {

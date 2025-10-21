@@ -5,15 +5,18 @@ Main entry point for the backend service
 import logging
 import json
 import uvicorn
+import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from typing import Optional
+from langchain_core.messages import HumanMessage, AIMessage
 
 from config import settings
 from agent import get_agent, AgentState
 from vector_store import ingest_markdown_files_async
+from conversation_memory import get_memory_store
 
 # Configure logging
 logging.basicConfig(
@@ -76,12 +79,14 @@ if settings.enable_cors:
 class QueryRequest(BaseModel):
     """Request model for direct query endpoint"""
     query: str
+    session_id: Optional[str] = None
     include_debug: bool = False
 
 
 class QueryResponse(BaseModel):
     """Response model for direct query endpoint"""
     response: str
+    session_id: str
     navigation_commands: list = []
     iterations: int = 0
     tool_calls: list = []
@@ -131,21 +136,35 @@ async def query_endpoint(request: QueryRequest):
     Direct query endpoint for testing
 
     Executes agent and returns response with debug information
+    Supports conversation memory via session_id
     """
     try:
         logger.info(f"Processing query: {request.query}")
 
+        # Get or create session
+        memory_store = get_memory_store()
+        session_id, session = memory_store.get_or_create_session(request.session_id)
+        logger.info(f"Using session: {session_id} (messages: {len(session.messages)})")
+
         # Get agent
         agent = get_agent()
 
-        # Create initial state
+        # Get conversation history
+        conversation_messages = session.get_messages()
+
+        # Add new user message
+        user_message = HumanMessage(content=request.query)
+        conversation_messages.append(user_message)
+
+        # Create initial state with conversation history and session cache
         initial_state: AgentState = {
-            "messages": [],
+            "messages": conversation_messages,
             "query": request.query,
             "tool_results": [],
             "navigation_commands": [],
             "iterations": 0,
-            "should_continue": True
+            "should_continue": True,
+            "session_cache": session.cache  # Session-specific cache for multi-user isolation
         }
 
         # Execute agent
@@ -154,6 +173,9 @@ async def query_endpoint(request: QueryRequest):
         # Extract response
         messages = result.get("messages", [])
         final_message = messages[-1] if messages else None
+
+        # Store updated conversation history
+        session.messages = messages
 
         # Extract tool calls for debugging
         tool_calls = []
@@ -168,12 +190,14 @@ async def query_endpoint(request: QueryRequest):
         # Build response
         response = QueryResponse(
             response=final_message.content if final_message and hasattr(final_message, 'content') else str(final_message),
+            session_id=session_id,
             navigation_commands=result.get("navigation_commands", []),
             iterations=result.get("iterations", 0),
             tool_calls=tool_calls,
             debug_info={
                 "message_count": len(messages),
-                "tool_result_count": len(result.get("tool_results", []))
+                "tool_result_count": len(result.get("tool_results", [])),
+                "conversation_length": len(session.messages)
             } if request.include_debug else None
         )
 
@@ -185,27 +209,46 @@ async def query_endpoint(request: QueryRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# WebSocket endpoint for chat
+# WebSocket endpoint for chat with streaming
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     """
-    WebSocket endpoint for chatbot interaction
+    WebSocket endpoint for chatbot interaction with streaming responses
 
     Message format (from client):
     {
         "type": "query",
-        "content": "user question here"
+        "content": "user question here",
+        "session_id": "optional-session-id"
+    }
+
+    OR
+
+    {
+        "type": "clear_history",
+        "session_id": "session-id"
     }
 
     Response format (to client):
     {
-        "type": "message" | "navigation" | "error",
+        "type": "message" | "chunk" | "navigation" | "error" | "status" | "session",
         "content": "...",
-        "data": {...}  # For navigation commands
+        "data": {...}
+    }
+
+    Streaming chunks:
+    {
+        "type": "chunk",
+        "content": "partial text...",
+        "done": false
     }
     """
     await websocket.accept()
     logger.info("WebSocket connection established")
+
+    # Track session for this WebSocket connection
+    current_session_id: Optional[str] = None
+    memory_store = get_memory_store()
 
     try:
         while True:
@@ -225,6 +268,7 @@ async def websocket_endpoint(websocket: WebSocket):
             # Handle different message types
             if message.get("type") == "query":
                 query = message.get("content", "")
+                requested_session_id = message.get("session_id")
 
                 if not query:
                     await websocket.send_json({
@@ -233,24 +277,47 @@ async def websocket_endpoint(websocket: WebSocket):
                     })
                     continue
 
-                # Send acknowledgment
-                await websocket.send_json({
-                    "type": "status",
-                    "content": "Processing your question..."
-                })
-
                 try:
+                    # Get or create session
+                    session_id, session = memory_store.get_or_create_session(
+                        requested_session_id or current_session_id
+                    )
+                    current_session_id = session_id
+
+                    # Send session ID to client
+                    await websocket.send_json({
+                        "type": "session",
+                        "session_id": session_id,
+                        "message_count": len(session.messages)
+                    })
+
+                    logger.info(f"Processing query for session {session_id} (history: {len(session.messages)} messages)")
+
+                    # Get conversation history
+                    conversation_messages = session.get_messages()
+
+                    # Add new user message
+                    user_message = HumanMessage(content=query)
+                    conversation_messages.append(user_message)
+
+                    # Send acknowledgment
+                    await websocket.send_json({
+                        "type": "status",
+                        "content": "Processing your question..."
+                    })
+
                     # Get agent
                     agent = get_agent()
 
-                    # Create initial state
+                    # Create initial state with conversation history and session cache
                     initial_state: AgentState = {
-                        "messages": [],
+                        "messages": conversation_messages,
                         "query": query,
                         "tool_results": [],
                         "navigation_commands": [],
                         "iterations": 0,
-                        "should_continue": True
+                        "should_continue": True,
+                        "session_cache": session.cache  # Session-specific cache for multi-user isolation
                     }
 
                     # Execute agent
@@ -261,11 +328,35 @@ async def websocket_endpoint(websocket: WebSocket):
                     messages = result.get("messages", [])
                     final_message = messages[-1] if messages else None
 
-                    # Send agent response
+                    # Store updated conversation history
+                    session.messages = messages
+
+                    # Stream the response
                     if final_message:
+                        response_text = final_message.content if hasattr(final_message, 'content') else str(final_message)
+
+                        # Stream response in chunks (simulating typing effect)
+                        words = response_text.split()
+                        chunk_size = 3  # words per chunk
+
+                        for i in range(0, len(words), chunk_size):
+                            chunk = " ".join(words[i:i+chunk_size])
+                            if i + chunk_size < len(words):
+                                chunk += " "
+
+                            await websocket.send_json({
+                                "type": "chunk",
+                                "content": chunk,
+                                "done": False
+                            })
+                            # Small delay for streaming effect
+                            await asyncio.sleep(0.05)
+
+                        # Send final chunk marker
                         await websocket.send_json({
-                            "type": "message",
-                            "content": final_message.content if hasattr(final_message, 'content') else str(final_message)
+                            "type": "chunk",
+                            "content": "",
+                            "done": True
                         })
 
                     # Send navigation commands
@@ -289,6 +380,22 @@ async def websocket_endpoint(websocket: WebSocket):
                         "content": f"An error occurred: {str(e)}"
                     })
 
+            elif message.get("type") == "clear_history":
+                # Clear conversation history for session
+                session_id = message.get("session_id") or current_session_id
+
+                if session_id:
+                    success = memory_store.clear_session(session_id)
+                    await websocket.send_json({
+                        "type": "status",
+                        "content": "Conversation history cleared" if success else "Session not found"
+                    })
+                else:
+                    await websocket.send_json({
+                        "type": "error",
+                        "content": "No active session to clear"
+                    })
+
             elif message.get("type") == "ping":
                 # Handle ping for keepalive
                 await websocket.send_json({
@@ -302,7 +409,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 })
 
     except WebSocketDisconnect:
-        logger.info("WebSocket connection closed")
+        logger.info(f"WebSocket connection closed (session: {current_session_id})")
     except Exception as e:
         logger.error(f"WebSocket error: {e}", exc_info=True)
         try:
@@ -312,6 +419,113 @@ async def websocket_endpoint(websocket: WebSocket):
             })
         except Exception:
             pass
+
+
+# Session management endpoints
+@app.get("/sessions/{session_id}")
+async def get_session_info(session_id: str):
+    """Get information about a specific session"""
+    memory_store = get_memory_store()
+    session_info = memory_store.get_session_info(session_id)
+
+    if not session_info:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    return session_info
+
+
+@app.delete("/sessions/{session_id}")
+async def delete_session(session_id: str):
+    """Delete a session and its conversation history"""
+    memory_store = get_memory_store()
+    success = memory_store.delete_session(session_id)
+
+    if not success:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    return {"message": "Session deleted", "session_id": session_id}
+
+
+@app.post("/sessions/{session_id}/clear")
+async def clear_session_history(session_id: str):
+    """Clear conversation history for a session (keeps session alive)"""
+    memory_store = get_memory_store()
+    success = memory_store.clear_session(session_id)
+
+    if not success:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    return {"message": "Session history cleared", "session_id": session_id}
+
+
+@app.get("/sessions")
+async def list_sessions():
+    """Get statistics about active sessions"""
+    memory_store = get_memory_store()
+    memory_store.cleanup_expired_sessions()
+
+    return {
+        "active_sessions": memory_store.get_active_session_count(),
+        "max_age_hours": memory_store._max_age_hours
+    }
+
+
+@app.get("/sessions/{session_id}/messages")
+async def get_session_messages(session_id: str):
+    """
+    Get conversation history for a session
+
+    Returns messages in format suitable for re-populating chat UI
+    Only returns user questions and final assistant responses (no system prompts or tool calls)
+    """
+    memory_store = get_memory_store()
+    session = memory_store.get_session(session_id)
+
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    # Convert LangChain messages to simple format for frontend
+    # Filter out system messages and tool messages, keep only user/assistant conversation
+    messages = []
+    for msg in session.messages:
+        msg_class = msg.__class__.__name__
+
+        # Skip system messages (usually the initial prompt)
+        if msg_class == "SystemMessage":
+            continue
+
+        # Skip tool messages (intermediate results)
+        if msg_class == "ToolMessage":
+            continue
+
+        # Skip empty assistant messages
+        if msg_class == "AIMessage" and (not hasattr(msg, 'content') or not msg.content or msg.content.strip() == ""):
+            continue
+
+        # Include user and assistant messages with content
+        if msg_class == "HumanMessage":
+            messages.append({
+                "role": "user",
+                "content": msg.content if hasattr(msg, 'content') else str(msg),
+                "timestamp": None
+            })
+        elif msg_class == "AIMessage" and hasattr(msg, 'content') and msg.content:
+            # Skip messages that are just tool call instructions (have tool_calls but no meaningful content)
+            if hasattr(msg, 'tool_calls') and msg.tool_calls and not msg.content.strip():
+                continue
+            messages.append({
+                "role": "assistant",
+                "content": msg.content,
+                "timestamp": None
+            })
+
+    return {
+        "session_id": session_id,
+        "messages": messages,
+        "message_count": len(messages),
+        "created_at": session.created_at.isoformat(),
+        "last_activity": session.last_activity.isoformat()
+    }
 
 
 # Main entry point
