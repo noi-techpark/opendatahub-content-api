@@ -831,6 +831,114 @@ class IntegrationTester:
         self.results.append(result)
         return result
 
+    async def test_12_navigation_selective(self):
+        """Test 12: Navigation tool - selective usage"""
+        logger.info("="*60)
+        logger.info("TEST 12: Navigation Tool - Selective Usage")
+        logger.info("="*60)
+
+        # Test 12a: Should navigate (exploratory query)
+        query_navigate = "Show me tourism datasets"
+        start_time = datetime.now()
+
+        result = TestResult(
+            test_name="Navigation (selective)",
+            status=TestStatus.FAIL,
+            query=query_navigate,
+            response="",
+            iterations=0
+        )
+
+        try:
+            logger.info(f"\n12a. Testing query that SHOULD navigate: '{query_navigate}'")
+            response1 = await self.run_query(query_navigate)
+
+            navigate_called = self.has_tool_call(response1['tool_calls'], "navigate_webapp")
+            nav_commands = response1.get('navigation_commands', [])
+
+            logger.info(f"  navigate_webapp called: {'✅' if navigate_called else '❌'}")
+            logger.info(f"  navigation_commands in response: {len(nav_commands)} commands")
+
+            if nav_commands:
+                for cmd in nav_commands:
+                    logger.info(f"    → route: {cmd.get('route')}, params: {cmd.get('params')}")
+
+            # Check parameters if navigation was called
+            correct_params = False
+            if navigate_called:
+                for tc in response1['tool_calls']:
+                    if tc.get('name') == 'navigate_webapp':
+                        route = tc.get('args', {}).get('route')
+                        params = tc.get('args', {}).get('params', {})
+                        logger.info(f"  Navigation args: route={route}, params={params}")
+
+                        # Should navigate to DatasetBrowser with dataspace filter
+                        if route == 'DatasetBrowser' and params.get('dataspace') == 'tourism':
+                            correct_params = True
+                            logger.info("  ✅ Correct route and params!")
+                        break
+
+            # Test 12b: Should NOT navigate (count query)
+            query_no_nav = "How many datasets are there?"
+            logger.info(f"\n12b. Testing query that should NOT navigate: '{query_no_nav}'")
+            response2 = await self.run_query(query_no_nav)
+
+            navigate_called_2 = self.has_tool_call(response2['tool_calls'], "navigate_webapp")
+            nav_commands_2 = response2.get('navigation_commands', [])
+
+            logger.info(f"  navigate_webapp called: {'❌' if navigate_called_2 else '✅ (correctly NOT called)'}")
+            logger.info(f"  navigation_commands in response: {len(nav_commands_2)} commands")
+
+            # Expectations
+            result.expectations = {
+                "navigate_webapp called for 'show' query": navigate_called,
+                "navigation command generated": len(nav_commands) > 0,
+                "correct route and params": correct_params,
+                "navigate_webapp NOT called for 'count' query": not navigate_called_2,
+                "no navigation commands for count query": len(nav_commands_2) == 0,
+            }
+
+            logger.info("\nExpectations:")
+            for exp, passed in result.expectations.items():
+                logger.info(f"  {exp}: {'✅' if passed else '❌'}")
+
+            # Determine status
+            exploratory_tests = [
+                "navigate_webapp called for 'show' query",
+                "navigation command generated",
+                "correct route and params"
+            ]
+            selective_tests = [
+                "navigate_webapp NOT called for 'count' query",
+                "no navigation commands for count query"
+            ]
+
+            exploratory_pass = all(result.expectations.get(t, False) for t in exploratory_tests)
+            selective_pass = all(result.expectations.get(t, False) for t in selective_tests)
+
+            if exploratory_pass and selective_pass:
+                result.status = TestStatus.PASS
+            elif exploratory_pass or selective_pass:
+                result.status = TestStatus.PARTIAL
+                if not exploratory_pass:
+                    result.warnings.append("Navigation not working for exploratory queries")
+                if not selective_pass:
+                    result.warnings.append("Navigation being used for simple count queries (should be selective)")
+
+            # Use first response for display
+            result.response = response1['response']
+            result.iterations = response1['iterations']
+            result.tool_calls = response1['tool_calls']
+
+        except Exception as e:
+            result.status = TestStatus.FAIL
+            result.errors.append(str(e))
+            logger.error(f"Test failed: {e}", exc_info=True)
+
+        result.execution_time = (datetime.now() - start_time).total_seconds()
+        self.results.append(result)
+        return result
+
     async def run_all_tests(self):
         """Run all integration tests"""
         print("Starting Integration Tests...")
@@ -867,6 +975,7 @@ class IntegrationTester:
         await self.test_9_timeseries_types()
         await self.test_10_search_documentation()
         await self.test_11_large_entries_pandas()
+        await self.test_12_navigation_selective()
 
         # Generate report
         self.generate_report()
