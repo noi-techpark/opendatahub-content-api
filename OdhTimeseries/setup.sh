@@ -4,6 +4,9 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_DIR="$SCRIPT_DIR/venv"
+
 # Colors
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -92,6 +95,22 @@ if [ "$MODE" = "clean" ]; then
     print_info "Mode: CLEAN SETUP (volumes will be removed)"
 else
     print_info "Mode: RESTART (preserving existing data)"
+fi
+
+echo ">> Activating Python virtual environment..."
+if [ ! -d "$VENV_DIR" ]; then
+    python3 -m venv "$VENV_DIR"
+    echo "   ✓ Virtual environment created"  
+fi
+
+source "$VENV_DIR/bin/activate"
+echo "   ✓ Virtual environment activated"
+
+if [ ! -d "$VENV_DIR" ]; then
+    echo ">> Installing dependencies..."
+    pip install --upgrade pip
+    pip install -r "$SCRIPT_DIR/requirements.txt"
+    echo "   ✓ Dependencies installed"
 fi
 
 echo ""
