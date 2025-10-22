@@ -38,10 +38,15 @@ navigate_to_page_tool = SmartTool(
     name="navigate_webapp",
     description="""Navigate the webapp to enhance your response with visual data exploration.
 
-⚠️  IMPORTANT: Use this tool SELECTIVELY, only when navigation enhances the answer.
+⚠️  CRITICAL: CALL THIS TOOL - DO NOT describe it in your response!
+⚠️  NEVER write navigate_webapp(...) in your response text!
+⚠️  Navigation is handled SILENTLY - just call the tool!
+
+Use this tool when navigation enhances the answer.
 
 When to Use Navigation:
-✅ User asks to "show", "display", or "explore" data that matches a frontend page
+✅ The answer you came out with can be enhanced with a visualization among the ones available bellow
+✅ The user explicitly ask to see something which match one of the available visualzation bellow
 ✅ Your answer includes data that would benefit from UI visualization/filtering
 ✅ You want to suggest the user interactively explore specific datasets/sensors
 ✅ The data you're showing has many entries that would benefit from pagination/filtering
@@ -57,25 +62,22 @@ Available Routes and Parameters:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Route: 'DatasetBrowser' (Browse all datasets)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-When to use: User asks "what datasets are available?" or wants to explore by category
+When to use: The answer can be enhanced by showing high level information about multiple datasets (more than one, filtered)
 
 Parameters:
   - dataspace: Filter by dataspace ('tourism', 'mobility', 'other')
   - apiType: Filter by API type ('content', 'timeseries')
-  - datasets: Array of dataset names for multiselect filter
+  - datasets: Array of dataset names (SHORT NAMES) for multiselect filter
   - page: Page number (default: 1, 20 items per page)
 
 Examples:
-  User: "Show me all tourism datasets"
   → navigate_webapp(route='DatasetBrowser', params={'dataspace': 'tourism'})
-
-  User: "What content API datasets are available?"
   → navigate_webapp(route='DatasetBrowser', params={'apiType': 'content'})
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Route: 'DatasetInspector' (Inspect specific dataset entries)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-When to use: User wants to explore/filter entries within a specific dataset
+When to use: The answer can be enhanced by showing detailed information, entities, and aggregation analysis about a specific dataset (one)
 
 Parameters:
   - datasetName: Dataset name (REQUIRED - e.g., 'Accommodation', 'Activity', 'Poi')
@@ -97,7 +99,6 @@ Important Notes:
   - view='analysis' shows dataset statistics
 
 Examples:
-  User: "Show me active hotels in the accommodation dataset"
   → navigate_webapp(
       route='DatasetInspector',
       params={
@@ -108,7 +109,6 @@ Examples:
       }
     )
 
-  User: "Show me events with location information"
   → navigate_webapp(
       route='DatasetInspector',
       params={
@@ -118,7 +118,6 @@ Examples:
       }
     )
 
-  User: "Analyze the types in the accommodation dataset"
   → navigate_webapp(
       route='DatasetInspector',
       params={
@@ -131,7 +130,7 @@ Examples:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Route: 'TimeseriesBrowser' (Browse timeseries types)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-When to use: User asks "what timeseries types are available?" or wants to filter by data type
+When to use: The answer can be enhanced by showing a list of highlevel information abuot timseries / timeseries type (more than one)
 
 Parameters:
   - dataType: Filter by data type ('numeric', 'string', 'boolean', 'json', 'geoposition', 'geoshape')
@@ -139,16 +138,13 @@ Parameters:
   - page: Page number (default: 1, 20 items per page)
 
 Examples:
-  User: "Show me all numeric timeseries types"
   → navigate_webapp(route='TimeseriesBrowser', params={'dataType': 'numeric'})
-
-  User: "What geographic timeseries are available?"
   → navigate_webapp(route='TimeseriesBrowser', params={'dataType': 'geoposition'})
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Route: 'TimeseriesInspector' (Inspect sensors for specific timeseries types)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-When to use: User wants to explore sensors for specific measurement types
+When to use: The answer can be enhanced by showing specific (one) timseries type information
 
 Parameters:
   - typeName: Primary type name (e.g., 'temperature', 'parking')
@@ -162,13 +158,11 @@ Important Notes:
   - selectedSensors pre-selects sensors for bulk operations
 
 Examples:
-  User: "Show me temperature sensors"
   → navigate_webapp(
       route='TimeseriesInspector',
       params={'typeName': 'temperature', 'view': 'table'}
     )
 
-  User: "Show me weather sensors (temperature and humidity)"
   → navigate_webapp(
       route='TimeseriesInspector',
       params={
@@ -204,7 +198,6 @@ Important Notes:
   - 'types' pre-selects checkboxes but doesn't trigger loading automatically
 
 Examples:
-  User: "Show me measurements for parking sensors P1 and P2"
   → navigate_webapp(
       route='BulkMeasurementsInspector',
       params={
@@ -213,7 +206,6 @@ Examples:
       }
     )
 
-  User: "Visualize temperature and humidity for hotel sensors"
   → navigate_webapp(
       route='BulkMeasurementsInspector',
       params={

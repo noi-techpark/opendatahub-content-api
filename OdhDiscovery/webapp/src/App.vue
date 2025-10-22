@@ -16,11 +16,14 @@
     <main class="main-content">
       <router-view />
     </main>
+
+    <!-- Chatbot Component -->
+    <ChatBot />
   </div>
 </template>
 
 <script setup>
-// Main App component
+import ChatBot from './components/ChatBot.vue'
 </script>
 
 <style scoped>

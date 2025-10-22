@@ -173,9 +173,13 @@ async def query_endpoint(request: QueryRequest):
         # Extract response
         messages = result.get("messages", [])
         final_message = messages[-1] if messages else None
+        navigation_commands = result.get("navigation_commands", [])
 
         # Store updated conversation history
         session.messages = messages
+
+        # Store navigation commands for this exchange
+        session.add_navigation_commands(navigation_commands)
 
         # Extract tool calls for debugging
         tool_calls = []
@@ -191,7 +195,7 @@ async def query_endpoint(request: QueryRequest):
         response = QueryResponse(
             response=final_message.content if final_message and hasattr(final_message, 'content') else str(final_message),
             session_id=session_id,
-            navigation_commands=result.get("navigation_commands", []),
+            navigation_commands=navigation_commands,
             iterations=result.get("iterations", 0),
             tool_calls=tool_calls,
             debug_info={
@@ -327,9 +331,13 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Extract response
                     messages = result.get("messages", [])
                     final_message = messages[-1] if messages else None
+                    navigation_commands = result.get("navigation_commands", [])
 
                     # Store updated conversation history
                     session.messages = messages
+
+                    # Store navigation commands for this exchange
+                    session.add_navigation_commands(navigation_commands)
 
                     # Stream the response
                     if final_message:
@@ -360,7 +368,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         })
 
                     # Send navigation commands
-                    navigation_commands = result.get("navigation_commands", [])
                     for nav_cmd in navigation_commands:
                         await websocket.send_json({
                             "type": "navigation",
@@ -486,7 +493,11 @@ async def get_session_messages(session_id: str):
 
     # Convert LangChain messages to simple format for frontend
     # Filter out system messages and tool messages, keep only user/assistant conversation
+    # Include navigation commands with assistant messages
     messages = []
+    exchange_index = 0  # Track which user-assistant exchange we're in
+    navigation_history = session.get_navigation_history()
+
     for msg in session.messages:
         msg_class = msg.__class__.__name__
 
@@ -513,11 +524,20 @@ async def get_session_messages(session_id: str):
             # Skip messages that are just tool call instructions (have tool_calls but no meaningful content)
             if hasattr(msg, 'tool_calls') and msg.tool_calls and not msg.content.strip():
                 continue
+
+            # Get navigation commands for this exchange (if available)
+            nav_commands = []
+            if exchange_index < len(navigation_history):
+                nav_commands = navigation_history[exchange_index]
+
             messages.append({
                 "role": "assistant",
                 "content": msg.content,
-                "timestamp": None
+                "timestamp": None,
+                "navigationCommands": nav_commands  # Include historical navigation commands
             })
+
+            exchange_index += 1  # Move to next exchange
 
     return {
         "session_id": session_id,

@@ -17,6 +17,7 @@ class ConversationSession:
     """A single conversation session with isolated cache"""
     session_id: str
     messages: List[Any] = field(default_factory=list)
+    navigation_history: List[List[dict]] = field(default_factory=list)  # Navigation commands per message pair
     created_at: datetime = field(default_factory=datetime.now)
     last_activity: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -37,13 +38,23 @@ class ConversationSession:
         self.messages.append(message)
         self.last_activity = datetime.now()
 
+    def add_navigation_commands(self, nav_commands: List[dict]):
+        """Store navigation commands for the current exchange"""
+        self.navigation_history.append(nav_commands)
+        self.last_activity = datetime.now()
+
     def get_messages(self) -> List[Any]:
         """Get all messages in the conversation"""
         return self.messages.copy()
 
+    def get_navigation_history(self) -> List[List[dict]]:
+        """Get navigation history"""
+        return self.navigation_history.copy()
+
     def clear(self):
         """Clear conversation history"""
         self.messages = []
+        self.navigation_history = []
         self.last_activity = datetime.now()
 
     def is_expired(self, max_age_hours: int = 24) -> bool:

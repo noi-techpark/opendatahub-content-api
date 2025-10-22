@@ -5,6 +5,8 @@ Provider-agnostic implementation supporting multiple LLM providers
 import logging
 import json
 from typing import Literal
+from datetime import datetime
+from pathlib import Path
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import ToolNode
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
@@ -28,12 +30,30 @@ from tools import (
     get_sensors_tool,
     get_timeseries_tool,
     get_latest_measurements_tool,
-    navigate_to_page_tool,
+    ALL_NAVIGATION_TOOLS,
     search_documentation_tool,
 )
 from config import settings, get_llm_config
 
 logger = logging.getLogger(__name__)
+
+# LLM Request/Response Logger (to file only)
+llm_log_dir = Path(__file__).parent.parent / "logs"
+llm_log_dir.mkdir(exist_ok=True)
+llm_log_file = llm_log_dir / "llm_requests.log"
+
+# Create file handler for LLM logging
+llm_file_handler = logging.FileHandler(llm_log_file)
+llm_file_handler.setLevel(logging.DEBUG)
+llm_file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+))
+
+# Create separate logger for LLM requests/responses
+llm_logger = logging.getLogger("llm_requests")
+llm_logger.setLevel(logging.DEBUG)
+llm_logger.addHandler(llm_file_handler)
+llm_logger.propagate = False  # Don't propagate to stdout
 
 
 def create_llm() -> BaseChatModel:
@@ -93,7 +113,7 @@ def create_agent_graph():
         get_sensors_tool,
         get_timeseries_tool,
         get_latest_measurements_tool,
-        navigate_to_page_tool,
+        *ALL_NAVIGATION_TOOLS,  # Split navigation tools for better LLM decision-making
     ]
 
     # Convert SmartTools to LangChain-compatible format
@@ -134,7 +154,35 @@ def create_agent_graph():
 
         try:
             logger.info(f"🔮 Calling LLM with {len(messages+new_messages)} messages...")
-            response = await llm_with_tools.ainvoke(messages+new_messages)
+
+            # Log LLM request to file
+            llm_payload = messages + new_messages
+            llm_logger.info(f"{'='*80}")
+            llm_logger.info(f"LLM REQUEST (Iteration {iteration})")
+            llm_logger.info(f"{'='*80}")
+            llm_logger.info(f"Total messages: {len(llm_payload)}")
+            for i, msg in enumerate(llm_payload):
+                msg_type = msg.__class__.__name__
+                msg_content = getattr(msg, 'content', str(msg))
+                # Truncate very long messages
+                if len(msg_content) > 2000:
+                    msg_content = msg_content[:2000] + f"... [truncated, total length: {len(msg_content)}]"
+                llm_logger.info(f"Message {i+1}/{len(llm_payload)} ({msg_type}):")
+                llm_logger.info(msg_content)
+                llm_logger.info("-" * 80)
+
+            response = await llm_with_tools.ainvoke(llm_payload)
+
+            # Log LLM response to file
+            llm_logger.info(f"{'='*80}")
+            llm_logger.info(f"LLM RESPONSE (Iteration {iteration})")
+            llm_logger.info(f"{'='*80}")
+            response_content = getattr(response, 'content', str(response))
+            llm_logger.info(f"Response content: {response_content}")
+            if hasattr(response, 'tool_calls') and response.tool_calls:
+                llm_logger.info(f"Tool calls: {json.dumps(response.tool_calls, indent=2)}")
+            llm_logger.info(f"{'='*80}\n")
+
             new_messages.append(response)
 
             # Log what the agent decided to do
