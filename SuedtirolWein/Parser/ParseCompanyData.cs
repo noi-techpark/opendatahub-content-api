@@ -742,8 +742,14 @@ namespace SuedtirolWein.Parser
             mywinecompany.SyncSourceInterface = "suedtirolwein";
             mywinecompany.SyncUpdateMode = "Full";
 
-            //mywinecompany.Type = "Essen Trinken";
-            //mywinecompany.SubType = "Weinkellereien";
+            //Deprecated Fields to null
+            mywinecompany.Type = null;
+            mywinecompany.SubType = null;
+            mywinecompany.AgeFrom = null;
+            mywinecompany.AgeTo = null;
+            mywinecompany.SmgActive = false;
+
+
 
             mywinecompany.Shortname = companydata["de"].Element("title").Value;
 
