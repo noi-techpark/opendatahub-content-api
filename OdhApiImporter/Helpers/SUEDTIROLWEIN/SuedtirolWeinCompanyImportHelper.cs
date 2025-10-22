@@ -7,6 +7,7 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Location;
+using Helper.Tagging;
 using LTSAPI.Parser;
 using Newtonsoft.Json.Linq;
 using SqlKata.Execution;
@@ -92,25 +93,6 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             int newcounter = 0;
             int errorcounter = 0;
 
-            ////For AdditionalInfos
-            //List<string> languagelistcategories = new List<string>()
-            //{
-            //    "de",
-            //    "it",
-            //    "en",
-            //    "nl",
-            //    "cs",
-            //    "pl",
-            //    "fr",
-            //    "ru",
-            //};
-
-            ////Getting valid Tags for Weinkellereien
-            //var validtagsforcategories = await ODHTagHelper.GetODHTagsValidforCategories(
-            //    QueryFactory,
-            //    new List<string>() { "Essen Trinken" }
-            //); //Essen Trinken ??
-
             //Load the json Data
             IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
 
@@ -118,8 +100,8 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             settings.JsonConfig.Jsondir,
             new List<string>()
                 {
-                        "ODHTagsSourceIDMLTS",                        
-                        "ActivityPoiDisplayAsCategory",
+                        "ODHTagsSourceIDMLTS",
+                        "GastronomyDisplayAsCategory",
                 }
             );
 
@@ -129,10 +111,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 .Where("id", "metainfoexcelsmgpoi")
                 .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
 
-
             //Loading WineAwards
             var wineawardlist = await WineAwardHelper.GetReducedWithWineAwardList(QueryFactory);
 
+            //Loop trouth the de list which contains all Elements
             foreach (
                 var winedata in wineddatalist["de"].Root?.Elements("item")
                     ?? Enumerable.Empty<XElement>()
@@ -196,14 +178,9 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
                 bool newwinecompany = false;
                 bool setinactive = false;
-
-                var mysuedtirolweinquery = QueryFactory
-                    .Query("smgpois")
-                    .Select("data")
-                    .Where("id", dataid.ToLower());
-
-                var suedtirolweinpoi =
-                    await mysuedtirolweinquery.GetObjectSingleAsync<ODHActivityPoiLinked>();
+                
+                //GET Wine Company
+                var suedtirolweinpoi = await LoadDataFromDB<ODHActivityPoiLinked>(dataid.ToLower(), IDStyle.lowercase);
 
                 if (suedtirolweinpoi == null)
                 {
@@ -221,6 +198,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 suedtirolweinpoi.Active = true;
                 suedtirolweinpoi.SmgActive = true;
 
+
                 //Create LocationInfo
                 //We set the LocationInfo only on new Objects because often the LocationInfo is wrongly added so we can edit it 
                 if (newwinecompany)
@@ -229,9 +207,11 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                         QueryFactory
                     );
                 }
-                
+
+
+
                 //If no locationInfo is set set to inactive?
-                if(suedtirolweinpoi.LocationInfo.Equals(new LocationInfo()))
+                if (suedtirolweinpoi.LocationInfo.Equals(new LocationInfo()))
                 {
                     setinactive = true;
                 }
@@ -240,100 +220,20 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 await suedtirolweinpoi.UpdateDistanceCalculation(QueryFactory);
 
                 //Fill AdditionalInfos.Categories
-
+                SetAdditionalInfosCategoriesByODHTags(suedtirolweinpoi, jsondata);
 
                 //Fill RelatedContent
-
+                FillRelatedContent(winedata, dataid, suedtirolweinpoi, winedatalist, wineawardreducelist);
 
                 //Fill ODHTags (Essen Trinken, Weinkellereien)
+                await AssignODHTags(suedtirolweinpoi);
 
                 //Fill TagIds
+                await AssignTags(suedtirolweinpoi);
 
-                //Create Tags out of TagIds
-
+                
                 //Fill AdditionalProperties
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-                ////Tags
-                //suedtirolweinpoi.SmgTags ??= new List<string>();
-                //if (
-                //    suedtiroltypemain?.Id is { }
-                //    && !suedtirolweinpoi.SmgTags.Contains(suedtiroltypemain.Id.ToLower())
-                //)
-                //    suedtirolweinpoi.SmgTags.Add(suedtiroltypemain.Id.ToLower());
-                //if (
-                //    suedtiroltypesub?.Id is { }
-                //    && !suedtirolweinpoi.SmgTags.Contains(suedtiroltypesub.Id.ToLower())
-                //)
-                //    suedtirolweinpoi.SmgTags.Add(suedtiroltypesub.Id.ToLower());
-
-                ////Setting Categorization by Valid Tags
-                //var currentcategories = validtagsforcategories.Where(x =>
-                //    suedtirolweinpoi.SmgTags.Contains(x.Id.ToLower())
-                //);
-                //foreach (var smgtagtotranslate in currentcategories)
-                //{
-                //    foreach (var languagecategory in languagelistcategories)
-                //    {
-                //        if (
-                //            suedtirolweinpoi.AdditionalPoiInfos[languagecategory].Categories == null
-                //        )
-                //            suedtirolweinpoi.AdditionalPoiInfos[languagecategory].Categories =
-                //                new List<string>();
-
-                //        if (
-                //            smgtagtotranslate.TagName.ContainsKey(languagecategory)
-                //            && (
-                //                !suedtirolweinpoi
-                //                    .AdditionalPoiInfos[languagecategory]
-                //                    .Categories?.Contains(
-                //                        smgtagtotranslate.TagName[languagecategory].Trim()
-                //                    ) ?? false
-                //            )
-                //        )
-                //            suedtirolweinpoi
-                //                .AdditionalPoiInfos[languagecategory]
-                //                .Categories?.Add(
-                //                    smgtagtotranslate.TagName[languagecategory].Trim()
-                //                );
-                //    }
-                //}
-
-
-
-
-                //RELATED CONTENT
-                //Wineids als RElated Content
-                if (!String.IsNullOrEmpty(winedata.Element("wineids").Value))
-                {
-                    List<RelatedContent> myrelatedcontentlist = new List<RelatedContent>();
-
-                    var mywines = wineawardreducelist.Where(x => x.CompanyId == dataid).ToList();
-
-                    foreach (var mywine in mywines)
-                    {
-                        RelatedContent relatedcontent = new RelatedContent();
-                        relatedcontent.Id = mywine.Id;
-                        //relatedcontent.Name = mywine.Name;
-                        relatedcontent.Type = "wineaward";
-
-                        myrelatedcontentlist.Add(relatedcontent);
-                    }
-
-                    suedtirolweinpoi.RelatedContent = myrelatedcontentlist.ToList();
-                }
 
                 if (setinactive)
                 {
@@ -353,24 +253,26 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 suedtirolweinpoi.SyncSourceInterface = "suedtirolwein-company";
                 suedtirolweinpoi.SyncUpdateMode = "Full";
                 suedtirolweinpoi.LastChange = DateTime.Now;
-         
-                //Set Main Type
-                ODHActivityPoiHelper.SetMainCategorizationForODHActivityPoi(suedtirolweinpoi);
-
+                       
                 //Add Mapping
                 var suedtirolweinid = new Dictionary<string, string>() { { "id", dataid } };
                 suedtirolweinpoi.Mapping.TryAddOrUpdate("suedtirolwein", suedtirolweinid);
 
-                //Set Tags based on OdhTags
-                await GenericTaggingHelper.AddTagsToODHActivityPoi(
-                    suedtirolweinpoi,
-                    settings.JsonConfig.Jsondir
-                );
+                ////Set Tags based on OdhTags
+                //await GenericTaggingHelper.AddTagsToODHActivityPoi(
+                //    suedtirolweinpoi,
+                //    settings.JsonConfig.Jsondir
+                //);
+
+
                 //Create Tag Objects
-                suedtirolweinpoi.TagIds =
-                    suedtirolweinpoi.Tags != null
-                        ? suedtirolweinpoi.Tags.Select(x => x.Id).ToList()
-                        : null;
+                //suedtirolweinpoi.TagIds =
+                //    suedtirolweinpoi.Tags != null
+                //        ? suedtirolweinpoi.Tags.Select(x => x.Id).ToList()
+                //        : null;
+
+                //Create Tags and preserve the old TagEntries
+                await suedtirolweinpoi.UpdateTagsExtension(QueryFactory);
 
                 var result = await InsertDataToDB(
                     suedtirolweinpoi,
@@ -548,33 +450,106 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
         #region CompatibilityHelpers
 
-        //Adds all Redactional Assigned Tags from the old Record to the new Record
-        private async Task MergeTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        //Assign ODHTags
+        private async Task AssignODHTags(ODHActivityPoiLinked poiNew)
         {
-            if (poiOld != null)
+            //Simply Ensure that tat Essen Trinken & Weinkellerei is assigned
+            if(poiNew.SmgTags == null)
+                poiNew.SmgTags = new List<string>();
+
+            if (!poiNew.SmgTags.Contains("gastronomy"))
+                poiNew.SmgTags.Add("gastronomy");
+            if (!poiNew.SmgTags.Contains("essen trinken"))
+                poiNew.SmgTags.Add("essen trinken");
+            if (!poiNew.SmgTags.Contains("weinkellereien"))
+                poiNew.SmgTags.Add("weinkellereien");
+        }
+
+        //Assign Tags
+        private async Task AssignTags(ODHActivityPoiLinked poiNew)
+        {
+            //Simply Ensure that tat Essen Trinken & Weinkellerei is assigned
+            if (poiNew.TagIds == null)
+                poiNew.TagIds = new List<string>();
+
+            //Old Tags
+            if (!poiNew.TagIds.Contains("gastronomy"))
+                poiNew.TagIds.Add("gastronomy");
+            if (!poiNew.TagIds.Contains("eating drinking"))
+                poiNew.TagIds.Add("eating drinking");
+            if (!poiNew.TagIds.Contains("wineries"))
+                poiNew.TagIds.Add("wineries");
+
+            //LTS Rids
+            //Kellereien und Winzer
+            if (!poiNew.TagIds.Contains("6EFED925DF3B4EF5B69495E994F446AC"))
+                poiNew.TagIds.Add("6EFED925DF3B4EF5B69495E994F446AC");
+            //Produktionsstätten
+            if (!poiNew.TagIds.Contains("28CDEF87206E464D9B179FBCAF506457"))
+                poiNew.TagIds.Add("28CDEF87206E464D9B179FBCAF506457");
+        }
+
+   
+        //Assign Categorization
+        private static void SetAdditionalInfosCategoriesByODHTags(ODHActivityPoiLinked poi, IDictionary<string, JArray>? jsonfiles)
+        {
+            //If a Tag is found in 
+            //SET ADDITIONALINFOS
+            //Setting Categorization by Valid Tags
+            var validcategorylist = jsonfiles != null && jsonfiles["GastronomyDisplayAsCategory"] != null ? jsonfiles["GastronomyDisplayAsCategory"].ToObject<List<CategoriesTags>>() : null;
+
+            if (validcategorylist != null && poi.SmgTags != null)
             {
-                //Readd all Redactional Tags to check if this query fits
-                var redactionalassignedTags = poiOld.Tags != null ? poiOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
-                if (redactionalassignedTags != null)
+                var currentcategories = validcategorylist.Where(x => poi.SmgTags.Select(y => y.ToLower()).Contains(x.Id.ToLower())).ToList();
+
+                if (currentcategories != null)
                 {
-                    foreach (var tag in redactionalassignedTags)
+                    if (poi.AdditionalPoiInfos == null)
+                        poi.AdditionalPoiInfos = new Dictionary<string, AdditionalPoiInfos>();
+
+                    foreach (var languagecategory in new List<string>() { "de", "it", "en", "nl", "cs", "pl", "fr", "ru" })
                     {
-                        poiNew.TagIds.Add(tag.Id);
+                        AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string>() };
+
+                        //Reassigning Categories
+                        foreach (var smgtagtotranslate in currentcategories)
+                        {
+                            if (smgtagtotranslate.TagName.ContainsKey(languagecategory))
+                            {
+                                additionalPoiInfos.Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
+                            }
+                        }
+
+                        poi.AdditionalPoiInfos.Add(languagecategory, additionalPoiInfos);
                     }
                 }
             }
-
-            //TODO import the Redactional Tags from SmgTags into Tags?
-
-            //TODO same procedure on Tags? (Remove all Tags that come from the sync and readd the redactional assigned Tags)
         }
 
+        private static void FillRelatedContent(XElement winedata, string companyid, ODHActivityPoiLinked poi, IDictionary<string, XDocument> winedatalist, List<ReducedWineAward> wineawardreducelist)
+        {
+            //RELATED CONTENT
+            //Wineids als RElated Content
+            if (!String.IsNullOrEmpty(winedata.Element("wineids").Value))
+            {
+                List<RelatedContent> myrelatedcontentlist = new List<RelatedContent>();
 
-        //Assign ODHTags and preserve old Tags
+                var mywines = wineawardreducelist.Where(x => x.CompanyId == companyid).ToList();
 
-        //Assign Tags
+                foreach (var mywine in mywines)
+                {
+                    RelatedContent relatedcontent = new RelatedContent();
+                    relatedcontent.Id = mywine.Id;
+                    //relatedcontent.Name = mywine.Name;
+                    relatedcontent.Type = "wineaward";
 
-        //Assign Categorization
+                    myrelatedcontentlist.Add(relatedcontent);
+                }
+
+                poi.RelatedContent = myrelatedcontentlist.ToList();
+            }
+
+        }
 
         #endregion
     }
