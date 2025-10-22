@@ -3978,7 +3978,7 @@ namespace DataModel
             OperationscheduleName = new Dictionary<string, string>();
         }
 
-        public IDictionary<string, string> OperationscheduleName { get; set; }
+        public IDictionary<string, string>? OperationscheduleName { get; set; }
         public DateTime Start { get; set; }
         public DateTime Stop { get; set; }
 
