@@ -1,4 +1,4 @@
-# ODH Discovery Web Application
+# Open Data Hub Discovery Web Application
 
 Vue3-based data discovery application for exploring the Open Data Hub platform's datasets and timeseries.
 

@@ -4,7 +4,7 @@
       <div class="container">
         <div class="navbar-content">
           <router-link to="/" class="logo">
-            <h1>ODH Discovery</h1>
+            <h1>Open Data Hub Discovery</h1>
           </router-link>
           <div class="nav-links">
             <router-link to="/datasets" class="nav-link">Datasets</router-link>

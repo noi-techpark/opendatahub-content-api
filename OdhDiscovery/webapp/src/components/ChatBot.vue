@@ -5,7 +5,7 @@
       v-if="!isOpen"
       class="chatbot-toggle"
       @click="toggleChat"
-      :title="isConnected ? 'Open ODH Assistant' : 'Connect to ODH Assistant'"
+      :title="isConnected ? 'Open Open Data Hub Assistant' : 'Connect to Open Data Hub Assistant'"
     >
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -34,7 +34,7 @@
             </svg>
           </div>
           <div class="header-info">
-            <h3>ODH Assistant</h3>
+            <h3>Open Data Hub Assistant</h3>
             <p class="status">
               <span v-if="isStreaming" class="typing-indicator">Typing...</span>
               <span v-else-if="isLoading">Processing...</span>
@@ -83,7 +83,7 @@
       <div class="chatbot-messages" ref="messagesContainer">
         <div v-if="messages.length === 0 && !isLoading" class="welcome-message">
           <div class="welcome-icon">👋</div>
-          <h4>Welcome to ODH Assistant!</h4>
+          <h4>Welcome to Open Data Hub Assistant!</h4>
           <p>Ask me anything about Open Data Hub datasets, timeseries, sensors, or types.</p>
           <div class="example-questions">
             <p class="example-label">Try asking:</p>
