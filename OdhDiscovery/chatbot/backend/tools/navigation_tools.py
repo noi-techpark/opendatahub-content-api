@@ -12,6 +12,7 @@ async def _navigate_to_dataset_browser(
     dataspace: str | None = None,
     apiType: str | None = None,
     datasets: list[str] | None = None,
+    search: str | None = None,
     page: int = 1,
     **kwargs
 ) -> dict:
@@ -23,6 +24,8 @@ async def _navigate_to_dataset_browser(
         params['apiType'] = apiType
     if datasets:
         params['datasets'] = datasets
+    if search:
+        params['search'] = search
     if page != 1:
         params['page'] = page
 
@@ -83,6 +86,7 @@ async def _navigate_to_dataset_inspector(
 async def _navigate_to_timeseries_browser(
     dataType: str | None = None,
     timeseries: list[str] | None = None,
+    search: str | None = None,
     page: int = 1,
     **kwargs
 ) -> dict:
@@ -92,6 +96,8 @@ async def _navigate_to_timeseries_browser(
         params['dataType'] = dataType
     if timeseries:
         params['timeseries'] = timeseries
+    if search:
+        params['search'] = search
     if page != 1:
         params['page'] = page
 
@@ -168,11 +174,13 @@ Parameters:
   - dataspace: Filter by 'tourism', 'mobility', or other (optional); LEAVE EMPTY TO SE ALL DATASPACES; "all" IS NOT A VALID FILTER
   - apiType: Filter by 'content' or 'timeseries' (optional); LEAVE EMPTY TO SE ALL TYPES; "all" IS NOT A VALID FILTER
   - datasets: Array of dataset short names for multiselect (optional)
+  - search: Search query to filter datasets by name or description (optional)
   - page: Page number, default 1 (optional)
 
 Examples:
   navigate_to_dataset_browser(dataspace='tourism')
   navigate_to_dataset_browser(apiType='content')
+  navigate_to_dataset_browser(search='hotel')
   navigate_to_dataset_browser()  # Show all datasets""",
     func=_navigate_to_dataset_browser,
     max_tokens=2500,
@@ -229,10 +237,12 @@ When to use:
 Parameters:
   - dataType: Filter by 'numeric', 'string', 'boolean', 'json', 'geoposition', 'geoshape' (optional)
   - timeseries: Array of type names for multiselect (optional)
+  - search: Search query to filter timeseries by name or description (optional)
   - page: Page number, default 1 (optional)
 
 Examples:
   navigate_to_timeseries_browser(dataType='numeric')
+  navigate_to_timeseries_browser(search='temperature')
   navigate_to_timeseries_browser()  # Show all types""",
     func=_navigate_to_timeseries_browser,
     max_tokens=2500,

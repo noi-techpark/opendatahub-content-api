@@ -362,7 +362,8 @@ Browse and filter available dataset types.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `dataspace` | string | `null` | Filter datasets by dataspace (e.g., "tourism", "mobility") |
+| `dataspace` | string | `null` | Filter datasets by dataspace (e.g., "tourism", "mobility", ...) |
+| `searchQuery` | string | `null` | Filter over datasets name |
 | `apiType` | string | `null` | Filter datasets by API type (e.g., "content", "timeseries") |
 | `datasets` | array | `[]` | Comma-separated list of dataset names to filter (multiselect filter) |
 | `page` | number | `1` | Current page number for pagination (20 items per page) |
@@ -424,6 +425,7 @@ Browse and filter available timeseries measurement types.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `dataType` | string | `null` | Filter by data type: `'numeric'`, `'string'`, `'boolean'`, `'json'`, `'geoposition'`, `'geoshape'` |
+| `searchQuery` | string | `null` | Filter over timeseries name |
 | `timeseries` | array | `[]` | Comma-separated list of timeseries type names to filter (multiselect filter) |
 | `page` | number | `1` | Current page number for pagination (20 items per page) |
 

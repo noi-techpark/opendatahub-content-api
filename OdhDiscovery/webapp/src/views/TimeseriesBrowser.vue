@@ -8,6 +8,16 @@
 
       <!-- Search and Filters -->
       <div class="filters-bar card">
+        <!-- Search Box -->
+        <div class="search-box">
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="input"
+            placeholder="Search timeseries by name or description..."
+          />
+        </div>
+
         <div class="filter-section">
           <div class="filter-label">Filter by Data Type:</div>
           <div class="filter-chips">
@@ -198,6 +208,7 @@ const urlState = syncMultiple({
   }
 })
 
+const searchQuery = urlState.search
 const selectedDataType = urlState.dataType
 const selectedTimeseriesNames = urlState.timeseries
 const currentPage = urlState.page
@@ -205,7 +216,7 @@ const currentPage = urlState.page
 const PAGE_SIZE = 20
 
 // Reset page to 1 when filters change
-watch([selectedDataType, selectedTimeseriesNames], () => {
+watch([searchQuery, selectedDataType, selectedTimeseriesNames], () => {
   currentPage.value = 1
 })
 
@@ -226,6 +237,15 @@ async function loadTypes() {
 // Computed properties for filtering
 const filteredTypes = computed(() => {
   let filtered = types.value
+
+  // Filter by search query
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(t =>
+      t.type.name?.toLowerCase().includes(query) /*||
+      t.type.description?.toLowerCase().includes(query)*/
+    )
+  }
 
   // Filter by data type
   if (selectedDataType.value) {
