@@ -165,8 +165,8 @@ When to use:
 ✅ User wants to explore datasets by dataspace or API type
 
 Parameters:
-  - dataspace: Filter by 'tourism', 'mobility', or 'other' (optional)
-  - apiType: Filter by 'content' or 'timeseries' (optional)
+  - dataspace: Filter by 'tourism', 'mobility', or other (optional); LEAVE EMPTY TO SE ALL DATASPACES; "all" IS NOT A VALID FILTER
+  - apiType: Filter by 'content' or 'timeseries' (optional); LEAVE EMPTY TO SE ALL TYPES; "all" IS NOT A VALID FILTER
   - datasets: Array of dataset short names for multiselect (optional)
   - page: Page number, default 1 (optional)
 
@@ -175,7 +175,7 @@ Examples:
   navigate_to_dataset_browser(apiType='content')
   navigate_to_dataset_browser()  # Show all datasets""",
     func=_navigate_to_dataset_browser,
-    max_tokens=500,
+    max_tokens=2500,
     return_direct=False
 )
 
@@ -193,7 +193,7 @@ When to use:
 ✅ User asks to analyze distinct values or view dataset statistics
 
 Required parameter:
-  - datasetName: e.g., 'Accommodation', 'Activity', 'Event', 'Poi'
+  - datasetName: e.g., 'Accommodation', 'Activity', 'Event', 'Poi'.
 
 Optional parameters:
   - view: 'table' (default), 'raw', 'analysis', 'distinct', 'timeseries'
@@ -209,7 +209,7 @@ Examples:
   navigate_to_dataset_inspector(datasetName='Event', view='distinct', distinctProperties=['Type'])
   navigate_to_dataset_inspector(datasetName='Activity')""",
     func=_navigate_to_dataset_inspector,
-    max_tokens=500,
+    max_tokens=2500,
     return_direct=False
 )
 
@@ -235,7 +235,7 @@ Examples:
   navigate_to_timeseries_browser(dataType='numeric')
   navigate_to_timeseries_browser()  # Show all types""",
     func=_navigate_to_timeseries_browser,
-    max_tokens=500,
+    max_tokens=2500,
     return_direct=False
 )
 
@@ -264,7 +264,7 @@ Examples:
   navigate_to_timeseries_inspector(typeName='parking', view='table')
   navigate_to_timeseries_inspector(typeName='temperature', types=['temperature', 'humidity'])""",
     func=_navigate_to_timeseries_inspector,
-    max_tokens=500,
+    max_tokens=2500,
     return_direct=False
 )
 
@@ -297,7 +297,7 @@ Examples:
   navigate_to_bulk_measurements(sensors=['parking-p1', 'parking-p2'], view='pretty')
   navigate_to_bulk_measurements(sensors=['temp-sensor-1'], types=['temperature'])""",
     func=_navigate_to_bulk_measurements,
-    max_tokens=500,
+    max_tokens=2500,
     return_direct=False
 )
 

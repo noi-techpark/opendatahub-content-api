@@ -22,7 +22,7 @@ class AgentState(TypedDict):
     tool_results: list[dict]
 
     # Navigation commands to send to frontend
-    navigation_commands: Annotated[list[dict], operator.add]
+    navigation_commands: list[dict]
 
     # Iteration count (to prevent infinite loops)
     iterations: int

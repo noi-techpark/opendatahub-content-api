@@ -143,15 +143,6 @@ def create_agent_graph():
         messages = list(state.get("messages", []))
         new_messages = []
 
-        # Add system message if not present
-        if not messages or not isinstance(messages[0], SystemMessage):
-            new_messages.insert(0, SystemMessage(content=SYSTEM_PROMPT))
-
-        # Add user query if not in messages
-        if state.get('query') and not any(isinstance(m, HumanMessage) and m.content == state['query'] for m in messages):
-            new_messages.append(HumanMessage(content=state['query']))
-            logger.info(f"📥 USER QUERY: {state['query']}")
-
         try:
             logger.info(f"🔮 Calling LLM with {len(messages+new_messages)} messages...")
 
@@ -183,8 +174,6 @@ def create_agent_graph():
                 llm_logger.info(f"Tool calls: {json.dumps(response.tool_calls, indent=2)}")
             llm_logger.info(f"{'='*80}\n")
 
-            new_messages.append(response)
-
             # Log what the agent decided to do
             if hasattr(response, 'tool_calls') and response.tool_calls:
                 logger.info(f"🔧 AGENT DECISION: Call {len(response.tool_calls)} tool(s)")
@@ -198,6 +187,17 @@ def create_agent_graph():
                     logger.info(f"   {i}. {tool_name}({args_str})")
             else:
                 logger.info(f"💬 AGENT DECISION: Respond to user (no tool calls)")
+
+                # This is the final response - attach navigation commands from state
+                navigation_commands = state.get('navigation_commands', [])
+                if navigation_commands:
+                    # Attach navigation commands to the response message metadata
+                    if not hasattr(response, 'additional_kwargs'):
+                        response.additional_kwargs = {}
+                    response.additional_kwargs['navigation_commands'] = navigation_commands
+                    logger.info(f"📍 Attached {len(navigation_commands)} navigation command(s) to response")
+
+            new_messages.append(response)
 
             return {
                 **state,

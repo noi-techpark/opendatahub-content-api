@@ -383,7 +383,7 @@ const handleNavigation = (navCommand) => {
   router.push(route)
 
   // Minimize chat after navigation
-  isOpen.value = false
+  // isOpen.value = false
 }
 
 // Build navigation URL for display
@@ -523,7 +523,7 @@ watch(pendingNavigation, (navCommand) => {
     router.push(route)
 
     // Minimize chat after auto-navigation
-    isOpen.value = false
+    // isOpen.value = false
   } else {
     console.log('ℹ️  Navigation available (toggle OFF, click "See more" to navigate)')
   }

@@ -21,7 +21,7 @@ export function useUrlState() {
     const urlValue = route.query[key]
     const value = ref(urlValue ? deserialize(urlValue) : initialValue)
 
-    // Watch for changes and update URL
+    // Watch the ref and update URL when it changes
     watch(value, (newValue) => {
       const query = { ...route.query }
 
@@ -34,6 +34,18 @@ export function useUrlState() {
 
       router.replace({ query })
     })
+
+    // Watch the route and update ref when URL changes (e.g., from router.push)
+    watch(
+      () => route.query[key],
+      (newUrlValue) => {
+        const deserializedValue = newUrlValue ? deserialize(newUrlValue) : initialValue
+        // Only update if different to avoid infinite loops
+        if (JSON.stringify(value.value) !== JSON.stringify(deserializedValue)) {
+          value.value = deserializedValue
+        }
+      }
+    )
 
     return value
   }

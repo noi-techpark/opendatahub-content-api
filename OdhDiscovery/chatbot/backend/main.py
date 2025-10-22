@@ -11,7 +11,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from typing import Optional
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from agent.prompts import SYSTEM_PROMPT
 
 from config import settings
 from agent import get_agent, AgentState
@@ -176,10 +177,8 @@ async def query_endpoint(request: QueryRequest):
         navigation_commands = result.get("navigation_commands", [])
 
         # Store updated conversation history
+        # Navigation commands are now stored in message metadata
         session.messages = messages
-
-        # Store navigation commands for this exchange
-        session.add_navigation_commands(navigation_commands)
 
         # Extract tool calls for debugging
         tool_calls = []
@@ -300,9 +299,14 @@ async def websocket_endpoint(websocket: WebSocket):
                     # Get conversation history
                     conversation_messages = session.get_messages()
 
+                     # Add system message if not present
+                    if not conversation_messages or len(conversation_messages) == 0:
+                        conversation_messages.append(SystemMessage(content=SYSTEM_PROMPT))
+                        logger.info(f"📥 ADEDD SYSTEM PROMPT")
+
                     # Add new user message
-                    user_message = HumanMessage(content=query)
-                    conversation_messages.append(user_message)
+                    conversation_messages.append(HumanMessage(content=query))
+                    logger.info(f"📥 USER QUERY: {query}")
 
                     # Send acknowledgment
                     await websocket.send_json({
@@ -334,17 +338,15 @@ async def websocket_endpoint(websocket: WebSocket):
                     navigation_commands = result.get("navigation_commands", [])
 
                     # Store updated conversation history
+                    # Navigation commands are now stored in message metadata
                     session.messages = messages
-
-                    # Store navigation commands for this exchange
-                    session.add_navigation_commands(navigation_commands)
 
                     # Stream the response
                     if final_message:
                         response_text = final_message.content if hasattr(final_message, 'content') else str(final_message)
 
                         # Stream response in chunks (simulating typing effect)
-                        words = response_text.split()
+                        words = response_text.split(" ")
                         chunk_size = 3  # words per chunk
 
                         for i in range(0, len(words), chunk_size):
@@ -368,6 +370,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         })
 
                     # Send navigation commands
+                    logger.info(f"dispatching navigation commands: len = {len(navigation_commands)}")
                     for nav_cmd in navigation_commands:
                         await websocket.send_json({
                             "type": "navigation",
@@ -493,10 +496,8 @@ async def get_session_messages(session_id: str):
 
     # Convert LangChain messages to simple format for frontend
     # Filter out system messages and tool messages, keep only user/assistant conversation
-    # Include navigation commands with assistant messages
+    # Extract navigation commands from message metadata
     messages = []
-    exchange_index = 0  # Track which user-assistant exchange we're in
-    navigation_history = session.get_navigation_history()
 
     for msg in session.messages:
         msg_class = msg.__class__.__name__
@@ -525,19 +526,17 @@ async def get_session_messages(session_id: str):
             if hasattr(msg, 'tool_calls') and msg.tool_calls and not msg.content.strip():
                 continue
 
-            # Get navigation commands for this exchange (if available)
+            # Extract navigation commands from message metadata
             nav_commands = []
-            if exchange_index < len(navigation_history):
-                nav_commands = navigation_history[exchange_index]
+            if hasattr(msg, 'additional_kwargs') and 'navigation_commands' in msg.additional_kwargs:
+                nav_commands = msg.additional_kwargs['navigation_commands']
 
             messages.append({
                 "role": "assistant",
                 "content": msg.content,
                 "timestamp": None,
-                "navigationCommands": nav_commands  # Include historical navigation commands
+                "navigationCommands": nav_commands  # Include navigation commands from message metadata
             })
-
-            exchange_index += 1  # Move to next exchange
 
     return {
         "session_id": session_id,
@@ -554,6 +553,6 @@ if __name__ == "__main__":
         "main:app",
         host=settings.backend_host,
         port=settings.backend_port,
-        reload=True,  # Enable auto-reload for development
+        reload=False,  
         log_level=settings.log_level.lower()
     )
