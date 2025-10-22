@@ -4,6 +4,7 @@ Each tool has a clear, focused purpose for better LLM decision-making
 """
 import logging
 from tools.base import SmartTool
+from tools.pydantic_workaroud import _parse_json_string
 
 logger = logging.getLogger(__name__)
 
@@ -11,12 +12,16 @@ logger = logging.getLogger(__name__)
 async def _navigate_to_dataset_browser(
     dataspace: str | None = None,
     apiType: str | None = None,
-    datasets: list[str] | None = None,
+    datasets: list[str] | str | None = None,
     search: str | None = None,
     page: int = 1,
     **kwargs
 ) -> dict:
     """Navigate to the Dataset Browser page"""
+    # Parse datasets if it's a JSON string
+    if datasets:
+        datasets = _parse_json_string(datasets)
+
     params = {}
     if dataspace:
         params['dataspace'] = dataspace
@@ -43,16 +48,26 @@ async def _navigate_to_dataset_inspector(
     view: str = 'table',
     page: int = 1,
     pagesize: int = 50,
-    fields: list[str] | None = None,
+    fields: list[str] | str | None = None,
     rawsort: str | None = None,
     searchfilter: str | None = None,
     language: str | None = None,
-    presenceFilters: list[str] | None = None,
-    distinctProperties: list[str] | None = None,
-    selectedIds: list[str] | None = None,
+    presenceFilters: list[str] | str | None = None,
+    distinctProperties: list[str] | str | None = None,
+    selectedIds: list[str] | str | None = None,
     **kwargs
 ) -> dict:
     """Navigate to the Dataset Inspector page"""
+    # Parse array parameters if they're JSON strings
+    if fields:
+        fields = _parse_json_string(fields)
+    if presenceFilters:
+        presenceFilters = _parse_json_string(presenceFilters)
+    if distinctProperties:
+        distinctProperties = _parse_json_string(distinctProperties)
+    if selectedIds:
+        selectedIds = _parse_json_string(selectedIds)
+
     params = {'datasetName': datasetName, 'view': view}
 
     if page != 1:
@@ -85,12 +100,16 @@ async def _navigate_to_dataset_inspector(
 
 async def _navigate_to_timeseries_browser(
     dataType: str | None = None,
-    timeseries: list[str] | None = None,
+    timeseries: list[str] | str | None = None,
     search: str | None = None,
     page: int = 1,
     **kwargs
 ) -> dict:
     """Navigate to the Timeseries Browser page"""
+    # Parse timeseries if it's a JSON string
+    if timeseries:
+        timeseries = _parse_json_string(timeseries)
+
     params = {}
     if dataType:
         params['dataType'] = dataType
@@ -145,9 +164,9 @@ async def _navigate_to_bulk_measurements(
     params = {'sensors': sensors, 'view': view}
 
     if types:
-        params['types'] = types
+        params['types'] = _parse_json_string(types)
     if disabledSensors:
-        params['disabledSensors'] = disabledSensors
+        params['disabledSensors'] = _parse_json_string(disabledSensors)
 
     logger.info(f"🧭 Navigate to BulkMeasurementsInspector with {len(sensors)} sensors")
 

@@ -6,6 +6,7 @@ import logging
 from tools.base import SmartTool
 from clients.timeseries_client import TimeseriesAPIClient
 from preprocessing.strategies import summarize_measurements
+from tools.pydantic_workaroud import _parse_json_string
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ async def _get_timeseries(
         summarize: Whether to summarize measurements (default: True)
     """
     result = await timeseries_client.get_timeseries_bulk(
-        sensor_names=sensor_names,
+        sensor_names=_parse_json_string(sensor_names),
         from_date=from_date,
         to_date=to_date,
         interval=interval
@@ -75,7 +76,7 @@ async def _get_latest_measurements(
     Args:
         sensor_names: List of sensor names
     """
-    return await timeseries_client.get_latest_measurements(sensor_names)
+    return await timeseries_client.get_latest_measurements(_parse_json_string(sensor_names))
 
 
 # Tool definitions

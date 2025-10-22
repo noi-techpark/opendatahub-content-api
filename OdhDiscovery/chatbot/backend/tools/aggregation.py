@@ -9,6 +9,7 @@ from tools.data_cache import get_cache
 from collections import Counter
 import json
 import pandas as pd
+from tools.pydantic_workaroud import _parse_json_string
 
 logger = logging.getLogger(__name__)
 cache = get_cache()
@@ -47,6 +48,8 @@ async def _aggregate_data(
         - "summarize_fields": Statistics (min/max/avg)
         - "count_total": Just count
     """
+    if fields:
+        fields = _parse_json_string(fields)
     logger.info(f"🔄 AGGREGATION: cache_key={cache_key}, strategy='{strategy}', group_by={group_by}, fields={fields}, limit={limit}")
 
     # Get data from cache if cache_key provided
@@ -439,6 +442,9 @@ async def _flatten_data(
             "next_step": "Use dataframe_query tool with dataframe_cache_key to filter/sort/group"
         }
     """
+    if fields:
+        fields = _parse_json_string(fields)
+
     logger.info(f"🔨 FLATTEN: cache_key={cache_key}, fields={fields}, explode_arrays={explode_arrays}")
 
     # Get data from cache if cache_key provided
@@ -744,6 +750,8 @@ async def _dataframe_query(
             "summary": {...}  # Operation-specific summary
         }
     """
+    if columns:
+        columns = _parse_json_string(columns)
     logger.info(f"🐼 DATAFRAME_QUERY: operation={operation}, cache_key={dataframe_cache_key}")
 
     # Get DataFrame from cache

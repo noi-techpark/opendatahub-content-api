@@ -7,6 +7,7 @@ from tools.base import SmartTool
 from tools.data_cache import get_cache
 from clients.content_client import ContentAPIClient
 from preprocessing.strategies import aggregate_datasets, aggregate_dataset_entries, field_projection
+from tools.pydantic_workaroud import _parse_json_string
 
 logger = logging.getLogger(__name__)
 cache = get_cache()
@@ -131,7 +132,7 @@ async def _get_dataset_entries(
 
     # Apply field projection if requested
     if fields and 'Items' in result:
-        result = field_projection(result, fields)
+        result = field_projection(result, _parse_json_string(fields))
 
     total = result.get('TotalResults', len(result.get('Items', [])))
     items = result.get('Items', [])
