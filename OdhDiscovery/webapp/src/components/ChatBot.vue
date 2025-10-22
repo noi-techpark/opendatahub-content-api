@@ -372,16 +372,28 @@ const handleNavigation = (navCommand) => {
       if (key === 'datasetName' || key === 'typeName') {
         route.params[key] = value
       } else {
-        // Query params
-        route.query[key] = value
+        // Query params - handle arrays by joining with commas
+        if (Array.isArray(value)) {
+          route.query[key] = value.join(',')
+        } else {
+          route.query[key] = value
+        }
       }
     }
   }
 
   console.log('Navigating to:', route)
 
+  // Set flag to trigger transition on next navigation
+  window.__botNavigating = true
+
   // Navigate to route (manual click - always navigate)
   router.push(route)
+
+  // Clear flag after navigation completes
+  setTimeout(() => {
+    window.__botNavigating = false
+  }, 50)
 
   // Minimize chat after navigation
   // isOpen.value = false
@@ -415,7 +427,8 @@ const buildNavigationUrl = (navCommand) => {
     for (const [key, value] of Object.entries(navCommand.params)) {
       if (key !== 'datasetName' && key !== 'typeName') {
         if (Array.isArray(value)) {
-          queryParams.append(key, JSON.stringify(value))
+          // Join arrays with commas for clean URL display
+          queryParams.append(key, value.join(','))
         } else {
           queryParams.append(key, value)
         }
@@ -515,13 +528,26 @@ watch(pendingNavigation, (navCommand) => {
         if (key === 'datasetName' || key === 'typeName') {
           route.params[key] = value
         } else {
-          route.query[key] = value
+          // Handle arrays by joining with commas (for proper URL serialization)
+          if (Array.isArray(value)) {
+            route.query[key] = value.join(',')
+          } else {
+            route.query[key] = value
+          }
         }
       }
     }
 
+    // Set flag to trigger transition on next navigation
+    window.__botNavigating = true
+
     // Auto-navigate
     router.push(route)
+
+    // Clear flag after navigation completes
+    setTimeout(() => {
+      window.__botNavigating = false
+    }, 50)
 
     // Minimize chat after auto-navigation
     // isOpen.value = false

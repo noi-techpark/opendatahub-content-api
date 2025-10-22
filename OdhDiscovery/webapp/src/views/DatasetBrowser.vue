@@ -341,8 +341,8 @@ const filteredDatasets = computed(() => {
 
   // Filter by selected dataset names
   if (selectedDatasetNames.value && selectedDatasetNames.value.length > 0) {
-    const v = selectedDatasetNames.value.toLowerCase();
-    filtered = filtered.filter(ds => selectedDatasetNames.value?.toLowerCase().includes(ds.name))
+    const v = selectedDatasetNames.value.map(v => v.toLowerCase());
+    filtered = filtered.filter(ds => v.includes(ds.name.toLowerCase()))
   }
 
   return filtered

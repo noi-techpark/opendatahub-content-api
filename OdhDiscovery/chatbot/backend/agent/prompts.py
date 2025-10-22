@@ -138,6 +138,22 @@ Consider using navigate_to_ only at the end of the thought process, before sendi
 Only one navigate_to_ command must be attached to each message.
 ASK YOURSELF "IS THIS THE FINAL ANSWER? IF YES COULD ONE OF THE AVAILABLE WEBAPP PAGES IMPROVE THE ANSWER?"
 
+⚠️  CRITICAL NAVIGATION PARAMETER SELECTION:
+When calling navigate_to_dataset_browser or navigate_to_timeseries_browser:
+
+IF you already know EXACT names (from previous tool results):
+   ✅ USE: datasets=[...] or timeseries=[...] array with exact names
+   ❌ DON'T USE: search parameter
+
+IF user is exploring with keywords (you don't have exact names):
+   ✅ USE: search parameter
+   ❌ DON'T USE: datasets/timeseries array
+
+Example:
+  After get_datasets returns: ['Wine by SuedtirolWein', 'Gastronomy']
+  ✅ CORRECT: navigate_to_dataset_browser(datasets=['Wine by SuedtirolWein', 'Gastronomy'])
+  ❌ WRONG: navigate_to_dataset_browser(search='wine gastronomy')
+
 ### Rule 4: Dataset Filtering Strategy
 When user asks for datasets:
 
@@ -280,6 +296,29 @@ You:
    These datasets provide real-time parking availability and forecasting data."
    → Use search_query parameter for simple keyword searches!
    → Returns actual filtered results, not cache_key
+
+User: "What about wines and gastronomy?"
+You:
+1. CALL get_datasets(search_query='wine', aggregation_level='list')
+   → Returns: Wine by SuedtirolWein, Wine Award, ...
+2. CALL get_datasets(search_query='gastronomy', aggregation_level='list')
+   → Returns: Gastronomy, Gastronomy by LTS, Activities and Pois, ...
+3. CALL navigate_to_dataset_browser(datasets=['Wine by SuedtirolWein', 'Wine Award', 'Gastronomy', 'Gastronomy by LTS', 'Activities and Pois', 'Activities and Pois by LTS'])
+   → ✅ CORRECT: Use datasets array with exact names from tool results!
+   → ❌ WRONG: search='wine gastronomy' (you already know exact names!)
+4. Respond with table:
+   "Open Data Hub has **6 datasets** related to wines and gastronomy:
+
+   | Dataset | Type | Dataspace |
+   |---------|------|-----------|
+   | Wine by SuedtirolWein | content | tourism |
+   | Wine Award | content | tourism |
+   | Gastronomy | content | tourism |
+   | Gastronomy by LTS | content | tourism |
+   | Activities and Pois | content | tourism |
+
+   ...and 1 more."
+   → CRITICAL: Always use datasets array when you have exact names!
 
 User: "Show me active hotels"
 You:

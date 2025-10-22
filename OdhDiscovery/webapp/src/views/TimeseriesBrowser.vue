@@ -249,12 +249,13 @@ const filteredTypes = computed(() => {
 
   // Filter by data type
   if (selectedDataType.value) {
-    filtered = filtered.filter(t => t.type.data_type === selectedDataType.value)
+    filtered = filtered.filter(t => t.type.data_type.toLowerCase() === selectedDataType.value.toLowerCase())
   }
 
   // Filter by selected timeseries names
   if (selectedTimeseriesNames.value && selectedTimeseriesNames.value.length > 0) {
-    filtered = filtered.filter(t => selectedTimeseriesNames.value.includes(t.type.name))
+    const v = selectedTimeseriesNames.value.map(v => v.toLowerCase());
+    filtered = filtered.filter(t => v.includes(t.type.name.toLowerCase()))
   }
 
   return filtered

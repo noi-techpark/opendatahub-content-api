@@ -170,18 +170,45 @@ When to use:
 ✅ Answer involves listing multiple datasets with filters
 ✅ User wants to explore datasets by dataspace or API type
 
+PARAMETER SELECTION GUIDE (CRITICAL - Follow this decision tree):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Q: Do you already know the EXACT dataset names (from a previous tool call)?
+   ├─ YES → Use `datasets` array parameter with exact names
+   │         ✅ Example: datasets=['Wine by SuedtirolWein', 'Gastronomy', 'Wine Award']
+   │         ❌ DON'T use search parameter if you have exact names!
+   │
+   └─ NO → Use other parameters:
+       ├─ User asked about category/domain? → Use dataspace or apiType
+       │  ✅ Example: dataspace='tourism', apiType='content'
+       │
+       └─ User asked with keywords/search terms? → Use search
+          ✅ Example: search='hotel' (when you DON'T know exact dataset names)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Parameters:
-  - dataspace: Filter by 'tourism', 'mobility', or other (optional); LEAVE EMPTY TO SE ALL DATASPACES; "all" IS NOT A VALID FILTER
-  - apiType: Filter by 'content' or 'timeseries' (optional); LEAVE EMPTY TO SE ALL TYPES; "all" IS NOT A VALID FILTER
-  - datasets: Array of dataset short names for multiselect (optional)
-  - search: Search query to filter datasets by name or description (optional)
+  - datasets: Array of EXACT dataset short names (e.g., ['Accommodation', 'Gastronomy'])
+    👉 Use when: You already fetched datasets and know their exact names
+    ❌ DON'T use search if you have exact names!
+
+  - search: Keyword search query (e.g., 'hotel', 'parking')
+    👉 Use when: User exploring with keywords AND you don't have exact names yet
+    ❌ DON'T use if you already know exact dataset names!
+
+  - dataspace: Exact dataspace filter ('tourism', 'mobility', etc.)
+    👉 Use when: User asks for specific dataspace category
+
+  - apiType: API type filter ('content' or 'timeseries')
+    👉 Use when: User asks for specific API type
+
   - page: Page number, default 1 (optional)
 
 Examples:
-  navigate_to_dataset_browser(dataspace='tourism')
-  navigate_to_dataset_browser(apiType='content')
-  navigate_to_dataset_browser(search='hotel')
-  navigate_to_dataset_browser()  # Show all datasets""",
+  ✅ CORRECT: datasets=['Wine by SuedtirolWein', 'Gastronomy'] (you know exact names)
+  ✅ CORRECT: dataspace='tourism' (category filter)
+  ✅ CORRECT: search='hotel' (user exploring, you don't know exact names)
+  ❌ WRONG: search='wine gastronomy' (when you already know exact dataset names!)""",
     func=_navigate_to_dataset_browser,
     max_tokens=2500,
     return_direct=False
@@ -234,16 +261,42 @@ When to use:
 ✅ Answer involves listing multiple timeseries types
 ✅ User wants to explore timeseries by data type
 
+PARAMETER SELECTION GUIDE (CRITICAL - Follow this decision tree):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Q: Do you already know the EXACT timeseries type names (from a previous tool call)?
+   ├─ YES → Use `timeseries` array parameter with exact names
+   │         ✅ Example: timeseries=['temperature', 'humidity', 'parking']
+   │         ❌ DON'T use search parameter if you have exact names!
+   │
+   └─ NO → Use other parameters:
+       ├─ User asked about data type category? → Use dataType
+       │  ✅ Example: dataType='numeric'
+       │
+       └─ User asked with keywords/search terms? → Use search
+          ✅ Example: search='temperature' (when you DON'T know exact type names)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Parameters:
-  - dataType: Filter by 'numeric', 'string', 'boolean', 'json', 'geoposition', 'geoshape' (optional)
-  - timeseries: Array of type names for multiselect (optional)
-  - search: Search query to filter timeseries by name or description (optional)
+  - timeseries: Array of EXACT type names (e.g., ['temperature', 'parking', 'humidity'])
+    👉 Use when: You already fetched types and know their exact names
+    ❌ DON'T use search if you have exact names!
+
+  - search: Keyword search query (e.g., 'weather', 'parking')
+    👉 Use when: User exploring with keywords AND you don't have exact names yet
+    ❌ DON'T use if you already know exact type names!
+
+  - dataType: Data type filter ('numeric', 'string', 'boolean', 'json', 'geoposition', 'geoshape')
+    👉 Use when: User asks for specific data type category
+
   - page: Page number, default 1 (optional)
 
 Examples:
-  navigate_to_timeseries_browser(dataType='numeric')
-  navigate_to_timeseries_browser(search='temperature')
-  navigate_to_timeseries_browser()  # Show all types""",
+  ✅ CORRECT: timeseries=['temperature', 'humidity'] (you know exact names)
+  ✅ CORRECT: dataType='numeric' (category filter)
+  ✅ CORRECT: search='weather' (user exploring, you don't know exact names)
+  ❌ WRONG: search='temperature humidity' (when you already know exact type names!)""",
     func=_navigate_to_timeseries_browser,
     max_tokens=2500,
     return_direct=False

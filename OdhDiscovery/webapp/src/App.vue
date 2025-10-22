@@ -16,7 +16,7 @@
     <main class="main-content">
       <router-view v-slot="{ Component, route }">
         <transition name="page" mode="out-in">
-          <component :is="Component" :key="route.fullPath" />
+          <component :is="Component" :key="getRouteKey(route)" />
         </transition>
       </router-view>
     </main>
@@ -28,6 +28,17 @@
 
 <script setup>
 import ChatBot from './components/ChatBot.vue'
+
+// Get route key - use fullPath only when bot is navigating
+function getRouteKey(route) {
+  // Check if bot is currently navigating
+  if (window.__botNavigating) {
+    return route.fullPath
+  }
+  // For manual navigation, only use path (no query params)
+  // This prevents transitions on filter changes
+  return route.path
+}
 </script>
 
 <style>
