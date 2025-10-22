@@ -386,7 +386,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     SetAdditionalInfosCategoriesByODHTags(gastroparsed, jsondata);
 
                     //TODO Maybe we can disable this withhin the Api Switch
-                    //Traduce all Tags with Source IDM to english tags
+                    //Traduce all Tags with Source IDM to english tags , CONSIDER TagId "gastronomy" is added here
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                             gastroparsed,
                             settings.JsonConfig.Jsondir

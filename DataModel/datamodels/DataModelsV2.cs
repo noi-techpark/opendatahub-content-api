@@ -728,7 +728,7 @@ namespace DataModel
         public string OpeningtimesWineshop { get; set; }
         public string OpeningtimesGuides { get; set; }
         public string OpeningtimesGastronomie { get; set; }
-        public string CcompanyHoliday { get; set; }
+        public string CompanyHoliday { get; set; }
         public bool HasVisits { get; set; }
         public bool HasOvernights { get; set; }
         public bool HasBiowine { get; set; }

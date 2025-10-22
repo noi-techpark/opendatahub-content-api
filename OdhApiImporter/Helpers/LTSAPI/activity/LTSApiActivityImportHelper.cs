@@ -364,7 +364,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     AddActivitySpecialCases(activityparsed);
 
                     //TODO Maybe we can disable this withhin the Api Switch
-                    //Traduce all Tags with Source IDM to english tags
+                    //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "activity" is added here
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                         activityparsed,
                         settings.JsonConfig.Jsondir

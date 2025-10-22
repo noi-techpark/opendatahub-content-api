@@ -132,7 +132,7 @@ namespace DataModel.helpers
         public static void FillSuedtirolWeinCompanyAdditionalProperties(this ODHActivityPoi odhActivityPoi)
         {
             SuedtirolWeinCompanyDataProperties addprop = new SuedtirolWeinCompanyDataProperties();
-            //TODO Fill the properties here
+            //TODO Fill the properties here           
 
             var additionalpropertieskey = typeof(SuedtirolWeinCompanyDataProperties).Name;
 
