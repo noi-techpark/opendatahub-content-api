@@ -140,18 +140,26 @@ def create_agent_graph():
         logger.info(f"🤖 AGENT ITERATION {iteration}")
         logger.info(f"{'='*60}")
 
+        # Get conversation messages
         messages = list(state.get("messages", []))
+        # Filter out any system messages - we'll inject fresh system prompt
+        # This prevents system messages from being stored in conversation history
+        conversation_messages = [m for m in messages if not isinstance(m, SystemMessage)]
+
         new_messages = []
 
         try:
-            logger.info(f"🔮 Calling LLM with {len(messages+new_messages)} messages...")
+            # Build LLM payload: ALWAYS inject system message at the start
+            # System message is ephemeral (not stored in history) to save tokens
+            llm_payload = [SystemMessage(content=SYSTEM_PROMPT)] + conversation_messages + new_messages
+
+            logger.info(f"🔮 Calling LLM with {len(llm_payload)} messages (1 system + {len(conversation_messages + new_messages)} conversation)...")
 
             # Log LLM request to file
-            llm_payload = messages + new_messages
             llm_logger.info(f"{'='*80}")
             llm_logger.info(f"LLM REQUEST (Iteration {iteration})")
             llm_logger.info(f"{'='*80}")
-            llm_logger.info(f"Total messages: {len(llm_payload)}")
+            llm_logger.info(f"Total messages: {len(llm_payload)} (1 system + {len(conversation_messages + new_messages)} conversation)")
             for i, msg in enumerate(llm_payload):
                 msg_type = msg.__class__.__name__
                 msg_content = getattr(msg, 'content', str(msg))

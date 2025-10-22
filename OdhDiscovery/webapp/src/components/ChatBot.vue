@@ -150,7 +150,8 @@
             </svg>
           </div>
           <div class="message-content">
-            <div class="message-text">{{ currentMessage }}<span class="cursor">▊</span></div>
+            <div class="message-text" v-html="renderMarkdown(currentMessage)"></div>
+            <span class="cursor">▊</span>
           </div>
         </div>
 
@@ -959,6 +960,30 @@ onMounted(() => {
   color: rgba(0, 0, 0, 0.7);
 }
 
+.message-text :deep(table) {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.message-text :deep(table th) {
+  background: #f3f4f6;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.message-text :deep(table td) {
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.message-text :deep(table tr:nth-child(even)) {
+  background: #f9fafb;
+}
+
 /* User message markdown overrides */
 .message-user .message-text :deep(code) {
   background: rgba(255, 255, 255, 0.2);
@@ -988,6 +1013,9 @@ onMounted(() => {
 .cursor {
   animation: blink 1s infinite;
   color: var(--primary-color, #3b82f6);
+  margin-left: 2px;
+  display: inline-block;
+  vertical-align: text-bottom;
 }
 
 @keyframes blink {

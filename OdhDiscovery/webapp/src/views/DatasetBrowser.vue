@@ -309,17 +309,20 @@ const filteredDatasets = computed(() => {
 
   // Filter by dataspace
   if (selectedDataspace.value) {
-    filtered = filtered.filter(ds => ds.dataspace === selectedDataspace.value)
+    const v = selectedDataspace.value.toLowerCase();
+    filtered = filtered.filter(ds => ds.dataspace?.toLowerCase() === v)
   }
 
   // Filter by API type
   if (selectedApiType.value) {
-    filtered = filtered.filter(ds => ds.apiType === selectedApiType.value)
+    const v = selectedApiType.value.toLowerCase();
+    filtered = filtered.filter(ds => ds.apiType?.toLowerCase() === v)
   }
 
   // Filter by selected dataset names
   if (selectedDatasetNames.value && selectedDatasetNames.value.length > 0) {
-    filtered = filtered.filter(ds => selectedDatasetNames.value.includes(ds.name))
+    const v = selectedDatasetNames.value.toLowerCase();
+    filtered = filtered.filter(ds => selectedDatasetNames.value?.toLowerCase().includes(ds.name))
   }
 
   return filtered

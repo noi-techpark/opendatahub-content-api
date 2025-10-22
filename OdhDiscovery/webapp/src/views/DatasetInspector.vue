@@ -3,26 +3,50 @@
     <div class="container">
       <div class="page-header">
         <h1>{{ datasetName }}</h1>
-        <p>Inspect dataset entries and apply filters</p>
+        <p v-if="datasetDescription" class="dataset-description">{{ datasetDescription }}</p>
+        <p v-else class="dataset-subtitle">Inspect dataset entries and apply filters</p>
       </div>
 
-      <!-- cURL Display -->
-      <CurlDisplay :curlCommand="curlCommand" />
-
-      <!-- Dataset Statistics -->
-      <div v-if="loading" class="loading-placeholder card">
-        <div class="spinner"></div>
-        <p>Loading dataset analysis...</p>
+      <!-- Error State -->
+      <div v-if="error" class="error-container card">
+        <div class="error-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <h3>Error Loading Dataset</h3>
+        <p class="error-message">{{ error }}</p>
+        <div class="error-actions">
+          <button @click="$router.push('/datasets')" class="btn btn-primary">
+            Browse All Datasets
+          </button>
+          <button @click="loadData()" class="btn btn-outline">
+            Try Again
+          </button>
+        </div>
       </div>
-      <DatasetStats
-        v-else-if="analysis"
-        :analysis="analysis"
-        :total-entries="totalResults"
-        :timeseries-analysis="timeseriesAnalysis"
-      />
 
-      <!-- Filters Section -->
-      <div class="filters-section card">
+      <!-- Main Content (only show if no error) -->
+      <template v-else>
+        <!-- cURL Display -->
+        <CurlDisplay :curlCommand="curlCommand" />
+
+        <!-- Dataset Statistics -->
+        <div v-if="loading" class="loading-placeholder card">
+          <div class="spinner"></div>
+          <p>Loading dataset analysis...</p>
+        </div>
+        <DatasetStats
+          v-else-if="analysis"
+          :analysis="analysis"
+          :total-entries="totalResults"
+          :timeseries-analysis="timeseriesAnalysis"
+        />
+
+        <!-- Filters Section -->
+        <div class="filters-section card">
         <h3>Filters</h3>
 
         <div class="filter-group">
@@ -178,11 +202,6 @@
         <div class="spinner"></div>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="error" class="error-message">
-        {{ error }}
-      </div>
-
       <!-- Table View -->
       <div v-else-if="view === 'table'" class="table-view">
         <div class="table-controls">
@@ -287,6 +306,7 @@
           />
         </template>
       </div>
+      </template><!-- End of v-else for main content -->
     </div>
   </div>
 </template>
@@ -362,6 +382,13 @@ const analysis = computed(() => datasetStore.analysis)
 const timeseriesAnalysis = computed(() => datasetStore.timeseriesAnalysis)
 const totalResults = computed(() => datasetStore.totalResults)
 const totalPages = computed(() => datasetStore.totalPages)
+const currentMetadata = computed(() => datasetStore.currentMetadata)
+
+// Extract dataset description from metadata
+const datasetDescription = computed(() => {
+  if (!currentMetadata.value) return null
+  return currentMetadata.value.ApiDescription?.en || null
+})
 
 const allFields = computed(() => {
   if (!analysis.value?.fields) return []
@@ -504,26 +531,32 @@ onMounted(() => {
 })
 
 async function loadData() {
-  try {
-    loading.value = true
-    error.value = null
+  loading.value = true
+  error.value = null
 
-    await datasetStore.loadDatasetEntries(props.datasetName, {
-      pagenumber: page.value,
-      pagesize: pagesize.value,
-      searchfilter: searchfilter.value || undefined,
-      rawfilter: generatedRawFilter.value || undefined
-    })
+  await datasetStore.loadDatasetEntries(props.datasetName, {
+    pagenumber: page.value,
+    pagesize: pagesize.value,
+    searchfilter: searchfilter.value || undefined,
+    rawfilter: generatedRawFilter.value || undefined
+  })
 
+  // Check if the store encountered an error
+  if (datasetStore.error) {
+    // Check if it's a dataset not found error
+    if (datasetStore.error.includes('404') || datasetStore.error.includes('not found') || !currentMetadata.value) {
+      error.value = `Dataset "${props.datasetName}" not found. Please check the dataset name and try again.`
+    } else {
+      error.value = datasetStore.error
+    }
+  } else {
     // Restore selections after data loads
     if (selectedIds.value && selectedIds.value.length > 0) {
       selectedEntries.value = entries.value.filter(e => selectedIds.value.includes(e.Id))
     }
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
   }
+
+  loading.value = false
 }
 
 function togglePresenceFilter(fieldPath) {
@@ -675,6 +708,19 @@ function handleUpdateDistinctProperties(properties) {
   margin-bottom: 0.5rem;
 }
 
+.dataset-description {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.dataset-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
 .controls {
   display: flex;
   justify-content: space-between;
@@ -799,12 +845,43 @@ function handleUpdateDistinctProperties(properties) {
   word-break: break-word;
 }
 
-.error-message {
-  padding: 2rem;
+/* Error container */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
   text-align: center;
-  color: var(--danger-color);
-  background: rgba(239, 68, 68, 0.1);
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
+}
+
+.error-icon {
+  color: var(--danger-color);
+  margin-bottom: 1rem;
+}
+
+.error-container h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.error-message {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+  max-width: 600px;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
 }
 
 .btn-sm {

@@ -14,7 +14,11 @@
       </div>
     </nav>
     <main class="main-content">
-      <router-view />
+      <router-view v-slot="{ Component, route }">
+        <transition name="page" mode="out-in">
+          <component :is="Component" :key="route.path" />
+        </transition>
+      </router-view>
     </main>
 
     <!-- Chatbot Component -->
@@ -25,6 +29,34 @@
 <script setup>
 import ChatBot from './components/ChatBot.vue'
 </script>
+
+<style>
+/* Global page transition styles (must be unscoped) */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.3s ease;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+</style>
 
 <style scoped>
 .navbar {
@@ -91,5 +123,6 @@ import ChatBot from './components/ChatBot.vue'
 .main-content {
   min-height: calc(100vh - 4rem);
   padding: 2rem 0;
+  position: relative;
 }
 </style>
