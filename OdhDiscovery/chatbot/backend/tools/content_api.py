@@ -19,7 +19,7 @@ content_client = ContentAPIClient()
 
 async def _get_datasets(
     aggregation_level: str = "list",
-    dataspace_filter: str | None = None,
+    search_query: str | None = None,
     **kwargs
 ) -> dict:
     """
@@ -27,17 +27,22 @@ async def _get_datasets(
 
     Args:
         aggregation_level: Level of detail - "list" (default), "summary", or "full"
-        dataspace_filter: Optional filter by dataspace (e.g., "tourism", "mobility")
+        search_query: Optional text search across dataset names and descriptions
     """
-    logger.info(f"📋 Fetching datasets with aggregation_level='{aggregation_level}', dataspace_filter={dataspace_filter}")
+    logger.info(f"📋 Fetching datasets with aggregation_level='{aggregation_level}', search_query={search_query}")
 
     datasets = await content_client.get_datasets()
     logger.info(f"   Retrieved {len(datasets)} datasets from MetaData API")
 
-    # Filter by dataspace if requested
-    if dataspace_filter:
-        datasets = [d for d in datasets if d.get("Dataspace") == dataspace_filter]
-        logger.info(f"   Filtered to {len(datasets)} datasets in '{dataspace_filter}' dataspace")
+    # Filter by search query if provided
+    if search_query:
+        query_lower = search_query.lower()
+        datasets = [
+            d for d in datasets
+            if query_lower in d.get("Shortname", "").lower() or
+               query_lower in str(d.get("ApiDescription", {}).get("en", "")).lower()
+        ]
+        logger.info(f"   🔍 Filtered to {len(datasets)} datasets matching '{search_query}'")
 
     # Apply aggregation based on level
     if aggregation_level == "full":
@@ -359,51 +364,51 @@ get_datasets_tool = SmartTool(
 
     Parameters:
     - aggregation_level: Controls detail level (default: "list")
-      * "list" (DEFAULT): Just names, types, dataspaces (~2000 tokens) - Use this first!
-      * "summary": Compact summary grouped by dataspace (~7000 tokens)
-      * "full": Complete metadata (LARGE ~100k tokens) - Only if you need ALL fields
-    - dataspace_filter: Optional filter by dataspace ("tourism", "mobility", "weather", etc.)
+      * "list" (DEFAULT): Just names, types, dataspaces - Use this first!
+      * "summary": Compact summary grouped by dataspace
+      * "full": Complete metadata (LARGE) - Only if you need ALL fields for complex operations
 
-    ⚠️  IMPORTANT WORKFLOW - Follow these steps for best results:
+    - search_query: (RECOMMENDED) Text search across dataset names and descriptions
+      * Use this for keyword searches: "parking", "hotel", "weather", etc.
+      * Returns filtered results directly - no need for pandas workflow!
+      * Works with any aggregation_level
+
+    ⚠️  IMPORTANT WORKFLOW GUIDELINES:
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    When user asks: "Which datasets are available?" or "Show me datasets"
 
-    Step 1: Call get_datasets(aggregation_level="list") first
-            → Returns minimal info: just names, types, dataspaces
-            → Fast, efficient, always works
+    SIMPLE SEARCHES (Use search_query parameter):
+    ✅ User: "What datasets about parking are available?"
+       → get_datasets(search_query="parking", aggregation_level="list")
+       → Returns actual filtered results (e.g., Parking, ParkingForecast)
 
-    Step 2: If user wants MORE detail (descriptions, filters, etc.):
-            Call get_datasets(aggregation_level="full") to get complete data
-            → This returns a CACHE_KEY (not the data itself!)
-            → Data is stored in cache to avoid token limits
-            → Response includes: {cache_key: "datasets_full", total: 167, sample: [...]}
+    ✅ User: "Show me tourism datasets"
+       → get_datasets(search_query="tourism", aggregation_level="list")
+       → Returns datasets with "tourism" in name/description
 
-    Step 3: Then immediately call aggregate_data tool with the cache_key:
-            aggregate_data(
-                strategy="extract_fields",
-                cache_key="datasets_full",
-                fields=["Shortname", "ApiDescription", "Dataspace", "ApiType"]
-            )
-            → This extracts only the fields user needs from cached data
-            → Returns reduced data that fits in context
+    ✅ User: "Find hotel datasets"
+       → get_datasets(search_query="hotel", aggregation_level="list")
 
-    Alternative: For counts/grouping with cached data:
-            aggregate_data(strategy="count_by", cache_key="datasets_full", group_by="Dataspace")
-            aggregate_data(strategy="distinct_values", cache_key="datasets_full", fields=["ApiType"])
+    COMPLEX FILTERING (Use pandas workflow):
+    Only use this for complex operations like:
+    - Multiple conditions: "tourism datasets with more than 1000 entries"
+    - Sorting: "datasets sorted by last update"
+    - Grouping/aggregation: "count datasets by dataspace and API type"
+
+    Step 1: get_datasets(aggregation_level="full") → cache_key
+    Step 2: flatten_data(cache_key="...", fields=[...]) → dataframe_cache_key
+    Step 3: dataframe_query(dataframe_cache_key="...", operation="filter", query="...")
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     Returns:
-    - For "list" and "summary": {total: N, datasets: [...]}
-    - For "full": {total: N, cache_key: "datasets_full", message: "...", next_step: "...", sample: [...]}
+    - For "list"/"summary": {total: N, datasets: [{name, type, dataspace}, ...]}
+    - For "full": {total: N, cache_key: "datasets_full", sample: [...]}
 
     Examples:
-    - Quick list: get_datasets() or get_datasets(aggregation_level="list")
-    - Tourism only: get_datasets(aggregation_level="list", dataspace_filter="tourism")
-    - Full data for aggregation:
-      Step 1: get_datasets(aggregation_level="full")
-      Step 2: aggregate_data(strategy="extract_fields", cache_key="datasets_full", fields=[...])""",
+    ✅ SIMPLE: get_datasets(search_query="parking", aggregation_level="list")
+    ✅ SIMPLE: get_datasets(search_query="weather", aggregation_level="list")
+    ⚠️  COMPLEX: Only use full + pandas for advanced operations (see guidelines above)""",
     func=_get_datasets,
-    max_tokens=10000  # Increased to handle full responses
+    max_tokens=10000
 )
 
 get_dataset_entries_tool = SmartTool(
