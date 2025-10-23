@@ -725,45 +725,46 @@ namespace DataModel
 
         //TODO add Dictionary where it needs localization, categorize (socials) etc...
 
-        public string OpeningtimesWineshop { get; set; }
-        public string OpeningtimesGuides { get; set; }
-        public string OpeningtimesGastronomie { get; set; }
-        public string CompanyHoliday { get; set; }
-        public bool HasVisits { get; set; }
-        public bool HasOvernights { get; set; }
-        public bool HasBiowine { get; set; }
+        public IDictionary<string, string>? OpeningtimesWineshop { get; set; }
+        public IDictionary<string, string>? OpeningtimesGuides { get; set; }
+        public IDictionary<string, string>? OpeningtimesGastronomie { get; set; }
+        public IDictionary<string, string>? CompanyHoliday { get; set; }
+        public bool? HasVisits { get; set; }
+        public bool? HasOvernights { get; set; }
+        public bool? HasBiowine { get; set; }
+        public bool? HasAccommodation { get; set; }
+        public bool? IsVinumHotel { get; set; }
+        public bool? IsAnteprima { get; set; }
+        public bool? IsWineStories { get; set; }
+        public bool? IsWineSummit { get; set; }
+        public bool? IsSparklingWineassociation { get; set; }
+        public bool? IsWinery { get; set; }
+        public bool? HasOnlineshop { get; set; }
+        public bool? HasDeliveryservice { get; set; }
+        public bool? HasDirectSales { get; set; }
+        public bool? IsSkyalpsPartner { get; set; }        
 
-        public string Wines { get; set; }
-        public bool HasAccommodation { get; set; }
-        public bool IsVinumHotel { get; set; }
-        public bool IsAnteprima { get; set; }
-        public bool IsWineStories { get; set; }
-        public bool IsWineSummit { get; set; }
+        public ICollection<string>? Wines { get; set; }
+     
+       
+        public IDictionary<string, string>? OnlineShopurl { get; set; }
+        public IDictionary<string, string>? DeliveryServiceUrl { get; set; }
+        public IDictionary<string,string>? H1 { get; set; }
+        public IDictionary<string, string>? H2 { get; set; }
+        public IDictionary<string, string>? Quote { get; set; }
+        public IDictionary<string, string>? QuoteAuthor { get; set; }
+        public IDictionary<string, string>? DescriptionSparklingWineproducer { get; set; }
+        public IDictionary<string, string>? H1SparklingWineproducer { get; set; }
+        public IDictionary<string, string>? H2SparklingWineproducer { get; set; }
 
-        public bool issparklingwineassociation { get; set; }
-
-        public bool iswinery { get; set; }
-        public bool hasonlineshop { get; set; }
-        public bool hasdeliveryservice { get; set; }
-        public string onlineshopurl { get; set; }
-        public string deliveryserviceurl { get; set; }
-        public string h1 { get; set; }
-        public string h2 { get; set; }
-        public string quote { get; set; }
-        public string quoteauthor { get; set; }
-        public string descriptionsparklingwineproducer { get; set; }
-        public string h1sparklingwineproducer { get; set; }
-        public string h2sparklingwineproducer { get; set; }
-        public string imagesparklingwineproducer { get; set; }
-        public bool hasdirectsales { get; set; }
-        public bool isskyalpspartner { get; set; }
-        public bool socialsinstagram { get; set; }
-        public string socialsfacebook { get; set; }
-        public string socialslinkedIn { get; set; }
-        public string socialspinterest { get; set; }
-        public string socialstiktok { get; set; }
-        public string socialsyoutube { get; set; }
-        public string socialstwitter { get; set; }        
+        public string? ImageSparklingWineproducer { get; set; }
+        public string? SocialsFacebook { get; set; }
+        public string? SocialsInstagram { get; set; }
+        public string? SocialsLinkedIn { get; set; }
+        public string? SocialsPinterest { get; set; }
+        public string? SocialsTiktok { get; set; }
+        public string? SocialsYoutube { get; set; }
+        public string? SocialsTwitter { get; set; }        
     }
 
     public class SiagMuseumDataProperties

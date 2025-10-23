@@ -748,8 +748,8 @@ namespace SuedtirolWein.Parser
             mywinecompany.AgeFrom = null;
             mywinecompany.AgeTo = null;
             mywinecompany.SmgActive = false;
-
-
+            mywinecompany.AreaId = null;
+            //mywinecompany.ODHActivityPoiTypes = null;
 
             mywinecompany.Shortname = companydata["de"].Element("title").Value;
 
