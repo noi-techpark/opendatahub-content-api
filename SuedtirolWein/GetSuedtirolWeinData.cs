@@ -2,9 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -64,7 +66,7 @@ namespace SuedtirolWein
             }
         }
 
-        public static async Task<XDocument> GetSueditrolWineCompaniesAsync(
+        public static async Task<XDocument> GetSuedtirolWineCompaniesAsync(
             string serviceurl,
             string lang
         )
@@ -78,7 +80,7 @@ namespace SuedtirolWein
             return myweatherresponse;
         }
 
-        public static async Task<XDocument> GetSueditrolWineAwardsAsync(
+        public static async Task<XDocument> GetSuedtirolWineAwardsAsync(
             string serviceurl,
             string lang
         )
@@ -86,8 +88,25 @@ namespace SuedtirolWein
             //make Request
             HttpResponseMessage response = await RequestAwardsAsync(serviceurl, lang);
             //Read Content and parse to XDocument
-            var responsetask = await response.Content.ReadAsStringAsync();
-            XDocument myweatherresponse = XDocument.Parse(responsetask);
+            //var responsetask = await response.Content.ReadAsStringAsync();
+
+            //Hack because content-type is malformed and response.Content.ReadAsStringAsync() throws error
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+
+            Encoding encoding;
+            try
+            {
+                var charset = response.Content.Headers.ContentType?.CharSet?.Trim('"') ?? "utf-8";
+                encoding = Encoding.GetEncoding(charset);
+            }
+            catch
+            {
+                encoding = Encoding.UTF8;
+            }
+
+            var xml = encoding.GetString(bytes);
+
+            XDocument myweatherresponse = XDocument.Parse(xml);
 
             return myweatherresponse;
         }

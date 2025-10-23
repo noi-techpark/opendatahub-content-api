@@ -58,31 +58,15 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
         )
         {
             IDictionary<string, XDocument> mywinedata = new Dictionary<string, XDocument>();
-            mywinedata.Add("de", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "de"
-            ));
-            mywinedata.Add("it", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "it"
-            ));
-            mywinedata.Add("en", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "en"
-            ));
-            mywinedata.Add("ru", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "ru"
-            ));
-            mywinedata.Add("jp", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "jp"
-            ));
-            mywinedata.Add("us", await GetSuedtirolWeinData.GetSueditrolWineCompaniesAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "us"
-            ));
+            List<string> languagestoretrieve = new List<string>() { "de", "it", "en", "ru", "jp", "us" };
 
+            foreach(var language in languagestoretrieve)
+            {
+                mywinedata.Add(language, await GetSuedtirolWeinData.GetSuedtirolWineCompaniesAsync(
+                settings.SuedtirolWeinConfig.ServiceUrl,
+                language));
+            }
+                       
             return mywinedata;
         }
 
