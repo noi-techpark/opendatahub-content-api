@@ -507,7 +507,13 @@ http.Post("${timeseriesUrl}", "application/json", bytes.NewBuffer(payload))`
 })
 
 // Watch for filter changes and dataset name changes
-watch([page, pagesize, searchfilter, generatedRawFilter], () => {
+watch([page, pagesize], () => {
+  loadData()
+})
+
+// Watch for filter changes and dataset name changes
+watch([searchfilter, generatedRawFilter], () => {
+  datasetStore.reset();
   loadData()
 })
 
@@ -527,6 +533,7 @@ onMounted(() => {
     view: view.value
   })
 
+  datasetStore.reset();
   loadData()
 })
 

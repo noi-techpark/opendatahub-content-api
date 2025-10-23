@@ -30,6 +30,14 @@ export const useDatasetStore = defineStore('dataset', () => {
   // Getters
   const totalPages = computed(() => Math.ceil(totalResults.value / pageSize.value))
 
+  async function reset() {
+    allEntries.value = []
+    analysis.value = null
+    timeseriesAnalysis.value = null
+    currentMetadata.value = null
+    currentAnalysisFilters.value = null
+  }
+
   // Actions
   async function loadDatasetTypes() {
     try {
@@ -54,11 +62,7 @@ export const useDatasetStore = defineStore('dataset', () => {
 
       // Clear cached data when dataset changes
       if (datasetChanged) {
-        allEntries.value = []
-        analysis.value = null
-        timeseriesAnalysis.value = null
-        currentMetadata.value = null
-        currentAnalysisFilters.value = null
+        reset();
       }
 
       currentDatasetName.value = datasetName
@@ -147,11 +151,12 @@ export const useDatasetStore = defineStore('dataset', () => {
 
   async function loadDatasetAnalysis(datasetName, params = {}) {
     try {
-      console.log('Loading analysis for entire dataset:', datasetName)
+      console.log('Loading analysis for entire dataset:', datasetName, params)
 
       // Use cached allEntries if available, otherwise fetch
       let allData = allEntries.value
       if (!allData || allData.length === 0) {
+        console.log('FRASH FETCH! Loading analysis for entire dataset:', datasetName, params)
         allData = await loadAllEntries(datasetName, params)
       }
 
