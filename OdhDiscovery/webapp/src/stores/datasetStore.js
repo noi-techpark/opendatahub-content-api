@@ -51,6 +51,16 @@ export const useDatasetStore = defineStore('dataset', () => {
 
       // Check if dataset has changed (need to reload metadata and analysis)
       const datasetChanged = currentDatasetName.value !== datasetName
+
+      // Clear cached data when dataset changes
+      if (datasetChanged) {
+        allEntries.value = []
+        analysis.value = null
+        timeseriesAnalysis.value = null
+        currentMetadata.value = null
+        currentAnalysisFilters.value = null
+      }
+
       currentDatasetName.value = datasetName
 
       // Check if filters have changed (need to reload analysis)
