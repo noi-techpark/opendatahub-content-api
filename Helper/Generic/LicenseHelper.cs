@@ -226,7 +226,7 @@ namespace Helper
             var licenseholder = data.Source ?? "";
 
             if (data.Source == null)
-                data.Source = "Content";
+                data.Source = "content";
 
             if (data.Source.ToLower() == "noi")
                 licenseholder = "http://noi.bz.it";

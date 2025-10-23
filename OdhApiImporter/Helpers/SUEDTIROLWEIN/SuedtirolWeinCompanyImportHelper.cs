@@ -248,8 +248,8 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
                 //Setting Common Infos
                 suedtirolweinpoi.Source = "suedtirolwein";
-                suedtirolweinpoi.SyncSourceInterface = "suedtirolwein-company";
-                suedtirolweinpoi.SyncUpdateMode = "Full";
+                suedtirolweinpoi.SyncSourceInterface = "suedtirolweincompany";
+                suedtirolweinpoi.SyncUpdateMode = "full";
                 suedtirolweinpoi.LastChange = DateTime.Now;
                        
                 //Add Mapping

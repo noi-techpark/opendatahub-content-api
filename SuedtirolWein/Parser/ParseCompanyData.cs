@@ -739,7 +739,7 @@ namespace SuedtirolWein.Parser
             mywinecompany.Mapping.TryAddOrUpdate("suedtirolwein", suedtirolweinid);
 
             mywinecompany.Source = "suedtirolwein";
-            mywinecompany.SyncSourceInterface = "suedtirolwein";
+            mywinecompany.SyncSourceInterface = "suedtirolweincompany";
             mywinecompany.SyncUpdateMode = "Full";
 
             //Deprecated Fields to null
@@ -820,6 +820,8 @@ namespace SuedtirolWein.Parser
             {
                 ParseImporterData(language, companydata[language], mywinecompany);
             }
+
+            mywinecompany.HasLanguage = mywinecompany.Detail.Keys.ToList();
 
             return mywinecompany;
         }
