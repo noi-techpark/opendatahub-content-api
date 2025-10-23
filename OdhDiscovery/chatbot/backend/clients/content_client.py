@@ -137,14 +137,19 @@ class ContentAPIClient:
         if search_filter:
             params["searchfilter"] = search_filter
 
-        url = f"{self.base_url}/{dataset_name}"
+        url = f"{self.base_url}/MetaData?searchfilter={dataset_name}"
 
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                logger.debug(f"Fetching dataset entries: {url} with params: {params}")
-                response = await client.get(url, params=params)
+                logger.debug(f"Fetching dataset metadata: {url}")
+                response = await client.get(url)
                 response.raise_for_status()
-                return response.json()
+                metadata = response.json()
+                
+                logger.debug(f"Fetching dataset entries: {metadata['Items'][0]['ApiUrl']} with params: {params}")
+                entries = await client.get(url=metadata['Items'][0]['ApiUrl'], params=params)
+                return entries.json()
+
         except httpx.HTTPError as e:
             logger.error(f"Failed to fetch dataset entries for {dataset_name}: {e}")
             raise

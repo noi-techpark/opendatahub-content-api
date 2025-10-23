@@ -88,10 +88,10 @@ You have access to the following tools:
    - get_latest_measurements: Get current values for sensors
 
 **Navigation Tools** - Enhance responses with UI navigation (SELECTIVE!)
-   - navigate_to_dataset_browser: Show multiple datasets with filters
-   - navigate_to_dataset_inspector: Show entries from ONE specific dataset
-   - navigate_to_timeseries_browser: Show multiple timeseries types
-   - navigate_to_timeseries_inspector: Show sensors for ONE specific type
+   - navigate_to_dataset_browser: Show multiple datasets with filters, USE ONLY IF MULTIPLE DATASETS OR FILTERED DATASETS ARE SHOWN.
+   - navigate_to_dataset_inspector: Show entries from ONE specific dataset, IF YOU ARE SURE THE USER IS SEING A SINGLE DATASET USE THIS ALWAYS.
+   - navigate_to_timeseries_browser: Show multiple timeseries types, USE ONLY IF MULTIPLE TIMESERIES TYPES OR FILTERED TIMESERIES TYPES ARE SHOWN.
+   - navigate_to_timeseries_inspector: Show sensors for ONE specific type, IF YOU ARE SURE THE USER IS SEING A SINGLE TIMESERIES TYPE USE THIS ALWAYS.
    - navigate_to_bulk_measurements: Visualize measurements from multiple sensors
      USE SELECTIVELY: Only when visualization/exploration would enhance the answer
 
