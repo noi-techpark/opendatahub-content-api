@@ -1403,6 +1403,7 @@ namespace Helper
         public static Query TagWhereExpression(
             this Query query,
             IReadOnlyCollection<string> languagelist,
+            IReadOnlyCollection<string> idlist,
             IReadOnlyCollection<string> typelist,
             IReadOnlyCollection<string> validforentitylist,
             IReadOnlyCollection<string> sourcelist,
@@ -1427,6 +1428,7 @@ namespace Helper
             return query
                 .SearchFilter(TagNameFieldsToSearchFor(language), searchfilter)
                 .SourceFilter_GeneratedColumn(sourcelist)
+                .When(idlist != null && idlist.Count > 0, q => query.WhereIn("id", idlist))
                 .PublishedOnFilter_GeneratedColumn(publishedonlist)
                 .TagTypesFilter(typelist)
                 .ODHTagValidForEntityFilter(validforentitylist)
