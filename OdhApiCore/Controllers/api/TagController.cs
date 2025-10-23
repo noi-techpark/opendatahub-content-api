@@ -42,9 +42,10 @@ namespace OdhApiCore.Controllers
         /// <summary>
         /// GET Tag List
         /// </summary>
+        /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
+        /// <param name="idlist">IDFilter (Separator ',' List of IDs, 'null' = No Filter), (default:'null')</param>
         /// <param name="validforentity">Filter on Tags valid on Entities (accommodation, activity, poi, odhactivitypoi, package, gastronomy, event, article, common .. etc..),(Separator ',' List of odhtypes) (default:'null')</param>
         /// <param name="displayascategory">true = returns only Tags which are marked as DisplayAsCategory true</param>
-        /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
         /// <param name="types">Filter on Tags with this Types (Separator ',' List of types), (default:'null')</param>
         /// <param name="publishedon">Published On Filter (Separator ',' List of publisher IDs), (default:'null')</param>
         /// <param name="source">Source Filter (possible Values: 'lts','idm), (default:'null')</param>
@@ -68,6 +69,7 @@ namespace OdhApiCore.Controllers
             uint? pagenumber = 1,
             PageSize pagesize = null!,
             string? language = null,
+            string? idlist = null,
             string? validforentity = null,
             string? types = null,
             bool? displayascategory = null,
@@ -85,6 +87,7 @@ namespace OdhApiCore.Controllers
             return await Get(
                 pagenumber,
                 pagesize,
+                idlist,
                 language,
                 validforentity,
                 types,
@@ -146,6 +149,7 @@ namespace OdhApiCore.Controllers
         private Task<IActionResult> Get(
             uint? pagenumber,
             int? pagesize,
+            string? idfilter,
             string? language,
             string? validforentity,
             string? types,
@@ -175,6 +179,7 @@ namespace OdhApiCore.Controllers
                 var publishedonlist = Helper.CommonListCreator.CreateIdList(
                     publishedonfilter?.ToLower()
                 );
+                var idlist = Helper.CommonListCreator.CreateIdList(idfilter);
 
                 var query = QueryFactory
                     .Query()
@@ -183,6 +188,7 @@ namespace OdhApiCore.Controllers
                     .From("tags")
                     .TagWhereExpression(
                         languagelist: new List<string>(),
+                        idlist: idlist,
                         typelist: typeslist,
                         validforentitylist: validforentitytypeslist,
                         sourcelist: sourcelist,
