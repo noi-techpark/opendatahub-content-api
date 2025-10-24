@@ -424,7 +424,7 @@ namespace OdhApiCore.Controllers
                 case "No Data":
                     return BadRequest();
                 case "Internal Error":
-                    return StatusCode(500);                
+                    return StatusCode(500);
                 default:
                     return BadRequest(result);
             }
