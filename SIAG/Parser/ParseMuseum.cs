@@ -144,15 +144,18 @@ namespace SIAG.Parser
 
             foreach(var tag in museumtaglistEN)
             {
-                mymuseum.TagIds.Add(NormalizeTagId(tag));
+                if(!String.IsNullOrEmpty(tag))
+                    mymuseum.TagIds.Add(NormalizeTagId(tag));
             }
             foreach (var tag in museumkatlistEN)
             {
-                mymuseum.TagIds.Add(NormalizeTagId(tag));
+                if (!String.IsNullOrEmpty(tag))
+                    mymuseum.TagIds.Add(NormalizeTagId(tag));
             }
             foreach (var tag in museumservicelistEN)
             {
-                mymuseum.TagIds.Add(NormalizeTagId(tag));
+                if (!String.IsNullOrEmpty(tag))
+                    mymuseum.TagIds.Add(NormalizeTagId(tag));
             }
 
 
@@ -310,9 +313,9 @@ namespace SIAG.Parser
                 if (mymuseum.Detail.ContainsKey("de"))
                     detailde = mymuseum.Detail["de"];
 
-            detailde.BaseText = beschreibungDE;
-            detailde.GetThereText = anfahrtDE;
-            detailde.Title = bezeichnungDE;
+            detailde.BaseText = String.IsNullOrEmpty(beschreibungDE) ? null : beschreibungDE;
+            detailde.GetThereText = String.IsNullOrEmpty(anfahrtDE) ? null : anfahrtDE;
+            detailde.Title = String.IsNullOrEmpty(bezeichnungDE) ? null : bezeichnungDE;
             detailde.Language = "de";
 
             mymuseum.Detail.TryAddOrUpdate("de", detailde);
@@ -322,9 +325,9 @@ namespace SIAG.Parser
                 if (mymuseum.Detail.ContainsKey("it"))
                     detailit = mymuseum.Detail["it"];
 
-            detailit.BaseText = beschreibungIT;
-            detailit.GetThereText = anfahrtIT;
-            detailit.Title = bezeichnungIT;
+            detailit.BaseText = String.IsNullOrEmpty(beschreibungDE) ? null : beschreibungIT;
+            detailit.GetThereText = String.IsNullOrEmpty(beschreibungDE) ? null : anfahrtIT;
+            detailit.Title = String.IsNullOrEmpty(beschreibungDE) ? null : bezeichnungIT;
             detailit.Language = "it";
 
             mymuseum.Detail.TryAddOrUpdate("it", detailit);
@@ -334,10 +337,14 @@ namespace SIAG.Parser
                 if (mymuseum.Detail.ContainsKey("en"))
                     detailen = mymuseum.Detail["en"];
 
-            detailen.BaseText = beschreibungEN;
-            detailen.GetThereText = anfahrtEN;
-            detailen.Title = bezeichnungEN;
+            detailen.BaseText = String.IsNullOrEmpty(beschreibungEN) ? null : beschreibungEN;
+            detailen.GetThereText = String.IsNullOrEmpty(anfahrtEN) ? null : anfahrtEN;
+            detailen.Title = String.IsNullOrEmpty(bezeichnungEN) ? null : bezeichnungEN;
             detailen.Language = "en";
+
+            //HAck no english name
+            if (String.IsNullOrEmpty(detailen.Title))
+                detailen.Title = detailde.Title;
 
             mymuseum.Detail.TryAddOrUpdate("en", detailen);
 
@@ -361,7 +368,7 @@ namespace SIAG.Parser
             }
             //Eigenschaften
             mymuseum.HasFreeEntrance = freeentrance;
-            mymuseum.Highlight = false;
+            mymuseum.Highlight = null;
 
             List<PoiProperty> poipropertylistde = new List<PoiProperty>();
             List<PoiProperty> poipropertylistit = new List<PoiProperty>();
@@ -450,7 +457,7 @@ namespace SIAG.Parser
             //mypropertyserviceit.Name = "Servizi";
             mypropertyserviceit.Name = "service";
             mypropertyserviceit.Value = String.Join(", ", museumservicelistIT.ToArray());
-            poipropertylistit.Add(mypropertyservicede);
+            poipropertylistit.Add(mypropertyserviceit);
 
             PoiProperty mypropertyserviceen = new PoiProperty();
             //mypropertyserviceen.Name = "Services";
@@ -523,7 +530,21 @@ namespace SIAG.Parser
                 if (!mymuseum.SmgTags.Contains("familientip"))
                     mymuseum.SmgTags.Add("familientip");                
             }
-            
+
+            mymuseum.Type = null;
+            mymuseum.SubType = null;
+            mymuseum.PoiType = null;
+            mymuseum.AgeFrom = null;
+            mymuseum.AgeTo = null;
+            mymuseum.AltitudeDifference = null;
+            mymuseum.MaxSeatingCapacity = null;
+            mymuseum.AltitudeLowestPoint = null;
+            mymuseum.AltitudeHighestPoint = null;
+            mymuseum.DistanceLength = null;
+            mymuseum.DistanceDuration = null;
+            mymuseum.AltitudeSumUp = null;
+            mymuseum.AltitudeSumDown = null;
+
             return mymuseum;
         }
 

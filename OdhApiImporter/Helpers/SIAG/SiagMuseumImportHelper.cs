@@ -431,6 +431,21 @@ namespace OdhApiImporter.Helpers
 
                     poi.TagIds = redactionalassignedTags.Select(x => x.Id).ToList();
                 }
+
+                if(poi.SmgTags != null)
+                {
+                    poi.SmgTags.Remove("museen");
+                    poi.SmgTags.Remove("museen kultur");
+                    poi.SmgTags.Remove("museen natur");
+                    poi.SmgTags.Remove("museen technik");
+                    poi.SmgTags.Remove("museen kunst");
+                    poi.SmgTags.Remove("bergwerke");
+                    poi.SmgTags.Remove("naturparkhäuser");
+                    poi.SmgTags.Remove("barrierefrei");
+                    poi.SmgTags.Remove("familientip");
+                    poi.SmgTags.Remove("kultur sehenswürdigkeiten");
+                    poi.SmgTags.Remove("poi");
+                }
             }            
         }
 
