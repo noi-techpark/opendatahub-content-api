@@ -116,7 +116,7 @@ namespace SIAG.Parser
                 string resourceid = photogallery.Element(ax211 + "resoId").Value;
 
                 ImageGallery myimage = new ImageGallery();
-                myimage.ImageSource = "SIAG";
+                myimage.ImageSource = "siag";
                 myimage.ImageUrl =
                     "https://musport.prov.bz.it/musport/servlet/resource?id=" + resourceid;
                 myimage.ImageTitle["de"] = titleDE;
@@ -289,10 +289,7 @@ namespace SIAG.Parser
                 //    mymuseum.GpsInfo.Clear();
 
                 mygpsinfos.Add(gps);
-
                 mymuseum.GpsInfo = mygpsinfos.ToList();
-
-                mymuseum.GpsPoints.TryAddOrUpdate("position", gps);
             }
             //Eigenschaften
             mymuseum.HasFreeEntrance = freeentrance;
@@ -431,7 +428,7 @@ namespace SIAG.Parser
             var smgimages = default(ICollection<ImageGallery>);
 
             if (mymuseum.ImageGallery != null)
-                smgimages = mymuseum.ImageGallery.Where(x => x.ImageSource == "SMG").ToList();
+                smgimages = mymuseum.ImageGallery.Where(x => x.ImageSource == "idm").ToList();
 
             var imagelistfull = new List<ImageGallery>();
 
