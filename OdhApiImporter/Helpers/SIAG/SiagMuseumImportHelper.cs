@@ -191,6 +191,8 @@ namespace OdhApiImporter.Helpers
                     newmuseum = true;                    
                     mymuseum.Id = "smgpoi" + originalid + "siag";
                 }
+                else
+                    await RemoveAllAutomaticallyassignedTags(mymuseum);
 
                 mymuseum.Active = true;
                 string gemeindeid = mymuseumxml?.Element(ax211 + "gemeindeId")?.Value ?? "";
@@ -216,6 +218,8 @@ namespace OdhApiImporter.Helpers
                         QueryFactory
                     );
                 }
+
+                //To check Bergwerke/Naturparkhäuser
 
                 //Assign ODHTags (do not delete redactional assigned tags, Kultur & Sehenswürdigkeiten/Museen/Bergwerke)                
                 await AssignODHTags(mymuseum);
@@ -244,23 +248,10 @@ namespace OdhApiImporter.Helpers
                 //ADD MAPPING
                 var mappingid = new Dictionary<string, string>() { { "museId", museumid } };
                 mymuseum.Mapping.TryAddOrUpdate("siag", mappingid);
-
-                //Set Main Type as Poi TO CHECK!
-                //ODHActivityPoiHelper.SetMainCategorizationForODHActivityPoi(mymuseum);
-
+                
                 //Create Tags and preserve the old TagEntries
                 await mymuseum.UpdateTagsExtension(QueryFactory);
-
-
-                //Set Tags based on OdhTags
-                //await GenericTaggingHelper.AddTagsToODHActivityPoi(
-                //    mymuseum,
-                //    settings.JsonConfig.Jsondir
-                //);
-
-                mymuseum.TagIds =
-                    mymuseum.Tags != null ? mymuseum.Tags.Select(x => x.Id).ToList() : null;
-
+                
                 if (mymuseumdata?.Root is { })
                 {
                     var result = await InsertDataToDB(
@@ -330,12 +321,12 @@ namespace OdhApiImporter.Helpers
 
                 var mymuseumquery = QueryFactory
                     .Query("smgpois")
-                    .SelectRaw("data->>'CustomId'")
+                    .SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")                    
                     .Where("gen_syncsourceinterface", "museumdata");
 
-                var mymuseumsonraven = await mymuseumquery.GetAsync<string>();
+                var mymuseumsondb = await mymuseumquery.GetAsync<string>();
 
-                var idstodelete = mymuseumsonraven.Where(p => !mymuseumroot.Any(p2 => p2 == p));
+                var idstodelete = mymuseumsondb.Where(p => !mymuseumroot.Any(p2 => p2 == p));
 
                 foreach (var idtodelete in idstodelete)
                 {
@@ -423,25 +414,21 @@ namespace OdhApiImporter.Helpers
 
         #region Helpers
 
-        //Adds all Redactional Assigned Tags from the old Record to the new Record
-        private async Task MergeTags(ODHActivityPoiLinked poiNew, ODHActivityPoiLinked poiOld)
+        //Removes all Tags 
+        private async Task RemoveAllAutomaticallyassignedTags(ODHActivityPoiLinked poi)
         {
-            if (poiOld != null)
+            if (poi != null)
             {
                 //Readd all Redactional Tags to check if this query fits
-                var redactionalassignedTags = poiOld.Tags != null ? poiOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                var redactionalassignedTags = poi.Tags != null ? poi.Tags.Where(x => x.Source != "lts" && x.Source != "siag").ToList() : null;
                 if (redactionalassignedTags != null)
                 {
-                    foreach (var tag in redactionalassignedTags)
-                    {
-                        poiNew.TagIds.Add(tag.Id);
-                    }
+                    if(poi.TagIds == null)
+                        poi.TagIds = new List<string>();
+
+                    poi.TagIds = redactionalassignedTags.Select(x => x.Id).ToList();
                 }
-            }
-
-            //TODO import the Redactional Tags from SmgTags into Tags?
-
-            //TODO same procedure on Tags? (Remove all Tags that come from the sync and readd the redactional assigned Tags)
+            }            
         }
 
         //Assign ODHTags and preserve old Tags
@@ -453,10 +440,10 @@ namespace OdhApiImporter.Helpers
 
             if (!poiNew.SmgTags.Contains("poi"))
                 poiNew.SmgTags.Add("poi");
-            if (!poiNew.SmgTags.Contains("essen trinken"))
-                poiNew.SmgTags.Add("essen trinken");
-            if (!poiNew.SmgTags.Contains("weinkellereien"))
-                poiNew.SmgTags.Add("weinkellereien");
+            if (!poiNew.SmgTags.Contains("kultur sehenswürdigkeiten"))
+                poiNew.SmgTags.Add("kultur sehenswürdigkeiten");
+            if (!poiNew.SmgTags.Contains("museen"))
+                poiNew.SmgTags.Add("museen");
         }
 
         //Assign Tags
@@ -467,24 +454,13 @@ namespace OdhApiImporter.Helpers
                 poiNew.TagIds = new List<string>();
 
             //Old Tags
-            if (!poiNew.TagIds.Contains("gastronomy"))
-                poiNew.TagIds.Add("gastronomy");
-            if (!poiNew.TagIds.Contains("eating drinking"))
-                poiNew.TagIds.Add("eating drinking");
-            if (!poiNew.TagIds.Contains("wineries"))
-                poiNew.TagIds.Add("wineries");
-
-            //LTS Rids
-            //Kellereien und Winzer
-            if (!poiNew.TagIds.Contains("6EFED925DF3B4EF5B69495E994F446AC"))
-                poiNew.TagIds.Add("6EFED925DF3B4EF5B69495E994F446AC");
-            //Produktionsstätten
-            if (!poiNew.TagIds.Contains("28CDEF87206E464D9B179FBCAF506457"))
-                poiNew.TagIds.Add("28CDEF87206E464D9B179FBCAF506457");
+            if (!poiNew.TagIds.Contains("culture attractions"))
+                poiNew.TagIds.Add("culture attractions");
+            if (!poiNew.TagIds.Contains("museums"))
+                poiNew.TagIds.Add("museums");
+            if (!poiNew.TagIds.Contains("poi"))
+                poiNew.TagIds.Add("poi");
         }
-
-
-        //Merge Tags
 
         //Assign Categorization
         private static void SetAdditionalInfosCategoriesByODHTags(ODHActivityPoiLinked activityNew, IDictionary<string, JArray>? jsonfiles)

@@ -97,10 +97,30 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             List<string> idlistsiag = new List<string>();
 
+            XNamespace ns = "http://service.kks.siag";
+
+            List<XElement> museumdetaillist = new List<XElement>();
 
             XElement? mymuseumroot = mymuseumlist.Root;
+            foreach (
+                XElement mymuseumelement in mymuseumroot?.Elements("Museum")
+                    ?? Enumerable.Empty<XElement>()
+            )
+            {
+                string museumid = mymuseumelement.Attribute("ID")?.Value ?? "";
 
-            var tagsdata = SIAG.Parser.ParseMuseum.ParseSiagResponseToTags(mymuseumroot?.Elements("Museum"));
+                //Import Museum data from Siag
+                var mymuseumdata = await SIAG.GetMuseumFromSIAG.GetMuseumDetail(
+                    settings.MusportConfig.ServiceUrl,
+                    museumid
+                );
+                var mymuseumxml = mymuseumdata?.Root?.Element(ns + "return");
+
+                if(mymuseumxml != null)
+                    museumdetaillist.Add(mymuseumxml);
+            }
+
+            var tagsdata = SIAG.Parser.ParseMuseum.ParseSiagResponseToTags(museumdetaillist);
 
             if (tagsdata != null && tagsdata.Count() > 0)
             {                
@@ -110,28 +130,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //See if data exists
                     var query = QueryFactory.Query("tags").Select("data").Where("id", id);
-
                     var objecttosave = await query.GetObjectSingleAsync<TagLinked>();
 
                     if (objecttosave == null)
                         objecttosave = new TagLinked();
-                    
-                    objecttosave.FirstImport =
+
+                    data.FirstImport =
                         objecttosave.FirstImport == null ? DateTime.Now : objecttosave.FirstImport;
+                    data.LastChange = DateTime.Now;
 
-                    objecttosave.LastChange = DateTime.Now;
-                    objecttosave.Shortname = objecttosave.TagName.ContainsKey("en")
-                        ? objecttosave.TagName["en"]
-                        : objecttosave.TagName.FirstOrDefault().Value;
-
-                    objecttosave.IDMCategoryMapping = null;
-                    objecttosave.PublishDataWithTagOn = null;
-                    objecttosave.Mapping = null;
-                    objecttosave.LTSTaggingInfo = null;
-                    objecttosave.PublishedOn = null;
-                    objecttosave.MappedTagIds = null;
-
-                    var result = await InsertDataToDB(objecttosave);
+                    var result = await InsertDataToDB(data);
 
                     newimportcounter = newimportcounter + result.created ?? 0;
                     updateimportcounter = updateimportcounter + result.updated ?? 0;

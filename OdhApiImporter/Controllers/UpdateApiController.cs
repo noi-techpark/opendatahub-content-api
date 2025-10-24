@@ -751,6 +751,57 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        [HttpGet, Route("Siag/Museum/Tags/Update")]
+        public async Task<IActionResult> ImportSiagMuseumTags(
+           CancellationToken cancellationToken = default
+       )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import SIAG Museum Tag data";
+            string updatetype = GetUpdateType(null);
+            string source = "siag";
+            string otherinfo = "actual";
+
+            try
+            {
+                SiagMuseumTagImportHelper siagimporthelper = new SiagMuseumTagImportHelper(
+                    settings,
+                    QueryFactory,
+                    "smgpois",
+                    UrlGeneratorStatic("Siag/Museum")
+                );
+                updatedetail = await siagimporthelper.SaveDataToODH(null, null, cancellationToken);
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import SIAG Museum Tag data succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import SIAG Museum Tag data failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
         #endregion
 
         #region SUEDTIROLWEIN DATA SYNC

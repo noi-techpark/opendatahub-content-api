@@ -102,6 +102,54 @@ namespace SIAG.Parser
                 museumkatlistEN.Add(museumkat.Element(ax211 + "kateBezeichnungE").Value);
             }
 
+            //Add to TagIds
+            if(mymuseum.TagIds == null)
+                mymuseum.TagIds = new List<string>();
+
+            foreach(var tag in museumtaglistEN)
+            {
+                mymuseum.TagIds.Add(NormalizeTagId(tag));
+            }
+            foreach (var tag in museumkatlistEN)
+            {
+                mymuseum.TagIds.Add(NormalizeTagId(tag));
+            }
+
+            //Add to TagIds
+            if (mymuseum.SmgTags == null)
+                mymuseum.SmgTags = new List<string>();
+            //Add Additional Tags
+            if (mymuseum.TagIds.Contains("siagmuseum.culture"))
+            {
+                mymuseum.SmgTags.Add("museen kultur");
+                mymuseum.TagIds.Add("museums culture");
+            }
+            if (mymuseum.TagIds.Contains("siagmuseum.nature"))
+            {
+                mymuseum.SmgTags.Add("museen natur");
+                mymuseum.TagIds.Add("museums nature");
+            }
+            if (mymuseum.TagIds.Contains("siagmuseum.technology"))
+            {
+                mymuseum.SmgTags.Add("museen technik");
+                mymuseum.TagIds.Add("museums technology");
+            }
+            if (mymuseum.TagIds.Contains("siagmuseum.art"))
+            {
+                mymuseum.SmgTags.Add("museen kunst");
+                mymuseum.TagIds.Add("museums art");
+            }
+            if (mymuseum.TagIds.Contains("siagmuseum.mine"))
+            {
+                mymuseum.SmgTags.Add("bergwerke");
+                mymuseum.TagIds.Add("mines");
+            }
+            if (mymuseum.TagIds.Contains("siagmuseum.natureparks"))
+            {
+                mymuseum.SmgTags.Add("naturparkhäuser");
+                mymuseum.TagIds.Add("nature park visitors centres");
+            }
+
             List<ImageGallery> imagegallerylist = new List<ImageGallery>();
 
             foreach (var photogallery in mysiagmuseum.Elements(ax211 + "photoGallery"))
@@ -443,24 +491,20 @@ namespace SIAG.Parser
             mymuseum.ImageGallery = imagelistfull.ToList();
 
             mymuseum.LastChange = DateTime.Now;
-            List<string> smgtaglist = new List<string>();
-
-            if (mymuseum.SmgTags != null)
-                smgtaglist = mymuseum.SmgTags.ToList();
-
+                    
             if (addbarrierefreitag)
             {
-                if (!smgtaglist.Contains("barrierefrei"))
-                    smgtaglist.Add("barrierefrei");
+                if (!mymuseum.SmgTags.Contains("barrierefrei"))
+                    mymuseum.SmgTags.Add("barrierefrei");
+                if (!mymuseum.TagIds.Contains("barrierfree"))
+                    mymuseum.TagIds.Add("barrierfree");
             }
             if (addfamilytag)
             {
-                if (!smgtaglist.Contains("familientip"))
-                    smgtaglist.Add("familientip");
+                if (!mymuseum.SmgTags.Contains("familientip"))
+                    mymuseum.SmgTags.Add("familientip");                
             }
-
-            mymuseum.SmgTags = smgtaglist.ToList();
-
+            
             return mymuseum;
         }
 
@@ -508,7 +552,7 @@ namespace SIAG.Parser
             {
                 TagLinked taglinked = new TagLinked();
                 taglinked.Source = "siag";
-                taglinked.Id = "siagmuseum." + tag.Key.ToLower().Replace(" ", "");
+                taglinked.Id = NormalizeTagId(tag.Key.ToLower());
                 taglinked.Types = new List<string>() { "museumtag" };
                 taglinked.TagName = tag.Value;
                 taglinked.Active = true;
@@ -536,6 +580,16 @@ namespace SIAG.Parser
             }
 
             return taglinkedlist;
+        }
+
+        public static string NormalizeTagId(string tagkey)
+        {
+            return "siagmuseum." + tagkey
+                .Replace(" ", "")
+                .Replace("ä", "ae")
+                .Replace("ö", "oe")
+                .Replace("ü", "ue")
+                .Replace("ß", "ss");
         }
     }
 }
