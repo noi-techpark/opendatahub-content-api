@@ -413,6 +413,7 @@ namespace OdhApiCore.Controllers
             switch (result.errorreason)
             {
                 case "":
+                case null:
                     return Ok(result);
                 case "Not Allowed":
                     return StatusCode(403, "Not enough permissions");
@@ -423,9 +424,9 @@ namespace OdhApiCore.Controllers
                 case "No Data":
                     return BadRequest();
                 case "Internal Error":
-                    return StatusCode(500);
+                    return StatusCode(500);                
                 default:
-                    return Ok(result);
+                    return BadRequest(result);
             }
         }
     }
