@@ -235,6 +235,22 @@ namespace DataModel.helpers
         {
             SiagMuseumDataProperties addprop = new SiagMuseumDataProperties();
             //TODO Fill the properties here
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.Where(x => x.Value.Any(y => y.Name == "openingtimes")).Count() > 0)
+                addprop.OpeningTimes = ExtractFromPoiProperty.ExtractValuesFromPoiProperty(odhActivityPoi.PoiProperty, "openingtimes");
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.Where(x => x.Value.Any(y => y.Name == "entry")).Count() > 0)
+                addprop.Entry = ExtractFromPoiProperty.ExtractValuesFromPoiProperty(odhActivityPoi.PoiProperty, "entry");
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.Where(x => x.Value.Any(y => y.Name == "service")).Count() > 0)
+                addprop.Service = ExtractFromPoiProperty.ExtractValuesFromPoiProperty(odhActivityPoi.PoiProperty, "service");
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.Where(x => x.Value.Any(y => y.Name == "supporter")).Count() > 0)
+                addprop.Supporter = ExtractFromPoiProperty.ExtractValuesFromPoiProperty(odhActivityPoi.PoiProperty, "supporter");
+
+            //TODO insert tags & categories
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.Where(x => x.Value.Any(y => y.Name == "tags")).Count() > 0)
+                addprop.Tags = ExtractFromPoiProperty.ExtractValuesFromPoiProperty(odhActivityPoi.PoiProperty, "tags");
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.Where(x => x.Value.Any(y => y.Name == "categories")).Count() > 0)
+                addprop.Categories = ExtractFromPoiProperty.ExtractValuesFromPoiProperty(odhActivityPoi.PoiProperty, "categories");
+
 
             var additionalpropertieskey = typeof(SiagMuseumDataProperties).Name;
 

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Linq;
 using DataModel;
@@ -461,6 +462,80 @@ namespace SIAG.Parser
             mymuseum.SmgTags = smgtaglist.ToList();
 
             return mymuseum;
+        }
+
+        public static IEnumerable<TagLinked> ParseSiagResponseToTags(IEnumerable<XElement> mymuseumxml)
+        {
+            XNamespace ax211 = "http://data.service.kks.siag/xsd";
+
+            Dictionary<string, Dictionary<string,string>> tagdict = new Dictionary<string, Dictionary<string, string>>();
+            Dictionary<string, Dictionary<string, string>> catdict = new Dictionary<string, Dictionary<string, string>>();
+
+            foreach (var mysiagmuseum in mymuseumxml)
+            {
+                foreach (var museumtag in mysiagmuseum.Elements(ax211 + "museumTags"))
+                {
+                    if(!String.IsNullOrEmpty(museumtag.Element(ax211 + "kateBezeichnungE").Value) && !tagdict.ContainsKey(museumtag.Element(ax211 + "kateBezeichnungE").Value))
+                    {
+                        var tagkey = museumtag.Element(ax211 + "kateBezeichnungE").Value;
+                        var tagvalue = new Dictionary<string, string>();
+                        tagvalue.Add("de", museumtag.Element(ax211 + "kateBezeichnungD").Value);
+                        tagvalue.Add("it", museumtag.Element(ax211 + "kateBezeichnungI").Value);
+                        tagvalue.Add("en", museumtag.Element(ax211 + "kateBezeichnungE").Value);
+
+                        tagdict.Add(tagkey, tagvalue);
+                    }    
+                }
+
+                foreach (var museumkat in mysiagmuseum.Elements(ax211 + "museumsKategorien"))
+                {
+                    if (!String.IsNullOrEmpty(museumkat.Element(ax211 + "kateBezeichnungE").Value) && !catdict.ContainsKey(museumkat.Element(ax211 + "kateBezeichnungE").Value))
+                    {
+                        var tagkey = museumkat.Element(ax211 + "kateBezeichnungE").Value;
+                        var tagvalue = new Dictionary<string, string>();
+                        tagvalue.Add("de", museumkat.Element(ax211 + "kateBezeichnungD").Value);
+                        tagvalue.Add("it", museumkat.Element(ax211 + "kateBezeichnungI").Value);
+                        tagvalue.Add("en", museumkat.Element(ax211 + "kateBezeichnungE").Value);
+
+                        catdict.Add(tagkey, tagvalue);
+                    }
+                }
+            }
+
+            List<TagLinked> taglinkedlist = new List<TagLinked>();
+
+            foreach(var tag in tagdict)
+            {
+                TagLinked taglinked = new TagLinked();
+                taglinked.Source = "siag";
+                taglinked.Id = "siagmuseum." + tag.Key.ToLower().Replace(" ", "");
+                taglinked.Types = new List<string>() { "museumtag" };
+                taglinked.TagName = tag.Value;
+                taglinked.Active = true;
+                taglinked.DisplayAsCategory = false;
+                taglinked.MainEntity = "odhactivitypoi";
+                taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+
+                taglinkedlist.Add(taglinked);
+            }
+
+            foreach (var cat in catdict)
+            {
+                TagLinked taglinked = new TagLinked();
+                taglinked.Source = "siag";
+                taglinked.Id = "siagmuseum." + cat.Key.ToLower().Replace(" ", "");
+                taglinked.Types = new List<string>() { "museumcategory" };
+                taglinked.TagName = cat.Value;
+                taglinked.Active = true;
+                taglinked.DisplayAsCategory = false;
+                taglinked.MainEntity = "odhactivitypoi";
+                taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+
+
+                taglinkedlist.Add(taglinked);
+            }
+
+            return taglinkedlist;
         }
     }
 }
