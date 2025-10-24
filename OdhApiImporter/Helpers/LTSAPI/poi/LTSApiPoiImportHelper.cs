@@ -362,7 +362,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Preserves all manually assigned ODHTags, and adds tall Mapped ODHTags
                     await AssignODHTags(poiparsed, poiindb, jsondata);
 
-                    //Traduce all Tags with Source IDM to english tags
+                    //TODO Maybe we can disable this withhin the Api Switch
+                    //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                         poiparsed,
                         settings.JsonConfig.Jsondir
