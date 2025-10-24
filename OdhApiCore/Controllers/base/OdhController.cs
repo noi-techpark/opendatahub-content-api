@@ -410,9 +410,12 @@ namespace OdhApiCore.Controllers
 
         protected IActionResult ReturnCRUDResult(PGCRUDResult result)
         {
+            ///Give shorter Error messages to display directly in the databrowser
+            ///TODO some optimizations
             switch (result.errorreason)
             {
                 case "":
+                case null:
                     return Ok(result);
                 case "Not Allowed":
                     return StatusCode(403, "Not enough permissions");
@@ -421,11 +424,15 @@ namespace OdhApiCore.Controllers
                 case "Bad Request":
                     return BadRequest();
                 case "No Data":
-                    return BadRequest();
+                    return BadRequest(result.errorreason);
+                case "Data exists already":
+                    return BadRequest(result.errorreason);
+                case "Data to update Not Found":
+                    return BadRequest(result.errorreason);
                 case "Internal Error":
                     return StatusCode(500);
                 default:
-                    return Ok(result);
+                    return BadRequest(result);
             }
         }
     }
