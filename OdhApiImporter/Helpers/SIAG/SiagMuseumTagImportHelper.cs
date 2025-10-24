@@ -166,7 +166,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Begin SetDataNotinListToInactive
                     var idlistdb = await GetAllDataBySourceAndType(
                         new List<string>() { "siag" },
-                        new List<string>() { "museumcategory", "museumtag" }
+                        new List<string>() { "museumcategory", "museumtag", "museumservice" }
                     );
 
                     var idstodelete = idlistdb.Where(p => !idlistsiag.Any(p2 => p2 == p));

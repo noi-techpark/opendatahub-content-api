@@ -246,7 +246,10 @@ namespace OdhApiImporter.Helpers
                 mymuseum.LastChange = DateTime.Now;
 
                 //ADD MAPPING
-                var mappingid = new Dictionary<string, string>() { { "museId", museumid } };
+                var mappingid = new Dictionary<string, string>() { 
+                    { "museId", museumid },
+                    { "gemeindeId", gemeindeid }
+                };
                 mymuseum.Mapping.TryAddOrUpdate("siag", mappingid);
                 
                 //Create Tags and preserve the old TagEntries
@@ -420,7 +423,7 @@ namespace OdhApiImporter.Helpers
             if (poi != null)
             {
                 //Readd all Redactional Tags to check if this query fits
-                var redactionalassignedTags = poi.Tags != null ? poi.Tags.Where(x => x.Source != "lts" && x.Source != "siag").ToList() : null;
+                var redactionalassignedTags = poi.Tags != null ? poi.Tags.Where(x => x.Source != "idm" && x.Source != "siag").ToList() : null;
                 if (redactionalassignedTags != null)
                 {
                     if(poi.TagIds == null)

@@ -767,7 +767,7 @@ namespace OdhApiImporter.Controllers
                 SiagMuseumTagImportHelper siagimporthelper = new SiagMuseumTagImportHelper(
                     settings,
                     QueryFactory,
-                    "smgpois",
+                    "tags",
                     UrlGeneratorStatic("Siag/Museum")
                 );
                 updatedetail = await siagimporthelper.SaveDataToODH(null, null, cancellationToken);

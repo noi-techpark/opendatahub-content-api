@@ -771,10 +771,7 @@ namespace DataModel
     {
         //Check if Dictionary outside is supported
         public IDictionary<string,string> OpeningTimes { get; set; }
-        public IDictionary<string, string> Entry { get; set; }
-        public IDictionary<string, string> Tags { get; set; }
-        public IDictionary<string, string> Categories { get; set; }
-        public IDictionary<string, string> Service { get; set; }
+        public IDictionary<string, string> Entry { get; set; }        
         public IDictionary<string, string> Supporter { get; set; }
     }
 
