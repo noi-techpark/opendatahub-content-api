@@ -55,9 +55,6 @@ namespace OdhApiCore.Controllers
         /// <param name="begin">Begin Filter (Format: yyyy-MM-dd HH:MM), (default: 'null')</param>
         /// <param name="end">End Filter (Format: yyyy-MM-dd HH:MM), (default: 'null')</param>
         /// <param name="active">Active Filter (possible Values: 'true' only active data, 'false' only not active data), (default:'null')</param>
-        /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
-        /// <param name="longitude">GeoFilter FLOAT Longitude Format: '11.369909', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
-        /// <param name="radius">Radius INTEGER to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="polygon">valid WKT (Well-known text representation of geometry) Format, Examples (POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))) / By Using the GeoShapes Api (v1/GeoShapes) and passing Country.Type.Id OR Country.Type.Name Example (it.municipality.3066) / Bounding Box Filter bbc: 'Bounding Box Contains', 'bbi': 'Bounding Box Intersects', followed by a List of Comma Separated Longitude Latitude Tuples, 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#polygon-filter-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="publishedon">Published On Filter (Separator ',' List of publisher IDs), (default:'null')</param>
         /// <param name="updatefrom">Returns data changed after this date Format (yyyy-MM-dd), (default: 'null')</param>
@@ -90,9 +87,6 @@ namespace OdhApiCore.Controllers
             string? publishedon = null,
             string? updatefrom = null,
             string? seed = null,
-            string? latitude = null,
-            string? longitude = null,
-            string? radius = null,
             string? polygon = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? searchfilter = null,
@@ -103,11 +97,6 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            var geosearchresult = Helper.GeoSearchHelper.GetPGGeoSearchResult(
-               latitude,
-               longitude,
-               radius
-           );
             var polygonsearchresult = await Helper.GeoSearchHelper.GetPolygon(
                 polygon,
                 QueryFactory
@@ -128,7 +117,6 @@ namespace OdhApiCore.Controllers
                 seed,
                 updatefrom,
                 polygonsearchresult,
-                geosearchresult,
                 fields: fields ?? Array.Empty<string>(),
                 searchfilter,
                 rawfilter,
@@ -190,7 +178,6 @@ namespace OdhApiCore.Controllers
             string? seed,
             string? lastchange,
             GeoPolygonSearchResult? polygonsearchresult,
-            PGGeoSearchResult geosearchresult,
             string[] fields,
             string? searchfilter,
             string? rawfilter,
@@ -249,12 +236,13 @@ namespace OdhApiCore.Controllers
                                     polygonsearchresult.polygon,
                                     polygonsearchresult.srid,
                                     polygonsearchresult.operation,
-                                    polygonsearchresult.reduceprecision
+                                    polygonsearchresult.reduceprecision,
+                                    "gen_geometry"
                                 )
                             )
                     )
                     .ApplyRawFilter(rawfilter)
-                    .ApplyOrdering_GeneratedColumns(ref seed, geosearchresult, rawsort);
+                    .ApplyOrdering_GeneratedColumns(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort);
 
                 //IF getasidarray set simply return array of ids
                 if (getasidarray)

@@ -68,9 +68,54 @@ namespace Helper.Tagging
 
             if (tagIds != null && tagIds.Count > 0)
             {
-                //Load Tags from DB
-                var query = queryFactory.Query("tags").Select("data").WhereIn("id", tagIds);
+                // 1. Initialize lists for filtering
+                // All original tags go into the simple list for the WHERE IN clause.
+                List<string> allIds = tagIds.ToList();
+                
+                // Only split tags go into the compound list for the OR clauses.
+                List<(string genSource, string id)> compoundFilters = new List<(string, string)>();
 
+                // 2. Process all tagIds to extract compound filters
+                foreach (var tagId in tagIds)
+                {
+                    if (tagId.Contains('.'))
+                    {
+                        var parts = tagId.Split(new char[] { '.' }, 2);
+                        if (parts.Length == 2)
+                        {
+                            // Store the split components for the specific OR filter
+                            compoundFilters.Add((parts[0], parts[1]));
+                        }
+                    }
+                }
+
+                // 3. Build the Query
+                var query = queryFactory.Query("tags").Select("data");
+
+                // Start with the main WHERE IN condition, searching for ALL tags in the 'id' column.
+                query = query.Where(q =>
+                {
+                    // A. Primary Filter: Search for all raw IDs in the 'id' column.
+                    q.WhereIn("id", allIds);
+
+                    // B. Secondary Filters: Add specific OR clauses for compound tags.
+                    // This ensures compatibility and specific matches.
+                    foreach (var filter in compoundFilters)
+                    {
+                        // Use OrWhere to add a nested OR condition
+                        q.OrWhere(compoundQuery =>
+                        {
+                            compoundQuery.Where("gen_source", "=", filter.genSource)
+                                        .Where("id", "=", filter.id);
+
+                            return compoundQuery;
+                        });
+                    }
+
+                    // C. Final return (required by the Func<Query, Query> signature)
+                    return q;
+                });
+                
                 var assignedtags = await query.GetObjectListAsync<TagLinked>();
 
                 //Create Tags object

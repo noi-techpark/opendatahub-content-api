@@ -4,7 +4,6 @@
 
 services:
   api:
-    image: ${DOCKER_IMAGE:-odh-tourism-api}:${DOCKER_TAG:-latest}
     build:
       context: ../
       dockerfile: OdhApiCore/Dockerfile
@@ -94,4 +93,20 @@ services:
       ASPNETCORE_DigiWayConfig__sentieri_della_sat__Format: ${DIGIWAY_TNHIKINGTRAIL_FORMAT}
       ASPNETCORE_DigiWayConfig__sentieri_della_sat__SRid: ${DIGIWAY_TNHIKINGTRAI_SRID}
     ports:
-      - "8001:80"
+      - "8083:80"
+    env_file:
+      - .env
+
+  # The database service for the 'dev' profile.
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: postgres
+    volumes:
+      - ../.dev/content-api-db-init:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    profiles:
+      - dev

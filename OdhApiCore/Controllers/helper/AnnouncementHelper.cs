@@ -65,8 +65,9 @@ namespace OdhApiCore.Controllers.api
             string? begindate,
             string? enddate
         )
-        {            
-            idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToUpper());
+        {   
+            // announcements id are forced to be lowercase
+            idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToLower());
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);
             languagelist = Helper.CommonListCreator.CreateIdList(languagefilter);
             //active

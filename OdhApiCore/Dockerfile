@@ -24,7 +24,7 @@ COPY OdhNotifier/OdhNotifier.csproj OdhNotifier/
 COPY PushServer/PushServer.csproj PushServer/
 COPY JsonLDTransformer/JsonLDTransformer.csproj JsonLDTransformer/
 COPY OdhApiCore/OdhApiCore.csproj OdhApiCore/
-COPY google-service-account.noicommunity.json OdhApiCore/google-service-account.noicommunity.json
+# COPY google-service-account.noicommunity.json OdhApiCore/google-service-account.noicommunity.json
 RUN dotnet nuget locals all --clear
 RUN dotnet restore OdhApiCore/OdhApiCore.csproj
 COPY . .

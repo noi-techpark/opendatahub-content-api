@@ -2796,7 +2796,7 @@ namespace DataModel
         public new string Source { get; set; }
         public bool Active { get; set; }
 
-        public IDictionary<string, string> Description { get; set; }
+        public IDictionary<string, string>? Description { get; set; }
     }
 
     public class PublisherLinked : Publisher, IMetaData
