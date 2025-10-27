@@ -146,6 +146,7 @@ namespace Helper.Tagging
                 var query = queryFactory.Query("tags").Select("data")
                     .TagWhereExpression(
                         languagelist: new List<string>(),
+                        idlist: new List<string>(),
                         typelist: typelist == null ? new List<string>() : typelist,
                         validforentitylist: new List<string>(),
                         sourcelist: sourcelist == null ? new List<string>() : sourcelist,
