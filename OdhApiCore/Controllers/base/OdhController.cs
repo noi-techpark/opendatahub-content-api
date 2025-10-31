@@ -309,6 +309,86 @@ namespace OdhApiCore.Controllers
             return ReturnCRUDResult(result);
         }
 
+        //BATCH CREATE and UPDATE data
+        protected async Task<IActionResult> UpsertDataArray<T>(
+            IEnumerable<T> dataList,
+            DataInfo datainfo,
+            CompareConfig compareconfig,
+            CRUDConstraints createConstraints,
+            CRUDConstraints updateConstraints,
+            string editsource = "api"
+        )
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            //Get the Name Identifier
+            string editor =
+                this.User != null && this.User.Claims != null ?
+                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault()?.Value
+                    ?? "anonymous"
+                    : "anonymous";
+
+            if (
+                HttpContext.Request.Headers.ContainsKey("Referer")
+                && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
+            )
+            {
+                editsource = HttpContext.Request.Headers["Referer"];
+
+                //Hack if Referer is infrastructure v2 api make an upsert
+                if (HttpContext.Request.Headers["Referer"] == "https://tourism.importer.v2")
+                {
+                    datainfo.ErrorWhendataExists = false;
+                    datainfo.ErrorWhendataIsNew = false;
+                }
+            }
+
+            var batchResult = await QueryFactory.UpsertDataArray<T>(
+                dataList,
+                datainfo,
+                new EditInfo(editor, editsource),
+                createConstraints,
+                updateConstraints,
+                compareconfig
+            );
+
+            // Push modified data to all published channels for each item
+            var resultsList = batchResult.Results.ToList();
+            for (int i = 0; i < resultsList.Count; i++)
+            {
+                var result = resultsList[i];
+                if (result.error == 0)
+                {
+                    var pushed = await CheckIfObjectChangedAndPush(
+                        result,
+                        result.id,
+                        result.odhtype ?? ""
+                    );
+
+                    // Update the result with push information
+                    resultsList[i] = new PGCRUDResult
+                    {
+                        id = result.id,
+                        odhtype = result.odhtype,
+                        operation = result.operation,
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        errorreason = result.errorreason,
+                        compareobject = result.compareobject,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                        pushed = pushed
+                    };
+                }
+            }
+
+            batchResult.Results = resultsList;
+            return Ok(batchResult);
+        }
+
         //DELETE data
         protected async Task<IActionResult> DeleteData<T>(
             string id,

@@ -16,8 +16,8 @@ CREATE TABLE public.announcements (
 	gen_reduced bool GENERATED ALWAYS AS ((data #> '{_Meta,Reduced}'::text[])::boolean) STORED NULL,
 	gen_tags _text GENERATED ALWAYS AS (array_cat(extract_tagkeys(data #> '{Tags}'::text[]), extract_tags(data #> '{Tags}'::text[]))) STORED NULL,
 	gen_id text GENERATED ALWAYS AS (data #>> '{Id}'::text[]) STORED NULL,
-	gen_begindate timestamp GENERATED ALWAYS AS (text2ts(data #>> '{StartTime}'::text[])) STORED NULL,
-	gen_enddate timestamp GENERATED ALWAYS AS (text2ts(data #>> '{EndTime}'::text[])) STORED NULL,
+	gen_begindate TIMESTAMPTZ GENERATED ALWAYS AS (text2tstz(data #>> '{StartTime}')) STORED NULL,
+    gen_enddate TIMESTAMPTZ GENERATED ALWAYS AS (text2tstz(data #>> '{EndTime}')) STORED NULL,
 	gen_access_role _text GENERATED ALWAYS AS (calculate_access_array(data #>> '{_Meta,Source}'::text[], (data #> '{LicenseInfo,ClosedData}'::text[])::boolean, (data #> '{_Meta,Reduced}'::text[])::boolean)) STORED NULL,
 	gen_geometry public.geometry GENERATED ALWAYS AS (
         ST_SetSRID(

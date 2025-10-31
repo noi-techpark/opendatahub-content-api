@@ -51,13 +51,10 @@ namespace OdhApiCore.Controllers
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
         /// <param name="langfilter">Langfilter (returns only data available in the selected Language, Separator ',' possible values: 'de,it,en,nl,sc,pl,fr,ru', 'null': Filter disabled)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of IDs, 'null' = No Filter), (default:'null')</param>
-        /// <param name="source">Source Filter (possible Values: 'lts','idm'), (default:'null')</param>
-        /// <param name="begin">Begin Filter (Format: yyyy-MM-dd HH:MM), (default: 'null')</param>
-        /// <param name="end">End Filter (Format: yyyy-MM-dd HH:MM), (default: 'null')</param>
-        /// <param name="active">Active Filter (possible Values: 'true' only active data, 'false' only not active data), (default:'null')</param>
+        /// <param name="source">Source Filter, (default:'null')</param>
+        /// <param name="begin">Begin Filter (Format: RFC3339), if set only announcements intesecting with begin are returned. **INCLUSIVE** (default: 'null')</param>
+        /// <param name="end">End Filter (Format: RFC3339), if set only announcements intesecting with end are returned. **INCLUSIVE**  (default: 'null')</param>
         /// <param name="polygon">valid WKT (Well-known text representation of geometry) Format, Examples (POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))) / By Using the GeoShapes Api (v1/GeoShapes) and passing Country.Type.Id OR Country.Type.Name Example (it.municipality.3066) / Bounding Box Filter bbc: 'Bounding Box Contains', 'bbi': 'Bounding Box Intersects', followed by a List of Comma Separated Longitude Latitude Tuples, 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#polygon-filter-functionality' target="_blank">Wiki geosort</a></param>
-        /// <param name="publishedon">Published On Filter (Separator ',' List of publisher IDs), (default:'null')</param>
-        /// <param name="updatefrom">Returns data changed after this date Format (yyyy-MM-dd), (default: 'null')</param>
         /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagSource.TagId,TagSource.TagId,TagId) example or(idm.summer,lts.hiking) - and(idm.themed hikes,lts.family hikings) - or(hiking) - and(idm.summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
@@ -80,12 +77,9 @@ namespace OdhApiCore.Controllers
             string? langfilter = null,
             string? idlist = null,
             string? source = null,
-            LegacyBool active = null!,
             string? begin = null,
             string? end = null,
             string? tagfilter = null,
-            string? publishedon = null,
-            string? updatefrom = null,
             string? seed = null,
             string? polygon = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
@@ -109,13 +103,10 @@ namespace OdhApiCore.Controllers
                 langfilter,
                 idlist,
                 source,
-                active?.Value,
                 begin,
                 end,
                 tagfilter,
-                publishedon,
                 seed,
-                updatefrom,
                 polygonsearchresult,
                 fields: fields ?? Array.Empty<string>(),
                 searchfilter,
@@ -170,13 +161,10 @@ namespace OdhApiCore.Controllers
             string? languagefilter,
             string? idfilter,
             string? source,
-            bool? active,
             string? begin,
             string? end,
             string? tagfilter,
-            string? publishedon,
             string? seed,
-            string? lastchange,
             GeoPolygonSearchResult? polygonsearchresult,
             string[] fields,
             string? searchfilter,
@@ -198,10 +186,7 @@ namespace OdhApiCore.Controllers
                                 idfilter: idfilter,
                                 languagefilter: languagefilter,
                                 sourcefilter: source,
-                                activefilter: active,
-                                lastchange: lastchange,
                                 tagfilter: tagfilter,
-                                publishedonfilter: publishedon,
                                 begindate: begin,
                                 enddate: end,
                                 cancellationToken
@@ -218,10 +203,7 @@ namespace OdhApiCore.Controllers
                         sourcelist: helper.sourcelist,
                         searchfilter: searchfilter,
                         language: language,
-                        lastchange: helper.lastchange,
-                        activefilter: helper.active,
                         tagdict: helper.tagdict,
-                        publishedonlist: helper.publishedonlist,
                         start: helper.begin,
                         end: helper.end,
                         additionalfilter: additionalfilter,
@@ -323,24 +305,23 @@ namespace OdhApiCore.Controllers
         /// </summary>
         /// <param name="announcement">Announcement Object</param>
         /// <returns>Http Response</returns>
-        //[Authorize(Roles = "DataWriter,DataCreate,AnnouncementManager,AnnouncementCreate")]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Announcement")]
-        public Task<IActionResult> Post([FromBody] Announcement announcement, bool generateid = true)
+        public Task<IActionResult> Post([FromBody] Announcement announcement)
         {
             return DoAsyncReturn(async () =>
             {
-                //Additional Read Filters to Add Check
-                AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
+                if (!announcement.IsValidGeometry) {
+                    return BadRequest(new { error = "Invalid WKT" });
+                }
 
-                if (generateid)
-                    announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
-                else
-                    if (announcement.Id == null)
-                        throw new Exception("Id is null");
+                //Additional Read Filters to Add Check
+                AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
+
+                announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
 
                 if (announcement.LicenseInfo == null)
                     announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
@@ -355,18 +336,71 @@ namespace OdhApiCore.Controllers
                     announcement,
                     new DataInfo("announcements", CRUDOperation.Create),
                     new CompareConfig(false, false),
-                    new CRUDConstraints(additionalfilter, UserRolesToFilter)
+                    new CRUDConstraints(createFilter, UserRolesToFilter)
                 );
             });
         }
 
+        /// <summary>
+        /// PUT Upsert array of Announcements with well known ids
+        /// </summary>
+        /// <param name="announcements">List of Announcement Objects</param>
+        /// <returns>Http Response with batch results</returns>
+        [ProducesResponseType(typeof(BatchCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [AuthorizeODH(new[] { PermissionAction.Create, PermissionAction.Update })]
+        [HttpPut, Route("Announcement")]
+        public Task<IActionResult> Put(List<Announcement> announcements)
+        {
+            return DoAsync(async () =>
+            {
+                if (announcements == null || announcements.Count == 0)
+                    return BadRequest(new { error = "No announcements provided" });
+
+                // Get both Create and Update filters for batch operation
+                AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
+                AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
+
+                // Pre-process all announcements
+                foreach (var announcement in announcements)
+                {
+                    if (!announcement.IsValidGeometry)
+                        return BadRequest(new { error = "Invalid WKT for one of the announcements" });
+                
+                    if (announcement.Id == null)
+                        return BadRequest(new { error = "Id is null for one of the announcements" });
+
+                    if (announcement.LicenseInfo == null)
+                        announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
+                }
+
+                // Batch populate tags for all announcements in one DB call
+                await announcements.UpdateTagsExtensionBatch(QueryFactory);
+
+                // Trim all strings for all announcements
+                foreach (var announcement in announcements)
+                {
+                    announcement.TrimStringProperties();
+                }
+
+                return await UpsertDataArray<Announcement>(
+                    announcements,
+                    new DataInfo("announcements", CRUDOperation.CreateAndUpdate, true),
+                    new CompareConfig(true, false), // Enable comparison to detect unchanged
+                    new CRUDConstraints(createFilter, UserRolesToFilter),
+                    new CRUDConstraints(updateFilter, UserRolesToFilter)
+                );
+            });
+        }
+        
         /// <summary>
         /// PUT Modify existing Announcement
         /// </summary>
         /// <param name="id">Announcement Id</param>
         /// <param name="announcement">Announcement Object</param>
         /// <returns>Http Response</returns>
-        //[Authorize(Roles = "DataWriter,DataModify,AnnouncementManager,AnnouncementModify,AnnouncementUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -377,7 +411,7 @@ namespace OdhApiCore.Controllers
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
-                AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
+                AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
                 announcement.Id = Helper.IdGenerator.CheckIdFromType<Announcement>(id);
 
@@ -390,8 +424,8 @@ namespace OdhApiCore.Controllers
                 return await UpsertData<Announcement>(
                     announcement,
                     new DataInfo("announcements", CRUDOperation.Update, true),
-                    new CompareConfig(false, false),
-                    new CRUDConstraints(additionalfilter, UserRolesToFilter)
+                    new CompareConfig(true, false),
+                    new CRUDConstraints(updateFilter, UserRolesToFilter)
                 );
             });
         }

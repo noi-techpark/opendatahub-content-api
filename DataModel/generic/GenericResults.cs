@@ -485,5 +485,15 @@ namespace DataModel
         public JToken? patch { get; set; }
     }
 
+    public class BatchCRUDResult
+    {
+        public int TotalProcessed { get; set; }
+        public int Created { get; set; }
+        public int Updated { get; set; }
+        public int Unchanged { get; set; }
+        public int Errors { get; set; }
+        public ICollection<PGCRUDResult> Results { get; set; } = new List<PGCRUDResult>();
+    }
+
     #endregion
 }

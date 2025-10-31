@@ -18,24 +18,18 @@ namespace OdhApiCore.Controllers.api
         public List<string> idlist;
         public List<string> sourcelist;
         public List<string> languagelist;
-        public bool? active;
-        public string? lastchange;
         public DateTime? begin;
         public DateTime? end;
         public IDictionary<string, List<string>> tagdict;
 
         //New Publishedonlist
-        public List<string> publishedonlist;
 
         public static async Task<AnnouncementHelper> CreateAsync(
             QueryFactory queryFactory,
             string? idfilter,
             string? languagefilter,
             string? sourcefilter,
-            bool? activefilter,
-            string? lastchange,
             string? tagfilter,
-            string? publishedonfilter,
             string? begindate,
             string? enddate,
             CancellationToken cancellationToken
@@ -45,10 +39,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter,
                 languagefilter,
                 sourcefilter,
-                activefilter,
                 tagfilter,
-                publishedonfilter,
-                lastchange,
                 begindate,
                 enddate
             );
@@ -58,10 +49,7 @@ namespace OdhApiCore.Controllers.api
             string? idfilter,
             string? languagefilter,
             string? sourcefilter,
-            bool? activefilter,
             string? tagfilter,
-            string? publishedonfilter,
-            string? lastchange,
             string? begindate,
             string? enddate
         )
@@ -70,14 +58,8 @@ namespace OdhApiCore.Controllers.api
             idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToLower());
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);
             languagelist = Helper.CommonListCreator.CreateIdList(languagefilter);
-            //active
-            active = activefilter;
-            //smgactive
-            publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
             //tagfilter
             tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
-
-            this.lastchange = lastchange;
 
             begin = DateTime.MinValue;
             end = DateTime.MaxValue;
@@ -89,8 +71,6 @@ namespace OdhApiCore.Controllers.api
             if (!String.IsNullOrEmpty(enddate))
                 if (enddate != "null")
                     end = Convert.ToDateTime(enddate);
-
-            publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
         }
     }
 }

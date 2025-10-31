@@ -8,16 +8,23 @@ using DataModel.Annotations;
 using Swashbuckle.AspNetCore.Annotations;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
-using System.Text.Json.Serialization;
+// using System.Text.Json.Serialization; // this is not the package used to serialize
+using Newtonsoft.Json;
 
 namespace DataModel
 {
     #region Generic Datamodel
 
+    public class DetailGeneric : ILanguage
+    {
+        public string? BaseText { get; set; }
+        public string? Title { get; set; }
+
+        public string? Language { get; set; }
+    }
+
     public class Generic :
         IIdentifiable,
-        IActivateable,
-        IPublishedOn,
         IMetaData,
         IMappingAware,
         ILicenseInfo,
@@ -32,13 +39,11 @@ namespace DataModel
         public LicenseInfo? LicenseInfo { get; set; }
 
         public string? Shortname { get; set; }
-        public bool Active { get; set; }
 
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
         public ICollection<string>? HasLanguage { get; set; }
 
-        public ICollection<string>? PublishedOn { get; set; }
         public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
         public string? Source { get; set; }
@@ -50,8 +55,6 @@ namespace DataModel
 
     public class GenericWithGeometry :
         IIdentifiable,
-        IActivateable,
-        IPublishedOn,
         IMetaData,
         IMappingAware,
         IGeometryAware,
@@ -67,13 +70,10 @@ namespace DataModel
         public LicenseInfo? LicenseInfo { get; set; }
 
         public string? Shortname { get; set; }
-        public bool Active { get; set; }
 
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
         public ICollection<string>? HasLanguage { get; set; }
-
-        public ICollection<string>? PublishedOn { get; set; }
         public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
 
         //We define what classes this Additionalproperties can be
@@ -96,67 +96,49 @@ namespace DataModel
         // Geometry aware helpers
         public string WKTGeometry4326 { get; set; }
 
-        // [JsonIgnore]
-        // public bool HasWKTGeometry
-        // {
-        //     get => !string.IsNullOrWhiteSpace(WKTGeometry4326);
-        // }
+        [JsonIgnore]
+        public bool HasWKTGeometry
+        {
+            get => !string.IsNullOrWhiteSpace(WKTGeometry4326);
+        }
 
-        // [JsonIgnore]
-        // public Geometry Geometry
-        // {
-        //     get
-        //     {
-        //         if (!HasWKTGeometry) return null;
+        [JsonIgnore]
+        public Geometry? Geometry
+        {
+            get
+            {
+                if (!HasWKTGeometry) return null;
 
-        //         try
-        //         {
-        //             // Use NTS to parse the WKT string
-        //             var reader = new WKTReader();
-        //             return reader.Read(WKTGeometry4326);
-        //         }
-        //         catch (ParseException)
-        //         {
-        //             // Return null on parsing failure (invalid WKT)
-        //             return null;
-        //         }
-        //     }
-        //     set
-        //     {
-        //         // Set logic: Converts the valid Geometry object back to a WKT string
-        //         if (value == null)
-        //         {
-        //             WKTGeometry4326 = null;
-        //         }
-        //         else
-        //         {
-        //             var writer = new WKTWriter();
-        //             WKTGeometry4326 = writer.Write(value);
-        //         }
-        //     }
-        // }
+                try
+                {
+                    // Use NTS to parse the WKT string
+                    var reader = new WKTReader();
+                    var geo = reader.Read(WKTGeometry4326);
+                    geo.SRID = 4326;
+                    return geo;
+                }
+                catch (ParseException)
+                {
+                    // Return null on parsing failure (invalid WKT)
+                    return null;
+                }
+            }
+        }
 
-        // [JsonIgnore]
-        // public bool IsValidGeometry 
-        // {
-        //     get
-        //     {
-        //         var geo = Geometry;
+        [JsonIgnore]
+        public bool IsValidGeometry 
+        {
+            get
+            {
+                var geo = Geometry;
                 
-        //         // 1. Must exist (parsed successfully)
-        //         if (geo == null) return false;
+                // 1. Must exist (parsed successfully)
+                if (geo == null) return false;
+                if (!geo.IsValid) return false;
                 
-        //         // 2. Must have the correct SRID
-        //         if (geo.SRID != 4326) return false;
-                
-        //         // 3. (Optional but good practice) Must be topologically valid
-        //         //    Note: WKTReader might return non-simple or invalid geometries.
-        //         //    If you require strict validity:
-        //         if (!geo.IsValid) return false;
-                
-        //         return true;
-        //     }
-        // }
+                return true;
+            }
+        }
     }
 
     #endregion
@@ -1000,12 +982,14 @@ namespace DataModel
 
     #region Announcements
 
-    public class Announcement : GenericWithGeometry
+    public class Announcement : GenericWithGeometry, IActivateable
     {        
+        public bool Active { get; set; }
+
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 
-        public IDictionary<string, Detail> Detail { get; set; }
+        public IDictionary<string, DetailGeneric> Detail { get; set; }
         public ICollection<RelatedContent>? RelatedContent { get; set; }
 
         //We define what classes this Additionalproperties can be

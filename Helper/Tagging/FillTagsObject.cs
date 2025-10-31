@@ -22,18 +22,192 @@ namespace Helper.Tagging
         #region Update Tag Object
 
         /// <summary>
-        /// Extension Method to update the Tags
+        /// Shared helper to load tags from database and create Tags objects
         /// </summary>
-        /// <param name="queryFactory"></param>
-        /// <returns></returns>
-        public static async Task UpdateTagsExtension<T>(this T data, QueryFactory queryFactory, Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve = null)
+        private static async Task<Dictionary<string, Tags>> LoadTagsFromDatabase(
+            HashSet<string> tagIds,
+            QueryFactory queryFactory,
+            Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve
+        )
+        {
+            var tagsDictionary = new Dictionary<string, Tags>();
+
+            if (tagIds == null || tagIds.Count == 0)
+                return tagsDictionary;
+
+            // Build compound filters for split tags (same logic)
+            List<string> allIds = tagIds.ToList();
+            List<(string genSource, string id)> compoundFilters = new List<(string, string)>();
+
+            foreach (var tagId in tagIds)
+            {
+                if (tagId.Contains('.'))
+                {
+                    var parts = tagId.Split(new char[] { '.' }, 2);
+                    if (parts.Length == 2)
+                    {
+                        compoundFilters.Add((parts[0], parts[1]));
+                    }
+                }
+            }
+
+            // Build the query
+            var query = queryFactory.Query("tags").Select("data");
+
+            query = query.Where(q =>
+            {
+                // Primary filter: Search for all raw IDs in the 'id' column
+                q.WhereIn("id", allIds);
+
+                // Secondary filters: Add specific OR clauses for compound tags
+                foreach (var filter in compoundFilters)
+                {
+                    q.OrWhere(compoundQuery =>
+                    {
+                        compoundQuery.Where("gen_source", "=", filter.genSource)
+                                    .Where("id", "=", filter.id);
+                        return compoundQuery;
+                    });
+                }
+
+                return q;
+            });
+
+            var assignedtags = await query.GetObjectListAsync<TagLinked>();
+
+            // Build dictionary for fast lookup and create Tags objects
+            foreach (var tag in assignedtags)
+            {
+                IDictionary<string, string>? tagentry = null;
+                if (tagEntrysTopreserve != null && tagEntrysTopreserve.ContainsKey(tag.Id))
+                {
+                    tagentry = tagEntrysTopreserve[tag.Id];
+                }
+
+                var tagsObject = new Tags()
+                {
+                    Id = tag.Id,
+                    Source = tag.Source,
+                    Type = GetTypeFromTagTypes(tag.Types),
+                    Name = GetTagName(tag.TagName),
+                    TagEntry = tagentry
+                };
+
+                // Add by tag.Id as key
+                if (!tagsDictionary.ContainsKey(tag.Id))
+                {
+                    tagsDictionary.Add(tag.Id, tagsObject);
+                }
+
+                // Also add compound key if it exists (source.id format)
+                if (!string.IsNullOrEmpty(tag.Source))
+                {
+                    var compoundKey = $"{tag.Source}.{tag.Id}";
+                    if (!tagsDictionary.ContainsKey(compoundKey))
+                    {
+                        tagsDictionary.Add(compoundKey, tagsObject);
+                    }
+                }
+            }
+
+            return tagsDictionary;
+        }
+
+        /// <summary>
+        /// Extension Method to update the Tags for a single entity
+        /// </summary>
+        public static async Task UpdateTagsExtension<T>(
+            this T data,
+            QueryFactory queryFactory,
+            Dictionary<string, IDictionary<string, string>>? tagEntrysTopreserve = null
+        )
             where T : IHasTagInfo
         {
             //Resort TagIds
             if (data.TagIds != null)
                 data.TagIds = data.TagIds.Distinct().OrderBy(x => x).ToList();
-                
-            data.Tags = await UpdateTags(data.TagIds, queryFactory, tagEntrysTopreserve);
+
+            // Load tags using shared helper
+            var tagIds = data.TagIds != null ? new HashSet<string>(data.TagIds) : new HashSet<string>();
+            var tagsDictionary = await LoadTagsFromDatabase(tagIds, queryFactory, tagEntrysTopreserve);
+
+            // Assign tags to entity
+            var tags = new HashSet<Tags>();
+            if (data.TagIds != null)
+            {
+                foreach (var tagId in data.TagIds)
+                {
+                    if (tagsDictionary.ContainsKey(tagId))
+                    {
+                        tags.Add(tagsDictionary[tagId]);
+                    }
+                }
+            }
+
+            data.Tags = tags;
+        }
+
+        /// <summary>
+        /// Batch extension method to update tags for multiple entities in one database call
+        /// </summary>
+        public static async Task UpdateTagsExtensionBatch<T>(
+            this IEnumerable<T> dataList,
+            QueryFactory queryFactory
+        )
+            where T : IHasTagInfo
+        {
+            // Collect all unique tag IDs from all entities
+            var allTagIds = new HashSet<string>();
+            var tagEntrysToPreserve = new Dictionary<string, IDictionary<string, string>>();
+
+            foreach (var data in dataList)
+            {
+                // Resort TagIds
+                if (data.TagIds != null)
+                {
+                    data.TagIds = data.TagIds.Distinct().OrderBy(x => x).ToList();
+                    foreach (var tagId in data.TagIds)
+                    {
+                        allTagIds.Add(tagId);
+                    }
+                }
+
+                // Collect tag entries to preserve
+                if (data.Tags != null)
+                {
+                    foreach (var tag in data.Tags.Where(x => x.TagEntry != null))
+                    {
+                        if (!tagEntrysToPreserve.ContainsKey(tag.Id))
+                        {
+                            tagEntrysToPreserve.TryAddOrUpdate(tag.Id, tag.TagEntry);
+                        }
+                    }
+                }
+            }
+
+            // Load all tags in one query using shared helper
+            var tagsDictionary = await LoadTagsFromDatabase(allTagIds, queryFactory, tagEntrysToPreserve);
+
+            // Assign tags to each entity
+            foreach (var data in dataList)
+            {
+                if (data.TagIds != null && data.TagIds.Count > 0)
+                {
+                    var entityTags = new HashSet<Tags>();
+                    foreach (var tagId in data.TagIds)
+                    {
+                        if (tagsDictionary.ContainsKey(tagId))
+                        {
+                            entityTags.Add(tagsDictionary[tagId]);
+                        }
+                    }
+                    data.Tags = entityTags;
+                }
+                else
+                {
+                    data.Tags = new HashSet<Tags>();
+                }
+            }
         }
 
         //Get the Tag entries to preserve if update
@@ -56,91 +230,6 @@ namespace Helper.Tagging
             }
 
             return tagEntrysTopreserve;
-        }
-
-        private static async Task<ICollection<Tags>> UpdateTags(
-            ICollection<string> tagIds,
-            QueryFactory queryFactory,
-            Dictionary<string, IDictionary<string,string>>? tagEntrysTopreserve
-        )
-        {
-            ICollection<Tags> tags = new HashSet<Tags>();
-
-            if (tagIds != null && tagIds.Count > 0)
-            {
-                // 1. Initialize lists for filtering
-                // All original tags go into the simple list for the WHERE IN clause.
-                List<string> allIds = tagIds.ToList();
-                
-                // Only split tags go into the compound list for the OR clauses.
-                List<(string genSource, string id)> compoundFilters = new List<(string, string)>();
-
-                // 2. Process all tagIds to extract compound filters
-                foreach (var tagId in tagIds)
-                {
-                    if (tagId.Contains('.'))
-                    {
-                        var parts = tagId.Split(new char[] { '.' }, 2);
-                        if (parts.Length == 2)
-                        {
-                            // Store the split components for the specific OR filter
-                            compoundFilters.Add((parts[0], parts[1]));
-                        }
-                    }
-                }
-
-                // 3. Build the Query
-                var query = queryFactory.Query("tags").Select("data");
-
-                // Start with the main WHERE IN condition, searching for ALL tags in the 'id' column.
-                query = query.Where(q =>
-                {
-                    // A. Primary Filter: Search for all raw IDs in the 'id' column.
-                    q.WhereIn("id", allIds);
-
-                    // B. Secondary Filters: Add specific OR clauses for compound tags.
-                    // This ensures compatibility and specific matches.
-                    foreach (var filter in compoundFilters)
-                    {
-                        // Use OrWhere to add a nested OR condition
-                        q.OrWhere(compoundQuery =>
-                        {
-                            compoundQuery.Where("gen_source", "=", filter.genSource)
-                                        .Where("id", "=", filter.id);
-
-                            return compoundQuery;
-                        });
-                    }
-
-                    // C. Final return (required by the Func<Query, Query> signature)
-                    return q;
-                });
-                
-                var assignedtags = await query.GetObjectListAsync<TagLinked>();
-
-                //Create Tags object
-                foreach (var tag in assignedtags)
-                {
-                    IDictionary<string, string>? tagentry = null;
-                    if(tagEntrysTopreserve != null && tagEntrysTopreserve.ContainsKey(tag.Id))
-                    {
-                        tagentry = tagEntrysTopreserve[tag.Id];
-                    }
-
-                    tags.Add(
-                        new Tags()
-                        {
-                            Id = tag.Id,
-                            Source = tag.Source,
-                            Type = GetTypeFromTagTypes(tag.Types),
-                            Name = GetTagName(tag.TagName),
-                            TagEntry = tagentry
-                        }
-                    );
-                }
-            }
-
-            return tags;
         }
 
         #endregion
@@ -227,8 +316,6 @@ namespace Helper.Tagging
         }
 
         #endregion
-
-
 
         //TODO REFINE
         public static string? GetTypeFromTagTypes(ICollection<string> tagtypes)

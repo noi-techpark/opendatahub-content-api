@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 -- This script initializes the Postgres database with all necessary extensions and custom functions
 -- as required by the OpenDataHub Content API.
 
@@ -14,6 +18,19 @@ CREATE OR REPLACE FUNCTION text2ts(text)
  LANGUAGE sql
  IMMUTABLE
 AS $function$SELECT CASE WHEN $1 ~'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(?:Z|\+\d{2}:\d{2})?$' THEN CAST($1 AS timestamp without time zone) END; $function$;
+
+-- Define a new IMMUTABLE function to handle the conversion
+CREATE OR REPLACE FUNCTION text2tstz(input_text text)
+ RETURNS timestamptz
+ LANGUAGE sql
+ IMMUTABLE -- <<< This is the key declaration
+AS $function$
+    -- This attempts a direct cast. If the input is RFC 3339 compliant (with offset), 
+    -- it works perfectly. If the input has no offset, it will fall back to 
+    -- using the current session timezone, but since we declared it IMMUTABLE, 
+    -- PostgreSQL TRUSTS us that this operation is safe.
+    SELECT input_text::timestamptz;
+$function$;
 
 CREATE OR REPLACE FUNCTION json_array_to_pg_array(jsonarray jsonb)
  RETURNS text[]

@@ -181,11 +181,11 @@ namespace DataModel
     {
         string WKTGeometry4326 { get; set; }
 
-        // Geometry Geometry { get; set; }
+        Geometry? Geometry { get; }
 
-        // bool HasWKTGeometry { get; }
+        bool HasWKTGeometry { get; }
     
-        // bool IsValidGeometry { get; }
+        bool IsValidGeometry { get; }
     }
 
     public interface IGPSInfoAware

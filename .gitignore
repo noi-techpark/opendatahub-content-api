@@ -190,3 +190,5 @@ $RECYCLE.BIN/
 /OdhApiImporter/json/Facilities.json
 /OdhApiImporter/json/AutoPublishTags.json
 /OdhApiImporter/json/GenericTags.json
+
+OdhApiCore/testdata
