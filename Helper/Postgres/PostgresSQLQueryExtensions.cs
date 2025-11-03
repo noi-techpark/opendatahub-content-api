@@ -1971,74 +1971,106 @@ namespace Helper
             DateTime? start,
             DateTime? end,
             bool inbehaviour,
-            bool checktime,
-            bool includeNulls = false
-        )
-        {
-            // Define the date format strings based on the checktime flag
-            string timeFormat = " HH:mm:ss";
-            string startFormat = checktime ? "yyyy-MM-dd" + timeFormat : "yyyy-MM-dd";
-            string endFormat = checktime ? "yyyy-MM-dd" + timeFormat : "yyyy-MM-dd";
-
-            // Define the optional NULL checks
-            // If includeNulls is true, we allow the corresponding column to be NULL
-            string begindateNullCheck = includeNulls ? " OR gen_begindate IS NULL" : "";
-            string enddateNullCheck = includeNulls ? " OR gen_enddate IS NULL" : "";
-
-            // Helper booleans to check if the input dates are meaningful (not MinValue/MaxValue placeholders)
-            bool hasStart = start.HasValue && start.Value != DateTime.MinValue;
-            bool hasEnd = end.HasValue && end.Value != DateTime.MaxValue;
-
-            // --- CASE 1: Both Dates Given, Normal Behavior (Contained) ---
-            // The event duration must be entirely contained within the start/end window.
-            if (hasStart && hasEnd && !inbehaviour)
-            {
-                query = query.WhereRaw(
-                    $"((gen_begindate >= '{String.Format(startFormat, start)}') {begindateNullCheck}) " +
-                    $"AND ((gen_enddate <= '{String.Format(endFormat, end)}') {enddateNullCheck})"
+            bool checktime
+        ) =>
+            query
+                //begindate and enddate given normal behaviour
+                .When(
+                    start != DateTime.MinValue
+                        && end != DateTime.MaxValue
+                        && !inbehaviour
+                        && checktime,
+                    query =>
+                        query.WhereRaw(
+                            "((gen_begindate >= '"
+                                + String.Format("{0:yyyy-MM-dd HH:mm:ss}", start)
+                                + "') AND (gen_enddate <= '"
+                                + String.Format("{0:yyyy-MM-dd HH:mm:ss}", end)
+                                + "'))"
+                        )
+                )
+                //begindate and enddate given IN behaviour
+                .When(
+                    start != DateTime.MinValue
+                        && end != DateTime.MaxValue
+                        && inbehaviour
+                        && checktime,
+                    query =>
+                        query.WhereRaw(
+                            "((gen_enddate >= '"
+                                + String.Format("{0:yyyy-MM-dd HH:mm:ss}", start)
+                                + "') AND (gen_begindate <= '"
+                                + String.Format("{0:yyyy-MM-dd HH:mm:ss}", end)
+                                + "'))"
+                        )
+                )
+                //only begindate given normal + IN behaviour is the same
+                .When(
+                    start != DateTime.MinValue && end == DateTime.MaxValue && checktime,
+                    query =>
+                        query.WhereRaw(
+                            "(gen_enddate >= '"
+                                + String.Format("{0:yyyy-MM-dd HH:mm:ss}", start)
+                                + "')"
+                        )
+                )
+                //only enddate given normal + IN behaviour is the same
+                .When(
+                    start == DateTime.MinValue && end != DateTime.MaxValue && checktime,
+                    query =>
+                        query.WhereRaw(
+                            "(gen_enddate <= '"
+                                + String.Format("{0:yyyy-MM-dd HH:mm:ss}", end)
+                                + "')"
+                        )
+                )
+                //begindate and enddate given normal behaviour without time check
+                .When(
+                    start != DateTime.MinValue
+                        && end != DateTime.MaxValue
+                        && !inbehaviour
+                        && !checktime,
+                    query =>
+                        query.WhereRaw(
+                            "((gen_begindate >= '"
+                                + String.Format("{0:yyyy-MM-dd}", start)
+                                + "') AND (gen_enddate <= '"
+                                + String.Format("{0:yyyy-MM-dd}", end)
+                                + "'))"
+                        )
+                )
+                //begindate and enddate given IN behaviour without time check
+                .When(
+                    start != DateTime.MinValue
+                        && end != DateTime.MaxValue
+                        && inbehaviour
+                        && !checktime,
+                    query =>
+                        query.WhereRaw(
+                            "((gen_enddate >= '"
+                                + String.Format("{0:yyyy-MM-dd}", start)
+                                + "') AND (gen_begindate <= '"
+                                + String.Format("{0:yyyy-MM-dd}", end)
+                                + "'))"
+                        )
+                )
+                //only begindate given
+                .When(
+                    start != DateTime.MinValue && end == DateTime.MaxValue && !checktime,
+                    query =>
+                        query.WhereRaw(
+                            "(gen_enddate >= '" + String.Format("{0:yyyy-MM-dd}", start) + "')"
+                        )
+                )
+                //only enddate given
+                .When(
+                    start == DateTime.MinValue && end != DateTime.MaxValue && !checktime,
+                    query =>
+                        query.WhereRaw(
+                            "(gen_enddate <= '" + String.Format("{0:yyyy-MM-dd}", end) + "')"
+                        )
                 );
-            }
-            // --- CASE 2: Both Dates Given, IN Behavior (Overlap) ---
-            // The event must overlap with the start/end window.
-            // Event ends after the window starts AND Event starts before the window ends.
-            else if (hasStart && hasEnd && inbehaviour)
-            {
-                // Event ENDS on or after the filter START (gen_enddate >= start)
-                // AND Event STARTS on or before the filter END (gen_begindate <= end)
-                query = query.WhereRaw(
-                    $"((gen_enddate >= '{String.Format(endFormat, start)}') {enddateNullCheck}) " +
-                    $"AND ((gen_begindate <= '{String.Format(startFormat, end)}') {begindateNullCheck})"
-                );
-            }
-            // --- CASE 3: Only Start Date Given (Open End Filter) ---
-            // Find all events that are ongoing or start after the filter 'start' date.
-            else if (hasStart && !hasEnd)
-            {
-                // Event must end on or after the filter 'start'
-                query = query.WhereRaw(
-                    $"(gen_enddate >= '{String.Format(endFormat, start)}' {enddateNullCheck})"
-                );
-            }
-            // --- CASE 4: Only End Date Given (Open Start Filter) ---
-            // Find all events that finished on or before the filter 'end' date.
-            else if (!hasStart && hasEnd)
-            {
-                // Event must start on or before the filter 'end'
-                query = query.WhereRaw(
-                    $"(gen_begindate <= '{String.Format(startFormat, end)}' {begindateNullCheck})"
-                );
-            }
-
-            // Note: The original implementation used separate When clauses for checktime=true and checktime=false.
-            // The refactored code above uses the 'startFormat'/'endFormat' strings to unify the logic,
-            // making the code cleaner and less repetitive while achieving the exact same result.
-            // The original logic only used the 'enddate' in the 'only enddate given' case, 
-            // which seems inconsistent but is preserved here by applying the check to the relevant column.
-
-            return query;
-        }
         
-
         public static Query DateWithTimezoneFilter_GeneratedColumn(
             this Query query,
             DateTimeOffset? start,
