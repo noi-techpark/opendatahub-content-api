@@ -16,10 +16,12 @@ namespace OdhApiCore.Controllers
 
         //New Publishedonlist
         public List<string> publishedonlist;
+        public IDictionary<string, List<string>> tagdict;
 
         public static WebcamInfoHelper Create(
             string? sourcefilter,
             string? idfilter,
+            string? tagfilter,
             bool? activefilter,
             bool? smgactivefilter,
             string? lastchange,
@@ -29,6 +31,7 @@ namespace OdhApiCore.Controllers
             return new WebcamInfoHelper(
                 idfilter: idfilter,
                 sourcefilter: sourcefilter,
+                tagfilter: tagfilter,
                 activefilter: activefilter,
                 smgactivefilter: smgactivefilter,
                 lastchange: lastchange,
@@ -39,6 +42,7 @@ namespace OdhApiCore.Controllers
         private WebcamInfoHelper(
             string? sourcefilter,
             string? idfilter,
+            string? tagfilter,
             bool? activefilter,
             bool? smgactivefilter,
             string? lastchange,
@@ -59,6 +63,8 @@ namespace OdhApiCore.Controllers
             this.lastchange = lastchange;
 
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
 
         private List<string> ExtendSourceFilterWebcamInfo(List<string> sourcelist)

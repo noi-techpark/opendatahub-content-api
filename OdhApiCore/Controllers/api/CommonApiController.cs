@@ -43,6 +43,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -72,8 +73,9 @@ namespace OdhApiCore.Controllers.api
         public async Task<IActionResult> GetMetaRegions(
             uint? pagenumber = null,
             PageSize pagesize = null!,
-            string? idlist = null,
+            string? idlist = null,            
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -110,10 +112,11 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
-                odhtagfilter,
+                odhtagfilter,                
                 lastchange: updatefrom,
                 publishedon,
                 cancellationToken
@@ -203,6 +206,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagenumber">Pagenumber</param>
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
@@ -235,6 +239,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null, 
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -270,8 +275,9 @@ namespace OdhApiCore.Controllers.api
             CommonHelper commonhelper = await CommonHelper.CreateAsync(
                 QueryFactory,
                 idfilter: idlist,
-                languagefilter: langfilter,
+                languagefilter: langfilter,                
                 visibleinsearch,
+                tagfilter,
                 source,
                 activefilter: active?.Value,
                 smgactivefilter: odhactive?.Value,
@@ -366,6 +372,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -396,6 +403,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -432,6 +440,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 activefilter: active?.Value,
                 smgactivefilter: odhactive?.Value,
@@ -526,6 +535,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -556,6 +566,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -592,6 +603,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 activefilter: active?.Value,
                 smgactivefilter: odhactive?.Value,
@@ -686,6 +698,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="visibleinsearch">Filter only Elements flagged with visibleinsearch: (possible values: 'true','false'), (default:'false')</param>
@@ -718,6 +731,7 @@ namespace OdhApiCore.Controllers.api
             bool? visibleinsearch = null,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -754,6 +768,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 visibleinsearch,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -848,6 +863,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="visibleinsearch">Filter only Elements flagged with visibleinsearch: (possible values: 'true','false'), (default:'false')</param>
@@ -879,6 +895,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -916,6 +933,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 visibleinsearch,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -1010,6 +1028,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="language">Language field selector, displays data and fields in the selected language (default:'null' all languages are displayed)</param>
@@ -1036,6 +1055,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -1058,6 +1078,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -1152,6 +1173,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -1182,6 +1204,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -1218,6 +1241,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -1312,6 +1336,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -1344,6 +1369,7 @@ namespace OdhApiCore.Controllers.api
             string? odhtagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
+            string? tagfilter = null,
             string? source = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? language = null,
@@ -1378,6 +1404,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -1644,6 +1671,7 @@ namespace OdhApiCore.Controllers.api
                         commonhelper.smgtaglist,
                         activefilter: commonhelper.active,
                         odhactivefilter: commonhelper.smgactive,
+                        tagdict: commonhelper.tagdict,
                         publishedonlist: commonhelper.publishedonlist,
                         sourcelist: commonhelper.sourcelist,
                         searchfilter: searchfilter,
@@ -1725,9 +1753,10 @@ namespace OdhApiCore.Controllers.api
                         idlist: commonhelper.idlist,
                         languagelist: commonhelper.languagelist,
                         visibleinsearch: commonhelper.visibleinsearch,
-                        commonhelper.smgtaglist,
+                        commonhelper.smgtaglist,                        
                         activefilter: commonhelper.active,
                         odhactivefilter: commonhelper.smgactive,
+                        commonhelper.tagdict,
                         publishedonlist: commonhelper.publishedonlist,
                         sourcelist: commonhelper.sourcelist,
                         searchfilter: searchfilter,

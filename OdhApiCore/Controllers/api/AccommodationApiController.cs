@@ -2,14 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using AspNetCore.CacheOutput;
 using DataModel;
 using Geo.Measure;
@@ -23,9 +15,18 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using OdhApiCore.Controllers.api;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Drawing.Printing;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace OdhApiCore.Controllers
 {
@@ -88,6 +89,7 @@ namespace OdhApiCore.Controllers
         /// <param name="odhactive">ODHActive Filter BOOLEAN (refers to field SmgActive) (possible Values: 'null' Displays all Accommodations, 'true' only ODH Active Accommodations, 'false' only ODH Disabled Accommodations), (default:'null')</param>
         /// <param name="active">TIC Active Filter BOOLEAN (possible Values: 'null' Displays all Accommodations, 'true' only TIC Active Accommodations, 'false' only TIC Disabled Accommodations), (default:'null')</param>
         /// <param name="altitudefilter">Altitude Range Filter SPECIAL (Separator ',' example Value: 500,1000 Altitude from 500 up to 1000 metres), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="availabilitycheck">Availability Check BOOLEAN (possible Values: 'true', 'false), (default Value: 'false') NOT AVAILABLE AS OPEN DATA, IF Availabilty Check is true certain filters are Required</param>
         /// <param name="arrival">Arrival DATE (yyyy-MM-dd) REQUIRED ON Availabilitycheck = true, (default:'Today's date')</param>
         /// <param name="departure">Departure DATE (yyyy-MM-dd) REQUIRED ON Availabilitycheck = true, (default:'Tomorrow's date')</param>
@@ -147,6 +149,7 @@ namespace OdhApiCore.Controllers
             string? msssource = "sinfo",
             string? availabilitychecklanguage = "en",
             string? detail = "0",
+            string? tagfilter = null,
             LegacyBool availabilitycheck = null!,
             string? latitude = null,
             string? longitude = null,
@@ -205,6 +208,7 @@ namespace OdhApiCore.Controllers
                     smgactive: odhactive,
                     bookablefilter: bookablefilter,
                     smgtagfilter: odhtagfilter,
+                    tagfilter: tagfilter,
                     sourcefilter: source,
                     publishedon: publishedon,
                     seed: seed,
@@ -264,6 +268,7 @@ namespace OdhApiCore.Controllers
                     smgactive: odhactive,
                     bookablefilter: bookablefilter,
                     smgtagfilter: odhtagfilter,
+                    tagfilter: tagfilter,
                     sourcefilter: source,
                     publishedon: publishedon,
                     seed: seed,
@@ -815,6 +820,7 @@ namespace OdhApiCore.Controllers
                     smgactive: null,
                     bookablefilter: null,
                     smgtagfilter: null,
+                    tagfilter: null,
                     sourcefilter: null,
                     publishedon: publishedon,
                     seed: null,
@@ -932,6 +938,7 @@ namespace OdhApiCore.Controllers
             bool? smgactive,
             bool? bookablefilter,
             string? smgtagfilter,
+            string? tagfilter,
             string? sourcefilter,
             string? publishedon,
             string? seed,
@@ -970,6 +977,7 @@ namespace OdhApiCore.Controllers
                     themefilter: themefilter,
                     altitudefilter: altitudefilter,
                     smgtags: smgtagfilter,
+                    tagfilter: tagfilter,
                     activefilter: active,
                     smgactivefilter: smgactive,
                     bookablefilter: customisbookablefilter,
@@ -1010,6 +1018,7 @@ namespace OdhApiCore.Controllers
                         altitudemax: myhelper.altitudemax,
                         activefilter: myhelper.active,
                         smgactivefilter: myhelper.smgactive,
+                        tagdict: myhelper.tagdict,
                         publishedonlist: myhelper.publishedonlist,
                         sourcelist: myhelper.sourcelist,
                         searchfilter: searchfilter,

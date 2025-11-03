@@ -87,7 +87,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="durationfilter">Duration Range Filter (Separator ',' example Value: 1,3 Duration from 1 to 3 hours), (default:'null')</param>
         /// <param name="difficultyfilter">Difficulty Filter (possible values: '1' = easy, '2' = medium, '3' = difficult), (default:'null')</param>
         /// <param name="hascc0image">Image CC0 Filter (Return only Data with at least one Image tagged with a CC0 License, possible Values: 'true', 'false'), (default:'null')</param>
-        /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagSource.TagId,TagSource.TagId,TagId) example or(idm.summer,lts.hiking) - and(idm.themed hikes,lts.family hikings) - or(hiking) - and(idm.summer) - Combining and/or is not supported at the moment, default: 'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="publishedon">Published On Filter (Separator ',' List of publisher IDs), (default:'null')</param>
         /// <param name="updatefrom">Returns data changed after this date Format (yyyy-MM-dd), (default: 'null')</param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
