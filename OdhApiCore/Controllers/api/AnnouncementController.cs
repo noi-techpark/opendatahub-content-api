@@ -52,10 +52,10 @@ namespace OdhApiCore.Controllers
         /// <param name="langfilter">Langfilter (returns only data available in the selected Language, Separator ',' possible values: 'de,it,en,nl,sc,pl,fr,ru', 'null': Filter disabled)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of IDs, 'null' = No Filter), (default:'null')</param>
         /// <param name="source">Source Filter, (default:'null')</param>
-        /// <param name="begin">Begin Filter (Format: RFC3339), if set only announcements intesecting with begin are returned. **INCLUSIVE** (default: 'null')</param>
-        /// <param name="end">End Filter (Format: RFC3339), if set only announcements intesecting with end are returned. **INCLUSIVE**  (default: 'null')</param>
+        /// <param name="begin">Begin Filter (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), if set only announcements intesecting with begin are returned. **INCLUSIVE** (default: 'null')</param>
+        /// <param name="end">End Filter (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), if set only announcements intesecting with end are returned. **INCLUSIVE**  (default: 'null')</param>
         /// <param name="polygon">valid WKT (Well-known text representation of geometry) Format, Examples (POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))) / By Using the GeoShapes Api (v1/GeoShapes) and passing Country.Type.Id OR Country.Type.Name Example (it.municipality.3066) / Bounding Box Filter bbc: 'Bounding Box Contains', 'bbi': 'Bounding Box Intersects', followed by a List of Comma Separated Longitude Latitude Tuples, 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#polygon-filter-functionality' target="_blank">Wiki geosort</a></param>
-        /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagSource.TagId,TagSource.TagId,TagId) example or(idm.summer,lts.hiking) - and(idm.themed hikes,lts.family hikings) - or(hiking) - and(idm.summer) - Combining and/or is not supported at the moment, default: 'null')</param>
+        /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagId,TagId,TagId) example or(traffic-event:hindrance,traffic-event:mountain-pass) - Combining and/or is not supported at the moment. (default: 'null')</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
         /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
@@ -326,9 +326,6 @@ namespace OdhApiCore.Controllers
                 if (announcement.LicenseInfo == null)
                     announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
 
-                //Populate Tags (Id/Source/Type)
-                await announcement.UpdateTagsExtension(QueryFactory);
-
                 //TRIM all strings
                 announcement.TrimStringProperties();
 
@@ -357,27 +354,33 @@ namespace OdhApiCore.Controllers
             return DoAsync(async () =>
             {
                 if (announcements == null || announcements.Count == 0)
-                    return BadRequest(new { error = "No announcements provided" });
+                {
+                    ModelState.AddModelError("announcements", "No announcements provided");
+                    return ValidationProblem(ModelState);
+                }
 
                 // Get both Create and Update filters for batch operation
                 AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
                 AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
-                // Pre-process all announcements
-                foreach (var announcement in announcements)
+                // Validate all announcements and collect errors
+                for (int i = 0; i < announcements.Count; i++)
                 {
+                    var announcement = announcements[i];
+
                     if (!announcement.IsValidGeometry)
-                        return BadRequest(new { error = "Invalid WKT for one of the announcements" });
-                
+                        ModelState.AddModelError($"[{i}].WKTGeometry4326", "Invalid WKT geometry");
+
                     if (announcement.Id == null)
-                        return BadRequest(new { error = "Id is null for one of the announcements" });
+                        ModelState.AddModelError($"[{i}].Id", "Id is required");
 
                     if (announcement.LicenseInfo == null)
                         announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
                 }
 
-                // Batch populate tags for all announcements in one DB call
-                await announcements.UpdateTagsExtensionBatch(QueryFactory);
+                // If there are validation errors, return them in standard format
+                if (!ModelState.IsValid)
+                    return ValidationProblem(ModelState);
 
                 // Trim all strings for all announcements
                 foreach (var announcement in announcements)
@@ -414,9 +417,6 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
                 announcement.Id = Helper.IdGenerator.CheckIdFromType<Announcement>(id);
-
-                //Populate Tags (Id/Source/Type)
-                await announcement.UpdateTagsExtension(QueryFactory);
 
                 //TRIM all strings
                 announcement.TrimStringProperties();

@@ -1984,7 +1984,7 @@ namespace Helper
             // If includeNulls is true, we allow the corresponding column to be NULL
             string begindateNullCheck = includeNulls ? " OR gen_begindate IS NULL" : "";
             string enddateNullCheck = includeNulls ? " OR gen_enddate IS NULL" : "";
-            
+
             // Helper booleans to check if the input dates are meaningful (not MinValue/MaxValue placeholders)
             bool hasStart = start.HasValue && start.Value != DateTime.MinValue;
             bool hasEnd = end.HasValue && end.Value != DateTime.MaxValue;
@@ -2028,12 +2028,66 @@ namespace Helper
                     $"(gen_begindate <= '{String.Format(startFormat, end)}' {begindateNullCheck})"
                 );
             }
-            
+
             // Note: The original implementation used separate When clauses for checktime=true and checktime=false.
             // The refactored code above uses the 'startFormat'/'endFormat' strings to unify the logic,
             // making the code cleaner and less repetitive while achieving the exact same result.
             // The original logic only used the 'enddate' in the 'only enddate given' case, 
             // which seems inconsistent but is preserved here by applying the check to the relevant column.
+
+            return query;
+        }
+        
+
+        public static Query DateWithTimezoneFilter_GeneratedColumn(
+            this Query query,
+            DateTimeOffset? start,
+            DateTimeOffset? end,
+            bool inBehaviour,
+            bool includeNulls = false
+        )
+        {
+            // Format timestamps as ISO 8601 (with timezone offset, e.g. 2024-05-17T00:00:00+00:00)
+            string startValue = start?.ToString("o");
+            string endValue = end?.ToString("o");
+
+            // Optional null checks
+            string beginDateNullCheck = includeNulls ? " OR gen_begindate IS NULL" : "";
+            string endDateNullCheck = includeNulls ? " OR gen_enddate IS NULL" : "";
+
+            bool hasStart = start.HasValue;
+            bool hasEnd = end.HasValue;
+
+            // ---- CASE 1: Both Dates Given, Normal Behavior (Contained) ----
+            if (hasStart && hasEnd && !inBehaviour)
+            {
+                query = query.WhereRaw(
+                    $"((gen_begindate >= TIMESTAMPTZ '{startValue}') {beginDateNullCheck}) " +
+                    $"AND ((gen_enddate <= TIMESTAMPTZ '{endValue}') {endDateNullCheck})"
+                );
+            }
+            // ---- CASE 2: Both Dates Given, IN Behavior (Overlap) ----
+            else if (hasStart && hasEnd && inBehaviour)
+            {
+                query = query.WhereRaw(
+                    $"((gen_enddate >= TIMESTAMPTZ '{startValue}') {endDateNullCheck}) " +
+                    $"AND ((gen_begindate <= TIMESTAMPTZ '{endValue}') {beginDateNullCheck})"
+                );
+            }
+            // ---- CASE 3: Only Start Given ----
+            else if (hasStart && !hasEnd)
+            {
+                query = query.WhereRaw(
+                    $"(gen_enddate >= TIMESTAMPTZ '{startValue}' {endDateNullCheck})"
+                );
+            }
+            // ---- CASE 4: Only End Given ----
+            else if (!hasStart && hasEnd)
+            {
+                query = query.WhereRaw(
+                    $"(gen_begindate <= TIMESTAMPTZ '{endValue}' {beginDateNullCheck})"
+                );
+            }
 
             return query;
         }

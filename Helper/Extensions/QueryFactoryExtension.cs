@@ -430,289 +430,245 @@ namespace Helper
             where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
         {
             var batchResult = new BatchCRUDResult();
-            var results = new List<PGCRUDResult>();
 
             if (dataList == null || !dataList.Any())
             {
-                batchResult.Results = results;
+                batchResult.Success = true;
                 return batchResult;
             }
 
-            string reducedId = reduced ? "_REDUCED" : "";
+            // Start a database transaction - all operations succeed or all fail
+            var connection = QueryFactory.Connection;
 
-            // Prepare all IDs
-            var allIds = dataList
-                .Select(d => IdGenerator.CheckIdFromType<T>(d.Id + reducedId))
-                .ToList();
-
-            // Merge AccessRoles from both create and update constraints for fetching existing data
-            var mergedAccessRoles = createConstraints.AccessRole
-                .Union(updateConstraints.AccessRole)
-                .Distinct()
-                .ToList();
-
-            // Batch load all existing items in ONE query using merged AccessRoles
-            var existingItems = await QueryFactory
-                .Query(dataconfig.Table)
-                .Select("data")
-                .WhereIn("id", allIds)
-                .When(
-                    mergedAccessRoles.Count() > 0,
-                    q => q.FilterDataByAccessRoles(mergedAccessRoles)
-                )
-                .GetObjectListAsync<T>();
-
-            // Create lookup dictionary for fast access
-            var existingLookup = existingItems
-                .ToDictionary(e => e.Id.ToLower(), e => e);
-
-            // Prepare all items (validation, metadata, comparison)
-            var preparedItems = new List<PreparedDataItem<T>>();
-            foreach (var data in dataList)
+            // Track if we opened the connection (so we can close it later)
+            bool connectionOpenedByUs = false;
+            if (connection.State != System.Data.ConnectionState.Open)
             {
-                try
-                {
-                    var idToProcess = IdGenerator.CheckIdFromType<T>(data.Id + reducedId);
-                    existingLookup.TryGetValue(idToProcess.ToLower(), out var existingData);
-
-                    var prepared = PrepareDataItem<T>(
-                        data,
-                        existingData,
-                        dataconfig,
-                        editinfo,
-                        createConstraints,
-                        updateConstraints,
-                        compareConfig,
-                        reduced
-                    );
-
-                    preparedItems.Add(prepared);
-                }
-                catch (Exception ex)
-                {
-                    var metadata = MetadataHelper.GetMetadataobject<T>(data, reduced);
-                    results.Add(new PGCRUDResult
-                    {
-                        id = data.Id,
-                        odhtype = metadata?.Type,
-                        operation = "Error",
-                        error = 1,
-                        errorreason = ex.Message,
-                        created = 0,
-                        updated = 0,
-                        deleted = 0,
-                        compareobject = false,
-                        objectchanged = null,
-                        objectimagechanged = null,
-                        pushchannels = new List<string>()
-                    });
-                    batchResult.Errors++;
-                    batchResult.TotalProcessed++;
-                }
+                connection.Open();
+                connectionOpenedByUs = true;
             }
 
-            // Separate items into creates, updates, and errors
-            var itemsToCreate = preparedItems
-                .Where(p => p.ErrorResult == null && p.IsCreate)
-                .ToList();
-            var itemsToUpdate = preparedItems
-                .Where(p => p.ErrorResult == null && !p.IsCreate && p.ObjectChanged != 0)
-                .ToList();
-            var itemsUnchanged = preparedItems
-                .Where(p => p.ErrorResult == null && !p.IsCreate && p.ObjectChanged == 0)
-                .ToList();
-            var itemsWithErrors = preparedItems
-                .Where(p => p.ErrorResult != null)
-                .ToList();
+            var transaction = connection.BeginTransaction();
 
-            // Add error results
-            foreach (var errorItem in itemsWithErrors)
+            try
             {
-                if (errorItem.ErrorResult.HasValue)
-                {
-                    results.Add(errorItem.ErrorResult.Value);
-                    batchResult.Errors++;
-                    batchResult.TotalProcessed++;
-                }
-            }
+                string reducedId = reduced ? "_REDUCED" : "";
 
-            // BULK INSERT - Process all creates in a transaction
-            if (itemsToCreate.Any())
-            {
-                // SqlKata's bulk insert doesn't handle JsonRaw properly
-                // Use individual inserts within the same connection for better performance
-                foreach (var prepared in itemsToCreate)
+                // Prepare all IDs
+                var allIds = dataList
+                    .Select(d => IdGenerator.CheckIdFromType<T>(d.Id + reducedId))
+                    .ToList();
+
+                // Merge AccessRoles from both create and update constraints for fetching existing data
+                var mergedAccessRoles = createConstraints.AccessRole
+                    .Union(updateConstraints.AccessRole)
+                    .Distinct()
+                    .ToList();
+
+                // Batch load all existing items in ONE query using merged AccessRoles
+                var existingItems = await QueryFactory
+                    .Query(dataconfig.Table)
+                    .Select("data")
+                    .WhereIn("id", allIds)
+                    .When(
+                        mergedAccessRoles.Count() > 0,
+                        q => q.FilterDataByAccessRoles(mergedAccessRoles)
+                    )
+                    .GetObjectListAsync<T>();
+
+                // Create lookup dictionary for fast access
+                var existingLookup = existingItems
+                    .ToDictionary(e => e.Id.ToLower(), e => e);
+
+                // Prepare all items (validation, metadata, comparison)
+                var preparedItems = new List<PreparedDataItem<T>>();
+                var validationErrors = new Dictionary<string, List<string>>();
+                int itemIndex = 0;
+
+                foreach (var data in dataList)
                 {
                     try
                     {
-                        await QueryFactory
+                        var idToProcess = IdGenerator.CheckIdFromType<T>(data.Id + reducedId);
+                        existingLookup.TryGetValue(idToProcess.ToLower(), out var existingData);
+
+                        var prepared = PrepareDataItem<T>(
+                            data,
+                            existingData,
+                            dataconfig,
+                            editinfo,
+                            createConstraints,
+                            updateConstraints,
+                            compareConfig,
+                            reduced
+                        );
+
+                        preparedItems.Add(prepared);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Collect structured validation error
+                        var errorKey = $"[{itemIndex}]";
+                        if (!validationErrors.ContainsKey(errorKey))
+                        {
+                            validationErrors[errorKey] = new List<string>();
+                        }
+                        validationErrors[errorKey].Add(ex.Message);
+                    }
+                    itemIndex++;
+                }
+
+                // Separate items into creates, updates, unchanged, and errors
+                // Track indices for each item type
+                var itemsToCreate = new List<(PreparedDataItem<T> Item, int OriginalIndex)>();
+                var itemsToUpdate = new List<(PreparedDataItem<T> Item, int OriginalIndex)>();
+                var itemsUnchanged = new List<(PreparedDataItem<T> Item, int OriginalIndex)>();
+
+                for (int i = 0; i < preparedItems.Count; i++)
+                {
+                    var prepared = preparedItems[i];
+                    if (prepared.ErrorResult == null && prepared.IsCreate)
+                        itemsToCreate.Add((prepared, i));
+                    else if (prepared.ErrorResult == null && !prepared.IsCreate && prepared.ObjectChanged != 0)
+                        itemsToUpdate.Add((prepared, i));
+                    else if (prepared.ErrorResult == null && !prepared.IsCreate && prepared.ObjectChanged == 0)
+                        itemsUnchanged.Add((prepared, i));
+                    else if (prepared.ErrorResult != null)
+                    {
+                        // Collect error from PrepareDataItem
+                        var errorKey = $"[{i}]";
+                        if (!validationErrors.ContainsKey(errorKey))
+                        {
+                            validationErrors[errorKey] = new List<string>();
+                        }
+                        validationErrors[errorKey].Add(prepared.ErrorResult.Value.errorreason ?? "Unknown error");
+                    }
+                }
+
+                // If ANY item has validation errors, abort the transaction immediately
+                if (validationErrors.Any())
+                {
+                    throw new BatchValidationException(
+                        $"Validation failed for {validationErrors.Count} item(s)",
+                        validationErrors
+                    );
+                }
+
+                // BULK INSERT - Process all creates in a transaction
+                if (itemsToCreate.Any())
+                {
+                    // SqlKata's bulk insert doesn't handle JsonRaw properly
+                    // Use individual inserts within the same connection for better performance
+                    foreach (var (prepared, originalIndex) in itemsToCreate)
+                    {
+                        try
+                        {
+                            await QueryFactory
+                                .Query(dataconfig.Table)
+                                .InsertAsync(new JsonBData
+                                {
+                                    id = prepared.IdToProcess,
+                                    data = new JsonRaw(prepared.Data)
+                                });
+
+                            batchResult.Created++;
+                        }
+                        catch (Exception ex)
+                        {
+                            // Throw structured validation exception with item index
+                            var errors = new Dictionary<string, List<string>>
+                            {
+                                [$"[{originalIndex}]"] = new List<string> { $"Insert failed for ID '{prepared.Data.Id}': {ex.Message}" }
+                            };
+                            throw new BatchValidationException($"Insert failed at item [{originalIndex}]", errors);
+                        }
+                    }
+                }
+
+                // BULK UPDATE - Process updates (unfortunately SqlKata doesn't support bulk update well)
+                // We need to do individual updates but can batch them in a transaction if needed
+                foreach (var (prepared, originalIndex) in itemsToUpdate)
+                {
+                    try
+                    {
+                        var updateResult = await QueryFactory
                             .Query(dataconfig.Table)
-                            .InsertAsync(new JsonBData
+                            .Where("id", prepared.IdToProcess)
+                            .UpdateAsync(new JsonBData
                             {
                                 id = prepared.IdToProcess,
                                 data = new JsonRaw(prepared.Data)
                             });
 
-                        results.Add(new PGCRUDResult
+                        if (updateResult > 0)
                         {
-                            id = prepared.Data.Id,
-                            odhtype = prepared.Data._Meta.Type,
-                            operation = CRUDOperation.Create.ToString(),
-                            created = 1,
-                            updated = 0,
-                            deleted = 0,
-                            error = 0,
-                            errorreason = null,
-                            compareobject = compareConfig.CompareData,
-                            objectchanged = prepared.ObjectChanged,
-                            objectimagechanged = prepared.ObjectImageChanged,
-                            pushchannels = prepared.PushChannels,
-                            changes = null
-                        });
-                        batchResult.Created++;
-                        batchResult.TotalProcessed++;
+                            batchResult.Updated++;
+
+                            // Save changes to rawchanges table if configured
+                            if (dataconfig.SaveChangesToDB && prepared.ObjectChanged > 0)
+                            {
+                                await SaveChangesToRawChangesTable(
+                                    QueryFactory,
+                                    prepared.Data,
+                                    editinfo,
+                                    prepared.ComparisonResult ?? new EqualityResult { isequal = false, patch = null }
+                                );
+                            }
+                        }
+                        else
+                        {
+                            // If update didn't affect any rows, this is an error condition
+                            var errors = new Dictionary<string, List<string>>
+                            {
+                                [$"[{originalIndex}]"] = new List<string> { $"Update failed for ID '{prepared.Data.Id}' - no rows affected" }
+                            };
+                            throw new BatchValidationException($"Update failed at item [{originalIndex}]", errors);
+                        }
+                    }
+                    catch (BatchValidationException)
+                    {
+                        // Already a structured exception, just rethrow
+                        throw;
                     }
                     catch (Exception ex)
                     {
-                        results.Add(new PGCRUDResult
+                        // Wrap database exception with item index
+                        var errors = new Dictionary<string, List<string>>
                         {
-                            id = prepared.Data.Id,
-                            odhtype = prepared.Data._Meta.Type,
-                            operation = "Error",
-                            error = 1,
-                            errorreason = $"Insert failed: {ex.Message}",
-                            created = 0,
-                            updated = 0,
-                            deleted = 0,
-                            compareobject = false,
-                            objectchanged = null,
-                            objectimagechanged = null,
-                            pushchannels = new List<string>()
-                        });
-                        batchResult.Errors++;
-                        batchResult.TotalProcessed++;
+                            [$"[{originalIndex}]"] = new List<string> { $"Update failed for ID '{prepared.Data.Id}': {ex.Message}" }
+                        };
+                        throw new BatchValidationException($"Update failed at item [{originalIndex}]", errors);
                     }
                 }
+
+                // Count unchanged items
+                batchResult.Unchanged = itemsUnchanged.Count;
+
+                // If we got here, all operations succeeded - commit the transaction
+                transaction.Commit();
+
+                batchResult.Success = true;
+                batchResult.TotalProcessed = batchResult.Created + batchResult.Updated + batchResult.Unchanged;
+                return batchResult;
             }
-
-            // var connection = QueryFactory.Connection;
-            // var transaction = connection.BeginTransaction();
-
-            // BULK UPDATE - Process updates (unfortunately SqlKata doesn't support bulk update well)
-            // We need to do individual updates but can batch them in a transaction if needed
-            foreach (var prepared in itemsToUpdate)
+            catch (Exception)
             {
-                try
-                {
-                    var updateResult = await QueryFactory
-                        .Query(dataconfig.Table)
-                        .Where("id", prepared.IdToProcess)
-                        .UpdateAsync(new JsonBData
-                        {
-                            id = prepared.IdToProcess,
-                            data = new JsonRaw(prepared.Data)
-                        });
+                // Rollback the transaction on any error
+                transaction.Rollback();
 
-                    if (updateResult > 0)
-                    {
-                        results.Add(new PGCRUDResult
-                        {
-                            id = prepared.Data.Id,
-                            odhtype = prepared.Data._Meta.Type,
-                            operation = CRUDOperation.Update.ToString(),
-                            created = 0,
-                            updated = 1,
-                            deleted = 0,
-                            error = 0,
-                            errorreason = null,
-                            compareobject = compareConfig.CompareData,
-                            objectchanged = prepared.ObjectChanged,
-                            objectimagechanged = prepared.ObjectImageChanged,
-                            pushchannels = prepared.PushChannels,
-                            changes = prepared.ComparisonResult?.patch
-                        });
-                        batchResult.Updated++;
-                        batchResult.TotalProcessed++;
-
-                        // Save changes to rawchanges table if configured
-                        if (dataconfig.SaveChangesToDB && prepared.ObjectChanged > 0)
-                        {
-                            await SaveChangesToRawChangesTable(
-                                QueryFactory,
-                                prepared.Data,
-                                editinfo,
-                                prepared.ComparisonResult ?? new EqualityResult { isequal = false, patch = null }
-                            );
-                        }
-                    }
-                    else
-                    {
-                        results.Add(new PGCRUDResult
-                        {
-                            id = prepared.Data.Id,
-                            odhtype = prepared.Data._Meta.Type,
-                            operation = "Error",
-                            error = 1,
-                            errorreason = "Update failed - no rows affected",
-                            created = 0,
-                            updated = 0,
-                            deleted = 0,
-                            compareobject = false,
-                            objectchanged = null,
-                            objectimagechanged = null,
-                            pushchannels = new List<string>()
-                        });
-                        batchResult.Errors++;
-                        batchResult.TotalProcessed++;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    results.Add(new PGCRUDResult
-                    {
-                        id = prepared.Data.Id,
-                        odhtype = prepared.Data._Meta.Type,
-                        operation = "Error",
-                        error = 1,
-                        errorreason = ex.Message,
-                        created = 0,
-                        updated = 0,
-                        deleted = 0,
-                        compareobject = false,
-                        objectchanged = null,
-                        objectimagechanged = null,
-                        pushchannels = new List<string>()
-                    });
-                    batchResult.Errors++;
-                    batchResult.TotalProcessed++;
-                }
+                // Rethrow to be handled by controller
+                throw;
             }
-
-            // Handle unchanged items
-            foreach (var prepared in itemsUnchanged)
+            finally
             {
-                results.Add(new PGCRUDResult
-                {
-                    id = prepared.Data.Id,
-                    odhtype = prepared.Data._Meta.Type,
-                    operation = CRUDOperation.Update.ToString(),
-                    created = 0,
-                    updated = 1,
-                    deleted = 0,
-                    error = 0,
-                    errorreason = null,
-                    compareobject = compareConfig.CompareData,
-                    objectchanged = 0,
-                    objectimagechanged = prepared.ObjectImageChanged,
-                    pushchannels = prepared.PushChannels,
-                    changes = null
-                });
-                batchResult.Unchanged++;
-                batchResult.TotalProcessed++;
-            }
+                transaction.Dispose();
 
-            batchResult.Results = results;
-            return batchResult;
+                // Close connection if we opened it
+                if (connectionOpenedByUs && connection.State == System.Data.ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
         }
         
         /// <summary>

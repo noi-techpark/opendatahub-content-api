@@ -37,42 +37,9 @@ namespace Helper.Tagging
 
             // Build compound filters for split tags (same logic)
             List<string> allIds = tagIds.ToList();
-            List<(string genSource, string id)> compoundFilters = new List<(string, string)>();
-
-            foreach (var tagId in tagIds)
-            {
-                if (tagId.Contains('.'))
-                {
-                    var parts = tagId.Split(new char[] { '.' }, 2);
-                    if (parts.Length == 2)
-                    {
-                        compoundFilters.Add((parts[0], parts[1]));
-                    }
-                }
-            }
 
             // Build the query
-            var query = queryFactory.Query("tags").Select("data");
-
-            query = query.Where(q =>
-            {
-                // Primary filter: Search for all raw IDs in the 'id' column
-                q.WhereIn("id", allIds);
-
-                // Secondary filters: Add specific OR clauses for compound tags
-                foreach (var filter in compoundFilters)
-                {
-                    q.OrWhere(compoundQuery =>
-                    {
-                        compoundQuery.Where("gen_source", "=", filter.genSource)
-                                    .Where("id", "=", filter.id);
-                        return compoundQuery;
-                    });
-                }
-
-                return q;
-            });
-
+            var query = queryFactory.Query("tags").Select("data").WhereIn("id", allIds);
             var assignedtags = await query.GetObjectListAsync<TagLinked>();
 
             // Build dictionary for fast lookup and create Tags objects

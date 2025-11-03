@@ -29,7 +29,6 @@ namespace DataModel
         IMappingAware,
         ILicenseInfo,
         ISource,
-        IHasTagInfo,
         IShortName,
         IHasLanguage,
         IImportDateassigneable
@@ -48,7 +47,6 @@ namespace DataModel
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
         public string? Source { get; set; }
 
-        public ICollection<Tags>? Tags { get; set; }
         public ICollection<string>? TagIds { get; set; }
         public ICollection<GpsInfo>? GpsInfo { get; set; }
     }
@@ -60,7 +58,6 @@ namespace DataModel
         IGeometryAware,
         ILicenseInfo,
         ISource,
-        IHasTagInfo,
         IShortName,
         IHasLanguage,
         IImportDateassigneable
@@ -89,7 +86,6 @@ namespace DataModel
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
         public string? Source { get; set; }
 
-        public ICollection<Tags>? Tags { get; set; }
         public ICollection<string>? TagIds { get; set; }
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 

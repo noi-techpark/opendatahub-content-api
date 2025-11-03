@@ -1413,7 +1413,7 @@ namespace Helper
                     languagelist.Count > 0,
                     q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
                 )
-                .EventShortDateFilter_GeneratedColumn(start, end, true, true, true)
+                .DateWithTimezoneFilter_GeneratedColumn(start, end, true, true)
                 .When(
                     tagdict != null && tagdict.Count > 0,
                     q => q.TaggingFilter_GeneratedColumn(tagdict)

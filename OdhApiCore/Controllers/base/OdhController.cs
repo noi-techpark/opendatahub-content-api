@@ -342,51 +342,32 @@ namespace OdhApiCore.Controllers
                 }
             }
 
-            var batchResult = await QueryFactory.UpsertDataArray<T>(
-                dataList,
-                datainfo,
-                new EditInfo(editor, editsource),
-                createConstraints,
-                updateConstraints,
-                compareconfig
-            );
-
-            // Push modified data to all published channels for each item
-            var resultsList = batchResult.Results.ToList();
-            for (int i = 0; i < resultsList.Count; i++)
+            try
             {
-                var result = resultsList[i];
-                if (result.error == 0)
-                {
-                    var pushed = await CheckIfObjectChangedAndPush(
-                        result,
-                        result.id,
-                        result.odhtype ?? ""
-                    );
+                var batchResult = await QueryFactory.UpsertDataArray<T>(
+                    dataList,
+                    datainfo,
+                    new EditInfo(editor, editsource),
+                    createConstraints,
+                    updateConstraints,
+                    compareconfig
+                );
 
-                    // Update the result with push information
-                    resultsList[i] = new PGCRUDResult
-                    {
-                        id = result.id,
-                        odhtype = result.odhtype,
-                        operation = result.operation,
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        errorreason = result.errorreason,
-                        compareobject = result.compareobject,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                        pushed = pushed
-                    };
-                }
+                // Success - return the result
+                return Ok(batchResult);
             }
-
-            batchResult.Results = resultsList;
-            return Ok(batchResult);
+            catch (BatchValidationException ex)
+            {
+                // Convert structured validation errors to ModelState
+                foreach (var error in ex.ValidationErrors)
+                {
+                    foreach (var errorMessage in error.Value)
+                    {
+                        ModelState.AddModelError(error.Key, errorMessage);
+                    }
+                }
+                return ValidationProblem(ModelState);
+            }
         }
 
         //DELETE data

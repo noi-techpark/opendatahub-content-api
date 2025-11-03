@@ -14,7 +14,7 @@ CREATE TABLE public.announcements (
 	gen_shortname text GENERATED ALWAYS AS (data #>> '{Shortname}'::text[]) STORED NULL,
 	gen_source text GENERATED ALWAYS AS (data #>> '{_Meta,Source}'::text[]) STORED NULL,
 	gen_reduced bool GENERATED ALWAYS AS ((data #> '{_Meta,Reduced}'::text[])::boolean) STORED NULL,
-	gen_tags _text GENERATED ALWAYS AS (array_cat(extract_tagkeys(data #> '{Tags}'::text[]), extract_tags(data #> '{Tags}'::text[]))) STORED NULL,
+	gen_tags _text GENERATED ALWAYS AS (json_array_to_pg_array(data #> '{TagIds}'::text[])) STORED NULL,
 	gen_id text GENERATED ALWAYS AS (data #>> '{Id}'::text[]) STORED NULL,
 	gen_begindate TIMESTAMPTZ GENERATED ALWAYS AS (text2tstz(data #>> '{StartTime}')) STORED NULL,
     gen_enddate TIMESTAMPTZ GENERATED ALWAYS AS (text2tstz(data #>> '{EndTime}')) STORED NULL,
