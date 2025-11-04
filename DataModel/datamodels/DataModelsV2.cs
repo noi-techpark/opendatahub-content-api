@@ -989,10 +989,10 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
 
         //We define what classes this Additionalproperties can be
-        // [PolymorphicDictionary(
-        //     "RoadIncidentProperties", typeof(RoadIncidentProperties)
-        // )]
-        // new public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
+        [PolymorphicDictionary(
+            "RoadIncidentProperties", typeof(RoadIncidentProperties)
+        )]
+        new public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
     }
 
 
