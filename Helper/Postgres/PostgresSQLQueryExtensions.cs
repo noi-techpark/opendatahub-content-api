@@ -2070,6 +2070,59 @@ namespace Helper
                             "(gen_enddate <= '" + String.Format("{0:yyyy-MM-dd}", end) + "')"
                         )
                 );
+        
+        public static Query DateWithTimezoneFilter_GeneratedColumn(
+            this Query query,
+            DateTimeOffset? start,
+            DateTimeOffset? end,
+            bool inBehaviour,
+            bool includeNulls = false
+        )
+        {
+            // Format timestamps as ISO 8601 (with timezone offset, e.g. 2024-05-17T00:00:00+00:00)
+            string startValue = start?.ToString("o");
+            string endValue = end?.ToString("o");
+
+            // Optional null checks
+            string beginDateNullCheck = includeNulls ? " OR gen_begindate IS NULL" : "";
+            string endDateNullCheck = includeNulls ? " OR gen_enddate IS NULL" : "";
+
+            bool hasStart = start.HasValue;
+            bool hasEnd = end.HasValue;
+
+            // ---- CASE 1: Both Dates Given, Normal Behavior (Contained) ----
+            if (hasStart && hasEnd && !inBehaviour)
+            {
+                query = query.WhereRaw(
+                    $"((gen_begindate >= TIMESTAMPTZ '{startValue}') {beginDateNullCheck}) " +
+                    $"AND ((gen_enddate <= TIMESTAMPTZ '{endValue}') {endDateNullCheck})"
+                );
+            }
+            // ---- CASE 2: Both Dates Given, IN Behavior (Overlap) ----
+            else if (hasStart && hasEnd && inBehaviour)
+            {
+                query = query.WhereRaw(
+                    $"((gen_enddate >= TIMESTAMPTZ '{startValue}') {endDateNullCheck}) " +
+                    $"AND ((gen_begindate <= TIMESTAMPTZ '{endValue}') {beginDateNullCheck})"
+                );
+            }
+            // ---- CASE 3: Only Start Given ----
+            else if (hasStart && !hasEnd)
+            {
+                query = query.WhereRaw(
+                    $"(gen_enddate >= TIMESTAMPTZ '{startValue}' {endDateNullCheck})"
+                );
+            }
+            // ---- CASE 4: Only End Given ----
+            else if (!hasStart && hasEnd)
+            {
+                query = query.WhereRaw(
+                    $"(gen_begindate <= TIMESTAMPTZ '{endValue}' {beginDateNullCheck})"
+                );
+            }
+
+            return query;
+        }
 
         #endregion
 

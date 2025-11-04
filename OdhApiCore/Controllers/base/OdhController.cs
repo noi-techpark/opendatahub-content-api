@@ -309,6 +309,67 @@ namespace OdhApiCore.Controllers
             return ReturnCRUDResult(result);
         }
 
+        //BATCH CREATE and UPDATE data
+        protected async Task<IActionResult> UpsertDataArray<T>(
+            IEnumerable<T> dataList,
+            DataInfo datainfo,
+            CompareConfig compareconfig,
+            CRUDConstraints createConstraints,
+            CRUDConstraints updateConstraints,
+            string editsource = "api"
+        )
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            //Get the Name Identifier
+            string editor =
+                this.User != null && this.User.Claims != null ?
+                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault()?.Value
+                    ?? "anonymous"
+                    : "anonymous";
+
+            if (
+                HttpContext.Request.Headers.ContainsKey("Referer")
+                && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
+            )
+            {
+                editsource = HttpContext.Request.Headers["Referer"];
+
+                //Hack if Referer is infrastructure v2 api make an upsert
+                if (HttpContext.Request.Headers["Referer"] == "https://tourism.importer.v2")
+                {
+                    datainfo.ErrorWhendataExists = false;
+                    datainfo.ErrorWhendataIsNew = false;
+                }
+            }
+
+            try
+            {
+                var batchResult = await QueryFactory.UpsertDataArray<T>(
+                    dataList,
+                    datainfo,
+                    new EditInfo(editor, editsource),
+                    createConstraints,
+                    updateConstraints,
+                    compareconfig
+                );
+
+                // Success - return the result
+                return Ok(batchResult);
+            }
+            catch (BatchValidationException ex)
+            {
+                // Convert structured validation errors to ModelState
+                foreach (var error in ex.ValidationErrors)
+                {
+                    foreach (var errorMessage in error.Value)
+                    {
+                        ModelState.AddModelError(error.Key, errorMessage);
+                    }
+                }
+                return ValidationProblem(ModelState);
+            }
+        }
+
         //DELETE data
         protected async Task<IActionResult> DeleteData<T>(
             string id,

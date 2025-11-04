@@ -3267,7 +3267,7 @@ namespace DataModel
         public string? Shortname { get; set; }
 
         public IDictionary<string, string> TagName { get; set; }
-        public ICollection<string> ValidForEntity { get; set; }
+        public ICollection<string>? ValidForEntity { get; set; }
 
         public ICollection<string> Source { get; set; }
 
@@ -3289,7 +3289,7 @@ namespace DataModel
         public string? MainEntity { get; set; }
 
         //Generic Mapping Object
-        public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
 
         [SwaggerDeprecated("Deprecated, use Mapping")]
         public ICollection<string>? MappedTagIds { get; set; }

@@ -6,21 +6,29 @@ using System;
 using System.Collections.Generic;
 using DataModel.Annotations;
 using Swashbuckle.AspNetCore.Annotations;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
+// using System.Text.Json.Serialization; // this is not the package used to serialize
+using Newtonsoft.Json;
 
 namespace DataModel
 {
     #region Generic Datamodel
 
-    public class Generic : 
-        IIdentifiable, 
-        IActivateable, 
-        IPublishedOn, 
-        IMetaData, 
-        IMappingAware, 
-        IGPSInfoAware, 
-        ILicenseInfo, 
-        ISource, 
-        IHasTagInfo, 
+    public class DetailGeneric : ILanguage
+    {
+        public string? BaseText { get; set; }
+        public string? Title { get; set; }
+
+        public string? Language { get; set; }
+    }
+
+    public class Generic :
+        IIdentifiable,
+        IMetaData,
+        IMappingAware,
+        ILicenseInfo,
+        ISource,
         IShortName,
         IHasLanguage,
         IImportDateassigneable
@@ -30,13 +38,39 @@ namespace DataModel
         public LicenseInfo? LicenseInfo { get; set; }
 
         public string? Shortname { get; set; }
-        public bool Active { get; set; }
 
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
         public ICollection<string>? HasLanguage { get; set; }
 
-        public ICollection<string>? PublishedOn { get; set; }
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+        public string? Source { get; set; }
+
+        public ICollection<string>? TagIds { get; set; }
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
+    }
+
+    public class GenericWithGeometry :
+        IIdentifiable,
+        IMetaData,
+        IMappingAware,
+        IGeometryAware,
+        ILicenseInfo,
+        ISource,
+        IShortName,
+        IHasLanguage,
+        IImportDateassigneable
+    {
+        public string? Id { get; set; }
+        public Metadata? _Meta { get; set; }
+        public LicenseInfo? LicenseInfo { get; set; }
+
+        public string? Shortname { get; set; }
+
+        public DateTime? FirstImport { get; set; }
+        public DateTime? LastChange { get; set; }
+        public ICollection<string>? HasLanguage { get; set; }
         public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
 
         //We define what classes this Additionalproperties can be
@@ -52,11 +86,55 @@ namespace DataModel
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
         public string? Source { get; set; }
 
-        public ICollection<Tags>? Tags { get; set; }
         public ICollection<string>? TagIds { get; set; }
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
+        // Geometry aware helpers
+        public string WKTGeometry4326 { get; set; }
 
+        [JsonIgnore]
+        public bool HasWKTGeometry
+        {
+            get => !string.IsNullOrWhiteSpace(WKTGeometry4326);
+        }
+
+        [JsonIgnore]
+        public Geometry? Geometry
+        {
+            get
+            {
+                if (!HasWKTGeometry) return null;
+
+                try
+                {
+                    // Use NTS to parse the WKT string
+                    var reader = new WKTReader();
+                    var geo = reader.Read(WKTGeometry4326);
+                    geo.SRID = 4326;
+                    return geo;
+                }
+                catch (ParseException)
+                {
+                    // Return null on parsing failure (invalid WKT)
+                    return null;
+                }
+            }
+        }
+
+        [JsonIgnore]
+        public bool IsValidGeometry 
+        {
+            get
+            {
+                var geo = Geometry;
+                
+                // 1. Must exist (parsed successfully)
+                if (geo == null) return false;
+                if (!geo.IsValid) return false;
+                
+                return true;
+            }
+        }
     }
 
     #endregion
@@ -900,25 +978,58 @@ namespace DataModel
 
     #region Announcements
 
-    public class Announcement : Generic, IGPSPointsAware
+    public class Announcement : GenericWithGeometry, IActivateable
     {        
+        public bool Active { get; set; }
+
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 
-        public IDictionary<string, Detail> Detail { get; set; }
+        public IDictionary<string, DetailGeneric> Detail { get; set; }
         public ICollection<RelatedContent>? RelatedContent { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public IDictionary<string, GpsInfo> GpsPoints
-        {
-            get { return this.GpsInfo.ToGpsPointsDictionary(); }
-        }
+        //We define what classes this Additionalproperties can be
+        [PolymorphicDictionary(
+            "RoadIncidentProperties", typeof(RoadIncidentProperties)
+        )]
+        new public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
     }
+
 
     public class RoadIncidentProperties
     {
-        //TODO Add the Properties for AdditionalProperties (direction, lanes, expected_delay, planned_incident)
+        // The top-level array of roads involved in the incident.
+        public List<RoadInvolved>? RoadsInvolved { get; set; }
+
+        // The delay as a numeric value.
+        public int? ExpectedDelayMinutes { get; set; }
+
+        // The delay as a human-readable string.
+        public string? ExpectedDelayString { get; set; }
+
+        public class RoadInvolved
+        {
+            // The name of the road (e.g., "Highway A1").
+            public string? Name { get; set; }
+
+            // The code of the road (e.g., "A1").
+            public string? Code { get; set; }
+
+            // The array of lanes affected on this road.
+            public List<LaneInfo>? Lanes { get; set; }
+            
+            public class LaneInfo
+            {
+                // The lane number (e.g., 1, 2, 3).
+                public int? Lane { get; set; }
+
+                // The specific name or description of the lane (e.g., "Left Lane").
+                public string? LaneName { get; set; }
+
+                // The direction of travel (e.g., "North", "Southbound").
+                public string? Direction { get; set; }
+            }
+        }
     }
 
     #endregion        

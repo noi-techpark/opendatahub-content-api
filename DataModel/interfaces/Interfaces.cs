@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Swashbuckle.AspNetCore.Annotations;
+using NetTopologySuite.Geometries;
 
 namespace DataModel
 {
@@ -174,6 +175,17 @@ namespace DataModel
         double Longitude { get; set; }
         double? Altitude { get; set; }
         string? AltitudeUnitofMeasure { get; set; }
+    }
+
+    public interface IGeometryAware
+    {
+        string WKTGeometry4326 { get; set; }
+
+        Geometry? Geometry { get; }
+
+        bool HasWKTGeometry { get; }
+    
+        bool IsValidGeometry { get; }
     }
 
     public interface IGPSInfoAware

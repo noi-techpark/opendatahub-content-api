@@ -186,82 +186,46 @@ namespace Helper
         #region PG CRUD Helpers
 
         /// <summary>
-        /// Inserts or Updates the Data
+        /// Prepared data item ready for database write
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="QueryFactory"></param>
-        /// <param name="data"></param>
-        /// <param name="dataconfig"></param>
-        /// <param name="editinfo"></param>
-        /// <param name="constraints"></param>
-        /// <param name="compareConfig"></param>
-        /// <returns></returns>
-        public static async Task<PGCRUDResult> UpsertData<T>(
-            this QueryFactory QueryFactory,
+        private class PreparedDataItem<T>
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            public T Data { get; set; }
+            public string IdToProcess { get; set; }
+            public T? ExistingData { get; set; }
+            public bool IsCreate { get; set; }
+            public List<string> PushChannels { get; set; } = new List<string>();
+            public int? ObjectChanged { get; set; }
+            public int? ObjectImageChanged { get; set; }
+            public EqualityResult? ComparisonResult { get; set; }
+            public PGCRUDResult? ErrorResult { get; set; } // Set if preparation failed
+        }
+
+        /// <summary>
+        /// Prepares a single data item for upsert (validation, metadata, comparison)
+        /// </summary>
+        private static PreparedDataItem<T> PrepareDataItem<T>(
             T data,
+            T? existingData,
             DataInfo dataconfig,
             EditInfo editinfo,
-            CRUDConstraints constraints,
+            CRUDConstraints createConstraints,
+            CRUDConstraints updateConstraints,
             CompareConfig compareConfig,
-            int? rawdataid = null,
-            bool reduced = false            
+            bool reduced = false
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
         {
-            //TOCHECK: What if no id is passed? Generate ID?
-            //TOCHECK: Id Uppercase or Lowercase depending on table
-            //TOCHECK: Shortname population?
-
-
+            var prepared = new PreparedDataItem<T>();
             List<string> channelstopublish = new List<string>();
             int? objectchangedcount = null;
             int? objectimagechangedcount = null;
 
-            //If no data is passed return error
-            if (data == null)
-                return new PGCRUDResult()
-                {
-                    id = "",
-                    odhtype = "",
-                    created = 0,
-                    updated = 0,
-                    deleted = 0,
-                    error = 1,
-                    errorreason = "No Data",
-                    operation = dataconfig.Operation.ToString(),
-                    changes = 0,
-                    compareobject = false,
-                    objectchanged = 0,
-                    objectimagechanged = 0,
-                    pushchannels = channelstopublish,
-                };
-
-            string reducedId = "";
-            if (reduced)
-                reducedId = "_REDUCED";
-
-            var idtoprocess = IdGenerator.CheckIdFromType<T>(data.Id + reducedId);
-            IdGenerator.CheckIdFromType<T>(data);
-
-            //Check if data exists already
-            var queryresult = await QueryFactory
-                .Query(dataconfig.Table)
-                .Select("data")
-                .Where("id", idtoprocess)
-                .When(
-                    constraints.AccessRole.Count() > 0,
-                    q => q.FilterDataByAccessRoles(constraints.AccessRole)
-                )
-                //.When(!String.IsNullOrEmpty(constraints.Condition), q => q.FilterAdditionalDataByCondition(constraints.Condition))
-                .GetObjectSingleAsync<T>();
-
-            int createresult = 0;
-            int updateresult = 0;
-            int errorresult = 0;
-            string errorreason = "";
-
-            bool imagesequal = false;
-            EqualityResult equalityresult = new EqualityResult() { isequal = false, patch = null };
+            string reducedId = reduced ? "_REDUCED" : "";
+            prepared.IdToProcess = IdGenerator.CheckIdFromType<T>(data.Id + reducedId);
+            prepared.ExistingData = existingData;
+            prepared.IsCreate = existingData == null;
 
             //Setting MetaInfo
             data._Meta = MetadataHelper.GetMetadataobject<T>(data, reduced);
@@ -272,7 +236,7 @@ namespace Helper
                 UpdateSource = editinfo.Source,
             };
             //Setting the MetaData UpdateInfo.UpdateHistory
-            MetadataHelper.SetUpdateHistory(queryresult != null ? queryresult._Meta : null, data._Meta);
+            MetadataHelper.SetUpdateHistory(existingData?._Meta, data._Meta);
 
             //Setting Firstimport to Now if null
             if (data.FirstImport == null)
@@ -280,12 +244,13 @@ namespace Helper
             //New Data set last change to now
             data.LastChange = DateTime.Now;
 
-            //Todo setting Shortname
+            // Use the appropriate constraint based on whether this is a create or update
+            var constraintToCheck = prepared.IsCreate ? createConstraints : updateConstraints;
 
             //Check data condition return not allowed if it fails
-            if (!CheckCRUDCondition.CRUDOperationAllowed(data, constraints.Condition))
+            if (!CheckCRUDCondition.CRUDOperationAllowed(data, constraintToCheck.Condition))
             {
-                return new PGCRUDResult()
+                prepared.ErrorResult = new PGCRUDResult()
                 {
                     id = data.Id,
                     odhtype = data._Meta.Type,
@@ -301,12 +266,15 @@ namespace Helper
                     objectimagechanged = objectimagechangedcount,
                     pushchannels = channelstopublish,
                 };
+                return prepared;
             }
 
-            if (queryresult == null)
+            if (existingData == null)
             {
+                // Create case
                 if (dataconfig.ErrorWhendataIsNew)
-                    return new PGCRUDResult()
+                {
+                    prepared.ErrorResult = new PGCRUDResult()
                     {
                         id = data.Id,
                         odhtype = data._Meta.Type,
@@ -322,22 +290,8 @@ namespace Helper
                         objectimagechanged = objectimagechangedcount,
                         pushchannels = channelstopublish,
                     };
-
-                if (rawdataid == null)
-                {
-                    createresult = await QueryFactory
-                        .Query(dataconfig.Table)
-                        .InsertAsync(new JsonBData() { id = idtoprocess, data = new JsonRaw(data) });
+                    return prepared;
                 }
-                else
-                {
-                    createresult = await QueryFactory
-                        .Query(dataconfig.Table)
-                        .InsertAsync(new JsonBDataRaw() { id = idtoprocess, data = new JsonRaw(data), rawdataid = rawdataid.Value });
-                }
-                
-
-                dataconfig.Operation = CRUDOperation.Create;
 
                 if (data is IPublishedOn)
                 {
@@ -356,8 +310,10 @@ namespace Helper
             }
             else
             {
+                // Update case
                 if (dataconfig.ErrorWhendataExists)
-                    return new PGCRUDResult()
+                {
+                    prepared.ErrorResult = new PGCRUDResult()
                     {
                         id = data.Id,
                         odhtype = data._Meta.Type,
@@ -373,20 +329,25 @@ namespace Helper
                         objectimagechanged = objectimagechangedcount,
                         pushchannels = channelstopublish,
                     };
+                    return prepared;
+                }
 
                 //Set the FirstImport of the old data
-                if(queryresult.FirstImport != null)
-                    data.FirstImport = queryresult.FirstImport;
+                if (existingData.FirstImport != null)
+                    data.FirstImport = existingData.FirstImport;
 
                 //Set the Lastchanged of the old data, only if the Comparator is active
-                if (queryresult.LastChange != null && compareConfig.CompareData)
-                    data.LastChange = queryresult.LastChange;
+                if (existingData.LastChange != null && compareConfig.CompareData)
+                    data.LastChange = existingData.LastChange;
 
                 //Compare the data
-                if (compareConfig.CompareData && queryresult != null)
+                bool imagesequal = false;
+                EqualityResult equalityresult = new EqualityResult() { isequal = false, patch = null };
+
+                if (compareConfig.CompareData)
                 {
                     equalityresult = EqualityHelper.CompareClassesTest<T>(
-                        queryresult,
+                        existingData,
                         data,
                         new List<string>() { "LastChange", "_Meta", "FirstImport" },
                         true
@@ -397,20 +358,19 @@ namespace Helper
                     {
                         objectchangedcount = 1;
                         data.LastChange = DateTime.Now;
-                    }                        
+                    }
                 }
 
-                //Compare Image Gallery Check if this works with a cast to IImageGalleryAware
+                //Compare Image Gallery
                 if (
                     compareConfig.CompareImages
-                    && queryresult != null
                     && data is IImageGalleryAware
-                    && queryresult is IImageGalleryAware
+                    && existingData is IImageGalleryAware
                 )
                 {
                     imagesequal = EqualityHelper.CompareImageGallery(
                         (data as IImageGalleryAware).ImageGallery,
-                        (queryresult as IImageGalleryAware).ImageGallery,
+                        (existingData as IImageGalleryAware).ImageGallery,
                         new List<string>() { }
                     );
                     if (imagesequal)
@@ -419,42 +379,422 @@ namespace Helper
                         objectimagechangedcount = 1;
                 }
 
+                prepared.ComparisonResult = equalityresult;
+
                 //Add all Publishedonfields before and after change
-                if (data is IPublishedOn && queryresult is IPublishedOn)
+                if (data is IPublishedOn && existingData is IPublishedOn)
                 {
                     if ((data as IPublishedOn).PublishedOn == null)
                         (data as IPublishedOn).PublishedOn = new List<string>();
 
                     channelstopublish.AddRange(
                         (data as IPublishedOn).PublishedOn.UnionIfNotNull(
-                            (queryresult as IPublishedOn).PublishedOn
+                            (existingData as IPublishedOn).PublishedOn
                         )
                     );
                 }
+            }
 
-                if(rawdataid == null)
+            prepared.Data = data;
+            prepared.PushChannels = channelstopublish;
+            prepared.ObjectChanged = objectchangedcount;
+            prepared.ObjectImageChanged = objectimagechangedcount;
+
+            return prepared;
+        }
+
+        /// <summary>
+        /// Batch inserts or updates multiple data items with optimized database queries.
+        /// Performs a SINGLE bulk write operation instead of N individual writes.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="QueryFactory"></param>
+        /// <param name="dataList">List of data items to upsert</param>
+        /// <param name="dataconfig">Data configuration (operation will be determined per item)</param>
+        /// <param name="editinfo">Edit information</param>
+        /// <param name="createConstraints">CRUD constraints for create operations</param>
+        /// <param name="updateConstraints">CRUD constraints for update operations</param>
+        /// <param name="compareConfig">Compare configuration</param>
+        /// <param name="reduced">Whether this is reduced data</param>
+        /// <returns>BatchCRUDResult with aggregated statistics and individual results</returns>
+        public static async Task<BatchCRUDResult> UpsertDataArray<T>(
+            this QueryFactory QueryFactory,
+            IEnumerable<T> dataList,
+            DataInfo dataconfig,
+            EditInfo editinfo,
+            CRUDConstraints createConstraints,
+            CRUDConstraints updateConstraints,
+            CompareConfig compareConfig,
+            bool reduced = false
+        )
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            var batchResult = new BatchCRUDResult();
+
+            if (dataList == null || !dataList.Any())
+            {
+                batchResult.Success = true;
+                return batchResult;
+            }
+
+            // Start a database transaction - all operations succeed or all fail
+            var connection = QueryFactory.Connection;
+
+            // Track if we opened the connection (so we can close it later)
+            bool connectionOpenedByUs = false;
+            if (connection.State != System.Data.ConnectionState.Open)
+            {
+                connection.Open();
+                connectionOpenedByUs = true;
+            }
+
+            var transaction = connection.BeginTransaction();
+
+            try
+            {
+                string reducedId = reduced ? "_REDUCED" : "";
+
+                // Prepare all IDs
+                var allIds = dataList
+                    .Select(d => IdGenerator.CheckIdFromType<T>(d.Id + reducedId))
+                    .ToList();
+
+                // Merge AccessRoles from both create and update constraints for fetching existing data
+                var mergedAccessRoles = createConstraints.AccessRole
+                    .Union(updateConstraints.AccessRole)
+                    .Distinct()
+                    .ToList();
+
+                // Batch load all existing items in ONE query using merged AccessRoles
+                var existingItems = await QueryFactory
+                    .Query(dataconfig.Table)
+                    .Select("data")
+                    .WhereIn("id", allIds)
+                    .When(
+                        mergedAccessRoles.Count() > 0,
+                        q => q.FilterDataByAccessRoles(mergedAccessRoles)
+                    )
+                    .GetObjectListAsync<T>();
+
+                // Create lookup dictionary for fast access
+                var existingLookup = existingItems
+                    .ToDictionary(e => e.Id.ToLower(), e => e);
+
+                // Prepare all items (validation, metadata, comparison)
+                var preparedItems = new List<PreparedDataItem<T>>();
+                var validationErrors = new Dictionary<string, List<string>>();
+                int itemIndex = 0;
+
+                foreach (var data in dataList)
+                {
+                    try
+                    {
+                        var idToProcess = IdGenerator.CheckIdFromType<T>(data.Id + reducedId);
+                        existingLookup.TryGetValue(idToProcess.ToLower(), out var existingData);
+
+                        var prepared = PrepareDataItem<T>(
+                            data,
+                            existingData,
+                            dataconfig,
+                            editinfo,
+                            createConstraints,
+                            updateConstraints,
+                            compareConfig,
+                            reduced
+                        );
+
+                        preparedItems.Add(prepared);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Collect structured validation error
+                        var errorKey = $"[{itemIndex}]";
+                        if (!validationErrors.ContainsKey(errorKey))
+                        {
+                            validationErrors[errorKey] = new List<string>();
+                        }
+                        validationErrors[errorKey].Add(ex.Message);
+                    }
+                    itemIndex++;
+                }
+
+                // Separate items into creates, updates, unchanged, and errors
+                // Track indices for each item type
+                var itemsToCreate = new List<(PreparedDataItem<T> Item, int OriginalIndex)>();
+                var itemsToUpdate = new List<(PreparedDataItem<T> Item, int OriginalIndex)>();
+                var itemsUnchanged = new List<(PreparedDataItem<T> Item, int OriginalIndex)>();
+
+                for (int i = 0; i < preparedItems.Count; i++)
+                {
+                    var prepared = preparedItems[i];
+                    if (prepared.ErrorResult == null && prepared.IsCreate)
+                        itemsToCreate.Add((prepared, i));
+                    else if (prepared.ErrorResult == null && !prepared.IsCreate && prepared.ObjectChanged != 0)
+                        itemsToUpdate.Add((prepared, i));
+                    else if (prepared.ErrorResult == null && !prepared.IsCreate && prepared.ObjectChanged == 0)
+                        itemsUnchanged.Add((prepared, i));
+                    else if (prepared.ErrorResult != null)
+                    {
+                        // Collect error from PrepareDataItem
+                        var errorKey = $"[{i}]";
+                        if (!validationErrors.ContainsKey(errorKey))
+                        {
+                            validationErrors[errorKey] = new List<string>();
+                        }
+                        validationErrors[errorKey].Add(prepared.ErrorResult.Value.errorreason ?? "Unknown error");
+                    }
+                }
+
+                // If ANY item has validation errors, abort the transaction immediately
+                if (validationErrors.Any())
+                {
+                    throw new BatchValidationException(
+                        $"Validation failed for {validationErrors.Count} item(s)",
+                        validationErrors
+                    );
+                }
+
+                // BULK INSERT - Process all creates in a transaction
+                if (itemsToCreate.Any())
+                {
+                    // SqlKata's bulk insert doesn't handle JsonRaw properly
+                    // Use individual inserts within the same connection for better performance
+                    foreach (var (prepared, originalIndex) in itemsToCreate)
+                    {
+                        try
+                        {
+                            await QueryFactory
+                                .Query(dataconfig.Table)
+                                .InsertAsync(new JsonBData
+                                {
+                                    id = prepared.IdToProcess,
+                                    data = new JsonRaw(prepared.Data)
+                                });
+
+                            batchResult.Created++;
+                        }
+                        catch (Exception ex)
+                        {
+                            // Throw structured validation exception with item index
+                            var errors = new Dictionary<string, List<string>>
+                            {
+                                [$"[{originalIndex}]"] = new List<string> { $"Insert failed for ID '{prepared.Data.Id}': {ex.Message}" }
+                            };
+                            throw new BatchValidationException($"Insert failed at item [{originalIndex}]", errors);
+                        }
+                    }
+                }
+
+                // BULK UPDATE - Process updates (unfortunately SqlKata doesn't support bulk update well)
+                // We need to do individual updates but can batch them in a transaction if needed
+                foreach (var (prepared, originalIndex) in itemsToUpdate)
+                {
+                    try
+                    {
+                        var updateResult = await QueryFactory
+                            .Query(dataconfig.Table)
+                            .Where("id", prepared.IdToProcess)
+                            .UpdateAsync(new JsonBData
+                            {
+                                id = prepared.IdToProcess,
+                                data = new JsonRaw(prepared.Data)
+                            });
+
+                        if (updateResult > 0)
+                        {
+                            batchResult.Updated++;
+
+                            // Save changes to rawchanges table if configured
+                            if (dataconfig.SaveChangesToDB && prepared.ObjectChanged > 0)
+                            {
+                                await SaveChangesToRawChangesTable(
+                                    QueryFactory,
+                                    prepared.Data,
+                                    editinfo,
+                                    prepared.ComparisonResult ?? new EqualityResult { isequal = false, patch = null }
+                                );
+                            }
+                        }
+                        else
+                        {
+                            // If update didn't affect any rows, this is an error condition
+                            var errors = new Dictionary<string, List<string>>
+                            {
+                                [$"[{originalIndex}]"] = new List<string> { $"Update failed for ID '{prepared.Data.Id}' - no rows affected" }
+                            };
+                            throw new BatchValidationException($"Update failed at item [{originalIndex}]", errors);
+                        }
+                    }
+                    catch (BatchValidationException)
+                    {
+                        // Already a structured exception, just rethrow
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Wrap database exception with item index
+                        var errors = new Dictionary<string, List<string>>
+                        {
+                            [$"[{originalIndex}]"] = new List<string> { $"Update failed for ID '{prepared.Data.Id}': {ex.Message}" }
+                        };
+                        throw new BatchValidationException($"Update failed at item [{originalIndex}]", errors);
+                    }
+                }
+
+                // Count unchanged items
+                batchResult.Unchanged = itemsUnchanged.Count;
+
+                // If we got here, all operations succeeded - commit the transaction
+                transaction.Commit();
+
+                batchResult.Success = true;
+                batchResult.TotalProcessed = batchResult.Created + batchResult.Updated + batchResult.Unchanged;
+                return batchResult;
+            }
+            catch (Exception)
+            {
+                // Rollback the transaction on any error
+                transaction.Rollback();
+
+                // Rethrow to be handled by controller
+                throw;
+            }
+            finally
+            {
+                transaction.Dispose();
+
+                // Close connection if we opened it
+                if (connectionOpenedByUs && connection.State == System.Data.ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Inserts or Updates the Data
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="QueryFactory"></param>
+        /// <param name="data"></param>
+        /// <param name="dataconfig"></param>
+        /// <param name="editinfo"></param>
+        /// <param name="constraints">Constraints for CRUD operations</param>
+        /// <param name="compareConfig"></param>
+        /// <returns></returns>
+        public static async Task<PGCRUDResult> UpsertData<T>(
+            this QueryFactory QueryFactory,
+            T data,
+            DataInfo dataconfig,
+            EditInfo editinfo,
+            CRUDConstraints constraints,
+            CompareConfig compareConfig,
+            int? rawdataid = null,
+            bool reduced = false
+        )
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            //TOCHECK: What if no id is passed? Generate ID?
+            //TOCHECK: Id Uppercase or Lowercase depending on table
+            //TOCHECK: Shortname population?
+            
+            //If no data is passed return error
+            if (data == null)
+                return new PGCRUDResult()
+                {
+                    id = "",
+                    odhtype = "",
+                    created = 0,
+                    updated = 0,
+                    deleted = 0,
+                    error = 1,
+                    errorreason = "No Data",
+                    operation = dataconfig.Operation.ToString(),
+                    changes = null,
+                    compareobject = false,
+                    objectchanged = 0,
+                    objectimagechanged = 0,
+                    pushchannels = new List<string>(),
+                };
+
+            string reducedId = reduced ? "_REDUCED" : "";
+            var idtoprocess = IdGenerator.CheckIdFromType<T>(data.Id + reducedId);
+            IdGenerator.CheckIdFromType<T>(data);
+
+            //Check if data exists already
+            var queryresult = await QueryFactory
+                .Query(dataconfig.Table)
+                .Select("data")
+                .Where("id", idtoprocess)
+                .When(
+                    constraints.AccessRole.Count() > 0,
+                    q => q.FilterDataByAccessRoles(constraints.AccessRole)
+                )
+                .GetObjectSingleAsync<T>();
+
+            // Use shared preparation logic
+            var prepared = PrepareDataItem<T>(
+                data,
+                queryresult,
+                dataconfig,
+                editinfo,
+                constraints,
+                constraints,
+                compareConfig,
+                reduced
+            );
+
+            // If preparation failed, return error result
+            if (prepared.ErrorResult.HasValue)
+                return prepared.ErrorResult.Value;
+
+            int createresult = 0;
+            int updateresult = 0;
+
+            // Perform database write
+            if (prepared.IsCreate)
+            {
+                if (rawdataid == null)
+                {
+                    createresult = await QueryFactory
+                        .Query(dataconfig.Table)
+                        .InsertAsync(new JsonBData() { id = prepared.IdToProcess, data = new JsonRaw(prepared.Data) });
+                }
+                else
+                {
+                    createresult = await QueryFactory
+                        .Query(dataconfig.Table)
+                        .InsertAsync(new JsonBDataRaw() { id = prepared.IdToProcess, data = new JsonRaw(prepared.Data), rawdataid = rawdataid.Value });
+                }
+
+                dataconfig.Operation = CRUDOperation.Create;
+            }
+            else
+            {
+                if (rawdataid == null)
                 {
                     updateresult = await QueryFactory
-                   .Query(dataconfig.Table)
-                   .Where("id", idtoprocess)
-                   .UpdateAsync(new JsonBData() { id = idtoprocess, data = new JsonRaw(data) });
+                        .Query(dataconfig.Table)
+                        .Where("id", prepared.IdToProcess)
+                        .UpdateAsync(new JsonBData() { id = prepared.IdToProcess, data = new JsonRaw(prepared.Data) });
                 }
                 else
                 {
                     updateresult = await QueryFactory
-                   .Query(dataconfig.Table)
-                   .Where("id", idtoprocess)
-                   .UpdateAsync(new JsonBDataRaw() { id = idtoprocess, data = new JsonRaw(data), rawdataid = rawdataid.Value });
+                        .Query(dataconfig.Table)
+                        .Where("id", prepared.IdToProcess)
+                        .UpdateAsync(new JsonBDataRaw() { id = prepared.IdToProcess, data = new JsonRaw(prepared.Data), rawdataid = rawdataid.Value });
                 }
 
                 dataconfig.Operation = CRUDOperation.Update;
             }
 
+            // Check if write succeeded
             if (createresult == 0 && updateresult == 0)
                 return new PGCRUDResult()
                 {
-                    id = data.Id,
-                    odhtype = data._Meta.Type,
+                    id = prepared.Data.Id,
+                    odhtype = prepared.Data._Meta.Type,
                     created = 0,
                     updated = 0,
                     deleted = 0,
@@ -463,56 +803,37 @@ namespace Helper
                     operation = dataconfig.Operation.ToString(),
                     changes = null,
                     compareobject = false,
-                    objectchanged = objectchangedcount,
-                    objectimagechanged = objectimagechangedcount,
-                    pushchannels = channelstopublish,
-                    
+                    objectchanged = prepared.ObjectChanged,
+                    objectimagechanged = prepared.ObjectImageChanged,
+                    pushchannels = prepared.PushChannels,
                 };
 
             //If changes should be saved to DB
-            if(dataconfig.SaveChangesToDB)
+            if (dataconfig.SaveChangesToDB && prepared.ObjectChanged != null && prepared.ObjectChanged > 0)
             {
-                if (objectchangedcount != null && objectchangedcount > 0)
-                {
-                    //RawChangesStore datachanges = new RawChangesStore();
-                    //datachanges.editsource = editinfo.Source ?? "";
-                    //datachanges.editedby = editinfo.Editor;
-                    //datachanges.date = data._Meta.LastUpdate ?? DateTime.Now;
-                    //datachanges.datasource = data._Meta.Source;
-                    //datachanges.changes = equalityresult.patch != null ? new JsonRaw(equalityresult.patch.ToString()) : new JsonRaw("");
-                    //datachanges.sourceid = data.Id;
-                    //datachanges.type = data._Meta.Type;
-                    //datachanges.license = "unknown";
-
-                    //if (data is ILicenseInfo)
-                    //{
-                    //    if ((data as ILicenseInfo).LicenseInfo != null)
-                    //        datachanges.license = (data as ILicenseInfo).LicenseInfo.ClosedData ? "closed" : "open";
-                    //}
-
-                    //var resulto = await QueryFactory
-                    //   .Query("rawchanges")
-                    //   .InsertAsync(datachanges);
-
-                    await SaveChangesToRawChangesTable(QueryFactory, data, editinfo, equalityresult);
-                }
+                await SaveChangesToRawChangesTable(
+                    QueryFactory,
+                    prepared.Data,
+                    editinfo,
+                    prepared.ComparisonResult ?? new EqualityResult() { isequal = false, patch = null }
+                );
             }
 
             return new PGCRUDResult()
             {
-                id = data.Id,
-                odhtype = data._Meta.Type,
+                id = prepared.Data.Id,
+                odhtype = prepared.Data._Meta.Type,
                 created = createresult,
                 updated = updateresult,
                 deleted = 0,
-                error = errorresult,
-                errorreason = errorreason,
+                error = 0,
+                errorreason = null,
                 operation = dataconfig.Operation.ToString(),
                 compareobject = compareConfig.CompareData,
-                objectchanged = objectchangedcount,
-                objectimagechanged = objectimagechangedcount,
-                pushchannels = channelstopublish,
-                changes = equalityresult.patch,
+                objectchanged = prepared.ObjectChanged,
+                objectimagechanged = prepared.ObjectImageChanged,
+                pushchannels = prepared.PushChannels,
+                changes = prepared.ComparisonResult?.patch,
             };
         }
 

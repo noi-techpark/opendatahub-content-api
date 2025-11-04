@@ -316,7 +316,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Tag")]
-        public Task<IActionResult> Post([FromBody] TagLinked tag)
+        public Task<IActionResult> Post([FromBody] TagLinked tag, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -324,7 +324,11 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
 
                 //Allowing mixed id styles
-                tag.Id = Helper.IdGenerator.GenerateIDFromType(tag);
+                 if (generateid)
+                    tag.Id = Helper.IdGenerator.GenerateIDFromType(tag);
+                else
+                    if (tag.Id == null)
+                        throw new Exception("Id is null");
 
                 return await UpsertData<TagLinked>(
                     tag,

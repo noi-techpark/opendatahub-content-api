@@ -1390,10 +1390,7 @@ namespace Helper
             IReadOnlyCollection<string> sourcelist,
             string? searchfilter,
             string? language,
-            string? lastchange,
-            bool? activefilter,
             IDictionary<string, List<string>>? tagdict,
-            IReadOnlyCollection<string> publishedonlist,
             DateTime? start,
             DateTime? end,
             string? additionalfilter,
@@ -1412,14 +1409,11 @@ namespace Helper
                 .SearchFilter(TitleFieldsToSearchFor(language), searchfilter)
                 .SourceFilter_GeneratedColumn(sourcelist)
                 .When(idlist != null && idlist.Count > 0, q => query.WhereIn("id", idlist))
-                .PublishedOnFilter_GeneratedColumn(publishedonlist)
-                .LastChangedFilter_GeneratedColumn(lastchange)
-                .ActiveFilter_GeneratedColumn(activefilter)
                 .When(
                     languagelist.Count > 0,
                     q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
                 )
-                .EventShortDateFilter_GeneratedColumn(start, end, true, true)
+                .DateWithTimezoneFilter_GeneratedColumn(start, end, true, true)
                 .When(
                     tagdict != null && tagdict.Count > 0,
                     q => q.TaggingFilter_GeneratedColumn(tagdict)
