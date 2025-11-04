@@ -124,6 +124,7 @@ namespace OdhApiCore.GenericHelpers
                         themelist: new Dictionary<string, bool>(),
                         boardlist: new List<string>(),
                         smgtaglist: new List<string>(),
+                        tagdict: new Dictionary<string,List<string>>(),
                         districtlist: new List<string>(),
                         municipalitylist: new List<string>(),
                         tourismvereinlist: new List<string>(),

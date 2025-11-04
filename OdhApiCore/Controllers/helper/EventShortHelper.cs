@@ -26,12 +26,13 @@ namespace OdhApiCore.Controllers.api
 
         //New Publishedonlist
         public List<string> publishedonlist;
-
+        public IDictionary<string, List<string>> tagdict;
         public static EventShortHelper Create(
             string? startdate,
             string? enddate,
             string? datetimeformat,
             string? source,
+            string? tagfilter,
             string? eventlocation,
             bool? todayactive,
             bool? websiteactive,
@@ -50,6 +51,7 @@ namespace OdhApiCore.Controllers.api
                 enddate,
                 datetimeformat,
                 source,
+                tagfilter,
                 eventlocation,
                 todayactive,
                 websiteactive,
@@ -69,6 +71,7 @@ namespace OdhApiCore.Controllers.api
             string? enddate,
             string? datetimeformat,
             string? source,
+            string? tagfilter,
             string? eventlocation,
             bool? todayactive,
             bool? websiteactive,
@@ -151,6 +154,8 @@ namespace OdhApiCore.Controllers.api
 
             this.lastchange = lastchange;
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
 
         private List<string> ExtendSourceFilterEventShort(List<string> sourcelist)

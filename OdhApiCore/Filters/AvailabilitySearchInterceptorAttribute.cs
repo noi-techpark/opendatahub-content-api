@@ -124,6 +124,9 @@ namespace OdhApiCore.Filters
                     string? odhtagfilter = actionarguments.ContainsKey("odhtagfilter")
                         ? (string?)actionarguments["odhtagfilter"]
                         : null;
+                    string? tagfilter = actionarguments.ContainsKey("tagfilter")
+                        ? (string?)actionarguments["tagfilter"]
+                        : null;
                     bool? active = actionarguments.ContainsKey("active")
                         ? ((LegacyBool?)actionarguments["active"])?.Value
                         : true;
@@ -242,6 +245,7 @@ namespace OdhApiCore.Filters
                                 themefilter: themefilter,
                                 altitudefilter: altitudefilter,
                                 smgtags: odhtagfilter,
+                                tagfilter: tagfilter,
                                 activefilter: active,
                                 smgactivefilter: odhactive,
                                 bookablefilter: customisbookablefilter,
@@ -313,6 +317,7 @@ namespace OdhApiCore.Filters
                                         themefilter: themefilter,
                                         altitudefilter: altitudefilter,
                                         smgtags: odhtagfilter,
+                                        tagfilter: tagfilter,
                                         activefilter: active,
                                         smgactivefilter: odhactive,
                                         bookablefilter: bookablefilter,
@@ -966,6 +971,7 @@ namespace OdhApiCore.Filters
                     themelist: myhelper.themelist,
                     boardlist: myhelper.boardlist,
                     smgtaglist: myhelper.smgtaglist,
+                    tagdict: myhelper.tagdict,
                     districtlist: myhelper.districtlist,
                     municipalitylist: myhelper.municipalitylist,
                     tourismvereinlist: myhelper.tourismvereinlist,

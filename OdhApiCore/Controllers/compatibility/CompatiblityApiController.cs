@@ -1138,6 +1138,7 @@ namespace OdhApiCore.Controllers.api
                     smgactive,
                     smgtagfilter,
                     null,
+                    null,
                     langfilter,
                     source,
                     null,
@@ -1169,6 +1170,7 @@ namespace OdhApiCore.Controllers.api
                             topiclist: helper.topicrids,
                             ranclist: helper.rancidlist,
                             smgtaglist: helper.smgtaglist,
+                            tagdict: helper.tagdict,
                             districtlist: helper.districtlist,
                             municipalitylist: helper.municipalitylist,
                             tourismvereinlist: helper.tourismvereinlist,
@@ -1320,6 +1322,7 @@ namespace OdhApiCore.Controllers.api
                     active,
                     smgactive,
                     smgtags,
+                    null,
                     articledate,
                     articledateto,
                     source,
@@ -1353,6 +1356,7 @@ namespace OdhApiCore.Controllers.api
                             subtypelist: helper.subtypelist,
                             languagelist: helper.languagelist,
                             smgtaglist: helper.smgtaglist,
+                            tagdict: helper.tagdict,
                             highlight: helper.highlight,
                             activefilter: helper.active,
                             smgactivefilter: helper.smgactive,
@@ -1527,6 +1531,7 @@ namespace OdhApiCore.Controllers.api
                     themefilter: themefilter,
                     altitudefilter: null,
                     smgtags: smgtagfilter,
+                    tagfilter: null,
                     activefilter: active,
                     smgactivefilter: smgactive,
                     bookablefilter: null,
@@ -1567,6 +1572,7 @@ namespace OdhApiCore.Controllers.api
                             themelist: myhelper.themelist,
                             boardlist: myhelper.boardlist,
                             smgtaglist: myhelper.smgtaglist,
+                            tagdict: myhelper.tagdict,
                             districtlist: myhelper.districtlist,
                             municipalitylist: myhelper.municipalitylist,
                             tourismvereinlist: myhelper.tourismvereinlist,
@@ -1740,6 +1746,7 @@ namespace OdhApiCore.Controllers.api
                     enddate,
                     datetimeformat,
                     sourcefilter,
+                    null,
                     eventlocationfilter,
                     todayactive,
                     websiteactive,
@@ -1762,6 +1769,7 @@ namespace OdhApiCore.Controllers.api
                             idlist: myeventshorthelper.idlist,
                             languagelist: myeventshorthelper.languagelist,
                             sourcelist: myeventshorthelper.sourcelist,
+                            tagdict: myeventshorthelper.tagdict,
                             eventlocationlist: myeventshorthelper.eventlocationlist,
                             webaddresslist: myeventshorthelper.webaddresslist,
                             start: myeventshorthelper.start,
@@ -1843,6 +1851,7 @@ namespace OdhApiCore.Controllers.api
                 null,
                 null,
                 null,
+                null,
                 cancellationToken
             );
             AdditionalFiltersToAddEndpoint("MetaRegion")
@@ -1900,6 +1909,7 @@ namespace OdhApiCore.Controllers.api
                 null,
                 language,
                 visibleinsearch,
+                null,
                 null,
                 null,
                 null,
@@ -1968,6 +1978,7 @@ namespace OdhApiCore.Controllers.api
                 null,
                 null,
                 null,
+                null,
                 cancellationToken
             );
             AdditionalFiltersToAddEndpoint("Region").TryGetValue("Read", out var additionalfilter);
@@ -2022,6 +2033,7 @@ namespace OdhApiCore.Controllers.api
                 QueryFactory,
                 null,
                 language,
+                null,
                 null,
                 null,
                 null,
@@ -2092,6 +2104,7 @@ namespace OdhApiCore.Controllers.api
                 null,
                 null,
                 null,
+                null,
                 cancellationToken
             );
             AdditionalFiltersToAddEndpoint("Municipality")
@@ -2149,6 +2162,7 @@ namespace OdhApiCore.Controllers.api
                 null,
                 language,
                 visibleinsearch,
+                null,
                 null,
                 null,
                 null,
@@ -2217,6 +2231,7 @@ namespace OdhApiCore.Controllers.api
                 null,
                 null,
                 null,
+                null,
                 cancellationToken
             );
             AdditionalFiltersToAddEndpoint("SkiRegion")
@@ -2272,6 +2287,7 @@ namespace OdhApiCore.Controllers.api
                 QueryFactory,
                 null,
                 language,
+                null,
                 null,
                 null,
                 null,
@@ -2343,6 +2359,7 @@ namespace OdhApiCore.Controllers.api
                             odhactivefilter: commonhelper.smgactive,
                             publishedonlist: commonhelper.publishedonlist,
                             sourcelist: commonhelper.sourcelist,
+                            tagdict: commonhelper.tagdict,
                             searchfilter: searchfilter,
                             language: language,
                             lastchange: commonhelper.lastchange,
@@ -2446,6 +2463,7 @@ namespace OdhApiCore.Controllers.api
                 WebcamInfoHelper mywebcaminfohelper = WebcamInfoHelper.Create(
                     source,
                     null,
+                    null,
                     active,
                     smgactive,
                     lastchange,
@@ -2477,6 +2495,7 @@ namespace OdhApiCore.Controllers.api
                             sourcelist: mywebcaminfohelper.sourcelist,
                             activefilter: mywebcaminfohelper.active,
                             smgactivefilter: mywebcaminfohelper.smgactive,
+                            tagdict: mywebcaminfohelper.tagdict,
                             publishedonlist: mywebcaminfohelper.publishedonlist,
                             searchfilter: searchfilter,
                             language: language,

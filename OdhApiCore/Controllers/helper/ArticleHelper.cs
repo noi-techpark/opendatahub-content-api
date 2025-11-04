@@ -25,6 +25,7 @@ namespace OdhApiCore.Controllers.api
         //New Publishedonlist
         public List<string> publishedonlist;
         public List<string> sourcelist;
+        public IDictionary<string, List<string>> tagdict;
 
         public static ArticleHelper Create(
             string? typefilter,
@@ -35,6 +36,7 @@ namespace OdhApiCore.Controllers.api
             bool? activefilter,
             bool? smgactivefilter,
             string? smgtags,
+            string? tagfilter,
             string? articledate,
             string? articledateto,
             string? source,
@@ -49,8 +51,9 @@ namespace OdhApiCore.Controllers.api
                 languagefilter,
                 highlightfilter,
                 activefilter,
-                smgactivefilter,
+                smgactivefilter,                
                 smgtags,
+                tagfilter,
                 articledate,
                 articledateto,
                 source,
@@ -68,6 +71,7 @@ namespace OdhApiCore.Controllers.api
             bool? activefilter,
             bool? smgactivefilter,
             string? smgtags,
+            string? tagfilter,
             string? articledate,
             string? articledateto,
             string? source,
@@ -145,6 +149,8 @@ namespace OdhApiCore.Controllers.api
                     this.articledateto = Convert.ToDateTime(articledateto);
 
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
     }
 }

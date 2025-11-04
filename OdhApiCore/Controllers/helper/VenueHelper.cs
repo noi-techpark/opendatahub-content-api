@@ -37,6 +37,7 @@ namespace OdhApiCore.Controllers
 
         //New Publishedonlist
         public List<string> publishedonlist;
+        public IDictionary<string, List<string>> tagdict;
 
         public static async Task<VenueHelper> CreateAsync(
             QueryFactory queryFactory,
@@ -52,6 +53,7 @@ namespace OdhApiCore.Controllers
             bool? activefilter,
             bool? smgactivefilter,
             string? odhtags,
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter,
             CancellationToken cancellationToken
@@ -84,6 +86,7 @@ namespace OdhApiCore.Controllers
                 activefilter,
                 smgactivefilter,
                 odhtags,
+                tagfilter,
                 lastchange,
                 publishedonfilter,
                 tourismusvereinids
@@ -103,6 +106,7 @@ namespace OdhApiCore.Controllers
             bool? activefilter,
             bool? smgactivefilter,
             string? odhtags,
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter,
             IEnumerable<string>? tourismusvereinids
@@ -157,6 +161,8 @@ namespace OdhApiCore.Controllers
             this.lastchange = lastchange;
 
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+            
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
     }
 }
