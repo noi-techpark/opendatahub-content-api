@@ -69,8 +69,8 @@ namespace OdhApiImporter.Controllers
 
         #region UPDATE FROM RAVEN INSTANCE
 
-        [HttpGet, Route("Raven/{datatype}/Update/{id}")]
         [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Raven/{datatype}/Update/{id}")]
         public async Task<IActionResult> UpdateDataFromRaven(
             string id,
             string datatype,
@@ -129,8 +129,8 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        [HttpGet, Route("Raven/{datatype}/Delete/{id}")]
         [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Raven/{datatype}/Delete/{id}")]
         public async Task<IActionResult> DeleteDataFromRaven(
             string id,
             string datatype,
@@ -700,7 +700,8 @@ namespace OdhApiImporter.Controllers
 
         #region SIAG DATA SYNC MUSEUMS
 
-        [HttpGet, Route("Siag/Museum/Update")]
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Siag/Museum/Update")]        
         public async Task<IActionResult> ImportSiagMuseum(
             CancellationToken cancellationToken = default
         )
@@ -751,7 +752,8 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        [HttpGet, Route("Siag/Museum/Tags/Update")]
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Siag/Museum/Tags/Update")]        
         public async Task<IActionResult> ImportSiagMuseumTags(
            CancellationToken cancellationToken = default
        )
