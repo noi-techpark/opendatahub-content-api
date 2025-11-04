@@ -1024,7 +1024,7 @@ namespace DataModel
                 public int? Lane { get; set; }
 
                 // The specific name or description of the lane (e.g., "Left Lane").
-                public IDictionary<string, string> LaneName { get; set; }
+                public string? LaneName { get; set; }
 
                 // The direction of travel (e.g., "North", "Southbound").
                 public string? Direction { get; set; }
