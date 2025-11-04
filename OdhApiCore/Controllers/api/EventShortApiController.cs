@@ -62,6 +62,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="eventids">comma separated list of event ids</param>
         /// <param name="sortorder">ASC or DESC by StartDate</param>
         /// <param name="webaddress">Searches the webaddress</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="language">Language field selector, displays data and fields in the selected language (default:'null' all languages are displayed)</param>
         /// <param name="langfilter">Language filter (returns only data available in the selected Language, Separator ',' possible values: 'de,it,en,nl,sc,pl,fr,ru', 'null': Filter disabled)</param>
@@ -103,6 +104,7 @@ namespace OdhApiCore.Controllers.api
             bool active = true,
             string? eventids = null,
             string? webaddress = null,
+            string? tagfilter = null,
             string? sortorder = "ASC",
             string? seed = null,
             string? language = null,
@@ -150,6 +152,7 @@ namespace OdhApiCore.Controllers.api
                 websiteactive: websiteactive.Value,
                 communityactive: communityactive.Value,
                 active: active,
+                tagfilter: tagfilter,
                 optimizedates: optimizedates,
                 sortorder: sortorder,
                 seed: seed,
@@ -247,6 +250,7 @@ namespace OdhApiCore.Controllers.api
             LegacyBool websiteactive = null!,
             LegacyBool communityactive = null!,
             bool active = true,
+            string? tagfilter = null,
             string? eventids = null,
             string? webaddress = null,
             string? language = null,
@@ -278,6 +282,7 @@ namespace OdhApiCore.Controllers.api
                 active,
                 eventids,
                 webaddress,
+                tagfilter,
                 publishedon,
                 updatefrom,
                 language,
@@ -408,6 +413,7 @@ namespace OdhApiCore.Controllers.api
             bool? websiteactive,
             bool? communityactive,
             bool active,
+            string? tagfilter,
             bool optimizedates,
             string? sortorder,
             string? seed,
@@ -433,6 +439,7 @@ namespace OdhApiCore.Controllers.api
                     enddate,
                     datetimeformat,
                     sourcefilter,
+                    tagfilter,
                     eventlocationfilter,
                     activetoday,
                     websiteactive,
@@ -463,6 +470,7 @@ namespace OdhApiCore.Controllers.api
                         websiteactivefilter: myeventshorthelper.websiteactivefilter,
                         communityactivefilter: myeventshorthelper.communityactivefilter,
                         activefilter: myeventshorthelper.activefilter,
+                        tagdict: myeventshorthelper.tagdict,
                         publishedonlist: myeventshorthelper.publishedonlist,
                         searchfilter: searchfilter,
                         language: language,
@@ -577,6 +585,7 @@ namespace OdhApiCore.Controllers.api
             bool active,
             string? idfilter,
             string? webaddressfilter,
+            string? tagfilter,
             string? publishedon,
             string? lastchange,
             string? language,
@@ -599,6 +608,7 @@ namespace OdhApiCore.Controllers.api
                 enddate,
                 datetimeformat,
                 sourcefilter,
+                tagfilter,
                 eventlocationfilter,
                 todayactive,
                 websiteactive,
@@ -628,6 +638,7 @@ namespace OdhApiCore.Controllers.api
                     websiteactivefilter: myeventshorthelper.websiteactivefilter,
                     communityactivefilter: myeventshorthelper.communityactivefilter,
                     activefilter: myeventshorthelper.activefilter,
+                    tagdict: myeventshorthelper.tagdict,
                     publishedonlist: myeventshorthelper.publishedonlist,
                     searchfilter: searchfilter,
                     language: language,

@@ -55,6 +55,7 @@ namespace OdhApiCore.Controllers
         /// <param name="topicfilter">Topic ID Filter (Filter by Topic ID) BITMASK refers to 'v1/EventTopics',(default: 'null')</param>
         /// <param name="orgfilter">Organization Filter (Filter by Organizer RID)</param>
         /// <param name="odhtagfilter">ODH Taglist Filter (refers to Array SmgTags) (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=event'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="begindate">BeginDate of Events (Format: yyyy-MM-dd), (default: 'null')</param>
         /// <param name="enddate">EndDate of Events (Format: yyyy-MM-dd), (default: 'null')</param>
         /// <param name="sort">Sorting Mode of Events ('asc': Ascending simple sort by next begindate, 'desc': simple descent sorting by next begindate, 'upcoming': Sort Events by next EventDate matching passed startdate, 'upcomingspecial': Sort Events by next EventDate matching passed startdate, multiple day events are showed at bottom, default: if no sort mode passed, sort by shortname )</param>
@@ -95,6 +96,7 @@ namespace OdhApiCore.Controllers
             string? topicfilter = null,
             string? orgfilter = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? begindate = null,
@@ -145,6 +147,7 @@ namespace OdhApiCore.Controllers
                 active: active,
                 smgactive: odhactive,
                 smgtags: odhtagfilter,
+                tagfilter: tagfilter,
                 seed: seed,
                 lastchange: updatefrom,
                 langfilter: langfilter,
@@ -293,6 +296,7 @@ namespace OdhApiCore.Controllers
             bool? active,
             bool? smgactive,
             string? smgtags,
+            string? tagfilter,
             string? seed,
             string? lastchange,
             string? langfilter,
@@ -324,6 +328,7 @@ namespace OdhApiCore.Controllers
                     active,
                     smgactive,
                     smgtags,
+                    tagfilter,
                     lastchange,
                     langfilter,
                     source,
@@ -348,6 +353,7 @@ namespace OdhApiCore.Controllers
                         ranclist: myeventhelper.rancidlist,
                         orglist: myeventhelper.orgidlist,
                         smgtaglist: myeventhelper.smgtaglist,
+                        tagdict: myeventhelper.tagdict,
                         districtlist: myeventhelper.districtlist,
                         municipalitylist: myeventhelper.municipalitylist,
                         tourismvereinlist: myeventhelper.tourismvereinlist,

@@ -2,12 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Helper;
+using ServiceReferenceLCS;
+using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Helper;
-using SqlKata.Execution;
 
 namespace OdhApiCore.Controllers
 {
@@ -40,6 +41,8 @@ namespace OdhApiCore.Controllers
         //New Publishedonlist
         public List<string> publishedonlist;
 
+        public IDictionary<string, List<string>> tagdict;
+
         public static async Task<AccommodationHelper> CreateAsync(
             QueryFactory queryFactory,
             string? idfilter,
@@ -53,6 +56,7 @@ namespace OdhApiCore.Controllers
             string? themefilter,
             string? altitudefilter,
             string? smgtags,
+            string? tagfilter,
             bool? activefilter,
             bool? smgactivefilter,
             bool? bookablefilter,
@@ -92,6 +96,7 @@ namespace OdhApiCore.Controllers
                 activefilter: activefilter,
                 smgactivefilter: smgactivefilter,
                 smgtags: smgtags,
+                tagfilter: tagfilter,
                 sourcefilter: sourcefilter,
                 lastchange: lastchange,
                 languagefilter: langfilter,
@@ -115,6 +120,7 @@ namespace OdhApiCore.Controllers
             bool? activefilter,
             bool? smgactivefilter,
             string? smgtags,
+            string? tagfilter,
             string? sourcefilter,
             string? lastchange,
             string? languagefilter,
@@ -180,6 +186,8 @@ namespace OdhApiCore.Controllers
             this.lastchange = lastchange;
 
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
     }
 }

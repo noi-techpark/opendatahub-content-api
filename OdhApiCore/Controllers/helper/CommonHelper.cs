@@ -20,6 +20,7 @@ namespace OdhApiCore.Controllers
         public string? lastchange;
         public bool? active;
         public bool? smgactive;
+        public IDictionary<string, List<string>> tagdict;
 
         //New Publishedonlist
         public List<string> publishedonlist;
@@ -29,6 +30,7 @@ namespace OdhApiCore.Controllers
             string? idfilter,
             string? languagefilter,
             bool? visibleinsearch,
+            string? tagfilter,
             string? sourcefilter,
             bool? activefilter,
             bool? smgactivefilter,
@@ -47,6 +49,7 @@ namespace OdhApiCore.Controllers
                     visibleinsearch: visibleinsearch,
                     sourcefilter: sourcefilter,
                     smgtags: smgtags,
+                    tagfilter: tagfilter,
                     lastchange: lastchange,
                     publishedonfilter: publishedonfilter
                 )
@@ -61,6 +64,7 @@ namespace OdhApiCore.Controllers
             bool? visibleinsearch,
             string? sourcefilter,
             string? smgtags,
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter
         )
@@ -83,6 +87,8 @@ namespace OdhApiCore.Controllers
             this.lastchange = lastchange;
 
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
     }
 }

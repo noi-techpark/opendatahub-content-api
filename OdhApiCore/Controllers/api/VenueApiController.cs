@@ -56,6 +56,7 @@ namespace OdhApiCore.Controllers
         /// <param name="capacityfilter">Capacity Range Filter (Separator ',' example Value: 50,100 All Venues with rooms from 50 to 100 people), (default:'null')</param>
         /// <param name="roomcountfilter">Room Count Range Filter (Separator ',' example Value: 2,5 All Venues with 2 to 5 rooms), (default:'null')</param>
         /// <param name="odhtagfilter">ODH Taglist Filter (refers to Array SmgTags) (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=venue'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active Venue Filter (possible Values: 'true' only Active Venues, 'false' only Disabled Venues), (default:'null')</param>
         /// <param name="odhactive">ODH Active (Published) Venue Filter (possible Values: 'true' only published Venue, 'false' only not published Venue), (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -96,6 +97,7 @@ namespace OdhApiCore.Controllers
             string? featurefilter = null,
             string? setuptypefilter = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             string? source = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
@@ -144,6 +146,7 @@ namespace OdhApiCore.Controllers
                 active: active,
                 smgactive: odhactive,
                 smgtags: odhtagfilter,
+                tagfilter: tagfilter,
                 seed: seed,
                 lastchange: updatefrom,
                 langfilter: langfilter,
@@ -298,6 +301,7 @@ namespace OdhApiCore.Controllers
             bool? active,
             bool? smgactive,
             string? smgtags,
+            string? tagfilter,
             string? seed,
             string? lastchange,
             string? langfilter,
@@ -331,6 +335,7 @@ namespace OdhApiCore.Controllers
                     active,
                     smgactive,
                     smgtags,
+                    tagfilter,
                     lastchange,
                     publishedon,
                     cancellationToken
@@ -350,6 +355,7 @@ namespace OdhApiCore.Controllers
                         featurelist: myvenuehelper.featurelist,
                         setuptypelist: myvenuehelper.setuptypelist,
                         smgtaglist: myvenuehelper.odhtaglist,
+                        tagdict: myvenuehelper.tagdict,
                         districtlist: myvenuehelper.districtlist,
                         municipalitylist: myvenuehelper.municipalitylist,
                         tourismvereinlist: myvenuehelper.tourismvereinlist,
