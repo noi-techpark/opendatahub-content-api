@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using ThirdParty.Json.LitJson;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
@@ -321,9 +322,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 settings.JsonConfig.Jsondir,
                 new List<string>()
                     {
+                        "GenericTags",
                         "ODHTagsSourceIDMLTS",
                         "LTSTagsAndTins",                            
                         "ActivityPoiDisplayAsCategory",
+                        "AutoPublishTags"
                     }
                 );                              
 
@@ -332,6 +335,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     .Select("data")
                     .Where("id", "metainfoexcelsmgpoi")
                     .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
+                
 
                 foreach (var data in activitydata)
                 {
@@ -367,7 +371,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "activity" is added here
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                         activityparsed,
-                        settings.JsonConfig.Jsondir
+                        jsondata != null && jsondata["GenericTags"] != null ? jsondata["GenericTags"].ToObject<List<TagLinked>>() : null
                     );
 
                     //**END
@@ -401,7 +405,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     activityparsed.FillLTSActivityAdditionalProperties();
                     activityparsed.FillIDMPoiAdditionalProperties();
 
-                    var result = await InsertDataToDB(activityparsed, data.data);
+                    var result = await InsertDataToDB(activityparsed, data.data, jsondata);
 
                     //newimportcounter = newimportcounter + result.created ?? 0;
                     //updateimportcounter = updateimportcounter + result.updated ?? 0;
@@ -458,7 +462,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         private async Task<PGCRUDResult> InsertDataToDB(
             ODHActivityPoiLinked objecttosave,
-            LTSActivityData poilts            
+            LTSActivityData poilts,
+            IDictionary<string, JArray>? jsonfiles
         )
         {
             try
@@ -474,10 +479,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     //Add the PublishedOn Logic
                     //Exception here all Tags with autopublish has to be passed
-                    var autopublishtaglist =
-                        await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
-                            settings.JsonConfig.Jsondir
-                        );
+                    var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
                     //Set PublishedOn with allowedtaglist
                     objecttosave.CreatePublishedOnList(autopublishtaglist);
                 }

@@ -655,7 +655,7 @@ namespace OdhApiImporter.Helpers
                 //Update the TagIds
                 await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                     poi,
-                    settings.JsonConfig.Jsondir
+                    await GenericTaggingHelper.GetAllGenericTagsfromJson(settings.JsonConfig.Jsondir)
                 );
 
                 //Ensure LTSTagIds are into TagIds

@@ -325,6 +325,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             "Facilities",
                             "CapacityCeremonies",
                             "GastronomyDisplayAsCategory",
+                            "AutoPublishTags",
+                            "ODHTagsSourceIDMLTS",
+                            "GenericTags",
                         }
                     );
                 }
@@ -336,6 +339,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         {
                             "CategoryCodes",
                             "GastronomyDisplayAsCategory",
+                            "GenericTags",
+                            "ODHTagsSourceIDMLTS",
                         }
                     );
 
@@ -389,7 +394,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Traduce all Tags with Source IDM to english tags , CONSIDER TagId "gastronomy" is added here
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                             gastroparsed,
-                            settings.JsonConfig.Jsondir
+                            jsondata != null && jsondata["GenericTags"] != null ? jsondata["GenericTags"].ToObject<List<TagLinked>>() : null
                         );
 
                     //Create Tags and preserve the old TagEntries
@@ -398,7 +403,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Fill AdditionalProperties
                     gastroparsed.FillLTSGastronomyAdditionalProperties();
 
-                    var result = await InsertDataToDB(gastroparsed, data.data);
+                    var result = await InsertDataToDB(gastroparsed, data.data, jsondata);
 
                     //newimportcounter = newimportcounter + result.created ?? 0;
                     //updateimportcounter = updateimportcounter + result.updated ?? 0;
@@ -465,7 +470,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         private async Task<PGCRUDResult> InsertDataToDB(
             ODHActivityPoiLinked objecttosave,
-            LTSGastronomyData gastrolts            
+            LTSGastronomyData gastrolts,
+            IDictionary<string, JArray>? jsonfiles
         )
         {
             try
@@ -482,10 +488,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     //Add the PublishedOn Logic
                     //Exception here all Tags with autopublish has to be passed
-                    var autopublishtaglist =
-                    await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
-                        settings.JsonConfig.Jsondir
-                    );
+                    var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
 
                     objecttosave.CreatePublishedOnList(autopublishtaglist);
                 }

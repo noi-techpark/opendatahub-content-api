@@ -363,25 +363,25 @@ namespace OdhApiImporter.Helpers.DSS
                         var additionalpoiinfo = new AdditionalPoiInfos();
                         additionalpoiinfo.Language = languagecategory;
 
-                        var maintypeobj = validcategories
-                            .Where(x => x.Id == parsedobject.Type?.ToLower())
-                            .FirstOrDefault();
-                        var subtypeobj = validcategories
-                            .Where(x => x.Id == parsedobject.SubType?.ToLower())
-                            .FirstOrDefault();
+                        //var maintypeobj = validcategories
+                        //    .Where(x => x.Id == parsedobject.Type?.ToLower())
+                        //    .FirstOrDefault();
+                        //var subtypeobj = validcategories
+                        //    .Where(x => x.Id == parsedobject.SubType?.ToLower())
+                        //    .FirstOrDefault();
 
-                        additionalpoiinfo.MainType =
-                            maintypeobj != null
-                            && maintypeobj.TagName != null
-                            && maintypeobj.TagName.ContainsKey(languagecategory)
-                                ? maintypeobj.TagName[languagecategory]
-                                : "";
-                        additionalpoiinfo.SubType =
-                            subtypeobj != null
-                            && subtypeobj.TagName != null
-                            && subtypeobj.TagName.ContainsKey(languagecategory)
-                                ? subtypeobj.TagName[languagecategory]
-                                : "";
+                        additionalpoiinfo.MainType = null;
+                        //maintypeobj != null
+                        //&& maintypeobj.TagName != null
+                        //&& maintypeobj.TagName.ContainsKey(languagecategory)
+                        //    ? maintypeobj.TagName[languagecategory]
+                        //    : "";
+                        additionalpoiinfo.SubType = null;
+                            //subtypeobj != null
+                            //&& subtypeobj.TagName != null
+                            //&& subtypeobj.TagName.ContainsKey(languagecategory)
+                            //    ? subtypeobj.TagName[languagecategory]
+                            //    : "";
 
                         //Add the AdditionalPoi Info (include Novelty)
                         if (entitytype.ToLower() == "lift")

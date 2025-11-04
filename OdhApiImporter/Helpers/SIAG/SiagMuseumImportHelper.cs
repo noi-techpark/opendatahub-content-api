@@ -259,7 +259,8 @@ namespace OdhApiImporter.Helpers
                 {
                     var result = await InsertDataToDB(
                         mymuseum,
-                        new KeyValuePair<string, XElement>(museumid, mymuseumdata.Root)
+                        new KeyValuePair<string, XElement>(museumid, mymuseumdata.Root),
+                        jsondata
                     );
                     newcounter = newcounter + result.created ?? 0;
                     updatecounter = updatecounter + result.updated ?? 0;
@@ -368,7 +369,8 @@ namespace OdhApiImporter.Helpers
 
         private async Task<PGCRUDResult> InsertDataToDB(
             ODHActivityPoiLinked odhactivitypoi,
-            KeyValuePair<string, XElement> siagmuseumdata
+            KeyValuePair<string, XElement> siagmuseumdata,
+            IDictionary<string, JArray>? jsonfiles
         )
         {
             odhactivitypoi.Id = odhactivitypoi.Id?.ToLower();
@@ -383,7 +385,11 @@ namespace OdhApiImporter.Helpers
             odhactivitypoi._Meta = MetadataHelper.GetMetadataobject(odhactivitypoi);
 
             //Set Publishedon
-            odhactivitypoi.CreatePublishedOnList();
+            //Add the PublishedOn Logic
+            //Exception here all Tags with autopublish has to be passed
+            var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
+            //Set PublishedOn with allowedtaglist
+            odhactivitypoi.CreatePublishedOnList(autopublishtaglist);
 
             var rawdataid = await InsertInRawDataDB(siagmuseumdata);
 

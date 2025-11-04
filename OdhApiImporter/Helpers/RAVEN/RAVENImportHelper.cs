@@ -429,7 +429,7 @@ namespace OdhApiImporter.Helpers
                     //Traduce all Tags with Source IDM to english tags
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                         mypgdata,
-                        settings.JsonConfig.Jsondir
+                        await GenericTaggingHelper.GetAllGenericTagsfromJson(settings.JsonConfig.Jsondir)
                     );
 
                     //Create Tag Info

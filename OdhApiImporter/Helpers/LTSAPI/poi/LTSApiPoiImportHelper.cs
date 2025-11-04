@@ -323,7 +323,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     {
                         "ODHTagsSourceIDMLTS",
                         "LTSTagsAndTins",
-                        "ActivityPoiDisplayAsCategory",
+                        "ActivityPoiDisplayAsCategory",                        
+                        "AutoPublishTags",
+                        "GenericTags",
                     }
                 );
 
@@ -366,7 +368,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
                     await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                         poiparsed,
-                        settings.JsonConfig.Jsondir
+                        jsondata != null && jsondata["GenericTags"] != null ? jsondata["GenericTags"].ToObject<List<TagLinked>>() : null
                     );
 
                     //**END
@@ -400,7 +402,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     poiparsed.FillLTSPoiAdditionalProperties();
                     poiparsed.FillIDMPoiAdditionalProperties();
 
-                    var result = await InsertDataToDB(poiparsed, data.data);
+                    var result = await InsertDataToDB(poiparsed, data.data,jsondata);
 
                     //newimportcounter = newimportcounter + result.created ?? 0;
                     //updateimportcounter = updateimportcounter + result.updated ?? 0;
@@ -457,7 +459,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         private async Task<PGCRUDResult> InsertDataToDB(
             ODHActivityPoiLinked objecttosave,
-            LTSPointofInterestData poilts            
+            LTSPointofInterestData poilts,
+            IDictionary<string, JArray>? jsonfiles
         )
         {
             try
@@ -473,10 +476,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     //Add the PublishedOn Logic
                     //Exception here all Tags with autopublish has to be passed
-                    var autopublishtaglist =
-                        await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
-                            settings.JsonConfig.Jsondir
-                        );
+                    var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
                     //Set PublishedOn with allowedtaglist
                     objecttosave.CreatePublishedOnList(autopublishtaglist);
                 }

@@ -140,7 +140,7 @@ namespace OdhApiImporter.Helpers
                                 ODHTagHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
 
                                 //Special get all Taglist and traduce it on import
-                                await GenericTaggingHelper.AddTagsToODHActivityPoi(
+                                await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                                     odhactivitypoi,
                                     settings.JsonConfig.Jsondir
                                 );
