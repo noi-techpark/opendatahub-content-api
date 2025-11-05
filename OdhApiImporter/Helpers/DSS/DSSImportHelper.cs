@@ -2,6 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using DSS;
+using DSS.Parser;
+using Helper;
+using Helper.Generic;
+using Helper.Location;
+using Helper.Tagging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SqlKata.Execution;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,14 +20,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DataModel;
-using DSS;
-using DSS.Parser;
-using Helper;
-using Helper.Generic;
-using Helper.Location;
-using Newtonsoft.Json;
-using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers.DSS
 {
@@ -147,10 +149,18 @@ namespace OdhApiImporter.Helpers.DSS
                 validcategories.AddRange(maincategories);
                 validcategories.AddRange(subcategories);
 
+                var jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                settings.JsonConfig.Jsondir,
+                new List<string>()
+                    {
+                        "GenericTags",
+                    }
+                );
+
                 //loop trough dss items
                 foreach (var item in dssinput[0].items)
                 {
-                    var importresult = await ImportDataSingle(item, validcategories, arealist);
+                    var importresult = await ImportDataSingle(item, validcategories, arealist, jsondata);
 
                     newcounter = newcounter + importresult.created ?? newcounter;
                     updatecounter = updatecounter + importresult.updated ?? updatecounter;
@@ -170,7 +180,8 @@ namespace OdhApiImporter.Helpers.DSS
         public async Task<UpdateDetail> ImportDataSingle(
             dynamic item,
             List<ODHTagLinked>? validcategories,
-            IEnumerable<AreaLinked> arealist
+            IEnumerable<AreaLinked> arealist,
+            IDictionary<string, JArray>? jsonfiles
         )
         {
             int updatecounter = 0;
@@ -426,12 +437,22 @@ namespace OdhApiImporter.Helpers.DSS
 
                     ODHTagHelper.SetMainCategorizationForODHActivityPoi(parsedobject);
 
-                    //Special get all Taglist and traduce it on import
+                    //Traduce Assigned TagIds
 
-                    await GenericTaggingHelper.AddTagsToODHActivityPoi(
+                    //await GenericTaggingHelper.AddTagsToODHActivityPoi(
+                    //    parsedobject,
+                    //    settings.JsonConfig.Jsondir
+                    //);
+
+                    //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
+                    await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                         parsedobject,
-                        settings.JsonConfig.Jsondir
+                        jsonfiles != null && jsonfiles["GenericTags"] != null ? jsonfiles["GenericTags"].ToObject<List<TagLinked>>() : null
                     );
+
+                    //Create Tag Object
+                    //Create Tags and preserve the old TagEntries
+                    await parsedobject.UpdateTagsExtension(QueryFactory);
                 }
 
                 var sourceid = (string)DSSImportUtil.GetSourceId(item, entitytype);

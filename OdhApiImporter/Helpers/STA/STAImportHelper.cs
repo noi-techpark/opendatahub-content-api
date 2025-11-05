@@ -2,6 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using Helper;
+using Helper.Generic;
+using Helper.Location;
+using Helper.Tagging;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,13 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using DataModel;
-using Helper;
-using Helper.Generic;
-using Helper.Location;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using SqlKata.Execution;
+
 
 namespace OdhApiImporter.Helpers
 {
@@ -80,6 +82,14 @@ namespace OdhApiImporter.Helpers
 
                 List<string> idlistspreadsheet = new List<string>();
 
+                var jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                settings.JsonConfig.Jsondir,
+                new List<string>()
+                    {
+                        "GenericTags",
+                    }
+                );
+
                 //Import Each STA Vendingpoi to ODH
                 foreach (var vendingpoint in vendingpoints.records)
                 {
@@ -140,14 +150,25 @@ namespace OdhApiImporter.Helpers
                                 ODHTagHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
 
                                 //Special get all Taglist and traduce it on import
+                                //await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                                //    odhactivitypoi,
+                                //    settings.JsonConfig.Jsondir
+                                //);
+
+                                //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
                                 await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                                     odhactivitypoi,
-                                    settings.JsonConfig.Jsondir
+                                    jsondata != null && jsondata["GenericTags"] != null ? jsondata["GenericTags"].ToObject<List<TagLinked>>() : null
                                 );
-                                odhactivitypoi.TagIds =
-                                    odhactivitypoi.Tags != null
-                                        ? odhactivitypoi.Tags.Select(x => x.Id).ToList()
-                                        : null;
+
+                                //Create Tag Object
+                                //Create Tags and preserve the old TagEntries
+                                await odhactivitypoi.UpdateTagsExtension(QueryFactory);
+
+                                //odhactivitypoi.TagIds =
+                                //    odhactivitypoi.Tags != null
+                                //        ? odhactivitypoi.Tags.Select(x => x.Id).ToList()
+                                //        : null;
 
                                 //Save to Rawdatatable
                                 var rawdataid = await InsertInRawDataDB(vendingpoint);
