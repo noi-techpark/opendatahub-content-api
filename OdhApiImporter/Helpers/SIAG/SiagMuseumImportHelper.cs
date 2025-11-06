@@ -177,8 +177,17 @@ namespace OdhApiImporter.Helpers
                 );
                 var mymuseumxml = mymuseumdata?.Root?.Element(ns + "return");
 
-                //GET Wine Company
-                var mymuseum = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + museumid + "siag", IDStyle.lowercase);
+                //GET Museum TODO CHANGE HERE LOAD HERE WITH THE MAPPING QUERY because some Ids are not matching this query
+                //var mymuseum = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + museumid + "siag", IDStyle.lowercase);
+                var mymuseumquery = QueryFactory
+                   .Query("smgpois")
+                   .Select("data")
+                   .WhereRaw("data->'Mapping'->'siag'->>'museId' = $$", museumid)
+                   .Where("gen_syncsourceinterface", "museumdata");
+
+                var mymuseum = await mymuseumquery.GetObjectSingleAsync<ODHActivityPoiLinked>();
+
+
                 bool newmuseum = false;
 
                 XNamespace ax211 = "http://data.service.kks.siag/xsd";
@@ -326,7 +335,7 @@ namespace OdhApiImporter.Helpers
 
                 var mymuseumquery = QueryFactory
                     .Query("smgpois")
-                    .SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")                    
+                    .SelectRaw("data->'Mapping'->'siag'->>'museId'")                    
                     .Where("gen_syncsourceinterface", "museumdata");
 
                 var mymuseumsondb = await mymuseumquery.GetAsync<string>();
