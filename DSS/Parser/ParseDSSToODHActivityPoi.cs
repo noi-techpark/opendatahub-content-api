@@ -54,6 +54,8 @@ namespace DSS.Parser
             //obsolete
             //myodhactivitypoilinked.Type = "Anderes";
             //myodhactivitypoilinked.SubType = "Aufstiegsanlagen";
+            myodhactivitypoilinked.Type = null;
+            myodhactivitypoilinked.SubType = null;
 
             myodhactivitypoilinked.SmgTags = new List<string>()
             {
@@ -275,6 +277,9 @@ namespace DSS.Parser
             //Obsolete
             //myodhactivitypoilinked.Type = "Winter";
             //myodhactivitypoilinked.SubType = "Skirundtouren Pisten";
+
+            myodhactivitypoilinked.Type = null;
+            myodhactivitypoilinked.SubType = null;
 
             myodhactivitypoilinked.SmgTags = new List<string>()
             {

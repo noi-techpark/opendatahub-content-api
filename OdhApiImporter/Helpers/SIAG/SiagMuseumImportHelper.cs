@@ -114,6 +114,7 @@ namespace OdhApiImporter.Helpers
                 {
                         "ODHTagsSourceIDMLTS",
                         "ActivityPoiDisplayAsCategory",
+                        "AutoPublishTags",
                 }
             );
 
