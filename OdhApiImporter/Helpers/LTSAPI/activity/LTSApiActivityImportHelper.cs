@@ -11,8 +11,6 @@ using Helper.Location;
 using Helper.Tagging;
 using LTSAPI;
 using LTSAPI.Parser;
-using Microsoft.IdentityModel.Tokens;
-using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.RAVEN;
@@ -23,7 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ThirdParty.Json.LitJson;
+
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
