@@ -2,6 +2,18 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using Helper;
+using Helper.Generic;
+using Helper.JsonHelpers;
+using Helper.Tagging;
+using LTSAPI;
+using LTSAPI.Parser;
+using Microsoft.FSharp.Control;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using SqlKata;
+using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,17 +23,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using DataModel;
-using Helper;
-using Helper.Generic;
-using Helper.JsonHelpers;
-using Helper.Tagging;
-using LTSAPI;
-using LTSAPI.Parser;
-using Microsoft.FSharp.Control;
-using Newtonsoft.Json;
-using SqlKata;
-using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers
 {
@@ -2345,6 +2346,68 @@ namespace OdhApiImporter.Helpers
         }
 
 
+
+        #endregion
+
+        #region WineAward
+
+        public async Task<int> UpdateAllWineAwardIds()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query()
+                .SelectRaw("data")
+                .From("wines")
+                .WhereRaw("id != data->>'Id'");
+
+            var data = await query.GetObjectListAsync<WineLinked>();
+            int i = 0;
+
+            foreach (var wine in data)
+            {
+                var queryifpresent = QueryFactory
+                    .Query()
+                    .Select("id")
+                    .From("wines")
+                    .Where("id", wine.Id);
+                var present = await queryifpresent.GetAsync<string>();
+
+
+                if (!String.IsNullOrEmpty(present.FirstOrDefault()))
+                {
+                    //Save to DB
+                    var queryresult = await QueryFactory
+                        .Query("wines")
+                        .Where("id", wine.Id)
+                        .UpdateAsync(
+                            new JsonBData() { id = wine.Id, data = new JsonRaw(wine) }
+                        );
+                    i++;
+                }
+                else
+                {
+                    //Save to DB
+                    var queryresult = await QueryFactory
+                        .Query("wines")
+                        .Where("id", wine.Id)
+                        .InsertAsync(
+                            new JsonBData() { id = wine.Id, data = new JsonRaw(wine) }
+                        );
+                    i++;             
+                }
+
+                //Delete the lowercase id if present
+
+                var querydeleteresult = await QueryFactory
+                    .Query("wines")
+                    .Where("id", wine.Id.ToLower())
+                    .DeleteAsync();
+            }
+            
+            return i;
+        }
+
+
+        
 
         #endregion
     }

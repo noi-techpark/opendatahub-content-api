@@ -101,7 +101,9 @@ namespace SuedtirolWein
             }
             catch
             {
-                encoding = Encoding.UTF8;
+                //encoding = Encoding.UTF8;
+                //use latin encoding
+                encoding = Encoding.GetEncoding("ISO-8859-1");
             }
 
             var xml = encoding.GetString(bytes);
