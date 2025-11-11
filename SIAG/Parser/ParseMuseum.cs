@@ -693,6 +693,38 @@ namespace SIAG.Parser
 
                     taglinkedlist.Add(taglinked);
                 }
+                //Hack where no en title is associated
+                else if(service.Key == "8" || service.Key == "10")
+                {
+                    //8 Familienfreundliches Museum (offers for children)
+                    //10 Vermittlungsangebote für Schulen (offers for schools)
+
+                    TagLinked taglinked = new TagLinked();
+                    taglinked.Source = "siag";
+                    taglinked.TagName = service.Value;
+
+                    if (service.Key == "8")
+                    {
+                        taglinked.Id = NormalizeTagId("offers for children");
+                        taglinked.TagName["en"] = "Offers for children";
+                    }
+                        
+                    if (service.Key == "10")
+                    {
+                        taglinked.Id = NormalizeTagId("offers for schools");
+                        taglinked.TagName["en"] = "Offers for schools";
+                    }                        
+
+                    taglinked.Types = new List<string>() { "museumservice" };
+                    taglinked.Active = true;
+                    taglinked.DisplayAsCategory = false;
+                    taglinked.MainEntity = "odhactivitypoi";
+                    taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    taglinked.Mapping.Add("siag", new Dictionary<string, string>() { { "servId", service.Key } });
+
+                    taglinkedlist.Add(taglinked);
+
+                }
             }
 
             foreach (var traeger in traegerdict)
@@ -704,6 +736,29 @@ namespace SIAG.Parser
                     taglinked.Id = NormalizeTagId(traeger.Value["en"]);
                     taglinked.Types = new List<string>() { "museumsupporter" };
                     taglinked.TagName = traeger.Value;
+                    taglinked.Active = true;
+                    taglinked.DisplayAsCategory = false;
+                    taglinked.MainEntity = "odhactivitypoi";
+                    taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    taglinked.Mapping.Add("siag", new Dictionary<string, string>() { { "servId", traeger.Key } });
+
+                    taglinkedlist.Add(taglinked);
+                }
+                //Hack where no en title is associated
+                else if(traeger.Key == "236")
+                {
+                    //236 Land
+                    TagLinked taglinked = new TagLinked();
+                    taglinked.Source = "siag";                    
+                    taglinked.Types = new List<string>() { "museumsupporter" };
+                    taglinked.TagName = traeger.Value;
+
+                    if (traeger.Key == "236")
+                    {
+                        taglinked.Id = NormalizeTagId("province");
+                        taglinked.TagName["en"] = "Province";
+                    }
+
                     taglinked.Active = true;
                     taglinked.DisplayAsCategory = false;
                     taglinked.MainEntity = "odhactivitypoi";
