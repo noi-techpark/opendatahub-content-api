@@ -6,8 +6,8 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Newtonsoft.Json;
-using Serilog;
-using Serilog.Context;
+using Newtonsoft.Json.Linq;
+using Helper.Location;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,6 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
@@ -63,11 +62,23 @@ namespace OdhApiImporter.Helpers
             int newcounter = 0;
             int deletecounter = 0;
             int errorcounter = 0;
-            
+
+            //Load the json Data
+            IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
+
+            jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+            settings.JsonConfig.Jsondir,
+            new List<string>()
+                {
+                        "ActivityPoiDisplayAsCategory",
+                        "GenericTags",
+                }
+            );
+
             //loop trough outdooractive items
             foreach (var skiarea in skiareas)
             {
-                var importresult = await ImportDataSingle(skiarea, cancellationToken);
+                var importresult = await ImportDataSingle(skiarea, jsondata, cancellationToken);
 
                 newcounter = newcounter + importresult.created ?? newcounter;
                 updatecounter = updatecounter + importresult.updated ?? updatecounter;
@@ -84,7 +95,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parsing the Data
-        public async Task<UpdateDetail> ImportDataSingle(SkiAreaLinked skiarea, CancellationToken cancellationToken)
+        public async Task<UpdateDetail> ImportDataSingle(SkiAreaLinked skiarea, IDictionary<string, JArray> jsonfiles, CancellationToken cancellationToken)
         {
             int updatecounter = 0;
             int newcounter = 0;
@@ -103,6 +114,20 @@ namespace OdhApiImporter.Helpers
                 odhactivitypoi = await skiareasquery.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
                 odhactivitypoi = ParseSkiAreaToODHActivityPoi(skiarea, odhactivitypoi);
+
+                //TODO Remove all automatically assigned Tags
+
+                //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
+                await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                    odhactivitypoi,
+                    jsonfiles != null && jsonfiles["GenericTags"] != null ? jsonfiles["GenericTags"].ToObject<List<TagLinked>>() : null
+                );
+
+                //DistanceCalculation
+                await odhactivitypoi.UpdateDistanceCalculation(QueryFactory);
+
+                //AdditionalInfos
+                SetAdditionalInfosCategoriesByODHTags(odhactivitypoi, jsonfiles);
 
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
@@ -193,297 +218,271 @@ namespace OdhApiImporter.Helpers
             );
         }          
 
-        private ODHActivityPoiLinked ParseSkiAreaToODHActivityPoi(SkiArea skiarea, ODHActivityPoiLinked odhactivitypoi)
+        private ODHActivityPoiLinked ParseSkiAreaToODHActivityPoi(SkiAreaLinked skiarea, ODHActivityPoiLinked odhactivitypoi)
         {
-            //if (odhactivitypoi == null)
-            //{
-            //    //Neu
-            //    odhactivitypoi = new ODHActivityPoiLinked();
-            //    odhactivitypoi.FirstImport = DateTime.Now;
-            //    odhactivitypoi.LastChange = DateTime.Now;
+            List<string> languagelistcategories = new List<string>() { "de", "it", "en", "nl", "cs", "pl", "fr", "ru" };
+
+            if (odhactivitypoi == null)
+            {
+                //Neu
+                odhactivitypoi = new ODHActivityPoiLinked();
+                odhactivitypoi.FirstImport = DateTime.Now;
+                odhactivitypoi.LastChange = DateTime.Now;
+
+                odhactivitypoi.Source = "Common";
+                odhactivitypoi.SyncSourceInterface = "Common";
+                odhactivitypoi.SyncUpdateMode = "Full";
+
+                odhactivitypoi.Active = skiarea.Active;
+
+                odhactivitypoi.AltitudeDifference = 0;
+                odhactivitypoi.AltitudeHighestPoint = 0;
+                odhactivitypoi.AltitudeLowestPoint = 0;
+                odhactivitypoi.AltitudeSumDown = 0;
+                odhactivitypoi.AltitudeSumUp = 0;
+                odhactivitypoi.AreaId = skiarea.AreaId;
+
+                odhactivitypoi.ContactInfos = skiarea.ContactInfos;
+                odhactivitypoi.Detail = skiarea.Detail;
+                odhactivitypoi.Difficulty = "";
+                odhactivitypoi.DistanceDuration = 0;
+                odhactivitypoi.DistanceLength = 0;
+                odhactivitypoi.Exposition = null;
+                odhactivitypoi.FeetClimb = false;
+                odhactivitypoi.GpsInfo = new List<GpsInfo>() { new GpsInfo() { Altitude = skiarea.Altitude, AltitudeUnitofMeasure = skiarea.AltitudeUnitofMeasure, Gpstype = "position", Latitude = skiarea.Latitude, Longitude = skiarea.Longitude } };
+                odhactivitypoi.HasFreeEntrance = false;
+                odhactivitypoi.HasLanguage = skiarea.HasLanguage;
+                odhactivitypoi.HasRentals = true;
+                odhactivitypoi.Highlight = true;
+                odhactivitypoi.Id = "smgpoi" + skiarea.Id;
+                odhactivitypoi.ImageGallery = skiarea.ImageGallery;
+                odhactivitypoi.IsOpen = true;
+                odhactivitypoi.IsPrepared = true;
+                odhactivitypoi.IsWithLigth = false;
+                odhactivitypoi.LiftAvailable = true;
+                odhactivitypoi.LocationInfo = skiarea.LocationInfo;
+
+                //Mapping
+                odhactivitypoi.Mapping = skiarea.Mapping;
+
+                odhactivitypoi.MaxSeatingCapacity = 0;
+                odhactivitypoi.OperationSchedule = skiarea.OperationSchedule;
+
+                PoiProperty totalkm = new PoiProperty() { Name = "TotalSlopeKm", Value = skiarea.TotalSlopeKm };
+                PoiProperty SlopeKmBlue = new PoiProperty() { Name = "SlopeKmBlue", Value = skiarea.SlopeKmBlue };
+                PoiProperty SlopeKmRed = new PoiProperty() { Name = "SlopeKmRed", Value = skiarea.SlopeKmRed };
+                PoiProperty SlopeKmBlack = new PoiProperty() { Name = "SlopeKmBlack", Value = skiarea.SlopeKmBlack };
+                PoiProperty SkiRegionId = new PoiProperty() { Name = "SkiRegionId", Value = skiarea.SkiRegionId };
+                PoiProperty SkiAreaMapURL = new PoiProperty() { Name = "SkiAreaMapURL", Value = skiarea.SkiAreaMapURL };
+
+                Dictionary<string, List<PoiProperty>> mypoipropertylistdict = new Dictionary<string, List<PoiProperty>>();
+
+                foreach (var language in languagelistcategories)
+                {
+                    PoiProperty SkiRegionName = new PoiProperty() { Name = "SkiRegionName", Value = skiarea.SkiRegionName[language] };
+
+                    List<PoiProperty> mypoipropertylist = new List<PoiProperty>();
+                    mypoipropertylist.Add(totalkm);
+                    mypoipropertylist.Add(SlopeKmBlue);
+                    mypoipropertylist.Add(SlopeKmRed);
+                    mypoipropertylist.Add(SlopeKmBlack);
+                    mypoipropertylist.Add(SkiRegionId);
+                    mypoipropertylist.Add(SkiRegionName);
+                    mypoipropertylist.Add(SkiAreaMapURL);
+
+                    mypoipropertylistdict.TryAddOrUpdate(language, mypoipropertylist);
+                }
+
+                odhactivitypoi.PoiProperty = mypoipropertylistdict;
+
+                //TODO ADD WEBCAM TO RELATED CONTENT
+                //odhactivitypoi.Webcam = skiarea.Webcam;
+
+                //odhactivitypoi.PoiServices;
+
+                odhactivitypoi.Type = null;
+                odhactivitypoi.SubType = null;
+
+                odhactivitypoi.PoiType = GetTheRightSkiregion(skiarea.SkiRegionName["de"]);
+
+                odhactivitypoi.Ratings = null;
+                odhactivitypoi.RelatedContent = null;
+                odhactivitypoi.RunToValley = true;
+                odhactivitypoi.Shortname = skiarea.Shortname;
+                odhactivitypoi.SmgTags = skiarea.SmgTags;
+                odhactivitypoi.SmgTags.Add("Winter");
+
+                odhactivitypoi.TourismorganizationId = skiarea.TourismvereinIds.FirstOrDefault();
+
+                foreach (var language in languagelistcategories)
+                {
+                    AdditionalPoiInfos additional = new AdditionalPoiInfos();
+                    additional.Language = language;
+                    additional.MainType = null;
+                    additional.SubType = null;
+                    additional.PoiType = null;
+                    odhactivitypoi.AdditionalPoiInfos.TryAddOrUpdate(language, additional);
+                }                     
+            }
+            else
+            {
+                odhactivitypoi.LastChange = DateTime.Now;
+                odhactivitypoi.CustomId = skiarea.Id;
+                odhactivitypoi.Source = "Common";
+                odhactivitypoi.SyncSourceInterface = "Common";
+                odhactivitypoi.SyncUpdateMode = "Full";
+
+                odhactivitypoi.Active = skiarea.Active;
+                odhactivitypoi.SmgActive = skiarea.SmgActive;
+
+                odhactivitypoi.AltitudeDifference = 0;
+                odhactivitypoi.AltitudeHighestPoint = 0;
+                odhactivitypoi.AltitudeLowestPoint = 0;
+                odhactivitypoi.AltitudeSumDown = 0;
+                odhactivitypoi.AltitudeSumUp = 0;
+                odhactivitypoi.AreaId = skiarea.AreaId;
+
+                odhactivitypoi.ContactInfos = skiarea.ContactInfos;
+                odhactivitypoi.Detail = skiarea.Detail;
+                odhactivitypoi.Difficulty = "";
+                odhactivitypoi.DistanceDuration = 0;
+                odhactivitypoi.DistanceLength = 0;
+                odhactivitypoi.Exposition = null;
+                odhactivitypoi.FeetClimb = false;
+                odhactivitypoi.GpsInfo = new List<GpsInfo>() { new GpsInfo() { Altitude = skiarea.Altitude, AltitudeUnitofMeasure = skiarea.AltitudeUnitofMeasure, Gpstype = "position", Latitude = skiarea.Latitude, Longitude = skiarea.Longitude } };
+                odhactivitypoi.HasFreeEntrance = false;
+                odhactivitypoi.HasLanguage = skiarea.HasLanguage;
+                odhactivitypoi.HasRentals = true;
+                odhactivitypoi.Highlight = true;
+                odhactivitypoi.ImageGallery = skiarea.ImageGallery;
+                odhactivitypoi.IsOpen = true;
+                odhactivitypoi.IsPrepared = true;
+                odhactivitypoi.IsWithLigth = false;
+                odhactivitypoi.LiftAvailable = true;
+                odhactivitypoi.LocationInfo = skiarea.LocationInfo;
+
+                odhactivitypoi.MaxSeatingCapacity = 0;
+                odhactivitypoi.OperationSchedule = skiarea.OperationSchedule;
+
+                PoiProperty totalkm = new PoiProperty() { Name = "TotalSlopeKm", Value = skiarea.TotalSlopeKm };
+                PoiProperty SlopeKmBlue = new PoiProperty() { Name = "SlopeKmBlue", Value = skiarea.SlopeKmBlue };
+                PoiProperty SlopeKmRed = new PoiProperty() { Name = "SlopeKmRed", Value = skiarea.SlopeKmRed };
+                PoiProperty SlopeKmBlack = new PoiProperty() { Name = "SlopeKmBlack", Value = skiarea.SlopeKmBlack };
+                PoiProperty SkiRegionId = new PoiProperty() { Name = "SkiRegionId", Value = skiarea.SkiRegionId };
+                PoiProperty SkiAreaMapURL = new PoiProperty() { Name = "SkiAreaMapURL", Value = skiarea.SkiAreaMapURL };
 
 
+                Dictionary<string, List<PoiProperty>> mypoipropertylistdict = new Dictionary<string, List<PoiProperty>>();
 
-            //    odhactivitypoi.Source = "Common";
-            //    odhactivitypoi.SyncSourceInterface = "Common";
-            //    odhactivitypoi.SyncUpdateMode = "Full";
+                foreach (var language in languagelistcategories)
+                {
+                    PoiProperty SkiRegionName = new PoiProperty() { Name = "SkiRegionName", Value = skiarea.SkiRegionName[language] };
 
-            //    odhactivitypoi.Active = skigebiet.Active;
+                    List<PoiProperty> mypoipropertylist = new List<PoiProperty>();
+                    mypoipropertylist.Add(totalkm);
+                    mypoipropertylist.Add(SlopeKmBlue);
+                    mypoipropertylist.Add(SlopeKmRed);
+                    mypoipropertylist.Add(SlopeKmBlack);
+                    mypoipropertylist.Add(SkiRegionId);
+                    mypoipropertylist.Add(SkiRegionName);
+                    mypoipropertylist.Add(SkiAreaMapURL);
 
-            //    odhactivitypoi.AltitudeDifference = 0;
-            //    odhactivitypoi.AltitudeHighestPoint = 0;
-            //    odhactivitypoi.AltitudeLowestPoint = 0;
-            //    odhactivitypoi.AltitudeSumDown = 0;
-            //    odhactivitypoi.AltitudeSumUp = 0;
-            //    odhactivitypoi.AreaId = skigebiet.AreaId;
+                    mypoipropertylistdict.TryAddOrUpdate(language, mypoipropertylist);
+                }
 
-            //    odhactivitypoi.ContactInfos = skigebiet.ContactInfos;
-            //    odhactivitypoi.Detail = skigebiet.Detail;
-            //    odhactivitypoi.Difficulty = "";
-            //    odhactivitypoi.DistanceDuration = 0;
-            //    odhactivitypoi.DistanceLength = 0;
-            //    odhactivitypoi.Exposition = null;
-            //    odhactivitypoi.FeetClimb = false;
-            //    odhactivitypoi.GpsInfo = new List<GpsInfo>() { new GpsInfo() { Altitude = skigebiet.Altitude, AltitudeUnitofMeasure = skigebiet.AltitudeUnitofMeasure, Gpstype = "position", Latitude = skigebiet.Latitude, Longitude = skigebiet.Longitude } };
-            //    odhactivitypoi.HasFreeEntrance = false;
-            //    odhactivitypoi.HasLanguage = skigebiet.HasLanguage;
-            //    odhactivitypoi.HasRentals = true;
-            //    odhactivitypoi.Highlight = true;
-            //    odhactivitypoi.Id = "smgpoi" + skigebiet.Id;
-            //    odhactivitypoi.ImageGallery = skigebiet.ImageGallery;
-            //    odhactivitypoi.IsOpen = true;
-            //    odhactivitypoi.IsPrepared = true;
-            //    odhactivitypoi.IsWithLigth = false;
-            //    odhactivitypoi.LiftAvailable = true;
-            //    odhactivitypoi.LocationInfo = skigebiet.LocationInfo;
+                odhactivitypoi.PoiProperty = mypoipropertylistdict;
 
-            //    //Mapping
-            //    odhactivitypoi.Mapping = skigebiet.Mapping;
+                //TODO add as RElated content
+                //odhactivitypoi.Webcam = skiarea.Webcam;
 
-            //    odhactivitypoi.MaxSeatingCapacity = 0;
-            //    odhactivitypoi.OperationSchedule = skigebiet.OperationSchedule;
+                //Mapping
+                odhactivitypoi.Mapping = skiarea.Mapping;
 
-            //    PoiProperty totalkm = new PoiProperty() { Name = "TotalSlopeKm", Value = skigebiet.TotalSlopeKm };
-            //    PoiProperty SlopeKmBlue = new PoiProperty() { Name = "SlopeKmBlue", Value = skigebiet.SlopeKmBlue };
-            //    PoiProperty SlopeKmRed = new PoiProperty() { Name = "SlopeKmRed", Value = skigebiet.SlopeKmRed };
-            //    PoiProperty SlopeKmBlack = new PoiProperty() { Name = "SlopeKmBlack", Value = skigebiet.SlopeKmBlack };
-            //    PoiProperty SkiRegionId = new PoiProperty() { Name = "SkiRegionId", Value = skigebiet.SkiRegionId };
-            //    PoiProperty SkiAreaMapURL = new PoiProperty() { Name = "SkiAreaMapURL", Value = skigebiet.SkiAreaMapURL };
+                odhactivitypoi.Type = "Winter";
+                odhactivitypoi.SubType = "Skigebiete";
 
-            //    Dictionary<string, List<PoiProperty>> mypoipropertylistdict = new Dictionary<string, List<PoiProperty>>();
+                odhactivitypoi.PoiType = GetTheRightSkiregion(skiarea.SkiRegionName["de"]);
 
-            //    foreach (var language in languagelistcategories)
-            //    {
-            //        PoiProperty SkiRegionName = new PoiProperty() { Name = "SkiRegionName", Value = skigebiet.SkiRegionName[language] };
+                odhactivitypoi.Ratings = null;
+                odhactivitypoi.RelatedContent = null;
+                odhactivitypoi.RunToValley = true;
+                odhactivitypoi.Shortname = skiarea.Shortname;
 
-            //        List<PoiProperty> mypoipropertylist = new List<PoiProperty>();
-            //        mypoipropertylist.Add(totalkm);
-            //        mypoipropertylist.Add(SlopeKmBlue);
-            //        mypoipropertylist.Add(SlopeKmRed);
-            //        mypoipropertylist.Add(SlopeKmBlack);
-            //        mypoipropertylist.Add(SkiRegionId);
-            //        mypoipropertylist.Add(SkiRegionName);
-            //        mypoipropertylist.Add(SkiAreaMapURL);
+                foreach (var language in languagelistcategories)
+                {
+                    AdditionalPoiInfos additional = new AdditionalPoiInfos();
+                    additional.Language = language;
+                    additional.MainType = null;
+                    additional.SubType = null;
+                    additional.PoiType = null;
+                    odhactivitypoi.AdditionalPoiInfos.TryAddOrUpdate(language, additional);
+                }           
+            }
 
-            //        mypoipropertylistdict.TryAddOrUpdate(language, mypoipropertylist);
-            //    }
-
-            //    odhactivitypoi.PoiProperty = mypoipropertylistdict;
-
-            //    odhactivitypoi.Webcam = skigebiet.Webcam;
-
-            //    //odhactivitypoi.PoiServices;
-
-            //    odhactivitypoi.Type = null;
-            //    odhactivitypoi.SubType = null;
-
-            //    odhactivitypoi.PoiType = GetTheRightSkiregion(skigebiet.SkiRegionName["de"]);
-
-            //    odhactivitypoi.Ratings = null;
-            //    odhactivitypoi.RelatedContent = null;
-            //    odhactivitypoi.RunToValley = true;
-            //    odhactivitypoi.Shortname = skigebiet.Shortname;
-            //    odhactivitypoi.SmgTags = skigebiet.SmgTags;
-            //    odhactivitypoi.SmgTags.Add("Winter");
-
-            //    odhactivitypoi.TourismorganizationId = skigebiet.TourismvereinIds.FirstOrDefault();
-
-            //    foreach (var language in languagelistcategories)
-            //    {
-            //        AdditionalPoiInfos additional = new AdditionalPoiInfos();
-            //        additional.Language = language;
-            //        additional.MainType = null;
-            //        additional.SubType = null;
-            //        additional.PoiType = null;
-            //        odhactivitypoi.AdditionalPoiInfos.TryAddOrUpdate(language, additional);
-            //    }
-
-            //    //Setting Categorization by Valid Tags
-            //    var currentcategories = validtagsforcategories.Where(x => x.Id.ToLower().In(odhactivitypoi.SmgTags.Select(y => y.ToLower())));
-
-            //    foreach (var smgtagtotranslate in currentcategories)
-            //    {
-            //        foreach (var languagecategory in languagelistcategories)
-            //        {
-            //            if (odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories == null)
-            //                odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories = new List<string>();
-
-            //            if (smgtagtotranslate.TagName.ContainsKey(languagecategory) && !odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories.Contains(smgtagtotranslate.TagName[languagecategory].Trim()))
-            //                odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
-            //        }
-            //    }
-
-            //    //Calculate GPS Distance to District and Municipality
-            //    if (odhactivitypoi.LocationInfo != null)
-            //    {
-            //        if (odhactivitypoi.LocationInfo.DistrictInfo != null)
-            //        {
-            //            var districtreduced = districtreducedinfo.Where(x => x.Id == odhactivitypoi.LocationInfo.DistrictInfo.Id).FirstOrDefault();
-            //            if (districtreduced != null)
-            //            {
-            //                odhactivitypoi.ExtendGpsInfoToDistanceCalculationList("district", districtreduced.Latitude, districtreduced.Longitude);
-            //            }
-            //        }
-            //        if (odhactivitypoi.LocationInfo.MunicipalityInfo != null)
-            //        {
-            //            var municipalityreduced = municipalityreducedinfo.Where(x => x.Id == odhactivitypoi.LocationInfo.MunicipalityInfo.Id).FirstOrDefault();
-            //            if (municipalityreduced != null)
-            //            {
-            //                odhactivitypoi.ExtendGpsInfoToDistanceCalculationList("municipality", municipalityreduced.Latitude, municipalityreduced.Longitude);
-            //            }
-            //        }
-            //    }
-
-            //    //Set Main Type as Activity/Poi/Gastronomy
-            //    SmgPoiHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
-
-            //    //Setting LicenseInfo
-            //    odhactivitypoi.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<SmgPoi>(odhactivitypoi, Helper.LicenseHelper.GetLicenseforOdhActivityPoi);                
-            //}
-            //else
-            //{
-            //    odhactivitypoi.LastChange = DateTime.Now;
-            //    odhactivitypoi.CustomId = skigebiet.Id;
-            //    odhactivitypoi.Source = "Common";
-            //    odhactivitypoi.SyncSourceInterface = "Common";
-            //    odhactivitypoi.SyncUpdateMode = "Full";
-
-            //    odhactivitypoi.Active = skigebiet.Active;
-            //    odhactivitypoi.SmgActive = skigebiet.SmgActive;
-
-            //    odhactivitypoi.AltitudeDifference = 0;
-            //    odhactivitypoi.AltitudeHighestPoint = 0;
-            //    odhactivitypoi.AltitudeLowestPoint = 0;
-            //    odhactivitypoi.AltitudeSumDown = 0;
-            //    odhactivitypoi.AltitudeSumUp = 0;
-            //    odhactivitypoi.AreaId = skigebiet.AreaId;
-
-            //    odhactivitypoi.ContactInfos = skigebiet.ContactInfos;
-            //    odhactivitypoi.Detail = skigebiet.Detail;
-            //    odhactivitypoi.Difficulty = "";
-            //    odhactivitypoi.DistanceDuration = 0;
-            //    odhactivitypoi.DistanceLength = 0;
-            //    odhactivitypoi.Exposition = null;
-            //    odhactivitypoi.FeetClimb = false;
-            //    odhactivitypoi.GpsInfo = new List<GpsInfo>() { new GpsInfo() { Altitude = skigebiet.Altitude, AltitudeUnitofMeasure = skigebiet.AltitudeUnitofMeasure, Gpstype = "position", Latitude = skigebiet.Latitude, Longitude = skigebiet.Longitude } };
-            //    odhactivitypoi.HasFreeEntrance = false;
-            //    odhactivitypoi.HasLanguage = skigebiet.HasLanguage;
-            //    odhactivitypoi.HasRentals = true;
-            //    odhactivitypoi.Highlight = true;
-            //    odhactivitypoi.ImageGallery = skigebiet.ImageGallery;
-            //    odhactivitypoi.IsOpen = true;
-            //    odhactivitypoi.IsPrepared = true;
-            //    odhactivitypoi.IsWithLigth = false;
-            //    odhactivitypoi.LiftAvailable = true;
-            //    odhactivitypoi.LocationInfo = skigebiet.LocationInfo;
-
-            //    odhactivitypoi.MaxSeatingCapacity = 0;
-            //    odhactivitypoi.OperationSchedule = skigebiet.OperationSchedule;
-
-            //    PoiProperty totalkm = new PoiProperty() { Name = "TotalSlopeKm", Value = skigebiet.TotalSlopeKm };
-            //    PoiProperty SlopeKmBlue = new PoiProperty() { Name = "SlopeKmBlue", Value = skigebiet.SlopeKmBlue };
-            //    PoiProperty SlopeKmRed = new PoiProperty() { Name = "SlopeKmRed", Value = skigebiet.SlopeKmRed };
-            //    PoiProperty SlopeKmBlack = new PoiProperty() { Name = "SlopeKmBlack", Value = skigebiet.SlopeKmBlack };
-            //    PoiProperty SkiRegionId = new PoiProperty() { Name = "SkiRegionId", Value = skigebiet.SkiRegionId };
-            //    PoiProperty SkiAreaMapURL = new PoiProperty() { Name = "SkiAreaMapURL", Value = skigebiet.SkiAreaMapURL };
-
-
-            //    Dictionary<string, List<PoiProperty>> mypoipropertylistdict = new Dictionary<string, List<PoiProperty>>();
-
-            //    foreach (var language in languagelistcategories)
-            //    {
-            //        PoiProperty SkiRegionName = new PoiProperty() { Name = "SkiRegionName", Value = skigebiet.SkiRegionName[language] };
-
-            //        List<PoiProperty> mypoipropertylist = new List<PoiProperty>();
-            //        mypoipropertylist.Add(totalkm);
-            //        mypoipropertylist.Add(SlopeKmBlue);
-            //        mypoipropertylist.Add(SlopeKmRed);
-            //        mypoipropertylist.Add(SlopeKmBlack);
-            //        mypoipropertylist.Add(SkiRegionId);
-            //        mypoipropertylist.Add(SkiRegionName);
-            //        mypoipropertylist.Add(SkiAreaMapURL);
-
-            //        mypoipropertylistdict.TryAddOrUpdate(language, mypoipropertylist);
-            //    }
-
-            //    odhactivitypoi.PoiProperty = mypoipropertylistdict;
-
-            //    odhactivitypoi.Webcam = skigebiet.Webcam;
-
-            //    //Mapping
-            //    odhactivitypoi.Mapping = skigebiet.Mapping;
-
-            //    odhactivitypoi.Type = "Winter";
-            //    odhactivitypoi.SubType = "Skigebiete";
-
-            //    odhactivitypoi.PoiType = GetTheRightSkiregion(skigebiet.SkiRegionName["de"]);
-
-            //    odhactivitypoi.Ratings = null;
-            //    odhactivitypoi.RelatedContent = null;
-            //    odhactivitypoi.RunToValley = true;
-            //    odhactivitypoi.Shortname = skigebiet.Shortname;
-
-            //    foreach (var language in languagelistcategories)
-            //    {
-            //        AdditionalPoiInfos additional = new AdditionalPoiInfos();
-            //        additional.Language = language;
-            //        additional.MainType = null;
-            //        additional.SubType = null;
-            //        additional.PoiType = null;
-            //        odhactivitypoi.AdditionalPoiInfos.TryAddOrUpdate(language, additional);
-            //    }
-
-            //    //Calculate GPS Distance to District and Municipality
-            //    if (odhactivitypoi.LocationInfo != null)
-            //    {
-            //        if (odhactivitypoi.LocationInfo.DistrictInfo != null)
-            //        {
-            //            var districtreduced = districtreducedinfo.Where(x => x.Id == odhactivitypoi.LocationInfo.DistrictInfo.Id).FirstOrDefault();
-            //            if (districtreduced != null)
-            //            {
-            //                odhactivitypoi.ExtendGpsInfoToDistanceCalculationList("district", districtreduced.Latitude, districtreduced.Longitude);
-            //            }
-            //        }
-            //        if (odhactivitypoi.LocationInfo.MunicipalityInfo != null)
-            //        {
-            //            var municipalityreduced = municipalityreducedinfo.Where(x => x.Id == odhactivitypoi.LocationInfo.MunicipalityInfo.Id).FirstOrDefault();
-            //            if (municipalityreduced != null)
-            //            {
-            //                odhactivitypoi.ExtendGpsInfoToDistanceCalculationList("municipality", municipalityreduced.Latitude, municipalityreduced.Longitude);
-            //            }
-            //        }
-            //    }
-
-            //    //Setting LicenseInfo
-            //    odhactivitypoi.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<SmgPoi>(odhactivitypoi, Helper.LicenseHelper.GetLicenseforOdhActivityPoi);
-
-            //    //Setting Categorization by Valid Tags
-            //    var currentcategories = validtagsforcategories.Where(x => x.Id.ToLower().In(odhactivitypoi.SmgTags.Select(y => y.ToLower())));
-
-            //    //Resetting Categories
-            //    foreach (var languagecategory in languagelistcategories)
-            //    {
-            //        if (odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories == null)
-            //            odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories = new List<string>();
-            //        else
-            //            odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories.Clear();
-            //    }
-            //    //Reassigning Categories
-            //    foreach (var smgtagtotranslate in currentcategories)
-            //    {
-            //        foreach (var languagecategory in languagelistcategories)
-            //        {
-            //            if (smgtagtotranslate.TagName.ContainsKey(languagecategory) && !odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories.Contains(smgtagtotranslate.TagName[languagecategory].Trim()))
-            //                odhactivitypoi.AdditionalPoiInfos[languagecategory].Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
-            //        }
-            //    }
-
-            //    //Set Main Type as Activity/Poi/Gastronomy
-            //    SmgPoiHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
-
-            //}
+            if (!odhactivitypoi.SmgTags.Contains("poi"))
+                odhactivitypoi.SmgTags.Add("poi");
 
             return odhactivitypoi;
         }
+
+        private static string GetTheRightSkiregion(string skiregion)
+        {
+            switch (skiregion)
+            {
+                case "Dolomiti Superski":
+                    return "Dolomiti Superski";
+                case "Ortler Skiarena":
+                    return "Ortler Skiarena";
+                case "Skiverbund Eisacktaler Wipptal":
+                    return "Skiverbund Eisacktal-Wipptal";
+                case "Tauferer Ahrntal":
+                    return "Skiregion Tauferer Ahrntal";
+                default:
+                    return "";
+            }
+        }
+
+        private static void SetAdditionalInfosCategoriesByODHTags(ODHActivityPoiLinked activityNew, IDictionary<string, JArray>? jsonfiles)
+        {
+            //TO CHECK
+            //SET ADDITIONALINFOS
+            //Setting Categorization by Valid Tags
+            var validcategorylist = jsonfiles != null && jsonfiles["ActivityPoiDisplayAsCategory"] != null ? jsonfiles["ActivityPoiDisplayAsCategory"].ToObject<List<CategoriesTags>>() : null;
+
+            if (validcategorylist != null && activityNew.SmgTags != null)
+            {
+                var currentcategories = validcategorylist.Where(x => activityNew.SmgTags.Select(y => y.ToLower()).Contains(x.Id.ToLower())).ToList();
+
+                if (currentcategories != null)
+                {
+                    if (activityNew.AdditionalPoiInfos == null)
+                        activityNew.AdditionalPoiInfos = new Dictionary<string, AdditionalPoiInfos>();
+
+                    foreach (var languagecategory in new List<string>() { "de", "it", "en", "nl", "cs", "pl", "fr", "ru" })
+                    {
+                        //Do not overwrite Novelty
+                        string? novelty = null;
+                        if (activityNew.AdditionalPoiInfos.ContainsKey(languagecategory) && !String.IsNullOrEmpty(activityNew.AdditionalPoiInfos[languagecategory].Novelty))
+                            novelty = activityNew.AdditionalPoiInfos[languagecategory].Novelty;
+
+
+                        AdditionalPoiInfos additionalPoiInfos = new AdditionalPoiInfos() { Language = languagecategory, Categories = new List<string>(), Novelty = novelty };
+
+                        //Reassigning Categories
+                        foreach (var smgtagtotranslate in currentcategories)
+                        {
+                            if (smgtagtotranslate.TagName.ContainsKey(languagecategory))
+                            {
+                                if (!additionalPoiInfos.Categories.Contains(smgtagtotranslate.TagName[languagecategory].Trim()))
+                                    additionalPoiInfos.Categories.Add(smgtagtotranslate.TagName[languagecategory].Trim());
+                            }
+                        }
+
+                        activityNew.AdditionalPoiInfos.TryAddOrUpdate(languagecategory, additionalPoiInfos);
+                    }
+                }
+            }
+        }
+
     }
 }
