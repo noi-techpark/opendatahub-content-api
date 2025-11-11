@@ -2,14 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using Helper;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Linq;
-using DataModel;
-using Helper;
 
 namespace SIAG.Parser
 {
@@ -86,9 +88,12 @@ namespace SIAG.Parser
             List<string> museumtaglistEN = new List<string>();
             foreach (var museumtag in mysiagmuseum.Elements(ax211 + "museumTags"))
             {
-                museumtaglistDE.Add(museumtag.Element(ax211 + "kateBezeichnungD").Value);
-                museumtaglistIT.Add(museumtag.Element(ax211 + "kateBezeichnungI").Value);
-                museumtaglistEN.Add(museumtag.Element(ax211 + "kateBezeichnungE").Value);
+                if(!String.IsNullOrEmpty(museumtag.Element(ax211 + "kateBezeichnungD").Value))
+                    museumtaglistDE.Add(museumtag.Element(ax211 + "kateBezeichnungD").Value);
+                if (!String.IsNullOrEmpty(museumtag.Element(ax211 + "kateBezeichnungI").Value)) 
+                    museumtaglistIT.Add(museumtag.Element(ax211 + "kateBezeichnungI").Value);
+                if (!String.IsNullOrEmpty(museumtag.Element(ax211 + "kateBezeichnungE").Value)) 
+                    museumtaglistEN.Add(museumtag.Element(ax211 + "kateBezeichnungE").Value);
             }
 
             List<string> museumkatlistDE = new List<string>();
@@ -96,9 +101,153 @@ namespace SIAG.Parser
             List<string> museumkatlistEN = new List<string>();
             foreach (var museumkat in mysiagmuseum.Elements(ax211 + "museumsKategorien"))
             {
-                museumkatlistDE.Add(museumkat.Element(ax211 + "kateBezeichnungD").Value);
-                museumkatlistIT.Add(museumkat.Element(ax211 + "kateBezeichnungI").Value);
-                museumkatlistEN.Add(museumkat.Element(ax211 + "kateBezeichnungE").Value);
+                if (!String.IsNullOrEmpty(museumkat.Element(ax211 + "kateBezeichnungD").Value))
+                    museumkatlistDE.Add(museumkat.Element(ax211 + "kateBezeichnungD").Value);
+                if (!String.IsNullOrEmpty(museumkat.Element(ax211 + "kateBezeichnungI").Value))
+                    museumkatlistIT.Add(museumkat.Element(ax211 + "kateBezeichnungI").Value);
+                if (!String.IsNullOrEmpty(museumkat.Element(ax211 + "kateBezeichnungE").Value))
+                    museumkatlistEN.Add(museumkat.Element(ax211 + "kateBezeichnungE").Value);
+            }
+
+            string schwerpunktDE = mysiagmuseum.Element(ax211 + "schwerpunkteD").Value;
+            string schwerpunktIT = mysiagmuseum.Element(ax211 + "schwerpunkteI").Value;
+            string schwerpunktEN = mysiagmuseum.Element(ax211 + "schwerpunkteE").Value;
+
+            bool addfamilytag = false;
+            bool addbarrierefreitag = false;
+
+            List<string> museumservicelistDE = new List<string>();
+            List<string> museumservicelistIT = new List<string>();
+            List<string> museumservicelistEN = new List<string>();
+            foreach (var museumservice in mysiagmuseum.Elements(ax211 + "services"))
+            {
+                if (!String.IsNullOrEmpty(museumservice.Element(ax211 + "bezeichnungD").Value))
+                    museumservicelistDE.Add(museumservice.Element(ax211 + "bezeichnungD").Value);
+                if (!String.IsNullOrEmpty(museumservice.Element(ax211 + "bezeichnungI").Value))
+                    museumservicelistIT.Add(museumservice.Element(ax211 + "bezeichnungI").Value);
+                if (!String.IsNullOrEmpty(museumservice.Element(ax211 + "bezeichnungE").Value))
+                    museumservicelistEN.Add(museumservice.Element(ax211 + "bezeichnungE").Value);
+                else
+                {
+                    //hack       
+                    //8 Familienfreundliches Museum (offers for children)
+                    //10 Vermittlungsangebote für Schulen (offers for schools)
+
+                    if (museumservice.Element(ax211 + "servId").Value == "8")
+                    {
+                        museumservicelistEN.Add("offers for children");
+                    }
+                    if (museumservice.Element(ax211 + "servId").Value == "10")
+                    {
+                        museumservicelistEN.Add("offers for schools");
+                    }
+                }
+
+
+                if (
+                    museumservice.Element(ax211 + "bezeichnungD").Value
+                    == "familienfreundliches museum"
+                )
+                    addfamilytag = true;
+
+                if (museumservice.Element(ax211 + "bezeichnungD").Value == "behindertengerecht")
+                    addbarrierefreitag = true;
+            }
+
+            List<string> museumtraegerlistDE = new List<string>();
+            List<string> museumtraegerlistIT = new List<string>();
+            List<string> museumtraegerlistEN = new List<string>();
+            foreach (var museumtraeger in mysiagmuseum.Elements(ax211 + "traeger"))
+            {
+                if (!String.IsNullOrEmpty(museumtraeger.Element(ax211 + "kateBezeichnungD").Value))
+                    museumtraegerlistDE.Add(museumtraeger.Element(ax211 + "kateBezeichnungD").Value);
+                if (!String.IsNullOrEmpty(museumtraeger.Element(ax211 + "kateBezeichnungI").Value))
+                    museumtraegerlistIT.Add(museumtraeger.Element(ax211 + "kateBezeichnungI").Value);
+                if (!String.IsNullOrEmpty((museumtraeger.Element(ax211 + "kateBezeichnungE").Value)))
+                    museumtraegerlistEN.Add(museumtraeger.Element(ax211 + "kateBezeichnungE").Value);
+                else
+                {
+                    //hack       
+                    //236 Land
+
+                    if (museumtraeger.Element(ax211 + "kateId").Value == "236")
+                    {
+                        museumtraegerlistEN.Add("province");
+                    }
+                }
+            }
+
+            //Add to TagIds
+            if (mymuseum.TagIds == null)
+                mymuseum.TagIds = new List<string>();
+
+            foreach(var tag in museumtaglistEN)
+            {
+                if(!String.IsNullOrEmpty(tag))
+                    mymuseum.TagIds.Add(NormalizeTagId(tag));
+            }
+            foreach (var tag in museumkatlistEN)
+            {
+                if (!String.IsNullOrEmpty(tag))
+                    mymuseum.TagIds.Add(NormalizeTagId(tag));
+            }
+            foreach (var tag in museumservicelistEN)
+            {
+                if (!String.IsNullOrEmpty(tag))
+                    mymuseum.TagIds.Add(NormalizeTagId(tag));
+            }
+            foreach (var tag in museumtraegerlistEN)
+            {
+                if (!String.IsNullOrEmpty(tag))
+                    mymuseum.TagIds.Add(NormalizeTagId(tag));
+            }
+
+
+            //Add to TagIds
+            if (mymuseum.SmgTags == null)
+                mymuseum.SmgTags = new List<string>();
+            //Add Additional Tags
+            if (mymuseum.TagIds.Contains("siag:museum:culture"))
+            {
+                if(!mymuseum.SmgTags.Contains("museen kultur"))
+                    mymuseum.SmgTags.Add("museen kultur");
+                if(!mymuseum.TagIds.Contains("museums culture"))
+                    mymuseum.TagIds.Add("museums culture");
+            }
+            if (mymuseum.TagIds.Contains("siag:museum:nature"))
+            {
+                if (!mymuseum.SmgTags.Contains("museen natur"))
+                    mymuseum.SmgTags.Add("museen natur");
+                if (!mymuseum.TagIds.Contains("museums nature"))
+                    mymuseum.TagIds.Add("museums nature");
+            }
+            if (mymuseum.TagIds.Contains("siag:museum:technology"))
+            {
+                if (!mymuseum.SmgTags.Contains("museen technik"))
+                    mymuseum.SmgTags.Add("museen technik");
+                if (!mymuseum.TagIds.Contains("museums technology"))
+                    mymuseum.TagIds.Add("museums technology");
+            }
+            if (mymuseum.TagIds.Contains("siag:museum:art"))
+            {
+                if (!mymuseum.SmgTags.Contains("museen kunst"))
+                    mymuseum.SmgTags.Add("museen kunst");
+                if (!mymuseum.TagIds.Contains("museums art"))
+                    mymuseum.TagIds.Add("museums art");
+            }
+            if (mymuseum.TagIds.Contains("siag:museum:mine"))
+            {
+                if (!mymuseum.SmgTags.Contains("bergwerke"))
+                    mymuseum.SmgTags.Add("bergwerke");
+                if (!mymuseum.TagIds.Contains("mines"))
+                    mymuseum.TagIds.Add("mines");
+            }
+            if (mymuseum.TagIds.Contains("siag:museum:natureparks"))
+            {
+                if (!mymuseum.SmgTags.Contains("naturparkhäuser"))
+                    mymuseum.SmgTags.Add("naturparkhäuser");
+                if (!mymuseum.TagIds.Contains("nature park visitors centres"))
+                    mymuseum.TagIds.Add("nature park visitors centres");
             }
 
             List<ImageGallery> imagegallerylist = new List<ImageGallery>();
@@ -116,7 +265,7 @@ namespace SIAG.Parser
                 string resourceid = photogallery.Element(ax211 + "resoId").Value;
 
                 ImageGallery myimage = new ImageGallery();
-                myimage.ImageSource = "SIAG";
+                myimage.ImageSource = "siag";
                 myimage.ImageUrl =
                     "https://musport.prov.bz.it/musport/servlet/resource?id=" + resourceid;
                 myimage.ImageTitle["de"] = titleDE;
@@ -134,41 +283,7 @@ namespace SIAG.Parser
                 imagegallerylist.Add(myimage);
             }
 
-            string schwerpunktDE = mysiagmuseum.Element(ax211 + "schwerpunkteD").Value;
-            string schwerpunktIT = mysiagmuseum.Element(ax211 + "schwerpunkteI").Value;
-            string schwerpunktEN = mysiagmuseum.Element(ax211 + "schwerpunkteE").Value;
-
-            bool addfamilytag = false;
-            bool addbarrierefreitag = false;
-
-            List<string> museumservicelistDE = new List<string>();
-            List<string> museumservicelistIT = new List<string>();
-            List<string> museumservicelistEN = new List<string>();
-            foreach (var museumservice in mysiagmuseum.Elements(ax211 + "services"))
-            {
-                museumservicelistDE.Add(museumservice.Element(ax211 + "bezeichnungD").Value);
-                museumservicelistIT.Add(museumservice.Element(ax211 + "bezeichnungI").Value);
-                museumservicelistEN.Add(museumservice.Element(ax211 + "bezeichnungE").Value);
-
-                if (
-                    museumservice.Element(ax211 + "bezeichnungD").Value
-                    == "familienfreundliches museum"
-                )
-                    addfamilytag = true;
-
-                if (museumservice.Element(ax211 + "bezeichnungD").Value == "behindertengerecht")
-                    addbarrierefreitag = true;
-            }
-
-            List<string> museumtraegerlistDE = new List<string>();
-            List<string> museumtraegerlistIT = new List<string>();
-            List<string> museumtraegerlistEN = new List<string>();
-            foreach (var museumtraeger in mysiagmuseum.Elements(ax211 + "traeger"))
-            {
-                museumtraegerlistDE.Add(museumtraeger.Element(ax211 + "kateBezeichnungD").Value);
-                museumtraegerlistIT.Add(museumtraeger.Element(ax211 + "kateBezeichnungI").Value);
-                museumtraegerlistEN.Add(museumtraeger.Element(ax211 + "kateBezeichnungE").Value);
-            }
+            
 
             //Contactinfos
             ContactInfos contactinfode = new ContactInfos();
@@ -242,9 +357,9 @@ namespace SIAG.Parser
                 if (mymuseum.Detail.ContainsKey("de"))
                     detailde = mymuseum.Detail["de"];
 
-            detailde.BaseText = beschreibungDE;
-            detailde.GetThereText = anfahrtDE;
-            detailde.Title = bezeichnungDE;
+            detailde.BaseText = String.IsNullOrEmpty(beschreibungDE) ? null : beschreibungDE;
+            detailde.GetThereText = String.IsNullOrEmpty(anfahrtDE) ? null : anfahrtDE;
+            detailde.Title = String.IsNullOrEmpty(bezeichnungDE) ? null : bezeichnungDE;
             detailde.Language = "de";
 
             mymuseum.Detail.TryAddOrUpdate("de", detailde);
@@ -254,9 +369,9 @@ namespace SIAG.Parser
                 if (mymuseum.Detail.ContainsKey("it"))
                     detailit = mymuseum.Detail["it"];
 
-            detailit.BaseText = beschreibungIT;
-            detailit.GetThereText = anfahrtIT;
-            detailit.Title = bezeichnungIT;
+            detailit.BaseText = String.IsNullOrEmpty(beschreibungDE) ? null : beschreibungIT;
+            detailit.GetThereText = String.IsNullOrEmpty(beschreibungDE) ? null : anfahrtIT;
+            detailit.Title = String.IsNullOrEmpty(beschreibungDE) ? null : bezeichnungIT;
             detailit.Language = "it";
 
             mymuseum.Detail.TryAddOrUpdate("it", detailit);
@@ -266,10 +381,14 @@ namespace SIAG.Parser
                 if (mymuseum.Detail.ContainsKey("en"))
                     detailen = mymuseum.Detail["en"];
 
-            detailen.BaseText = beschreibungEN;
-            detailen.GetThereText = anfahrtEN;
-            detailen.Title = bezeichnungEN;
+            detailen.BaseText = String.IsNullOrEmpty(beschreibungEN) ? null : beschreibungEN;
+            detailen.GetThereText = String.IsNullOrEmpty(anfahrtEN) ? null : anfahrtEN;
+            detailen.Title = String.IsNullOrEmpty(bezeichnungEN) ? null : bezeichnungEN;
             detailen.Language = "en";
+
+            //HAck no english name
+            if (String.IsNullOrEmpty(detailen.Title))
+                detailen.Title = detailde.Title;
 
             mymuseum.Detail.TryAddOrUpdate("en", detailen);
 
@@ -289,14 +408,11 @@ namespace SIAG.Parser
                 //    mymuseum.GpsInfo.Clear();
 
                 mygpsinfos.Add(gps);
-
                 mymuseum.GpsInfo = mygpsinfos.ToList();
-
-                mymuseum.GpsPoints.TryAddOrUpdate("position", gps);
             }
             //Eigenschaften
             mymuseum.HasFreeEntrance = freeentrance;
-            mymuseum.Highlight = false;
+            mymuseum.Highlight = null;
 
             List<PoiProperty> poipropertylistde = new List<PoiProperty>();
             List<PoiProperty> poipropertylistit = new List<PoiProperty>();
@@ -385,7 +501,7 @@ namespace SIAG.Parser
             //mypropertyserviceit.Name = "Servizi";
             mypropertyserviceit.Name = "service";
             mypropertyserviceit.Value = String.Join(", ", museumservicelistIT.ToArray());
-            poipropertylistit.Add(mypropertyservicede);
+            poipropertylistit.Add(mypropertyserviceit);
 
             PoiProperty mypropertyserviceen = new PoiProperty();
             //mypropertyserviceen.Name = "Services";
@@ -425,13 +541,13 @@ namespace SIAG.Parser
                 mymuseum.PoiProperty["pl"].Clear();
 
             //Services
-            mymuseum.PoiServices = museumservicelistDE.ToList();
+            //mymuseum.PoiServices = museumservicelistDE.ToList();
 
             //ImageGallery
             var smgimages = default(ICollection<ImageGallery>);
 
             if (mymuseum.ImageGallery != null)
-                smgimages = mymuseum.ImageGallery.Where(x => x.ImageSource == "SMG").ToList();
+                smgimages = mymuseum.ImageGallery.Where(x => x.ImageSource == "idm").ToList();
 
             var imagelistfull = new List<ImageGallery>();
 
@@ -445,25 +561,251 @@ namespace SIAG.Parser
             mymuseum.ImageGallery = imagelistfull.ToList();
 
             mymuseum.LastChange = DateTime.Now;
-            List<string> smgtaglist = new List<string>();
-
-            if (mymuseum.SmgTags != null)
-                smgtaglist = mymuseum.SmgTags.ToList();
-
+                    
             if (addbarrierefreitag)
             {
-                if (!smgtaglist.Contains("barrierefrei"))
-                    smgtaglist.Add("barrierefrei");
+                if (!mymuseum.SmgTags.Contains("barrierefrei"))
+                    mymuseum.SmgTags.Add("barrierefrei");
+                if (!mymuseum.TagIds.Contains("barrierfree"))
+                    mymuseum.TagIds.Add("barrierfree");
             }
             if (addfamilytag)
             {
-                if (!smgtaglist.Contains("familientip"))
-                    smgtaglist.Add("familientip");
+                if (!mymuseum.SmgTags.Contains("familientip"))
+                    mymuseum.SmgTags.Add("familientip");                
             }
 
-            mymuseum.SmgTags = smgtaglist.ToList();
+            mymuseum.Type = null;
+            mymuseum.SubType = null;
+            mymuseum.PoiType = null;
+            mymuseum.AgeFrom = null;
+            mymuseum.AgeTo = null;
+            mymuseum.AltitudeDifference = null;
+            mymuseum.MaxSeatingCapacity = null;
+            mymuseum.AltitudeLowestPoint = null;
+            mymuseum.AltitudeHighestPoint = null;
+            mymuseum.DistanceLength = null;
+            mymuseum.DistanceDuration = null;
+            mymuseum.AltitudeSumUp = null;
+            mymuseum.AltitudeSumDown = null;
 
             return mymuseum;
+        }
+
+        public static IEnumerable<TagLinked> ParseSiagResponseToTags(IEnumerable<XElement> mymuseumxml)
+        {
+            XNamespace ax211 = "http://data.service.kks.siag/xsd";
+
+            Dictionary<string, Dictionary<string,string>> tagdict = new Dictionary<string, Dictionary<string, string>>();
+            Dictionary<string, Dictionary<string, string>> catdict = new Dictionary<string, Dictionary<string, string>>();
+            Dictionary<string, Dictionary<string, string>> servicedict = new Dictionary<string, Dictionary<string, string>>();
+            Dictionary<string, Dictionary<string, string>> traegerdict = new Dictionary<string, Dictionary<string, string>>();
+
+            foreach (var mysiagmuseum in mymuseumxml)
+            {
+                foreach (var museumtag in mysiagmuseum.Elements(ax211 + "museumTags"))
+                {
+                    if(!String.IsNullOrEmpty(museumtag.Element(ax211 + "kateId").Value) && !tagdict.ContainsKey(museumtag.Element(ax211 + "kateId").Value))
+                    {
+                        var tagkey = museumtag.Element(ax211 + "kateId").Value;
+                        var tagvalue = new Dictionary<string, string>();
+                        tagvalue.Add("de", museumtag.Element(ax211 + "kateBezeichnungD").Value);
+                        tagvalue.Add("it", museumtag.Element(ax211 + "kateBezeichnungI").Value);
+                        tagvalue.Add("en", museumtag.Element(ax211 + "kateBezeichnungE").Value);
+
+                        tagdict.Add(tagkey, tagvalue);
+                    }    
+                }
+
+                foreach (var museumkat in mysiagmuseum.Elements(ax211 + "museumsKategorien"))
+                {
+                    if (!String.IsNullOrEmpty(museumkat.Element(ax211 + "kateId").Value) && !catdict.ContainsKey(museumkat.Element(ax211 + "kateId").Value))
+                    {
+                        var tagkey = museumkat.Element(ax211 + "kateId").Value;
+                        var tagvalue = new Dictionary<string, string>();
+                        tagvalue.Add("de", museumkat.Element(ax211 + "kateBezeichnungD").Value);
+                        tagvalue.Add("it", museumkat.Element(ax211 + "kateBezeichnungI").Value);
+                        tagvalue.Add("en", museumkat.Element(ax211 + "kateBezeichnungE").Value);
+                        
+                        catdict.Add(tagkey, tagvalue);
+                    }
+                }
+
+
+                foreach (var museumservice in mysiagmuseum.Elements(ax211 + "services"))
+                {
+                    if (!String.IsNullOrEmpty(museumservice.Element(ax211 + "servId").Value) && !servicedict.ContainsKey(museumservice.Element(ax211 + "servId").Value))
+                    {
+                        var tagkey = museumservice.Element(ax211 + "servId").Value;
+                        var tagvalue = new Dictionary<string, string>();
+                        tagvalue.Add("de", museumservice.Element(ax211 + "bezeichnungD").Value);
+                        tagvalue.Add("it", museumservice.Element(ax211 + "bezeichnungI").Value);
+                        tagvalue.Add("en", museumservice.Element(ax211 + "bezeichnungE").Value);
+
+                        servicedict.Add(tagkey, tagvalue);
+                    }
+                }
+
+                foreach (var museumtraeger in mysiagmuseum.Elements(ax211 + "traeger"))
+                {
+                    if (!String.IsNullOrEmpty(museumtraeger.Element(ax211 + "kateId").Value) && !traegerdict.ContainsKey(museumtraeger.Element(ax211 + "kateId").Value))
+                    {
+                        var tagkey = museumtraeger.Element(ax211 + "kateId").Value;
+                        var tagvalue = new Dictionary<string, string>();
+                        tagvalue.Add("de", museumtraeger.Element(ax211 + "kateBezeichnungD").Value);
+                        tagvalue.Add("it", museumtraeger.Element(ax211 + "kateBezeichnungI").Value);
+                        tagvalue.Add("en", museumtraeger.Element(ax211 + "kateBezeichnungE").Value);
+
+                        traegerdict.Add(tagkey, tagvalue);
+                    }
+                }
+            }
+
+            List<TagLinked> taglinkedlist = new List<TagLinked>();
+
+            foreach(var tag in tagdict)
+            {
+                if (!String.IsNullOrEmpty(tag.Value["en"]))
+                {
+
+                    TagLinked taglinked = new TagLinked();
+                    taglinked.Source = "siag";
+                    taglinked.Id = NormalizeTagId(tag.Value["en"]);
+                    taglinked.Types = new List<string>() { "museumtag" };
+                    taglinked.TagName = tag.Value;
+                    taglinked.Active = true;
+                    taglinked.DisplayAsCategory = false;
+                    taglinked.MainEntity = "odhactivitypoi";
+                    taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    taglinked.Mapping.Add("siag", new Dictionary<string, string>() { { "kateId", tag.Key } });
+
+                    taglinkedlist.Add(taglinked);
+                }
+            }
+
+            foreach (var cat in catdict)
+            {
+                if (!String.IsNullOrEmpty(cat.Value["en"]))
+                {
+                    TagLinked taglinked = new TagLinked();
+                    taglinked.Source = "siag";
+                    taglinked.Id = NormalizeTagId(cat.Value["en"]);
+                    taglinked.Types = new List<string>() { "museumcategory" };
+                    taglinked.TagName = cat.Value;
+                    taglinked.Active = true;
+                    taglinked.DisplayAsCategory = false;
+                    taglinked.MainEntity = "odhactivitypoi";
+                    taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    taglinked.Mapping.Add("siag", new Dictionary<string, string>() { { "kateId", cat.Key } });
+
+                    taglinkedlist.Add(taglinked);
+                }
+            }
+
+            foreach (var service in servicedict)
+            {
+                if (!String.IsNullOrEmpty(service.Value["en"]))
+                {
+                    TagLinked taglinked = new TagLinked();
+                    taglinked.Source = "siag";
+                    taglinked.Id = NormalizeTagId(service.Value["en"]);
+                    taglinked.Types = new List<string>() { "museumservice" };
+                    taglinked.TagName = service.Value;
+                    taglinked.Active = true;
+                    taglinked.DisplayAsCategory = false;
+                    taglinked.MainEntity = "odhactivitypoi";
+                    taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    taglinked.Mapping.Add("siag", new Dictionary<string, string>() { { "servId", service.Key } });
+
+                    taglinkedlist.Add(taglinked);
+                }
+                //Hack where no en title is associated
+                else if(service.Key == "8" || service.Key == "10")
+                {
+                    //8 Familienfreundliches Museum (offers for children)
+                    //10 Vermittlungsangebote für Schulen (offers for schools)
+
+                    TagLinked taglinked = new TagLinked();
+                    taglinked.Source = "siag";
+                    taglinked.TagName = service.Value;
+
+                    if (service.Key == "8")
+                    {
+                        taglinked.Id = NormalizeTagId("offers for children");
+                        taglinked.TagName["en"] = "Offers for children";
+                    }
+                        
+                    if (service.Key == "10")
+                    {
+                        taglinked.Id = NormalizeTagId("offers for schools");
+                        taglinked.TagName["en"] = "Offers for schools";
+                    }                        
+
+                    taglinked.Types = new List<string>() { "museumservice" };
+                    taglinked.Active = true;
+                    taglinked.DisplayAsCategory = false;
+                    taglinked.MainEntity = "odhactivitypoi";
+                    taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    taglinked.Mapping.Add("siag", new Dictionary<string, string>() { { "servId", service.Key } });
+
+                    taglinkedlist.Add(taglinked);
+
+                }
+            }
+
+            foreach (var traeger in traegerdict)
+            {
+                if (!String.IsNullOrEmpty(traeger.Value["en"]))
+                {
+                    TagLinked taglinked = new TagLinked();
+                    taglinked.Source = "siag";
+                    taglinked.Id = NormalizeTagId(traeger.Value["en"]);
+                    taglinked.Types = new List<string>() { "museumsupporter" };
+                    taglinked.TagName = traeger.Value;
+                    taglinked.Active = true;
+                    taglinked.DisplayAsCategory = false;
+                    taglinked.MainEntity = "odhactivitypoi";
+                    taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    taglinked.Mapping.Add("siag", new Dictionary<string, string>() { { "servId", traeger.Key } });
+
+                    taglinkedlist.Add(taglinked);
+                }
+                //Hack where no en title is associated
+                else if(traeger.Key == "236")
+                {
+                    //236 Land
+                    TagLinked taglinked = new TagLinked();
+                    taglinked.Source = "siag";                    
+                    taglinked.Types = new List<string>() { "museumsupporter" };
+                    taglinked.TagName = traeger.Value;
+
+                    if (traeger.Key == "236")
+                    {
+                        taglinked.Id = NormalizeTagId("province");
+                        taglinked.TagName["en"] = "Province";
+                    }
+
+                    taglinked.Active = true;
+                    taglinked.DisplayAsCategory = false;
+                    taglinked.MainEntity = "odhactivitypoi";
+                    taglinked.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    taglinked.Mapping.Add("siag", new Dictionary<string, string>() { { "servId", traeger.Key } });
+
+                    taglinkedlist.Add(taglinked);
+                }
+            }
+
+            return taglinkedlist;
+        }
+
+        public static string NormalizeTagId(string tagkeyen)
+        {
+            return "siag:museum:" + tagkeyen.ToLower()
+                .Replace(" ", "")
+                .Replace("ä", "ae")
+                .Replace("ö", "oe")
+                .Replace("ü", "ue")
+                .Replace("ß", "ss");
         }
     }
 }

@@ -117,10 +117,10 @@ namespace OdhApiImporter.Helpers
                     //objecttosave.SmgActive = true;
 
                     //Set TagIds based on OdhTags
-                    await GenericTaggingHelper.AddTagsToODHActivityPoi(
-                        objecttosave,
-                        settings.JsonConfig.Jsondir
-                    );
+                    //await GenericTaggingHelper.AddTagsToODHActivityPoi(
+                    //    objecttosave,
+                    //    settings.JsonConfig.Jsondir
+                    //);
                     //Create Tag Objects
                     objecttosave.TagIds =
                         objecttosave.Tags != null

@@ -69,8 +69,8 @@ namespace OdhApiImporter.Controllers
 
         #region UPDATE FROM RAVEN INSTANCE
 
-        [HttpGet, Route("Raven/{datatype}/Update/{id}")]
         [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Raven/{datatype}/Update/{id}")]
         public async Task<IActionResult> UpdateDataFromRaven(
             string id,
             string datatype,
@@ -129,8 +129,8 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        [HttpGet, Route("Raven/{datatype}/Delete/{id}")]
         [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Raven/{datatype}/Delete/{id}")]
         public async Task<IActionResult> DeleteDataFromRaven(
             string id,
             string datatype,
@@ -700,7 +700,8 @@ namespace OdhApiImporter.Controllers
 
         #region SIAG DATA SYNC MUSEUMS
 
-        [HttpGet, Route("Siag/Museum/Update")]
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Siag/Museum/Update")]        
         public async Task<IActionResult> ImportSiagMuseum(
             CancellationToken cancellationToken = default
         )
@@ -742,6 +743,58 @@ namespace OdhApiImporter.Controllers
                     operation,
                     updatetype,
                     "Import SIAG Museum data failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Siag/Museum/Tags/Update")]        
+        public async Task<IActionResult> ImportSiagMuseumTags(
+           CancellationToken cancellationToken = default
+       )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import SIAG Museum Tag data";
+            string updatetype = GetUpdateType(null);
+            string source = "siag";
+            string otherinfo = "actual";
+
+            try
+            {
+                SiagMuseumTagImportHelper siagimporthelper = new SiagMuseumTagImportHelper(
+                    settings,
+                    QueryFactory,
+                    "tags",
+                    UrlGeneratorStatic("Siag/Museum")
+                );
+                updatedetail = await siagimporthelper.SaveDataToODH(null, null, cancellationToken);
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import SIAG Museum Tag data succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import SIAG Museum Tag data failed",
                     otherinfo,
                     updatedetail,
                     ex,

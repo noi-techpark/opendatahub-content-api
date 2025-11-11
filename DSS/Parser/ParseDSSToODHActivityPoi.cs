@@ -51,13 +51,16 @@ namespace DSS.Parser
 
             myodhactivitypoilinked.Mapping.TryAddOrUpdate("dss", dssidmap);
 
-            myodhactivitypoilinked.Type = "Anderes";
-            myodhactivitypoilinked.SubType = "Aufstiegsanlagen";
+            //obsolete
+            //myodhactivitypoilinked.Type = "Anderes";
+            //myodhactivitypoilinked.SubType = "Aufstiegsanlagen";
+            myodhactivitypoilinked.Type = null;
+            myodhactivitypoilinked.SubType = null;
 
             myodhactivitypoilinked.SmgTags = new List<string>()
             {
-                myodhactivitypoilinked.Type.ToLower(),
-                myodhactivitypoilinked.SubType.ToLower(),
+                "anderes",
+                "aufstiegsanlagen",
                 "weitere aufstiegsanlagen",
             };
 
@@ -271,13 +274,17 @@ namespace DSS.Parser
 
             myodhactivitypoilinked.Mapping.TryAddOrUpdate("dss", dssidmap);
 
-            myodhactivitypoilinked.Type = "Winter";
-            myodhactivitypoilinked.SubType = "Skirundtouren Pisten";
+            //Obsolete
+            //myodhactivitypoilinked.Type = "Winter";
+            //myodhactivitypoilinked.SubType = "Skirundtouren Pisten";
+
+            myodhactivitypoilinked.Type = null;
+            myodhactivitypoilinked.SubType = null;
 
             myodhactivitypoilinked.SmgTags = new List<string>()
             {
-                myodhactivitypoilinked.Type.ToLower(),
-                myodhactivitypoilinked.SubType.ToLower(),
+                "winter",
+                "skirundtouren pisten",
                 "pisten",
                 "ski alpin",
                 "piste",

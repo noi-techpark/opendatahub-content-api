@@ -160,6 +160,22 @@ namespace Helper
                     smgpoi.SmgTags.Add(maintype);
             }
 
+            if (smgpoi.TagIds == null)
+            {
+                smgpoi.TagIds = new List<string>();
+                smgpoi.TagIds.Add(maintype);
+            }
+            else if (
+                !smgpoi.TagIds.Contains("activity")
+                && !smgpoi.TagIds.Contains("poi")
+                && !smgpoi.TagIds.Contains("gastronomy")
+            )
+            {
+                //Assign to SMGTags if not there
+                if (!smgpoi.TagIds.Contains(maintype))
+                    smgpoi.TagIds.Add(maintype);
+            }
+
             return maintype;
         }
 

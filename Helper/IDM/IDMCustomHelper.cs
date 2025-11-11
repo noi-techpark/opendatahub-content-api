@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -62,7 +63,9 @@ namespace Helper.IDM
                 {
                     var metainfolanguage = metainfo.Metainfos[language];
 
-                    var rightmetainfo = FindFirstMetaInfoODHActivityPoiMatch(metainfolanguage, smgpoi.SmgTags.ToList());
+                    var mylisttocheck = GetTheODHTagsToCheckFor(smgpoi);
+
+                    var rightmetainfo = FindFirstMetaInfoODHActivityPoiMatch(metainfolanguage, mylisttocheck);
 
                         //metainfolanguage.Where(x => x["Main Type"].ToString() == maintype && x["Sub-Type"].ToString() == subtype && x["POI Type"].ToString() == poitype).FirstOrDefault();
 
@@ -233,7 +236,18 @@ namespace Helper.IDM
             if (tags == null || metainfoslanguage == null)
                 return null;
 
-            return metainfoslanguage.FirstOrDefault(dict =>
+            //return metainfoslanguage.FirstOrDefault(dict =>
+            //{
+            //    // Extract values for the specified keys, filter out empty ones, and convert to lowercase
+            //    var valuesToCheck = new[] { "Main Type", "Sub-Type", "POI Type" }
+            //        .Where(key => dict.ContainsKey(key) && !string.IsNullOrWhiteSpace(dict[key].ToString()))
+            //        .Select(key => dict[key].ToString().ToLower());
+
+            //    // Check if all non-empty values exist in the second list
+            //    return valuesToCheck.Any() && valuesToCheck.All(value => tags.Contains(value));
+            //});
+
+            var matchedmetainfos = metainfoslanguage.Where(dict =>
             {
                 // Extract values for the specified keys, filter out empty ones, and convert to lowercase
                 var valuesToCheck = new[] { "Main Type", "Sub-Type", "POI Type" }
@@ -242,7 +256,33 @@ namespace Helper.IDM
 
                 // Check if all non-empty values exist in the second list
                 return valuesToCheck.Any() && valuesToCheck.All(value => tags.Contains(value));
-            });
+            }).ToList();
+
+            //If more are found how to get the right.
+            if(matchedmetainfos.Count() >1)
+            {
+                List<Tuple<int, Dictionary<string, object>?>> matchedwithintersectcount = new List<Tuple<int, Dictionary<string, object>?>>();
+
+                //We count how many matches are there
+                foreach (var dictentry in matchedmetainfos)
+                {
+                    List<string> arraytocompare = new List<string>();
+                    if (!String.IsNullOrEmpty(dictentry["Main Type"].ToString()))
+                        arraytocompare.Add(dictentry["Main Type"].ToString().ToLower());
+                    if (!String.IsNullOrEmpty(dictentry["Sub-Type"].ToString()))
+                        arraytocompare.Add(dictentry["Sub-Type"].ToString().ToLower());
+                    if (!String.IsNullOrEmpty(dictentry["POI Type"].ToString()))
+                        arraytocompare.Add(dictentry["POI Type"].ToString().ToLower());
+
+                    var intersectcount = tags.Intersect(arraytocompare).Count();
+
+                    matchedwithintersectcount.Add(Tuple.Create(intersectcount, dictentry));
+                }
+
+                return matchedwithintersectcount.OrderByDescending(x => x.Item1).FirstOrDefault().Item2;
+            }
+            else
+                return matchedmetainfos.FirstOrDefault();
         }
 
         private static string GetTheRightFieldInfo(string fieldtoretrieve, ODHActivityPoiLinked currentpoi, string lang)
@@ -336,6 +376,18 @@ namespace Helper.IDM
                     return "";
             }
 
+        }
+
+        private static List<string> GetTheODHTagsToCheckFor(ODHActivityPoiLinked smgpoi)
+        {
+            var taglistcleared = smgpoi.SmgTags.ToList();            
+
+            //Add here all Exceptions
+            if (smgpoi.Source == "suedtirolwein")
+                taglistcleared = new List<string>() { "essen trinken", "weinkellereien" };
+
+
+            return taglistcleared;
         }
 
         #endregion
