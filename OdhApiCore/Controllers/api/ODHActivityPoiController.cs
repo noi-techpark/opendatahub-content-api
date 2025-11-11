@@ -687,8 +687,8 @@ namespace OdhApiCore.Controllers.api
                 //POPULATE Automatic Assigned ODHTags
                 ODHTagHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
 
-                //POPULATE Tags ??
-                //await GenericTaggingHelper.AddTagsToODHActivityPoi(odhactivitypoi, settings.JsonConfig.Jsondir);
+                //Add english Translations for TagIds 
+                await GenericTaggingHelper.AddTagIdsToODHActivityPoi(odhactivitypoi, await GenericTaggingHelper.GetAllGenericTagsfromJson(settings.JsonConfig.Jsondir));
                 //Populate Tags (Id/Source/Type)
                 await odhactivitypoi.UpdateTagsExtension(QueryFactory);
 
@@ -756,16 +756,16 @@ namespace OdhApiCore.Controllers.api
                     QueryFactory
                 );
 
-                //POPULATE Automatic Assigned ODHTags ???
-                //ODHTagHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
+
+                //POPULATE Automatic Assigned ODHTags
+                ODHTagHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
+
+                //Add english Translations for TagIds 
+                await GenericTaggingHelper.AddTagIdsToODHActivityPoi(odhactivitypoi, await GenericTaggingHelper.GetAllGenericTagsfromJson(settings.JsonConfig.Jsondir));
+
                 //Populate Tags (Id/Source/Type)
                 await odhactivitypoi.UpdateTagsExtension(QueryFactory);
 
-                //POPULATE Tags
-                await GenericTaggingHelper.AddTagsToODHActivityPoi(
-                    odhactivitypoi,
-                    settings.JsonConfig.Jsondir
-                );
 
                 //POPULATE Categories
                 await ODHTagHelper.GetCategoriesFromAssignedODHTags(

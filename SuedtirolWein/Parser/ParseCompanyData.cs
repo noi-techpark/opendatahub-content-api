@@ -739,11 +739,17 @@ namespace SuedtirolWein.Parser
             mywinecompany.Mapping.TryAddOrUpdate("suedtirolwein", suedtirolweinid);
 
             mywinecompany.Source = "suedtirolwein";
-            mywinecompany.SyncSourceInterface = "suedtirolwein";
+            mywinecompany.SyncSourceInterface = "suedtirolweincompany";
             mywinecompany.SyncUpdateMode = "Full";
 
-            mywinecompany.Type = "Essen Trinken";
-            mywinecompany.SubType = "Weinkellereien";
+            //Deprecated Fields to null
+            mywinecompany.Type = null;
+            mywinecompany.SubType = null;
+            mywinecompany.AgeFrom = null;
+            mywinecompany.AgeTo = null;
+            mywinecompany.SmgActive = false;
+            mywinecompany.AreaId = null;
+            //mywinecompany.ODHActivityPoiTypes = null;
 
             mywinecompany.Shortname = companydata["de"].Element("title").Value;
 
@@ -814,6 +820,8 @@ namespace SuedtirolWein.Parser
             {
                 ParseImporterData(language, companydata[language], mywinecompany);
             }
+
+            mywinecompany.HasLanguage = mywinecompany.Detail.Keys.ToList();
 
             return mywinecompany;
         }

@@ -226,7 +226,7 @@ namespace Helper
             var licenseholder = data.Source ?? "";
 
             if (data.Source == null)
-                data.Source = "Content";
+                data.Source = "content";
 
             if (data.Source.ToLower() == "noi")
                 licenseholder = "http://noi.bz.it";
@@ -623,15 +623,9 @@ namespace Helper
 
         public static LicenseInfo GetLicenseforWineAward(Wine data)
         {
-            var isopendata = false;
-            var licensetype = "Closed";
+            var isopendata = true;
+            var licensetype = "CC0";
             var licenseholder = "https://www.suedtirolwein.com";
-
-            if (data.SmgActive)
-            {
-                isopendata = true;
-                licensetype = "CC0";
-            }
 
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }

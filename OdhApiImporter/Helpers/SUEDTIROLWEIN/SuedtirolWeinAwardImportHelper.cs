@@ -51,18 +51,16 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
         )
         {
             IDictionary<string, XDocument> mywinedata = new Dictionary<string, XDocument>();
-            mywinedata.Add("de", await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
+
+            List<string> languagestoretrieve = new List<string>() { "de", "it", "en" };
+
+            foreach (var language in languagestoretrieve)
+            {
+                mywinedata.Add(language, await GetSuedtirolWeinData.GetSuedtirolWineAwardsAsync(
                 settings.SuedtirolWeinConfig.ServiceUrl,
-                "de"
+                language
             ));
-            mywinedata.Add("it", await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "it"
-            ));
-            mywinedata.Add("en", await GetSuedtirolWeinData.GetSueditrolWineAwardsAsync(
-                settings.SuedtirolWeinConfig.ServiceUrl,
-                "en"
-            ));
+            }
 
             return mywinedata;
         }
@@ -120,20 +118,14 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     .FirstOrDefault();
 
                 List<string> haslanguage = new List<string>() { "de" };
-
                 if (winedatait != null)
                     haslanguage.Add("it");
                 if (winedataen != null)
                     haslanguage.Add("en");
 
-                //Get Wein Award
-                var mysuedtirolweinquery = QueryFactory
-                    .Query("wine")
-                    .Select("data")
-                    .Where("id", dataid.ToUpper());
-
-                var weinaward = await mysuedtirolweinquery.GetObjectSingleAsync<WineLinked>();
-
+                //Get Wein Award                
+                var weinaward = await LoadDataFromDB<WineLinked>(dataid.ToUpper(), IDStyle.uppercase);
+                
                 if (weinaward == null)
                 {
                     weinaward = new WineLinked();
@@ -152,13 +144,13 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 if (winedata.Element("active") != null)
                 {
                     weinaward.Active = Convert.ToBoolean(winedata.Element("active").Value);
-                    weinaward.SmgActive = Convert.ToBoolean(winedata.Element("active").Value);
+                    //weinaward.SmgActive = Convert.ToBoolean(winedata.Element("active").Value);
                 }
 
                 weinaward.HasLanguage = haslanguage;
 
                 //Setting Common Infos
-                weinaward.Source = "suedtirolwein";
+                weinaward.Source = "suedtirolwein";                
                 weinaward.LastChange = DateTime.Now;
 
                 //ADD MAPPING
@@ -231,7 +223,6 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                         .ToList() ?? new();
 
                 var myquery = QueryFactory.Query("wines").Select("id");
-
                 var winesondb = await myquery.GetAsync<string>();
 
                 var idstodelete = winesondb.Where(p => !wineidlistonsource.Any(p2 => p2 == p));

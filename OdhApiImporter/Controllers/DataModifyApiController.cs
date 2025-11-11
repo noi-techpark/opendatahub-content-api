@@ -1208,5 +1208,36 @@ namespace OdhApiImporter.Controllers
         }
 
         #endregion
+
+        #region WineAward
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("ModifyWineAwards")]
+        public async Task<IActionResult> ModifyWineAwards(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.UpdateAllWineAwardIds();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify WineAwards",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = 0,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+        #endregion
     }
 }

@@ -2,6 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using Helper.Location;
+using SqlKata.Execution;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,9 +13,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DataModel;
-using Helper.Location;
-using SqlKata.Execution;
 
 namespace Helper.Tagging
 {
@@ -34,6 +34,7 @@ namespace Helper.Tagging
                 data.TagIds = data.TagIds.Distinct().OrderBy(x => x).ToList();
                 
             data.Tags = await UpdateTags(data.TagIds, queryFactory, tagEntrysTopreserve);
+           
         }
 
         //Get the Tag entries to preserve if update
@@ -95,7 +96,7 @@ namespace Helper.Tagging
                 }
             }
 
-            return tags;
+            return tags.OrderBy(x => x.Id).ToList();
         }
 
         #endregion
