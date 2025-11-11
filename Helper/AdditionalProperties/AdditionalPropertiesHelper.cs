@@ -151,6 +151,26 @@ namespace Helper.AdditionalProperties
                         }
 
                         break;
+                    case "SiagMuseumDataProperties":
+
+                        var resultsiagmuseumdata = CastAs<SiagMuseumDataProperties>(kvp.Value);
+                        success = resultsiagmuseumdata.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resultsiagmuseumdata.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resultsiagmuseumdata.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "SiagMuseumDataProperties",
+                                    (SiagMuseumDataProperties)resultsiagmuseumdata.Item3
+                                );
+                            }
+                        }
+
+                        break;
+
                     default:
                         errorlist.Add("unknown error", "The Type " + kvp.Key + " is not known");
                         break;
