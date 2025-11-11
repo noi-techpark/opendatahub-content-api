@@ -295,7 +295,7 @@ namespace OdhApiImporter.Helpers
                     //    );
                     //}
 
-                    throw new Exception("Gastronomy Update Raven Migrated!");                    
+                    throw new Exception("Gastronomy Update Raven Migrated!");
 
                 case "activity":
                     //mydata = await GetDataFromRaven.GetRavenData<LTSActivityLinked>(
@@ -399,91 +399,92 @@ namespace OdhApiImporter.Helpers
                     throw new Exception("Poi Update Raven Migrated!");
 
                 case "odhactivitypoi":
-                    mydata = await GetDataFromRaven.GetRavenData<ODHActivityPoiLinked>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                    {
-                        if (((ODHActivityPoiLinked)mydata).Source.ToLower() == "lts")
-                            throw new Exception("Activity, Poi, Gastronomy Update Raven Migrated!");
+                    //mydata = await GetDataFromRaven.GetRavenData<ODHActivityPoiLinked>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //{
+                    //    if (((ODHActivityPoiLinked)mydata).Source.ToLower() == "lts")
+                    //        throw new Exception("Activity, Poi, Gastronomy Update Raven Migrated!");
 
 
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            ODHActivityPoiLinked,
-                            ODHActivityPoiLinked
-                        >(
-                            (ODHActivityPoiLinked)mydata,
-                            TransformToPGObject.GetODHActivityPoiPGObject
-                        );
-                    }
-                    else
-                        throw new Exception("No data found!");
+                    //    mypgdata = TransformToPGObject.GetPGObject<
+                    //        ODHActivityPoiLinked,
+                    //        ODHActivityPoiLinked
+                    //    >(
+                    //        (ODHActivityPoiLinked)mydata,
+                    //        TransformToPGObject.GetODHActivityPoiPGObject
+                    //    );
+                    //}
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Special Operations
+                    ////Special Operations
 
-                    //Traduce all Tags with Source IDM to english tags
-                    await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                        mypgdata,
-                        settings.JsonConfig.Jsondir
-                    );
+                    ////Traduce all Tags with Source IDM to english tags
+                    //await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                    //    mypgdata,
+                    //    await GenericTaggingHelper.GetAllGenericTagsfromJson(settings.JsonConfig.Jsondir)
+                    //);
 
-                    //Create Tag Info
-                    //Populate Tags (Id/Source/Type) TO TEST
-                    await (mypgdata as IHasTagInfo).UpdateTagsExtension(QueryFactory);
+                    ////Create Tag Info
+                    ////Populate Tags (Id/Source/Type) TO TEST
+                    //await (mypgdata as IHasTagInfo).UpdateTagsExtension(QueryFactory);
 
-                    //TODO Recreate LocationInfo
-                    //TODO Recreate Categories
+                    ////TODO Recreate LocationInfo
+                    ////TODO Recreate Categories
 
-                    //Add the PublishedOn Logic
-                    //Exception here all Tags with autopublish has to be passed
-                    var autopublishtaglist =
-                        await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
-                            settings.JsonConfig.Jsondir
-                        );
-                    ((ODHActivityPoiLinked)mypgdata).CreatePublishedOnList(autopublishtaglist);
+                    ////Add the PublishedOn Logic
+                    ////Exception here all Tags with autopublish has to be passed
+                    //var autopublishtaglist =
+                    //    await GenericTaggingHelper.GetAllAutoPublishTagsfromJson(
+                    //        settings.JsonConfig.Jsondir
+                    //    );
+                    //((ODHActivityPoiLinked)mypgdata).CreatePublishedOnList(autopublishtaglist);
 
-                    myupdateresult = await SaveRavenObjectToPG<ODHActivityPoiLinked>(
-                        (ODHActivityPoiLinked)mypgdata,
-                        "smgpois",
-                        true,
-                        true,
-                        true
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<ODHActivityPoiLinked>(
+                    //    (ODHActivityPoiLinked)mypgdata,
+                    //    "smgpois",
+                    //    true,
+                    //    true,
+                    //    true
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype
+                    //);
 
-                    //Check if data has to be reduced and save it
-                    if (
-                        ReduceDataTransformer.ReduceDataCheck<ODHActivityPoiLinked>(
-                            (ODHActivityPoiLinked)mypgdata
-                        ) == true
-                    )
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (ODHActivityPoiLinked)mypgdata,
-                            ReduceDataTransformer.CopyLTSODHActivtyPoiToReducedObject
-                        );
+                    ////Check if data has to be reduced and save it
+                    //if (
+                    //    ReduceDataTransformer.ReduceDataCheck<ODHActivityPoiLinked>(
+                    //        (ODHActivityPoiLinked)mypgdata
+                    //    ) == true
+                    //)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (ODHActivityPoiLinked)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSODHActivtyPoiToReducedObject
+                    //    );
 
-                        updateresultreduced = await SaveRavenObjectToPG<ODHActivityPoiLinked>(
-                            (LTSODHActivityPoiReduced)reducedobject,
-                            "smgpois",
-                            false,
-                            false,
-                            false                            
-                        );
-                    }
+                    //    updateresultreduced = await SaveRavenObjectToPG<ODHActivityPoiLinked>(
+                    //        (LTSODHActivityPoiReduced)reducedobject,
+                    //        "smgpois",
+                    //        false,
+                    //        false,
+                    //        false                            
+                    //    );
+                    //}
+                    //break;
 
-                    break;
+                    throw new Exception("ODHActivityPoi Update Raven Migrated!");                    
 
                 case "event":
                     //mydata = await GetDataFromRaven.GetRavenData<EventRaven>(

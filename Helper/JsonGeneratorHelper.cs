@@ -99,7 +99,7 @@ namespace Helper
         {
             var serializer = new JsonSerializer();
 
-            var query = queryFactory.Query().SelectRaw("data").From("tags");
+            var query = queryFactory.Query().SelectRaw("data").From("tags").SourceFilter_GeneratedColumn(new List<string>() { "idm" });
 
             var datafirst = await query.GetObjectListAsync<TagLinked>();
 

@@ -519,9 +519,9 @@ namespace Helper
 
                 if (!String.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
                 {
-                    if(newmetadata.UpdateInfo.UpdateHistory.Where(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && x.UpdateSource == newmetadata.UpdateInfo.UpdateSource).Count() > 0)
+                    if(newmetadata.UpdateInfo.UpdateHistory.Any(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && x.UpdateSource.Equals(newmetadata.UpdateInfo.UpdateSource, StringComparison.OrdinalIgnoreCase)))
                     {
-                        var updatehistorytoupdate = newmetadata.UpdateInfo.UpdateHistory.Where(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && x.UpdateSource == newmetadata.UpdateInfo.UpdateSource).FirstOrDefault();
+                        var updatehistorytoupdate = newmetadata.UpdateInfo.UpdateHistory.Where(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && x.UpdateSource.Equals(newmetadata.UpdateInfo.UpdateSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
                         updatehistorytoupdate.LastUpdate = newmetadata.LastUpdate;
                     }
                     else
