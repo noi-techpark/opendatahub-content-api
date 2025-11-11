@@ -127,6 +127,22 @@ namespace SIAG.Parser
                     museumservicelistIT.Add(museumservice.Element(ax211 + "bezeichnungI").Value);
                 if (!String.IsNullOrEmpty(museumservice.Element(ax211 + "bezeichnungE").Value))
                     museumservicelistEN.Add(museumservice.Element(ax211 + "bezeichnungE").Value);
+                else
+                {
+                    //hack       
+                    //8 Familienfreundliches Museum (offers for children)
+                    //10 Vermittlungsangebote für Schulen (offers for schools)
+
+                    if (museumservice.Element(ax211 + "servId").Value == "8")
+                    {
+                        museumservicelistEN.Add("offers for children");
+                    }
+                    if (museumservice.Element(ax211 + "servId").Value == "10")
+                    {
+                        museumservicelistEN.Add("offers for schools");
+                    }
+                }
+
 
                 if (
                     museumservice.Element(ax211 + "bezeichnungD").Value
@@ -149,6 +165,16 @@ namespace SIAG.Parser
                     museumtraegerlistIT.Add(museumtraeger.Element(ax211 + "kateBezeichnungI").Value);
                 if (!String.IsNullOrEmpty((museumtraeger.Element(ax211 + "kateBezeichnungE").Value)))
                     museumtraegerlistEN.Add(museumtraeger.Element(ax211 + "kateBezeichnungE").Value);
+                else
+                {
+                    //hack       
+                    //236 Land
+
+                    if (museumtraeger.Element(ax211 + "kateId").Value == "236")
+                    {
+                        museumtraegerlistEN.Add("province");
+                    }
+                }
             }
 
             //Add to TagIds
@@ -181,42 +207,42 @@ namespace SIAG.Parser
             if (mymuseum.SmgTags == null)
                 mymuseum.SmgTags = new List<string>();
             //Add Additional Tags
-            if (mymuseum.TagIds.Contains("siagmuseum.culture"))
+            if (mymuseum.TagIds.Contains("siag:museum:culture"))
             {
                 if(!mymuseum.SmgTags.Contains("museen kultur"))
                     mymuseum.SmgTags.Add("museen kultur");
                 if(!mymuseum.TagIds.Contains("museums culture"))
                     mymuseum.TagIds.Add("museums culture");
             }
-            if (mymuseum.TagIds.Contains("siagmuseum.nature"))
+            if (mymuseum.TagIds.Contains("siag:museum:nature"))
             {
                 if (!mymuseum.SmgTags.Contains("museen natur"))
                     mymuseum.SmgTags.Add("museen natur");
                 if (!mymuseum.TagIds.Contains("museums nature"))
                     mymuseum.TagIds.Add("museums nature");
             }
-            if (mymuseum.TagIds.Contains("siagmuseum.technology"))
+            if (mymuseum.TagIds.Contains("siag:museum:technology"))
             {
                 if (!mymuseum.SmgTags.Contains("museen technik"))
                     mymuseum.SmgTags.Add("museen technik");
                 if (!mymuseum.TagIds.Contains("museums technology"))
                     mymuseum.TagIds.Add("museums technology");
             }
-            if (mymuseum.TagIds.Contains("siagmuseum.art"))
+            if (mymuseum.TagIds.Contains("siag:museum:art"))
             {
                 if (!mymuseum.SmgTags.Contains("museen kunst"))
                     mymuseum.SmgTags.Add("museen kunst");
                 if (!mymuseum.TagIds.Contains("museums art"))
                     mymuseum.TagIds.Add("museums art");
             }
-            if (mymuseum.TagIds.Contains("siagmuseum.mine"))
+            if (mymuseum.TagIds.Contains("siag:museum:mine"))
             {
                 if (!mymuseum.SmgTags.Contains("bergwerke"))
                     mymuseum.SmgTags.Add("bergwerke");
                 if (!mymuseum.TagIds.Contains("mines"))
                     mymuseum.TagIds.Add("mines");
             }
-            if (mymuseum.TagIds.Contains("siagmuseum.natureparks"))
+            if (mymuseum.TagIds.Contains("siag:museum:natureparks"))
             {
                 if (!mymuseum.SmgTags.Contains("naturparkhäuser"))
                     mymuseum.SmgTags.Add("naturparkhäuser");
