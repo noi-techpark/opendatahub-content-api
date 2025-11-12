@@ -2,14 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
 using DataModel.Annotations;
-using Swashbuckle.AspNetCore.Annotations;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 // using System.Text.Json.Serialization; // this is not the package used to serialize
 using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataModel
 {
@@ -713,6 +714,102 @@ namespace DataModel
         public new ICollection<string>? PoiServices { get; set; }
         public new IDictionary<string, List<PoiProperty>> PoiProperty { get; set; }
     }
+
+    #endregion
+
+    #region MeasuringPoints
+
+    public class MeasuringpointV2
+       : Generic, IIdentifiable,
+            IShortName,
+            IActivateable,
+            ILicenseInfo,
+            IImportDateassigneable,
+            ISource,
+            IMappingAware,
+            IDistanceInfoAware,
+            IPublishedOn,
+            IMetaData,
+            IGPSPointsAware,
+            IGPSInfoAware,
+            IHasLocationInfoLinked        
+    {
+        public MeasuringpointV2()
+        {
+            Detail = new Dictionary<string, DetailGeneric>();
+            Mapping = new Dictionary<string, IDictionary<string, string>>();
+        }
+
+        public IDictionary<string, DetailGeneric> Detail { get; set; }
+        public ICollection<string>? PublishedOn { get; set; }
+
+        public DateTime LastUpdate { get; set; }       
+        public bool Active { get; set; }                
+        public DistanceInfo? DistanceInfo { get; set; }
+
+        //Observation
+        public string? SnowHeight { get; set; }
+        public string? newSnowHeight { get; set; }
+        public string? Temperature { get; set; }
+        public DateTime LastSnowDate { get; set; }
+        public List<WeatherObservation>? WeatherObservation { get; set; }
+
+        //Location
+        public LocationInfoLinked? LocationInfo { get; set; }        
+
+        public List<string>? AreaIds { get; set; }
+        
+        
+        public IEnumerable<string>? SkiAreaIds { get; set; }
+        
+
+        //GpsInfo
+        public ICollection<GpsInfo> GpsInfo { get; set; }
+
+        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public IDictionary<string, GpsInfo> GpsPoints
+        {
+            get { return this.GpsInfo.ToGpsPointsDictionary(); }
+        }
+
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public string? Self
+        {
+            get
+            {
+                return this.Id != null
+                    ? "Weather/Measuringpoint/" + Uri.EscapeDataString(this.Id)
+                    : null;
+            }
+        }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<AreaLink> Areas
+        {
+            get
+            {
+                return this.AreaIds != null
+                    ? this
+                        .AreaIds.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
+                        .ToList()
+                    : new List<AreaLink>();
+            }
+        }
+
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<SkiAreaLink> SkiAreas
+        {
+            get
+            {
+                return this.SkiAreaIds != null
+                    ? this
+                        .SkiAreaIds.Select(x => new SkiAreaLink() { Id = x, Self = "SkiArea/" + x })
+                        .ToList()
+                    : new List<SkiAreaLink>();
+            }
+        }
+    }
+
 
     #endregion
 
