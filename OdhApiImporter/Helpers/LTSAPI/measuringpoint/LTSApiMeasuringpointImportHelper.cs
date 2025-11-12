@@ -456,7 +456,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result = await QueryFactory.DeleteData<VenueV2>(
+                result = await QueryFactory.DeleteData<MeasuringpointLinked>(
                 id.ToLower(),
                 new DataInfo("Measuringpoints", CRUDOperation.Delete),
                 new CRUDConstraints(),
@@ -484,7 +484,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
 
-                var data = await query.GetObjectSingleAsync<VenueV2>();
+                var data = await query.GetObjectSingleAsync<MeasuringpointLinked>();
 
                 if (data != null)
                 {
@@ -502,9 +502,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //    .Where("id", id)
                         //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
 
-                        result = await QueryFactory.UpsertData<VenueV2>(
+                        result = await QueryFactory.UpsertData<MeasuringpointLinked>(
                                data,
-                               new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new DataInfo("measuringpoints", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                                new EditInfo("lts.measuringpoints.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)

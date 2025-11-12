@@ -332,8 +332,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //DistanceCalculation
                     //await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    //GET OLD Venue
-                    var webcamindb = await LoadDataFromDB<VenueV2>(id, IDStyle.uppercase);
+                    //GET OLD Webcam
+                    var webcamindb = await LoadDataFromDB<WebcamInfoLinked>(id, IDStyle.uppercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     //await MergeVenueTags(venueparsed, venueindb);
@@ -488,7 +488,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result = await QueryFactory.DeleteData<VenueV2>(
+                result = await QueryFactory.DeleteData<WebcamInfoLinked>(
                 id.ToLower(),
                 new DataInfo("webcams", CRUDOperation.Delete),
                 new CRUDConstraints(),
@@ -516,7 +516,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 var query = QueryFactory.Query(table).Select("data").Where("id", id.ToUpper());
 
-                var data = await query.GetObjectSingleAsync<VenueV2>();
+                var data = await query.GetObjectSingleAsync<WebcamInfoLinked>();
 
                 if (data != null)
                 {
@@ -534,7 +534,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //    .Where("id", id)
                         //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
 
-                        result = await QueryFactory.UpsertData<VenueV2>(
+                        result = await QueryFactory.UpsertData<WebcamInfoLinked>(
                                data,
                                new DataInfo("webcams", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                                new EditInfo("lts.webcams.import.deactivate", importerURL),

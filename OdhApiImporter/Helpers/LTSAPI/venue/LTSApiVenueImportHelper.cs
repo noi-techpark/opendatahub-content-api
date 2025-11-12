@@ -322,7 +322,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     string id = data.data.rid.ToLower();
 
-                    var venueparsed = VenueParser.ParseLTSVenueV2(data.data, false);
+                    var venueparsed = VenueParser.ParseLTSVenueV1(data.data, false);
 
                     //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
                     //venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
@@ -333,7 +333,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Venue
-                    var venueindb = await LoadDataFromDB<VenueV2>(id, IDStyle.lowercase);
+                    var venueindb = await LoadDataFromDB<VenueLinked>(id, IDStyle.lowercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     //await MergeVenueTags(venueparsed, venueindb);
@@ -362,7 +362,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
 
                     //Create Tags and preserve the old TagEntries
-                    await venueparsed.UpdateTagsExtension(QueryFactory, null);
+                    //await venueparsed.UpdateTagsExtension(QueryFactory, null);
 
 
                     var result = await InsertDataToDB(venueparsed, data.data, jsondata);
@@ -431,7 +431,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            VenueV2 objecttosave,
+            VenueLinked objecttosave,
             LTSVenueData venuelts,
             IDictionary<string, JArray>? jsonfiles
         )
@@ -456,7 +456,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 
                 objecttosave.Id = objecttosave.Id.ToLower();
 
-                return await QueryFactory.UpsertData<VenueV2>(
+                return await QueryFactory.UpsertData<VenueLinked>(
                     objecttosave,
                     new DataInfo("venues", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.venues.import", importerURL),
@@ -498,7 +498,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result = await QueryFactory.DeleteData<VenueV2>(
+                result = await QueryFactory.DeleteData<VenueLinked>(
                 id.ToLower(),
                 new DataInfo("venues", CRUDOperation.Delete),
                 new CRUDConstraints(),
@@ -526,7 +526,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
 
-                var data = await query.GetObjectSingleAsync<VenueV2>();
+                var data = await query.GetObjectSingleAsync<VenueLinked>();
 
                 if (data != null)
                 {
@@ -544,7 +544,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //    .Where("id", id)
                         //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
 
-                        result = await QueryFactory.UpsertData<VenueV2>(
+                        result = await QueryFactory.UpsertData<VenueLinked>(
                                data,
                                new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                                new EditInfo("lts.venues.import.deactivate", importerURL),
@@ -573,19 +573,19 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
      
-        private async Task MergeVenueTags(VenueV2 vNew, VenueV2 vOld)
+        private async Task MergeVenueTags(VenueLinked vNew, VenueLinked vOld)
         {
             if (vOld != null)
             {                                
-                //Readd all Redactional Tags to check if this query fits
-                var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
-                if (redactionalassignedTags != null)
-                {
-                    foreach (var tag in redactionalassignedTags)
-                    {
-                        vNew.TagIds.Add(tag.Id);
-                    }
-                }
+                ////Readd all Redactional Tags to check if this query fits
+                //var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                //if (redactionalassignedTags != null)
+                //{
+                //    foreach (var tag in redactionalassignedTags)
+                //    {
+                //        vNew.TagIds.Add(tag.Id);
+                //    }
+                //}
             }
 
             //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
