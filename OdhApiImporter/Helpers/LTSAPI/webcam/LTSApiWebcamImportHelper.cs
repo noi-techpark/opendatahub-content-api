@@ -23,11 +23,11 @@ using System.Threading.Tasks;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
-    public class LTSApiMeasuringpointImportHelper : ImportHelper, IImportHelperLTS
+    public class LTSApiWebcamImportHelper : ImportHelper, IImportHelperLTS
     {
         public bool opendata = false;
 
-        public LTSApiMeasuringpointImportHelper(
+        public LTSApiWebcamImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -65,26 +65,26 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var measuringpointlts = await GetMeasuringpointsFromLTSV2(id, null, null, null);
+            var webcamlts = await GetWebcamsFromLTSV2(id, null, null, null);
 
             //Check if Data is accessible on LTS
-            if (measuringpointlts != null && measuringpointlts.FirstOrDefault().ContainsKey("success") && (Boolean)measuringpointlts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
+            if (webcamlts != null && webcamlts.FirstOrDefault().ContainsKey("success") && (Boolean)webcamlts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
             {     //Import Single Data & Deactivate Data
-                var result = await SaveMeasuringpointsToPG(measuringpointlts);
+                var result = await SaveWebcamsToPG(webcamlts);
                 return result;
             }
             //If data is not accessible on LTS Side, delete or disable it
-            else if (measuringpointlts != null && measuringpointlts.FirstOrDefault().ContainsKey("status") && ((int)measuringpointlts.FirstOrDefault()["status"] == 403 || (int)measuringpointlts.FirstOrDefault()["status"] == 404))
+            else if (webcamlts != null && webcamlts.FirstOrDefault().ContainsKey("status") && ((int)webcamlts.FirstOrDefault()["status"] == 403 || (int)webcamlts.FirstOrDefault()["status"] == 404))
             {
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableMeasuringpointsData(id, false, false);
+                    return await DeleteOrDisableWebcamsData(id, false, false);
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableMeasuringpointsData(id, true, true);
+                    return await DeleteOrDisableWebcamsData(id, true, true);
                 }
             }
             else
@@ -106,7 +106,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
        )
         {
             //Import the List
-            var lastchangedlts = await GetMeasuringpointsFromLTSV2(null, lastchanged, null, null);
+            var lastchangedlts = await GetWebcamsFromLTSV2(null, lastchanged, null, null);
             List<string> lastchangedlist = new List<string>();
 
             if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
@@ -120,11 +120,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "lastchanged.measuringpoints",
+                    "lastchanged.webcams",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.measuringpoints",
+                        sourceinterface = "lts.webcams",
                         success = false,
                         error = "Could not fetch last changed List",
                     }
@@ -141,7 +141,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var deletedlts = await GetMeasuringpointsFromLTSV2(null, null, deletedfrom, null);
+            var deletedlts = await GetWebcamsFromLTSV2(null, null, deletedfrom, null);
             List<string> lastdeletedlist = new List<string>();
 
             if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
@@ -155,11 +155,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deleted.measuringpoints",
+                    "deleted.webcams",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.measuringpoints",
+                        sourceinterface = "lts.webcams",
                         success = false,
                         error = "Could not fetch deleted List",
                     }
@@ -178,7 +178,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var activelistlts = await GetMeasuringpointsFromLTSV2(null, null, null, active);
+            var activelistlts = await GetWebcamsFromLTSV2(null, null, null, active);
             List<string> activeList = new List<string>();
 
             if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
@@ -192,11 +192,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "active.measuringpoints",
+                    "active.webcams",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.measuringpoints",
+                        sourceinterface = "lts.webcams",
                         success = false,
                         error = "Could not fetch active List",
                     }
@@ -206,24 +206,24 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return activeList;
         }
 
-        private async Task<List<JObject>> GetMeasuringpointsFromLTSV2(string measuringpointid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
+        private async Task<List<JObject>> GetWebcamsFromLTSV2(string webcamid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
             try
             {
                 LtsApi ltsapi = GetLTSApi(opendata);
                 
-                if(measuringpointid != null)
+                if(webcamid != null)
                 {
                     //Get Single Venue
 
                     var qs = new LTSQueryStrings() { page_size = 1 };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.WeatherSnowDetailRequest(measuringpointid, dict);
+                    return await ltsapi.WebcamDetailRequest(webcamid, dict);
                 }
                 else if (lastchanged != null)
                 {
-                    //Get the Last Changed Measuringpoints list
+                    //Get the Last Changed Webcams list
 
                     var qs = new LTSQueryStrings() { fields = "rid" };
 
@@ -232,11 +232,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.WeatherSnowListRequest(dict, true);
+                    return await ltsapi.WebcamListRequest(dict, true);
                 }
                 else if (deletedfrom != null)
                 {
-                    //Get the Active Measuringpoints list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+                    //Get the Active Webcams list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
                     var qs = new LTSQueryStrings() { fields = "rid" };
                 
@@ -245,11 +245,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.WeatherSnowDeletedRequest(dict, true);
+                    return await ltsapi.WebcamDeletedRequest(dict, true);
                 }
                 else if (activelist != null)
                 {
-                    //Get the Active Measuringpoints list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+                    //Get the Active Webcams list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
                     var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_representationMode = "full" };
                 
@@ -258,7 +258,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.WeatherSnowListRequest(dict, true);
+                    return await ltsapi.WebcamListRequest(dict, true);
                 }
                 else
                     return null;
@@ -268,11 +268,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "list.measuringpoints",
+                    "list.webcams",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.measuringpoints",
+                        sourceinterface = "lts.webcams",
                         success = false,
                         error = ex.Message,
                     }
@@ -281,7 +281,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<UpdateDetail> SaveMeasuringpointsToPG(List<JObject> ltsdata)
+        private async Task<UpdateDetail> SaveWebcamsToPG(List<JObject> ltsdata)
         {
             //var newimportcounter = 0;
             //var updateimportcounter = 0;
@@ -294,12 +294,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 List<string> idlistlts = new List<string>();
 
-                List<LTSWeatherSnows> weathersnowdata = new List<LTSWeatherSnows>();
+                List<LTSWebcam> webcamdata = new List<LTSWebcam>();
 
                 foreach (var ltsdatasingle in ltsdata)
                 {
-                    weathersnowdata.Add(
-                        ltsdatasingle.ToObject<LTSWeatherSnows>()
+                    webcamdata.Add(
+                        ltsdatasingle.ToObject<LTSWebcam>()
                     );
                 }
 
@@ -312,28 +312,60 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     settings.JsonConfig.Jsondir,
                     new List<string>()
                         {
-                           "GenericTags"
+                           "GenericTags",
+                           "AutoPublishTags"
                         }
                     );
                 }
 
-                foreach (var data in weathersnowdata)
+                foreach (var data in webcamdata)
                 {
                     string id = data.data.rid.ToLower();
 
-                    var measuringpointparsed = MeasuringpointParser.ParseLTSMeasuringpoint(data.data, false);
-                    
-                    //GET OLD Venue
-                    var measuringpointindb = await LoadDataFromDB<MeasuringpointLinked>(id, IDStyle.uppercase);
+                    var webcamparsed = WebcamInfoParser.ParseLTSWebcam(data.data, false);
 
-                    //TODO Create LocationInfo!
-             
+                    //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
+                    //venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
+                    //    QueryFactory
+                    //);
+
+                    //DistanceCalculation
+                    //await venueparsed.UpdateDistanceCalculation(QueryFactory);
+
+                    //GET OLD Venue
+                    var webcamindb = await LoadDataFromDB<VenueV2>(id, IDStyle.uppercase);
+
+                    //Add manual assigned Tags to TagIds TO check if this should be activated
+                    //await MergeVenueTags(venueparsed, venueindb);
+              
                     if (!opendata)
                     {
-                        
-                    }                 
+                        //TO CHECK
+                        //Add the SmgTags for IDM
+                        //await AssignODHTags(venueparsed, vewnueindb);
 
-                    var result = await InsertDataToDB(measuringpointparsed, data.data, jsondata);
+                        //TO CHECK
+                        //await SetODHActiveBasedOnRepresentationMode(venueparsed);
+
+                        //TO CHECK
+                        //Add the MetaTitle for IDM
+                        //await AddMetaTitle(venueparsed);
+
+                        //Add the values to Tags (TagEntry) not needed anymore?
+                        //await AddTagEntryToTags(venueparsed);
+
+                        //Traduce all Tags with Source IDM to english tags
+                        //await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
+                        //    venueparsed,
+                        //    settings.JsonConfig.Jsondir
+                        //);
+                    }
+
+                    //Create Tags and preserve the old TagEntries
+                    //await venueparsed.UpdateTagsExtension(QueryFactory, null);
+
+
+                    var result = await InsertDataToDB(webcamparsed, data.data, jsondata);
 
                     //newimportcounter = newimportcounter + result.created ?? 0;
                     //updateimportcounter = updateimportcounter + result.updated ?? 0;
@@ -358,11 +390,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     WriteLog.LogToConsole(
                         id,
                         "dataimport",
-                        "single.measuringpoints",
+                        "single.webcams",
                         new ImportLog()
                         {
                             sourceid = id,
-                            sourceinterface = "lts.measuringpoints",
+                            sourceinterface = "lts.webcams",
                             success = true,
                             error = "",
                         }
@@ -389,8 +421,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            MeasuringpointLinked objecttosave,
-            LTSWeatherSnowsData weathersnowlts,
+            WebcamInfoLinked objecttosave,
+            LTSWebcamData webcamlts,
             IDictionary<string, JArray>? jsonfiles
         )
         {
@@ -406,18 +438,18 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 //Add the PublishedOn Logic
                 //Exception here all Tags with autopublish has to be passed
-                //var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
+                var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
                 //Set PublishedOn with allowedtaglist
-                objecttosave.CreatePublishedOnList();
+                objecttosave.CreatePublishedOnList(autopublishtaglist);
 
-                var rawdataid = await InsertInRawDataDB(weathersnowlts);
+                var rawdataid = await InsertInRawDataDB(webcamlts);
                 
                 objecttosave.Id = objecttosave.Id.ToLower();
 
-                return await QueryFactory.UpsertData<MeasuringpointLinked>(
+                return await QueryFactory.UpsertData<VenueV2>(
                     objecttosave,
-                    new DataInfo("measuringpoints", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                    new EditInfo("lts.measuringpoints.import", importerURL),
+                    new DataInfo("webcams", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                    new EditInfo("lts.webcams.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
                     rawdataid,
@@ -430,25 +462,25 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<int> InsertInRawDataDB(LTSWeatherSnowsData weathersnowslts)
+        private async Task<int> InsertInRawDataDB(LTSWebcamData webcamlts)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
                     datasource = "lts",
                     importdate = DateTime.Now,
-                    raw = JsonConvert.SerializeObject(weathersnowslts),
-                    sourceinterface = "weathersnows",
-                    sourceid = weathersnowslts.rid,
-                    sourceurl = "https://go.lts.it/api/v1/weathersnows",
-                    type = "measuringpoint",
+                    raw = JsonConvert.SerializeObject(webcamlts),
+                    sourceinterface = "webcams",
+                    sourceid = webcamlts.rid,
+                    sourceurl = "https://go.lts.it/api/v1/webcams",
+                    type = "venue",
                     license = "open",
                     rawformat = "json",
                 }
             );
         }
         
-        public async Task<UpdateDetail> DeleteOrDisableMeasuringpointsData(string id, bool delete, bool reduced)
+        public async Task<UpdateDetail> DeleteOrDisableWebcamsData(string id, bool delete, bool reduced)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
@@ -458,7 +490,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 result = await QueryFactory.DeleteData<VenueV2>(
                 id.ToLower(),
-                new DataInfo("Measuringpoints", CRUDOperation.Delete),
+                new DataInfo("webcams", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
                 );
@@ -482,7 +514,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
+                var query = QueryFactory.Query(table).Select("data").Where("id", id.ToUpper());
 
                 var data = await query.GetObjectSingleAsync<VenueV2>();
 
@@ -505,7 +537,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         result = await QueryFactory.UpsertData<VenueV2>(
                                data,
                                new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                               new EditInfo("lts.measuringpoints.import.deactivate", importerURL),
+                               new EditInfo("lts.webcams.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
                         );
@@ -531,7 +563,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
      
-        private async Task MergeMeasuringpointTags(MeasuringpointLinked vNew, MeasuringpointLinked vOld)
+        private async Task MergeWebcamsTags(WebcamInfoLinked vNew, WebcamInfoLinked vOld)
         {
             //if (vOld != null)
             //{                                
@@ -549,6 +581,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
 
             //TODO import the Redactional Tags from SmgTags into Tags?
-        }        
+        }   
+
     }
 }
