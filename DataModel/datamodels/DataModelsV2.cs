@@ -391,7 +391,7 @@ namespace DataModel
         public IDictionary<string, ICollection<VideoItems>>? VideoItems { get; set; }
 
         public VenueInfo VenueInfo { get; set; }
-        public LocationInfo? LocationInfo { get; set; }
+        public LocationInfoLinked? LocationInfo { get; set; }
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         public DistanceInfo? DistanceInfo { get; set; }

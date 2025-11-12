@@ -446,7 +446,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 
                 objecttosave.Id = objecttosave.Id.ToLower();
 
-                return await QueryFactory.UpsertData<VenueV2>(
+                return await QueryFactory.UpsertData<WebcamInfoLinked>(
                     objecttosave,
                     new DataInfo("webcams", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.webcams.import", importerURL),
@@ -473,7 +473,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     sourceinterface = "webcams",
                     sourceid = webcamlts.rid,
                     sourceurl = "https://go.lts.it/api/v1/webcams",
-                    type = "venue",
+                    type = "webcam",
                     license = "open",
                     rawformat = "json",
                 }
@@ -536,7 +536,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         result = await QueryFactory.UpsertData<VenueV2>(
                                data,
-                               new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new DataInfo("webcams", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                                new EditInfo("lts.webcams.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)

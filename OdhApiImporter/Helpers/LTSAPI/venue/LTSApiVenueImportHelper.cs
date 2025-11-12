@@ -458,7 +458,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 return await QueryFactory.UpsertData<VenueV2>(
                     objecttosave,
-                    new DataInfo("venuesv2", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                    new DataInfo("venues", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.venues.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
