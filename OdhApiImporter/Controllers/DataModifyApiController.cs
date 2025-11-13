@@ -627,22 +627,22 @@ namespace OdhApiImporter.Controllers
                     );
                     ;
                     break;
-                case "ltsactivity":
-                    objectscount = await customdataoperation.ResaveSourcesOnType<LTSActivityLinked>(
-                        odhtype,
-                        sourcetofilter,
-                        sourcetochange
-                    );
-                    ;
-                    break;
-                case "ltspoi":
-                    objectscount = await customdataoperation.ResaveSourcesOnType<LTSPoiLinked>(
-                        odhtype,
-                        sourcetofilter,
-                        sourcetochange
-                    );
-                    ;
-                    break;
+                //case "ltsactivity":
+                //    objectscount = await customdataoperation.ResaveSourcesOnType<LTSActivityLinked>(
+                //        odhtype,
+                //        sourcetofilter,
+                //        sourcetochange
+                //    );
+                //    ;
+                //    break;
+                //case "ltspoi":
+                //    objectscount = await customdataoperation.ResaveSourcesOnType<LTSPoiLinked>(
+                //        odhtype,
+                //        sourcetofilter,
+                //        sourcetochange
+                //    );
+                //    ;
+                //    break;
                 //case "ltsgastronomy":
                 //    objectscount = await customdataoperation.ResaveSourcesOnType<GastronomyLinked>(
                 //        odhtype,

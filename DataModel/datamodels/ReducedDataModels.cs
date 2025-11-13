@@ -12,9 +12,9 @@ namespace DataModel
 {
     #region ReducedClasses
 
-    public class LTSActivityLinkedReduced : LTSActivityLinked { }
+    //public class LTSActivityLinkedReduced : LTSActivityLinked { }
 
-    public class LTSPoiLinkedReduced : LTSPoiLinked { }
+    //public class LTSPoiLinkedReduced : LTSPoiLinked { }
 
     public class LTSODHActivityPoiReduced : ODHActivityPoiLinked { }
 

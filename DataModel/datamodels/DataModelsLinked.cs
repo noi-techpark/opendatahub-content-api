@@ -1028,209 +1028,209 @@ namespace DataModel
         }
     }
 
-    public class LTSPoiLinked
-        : PoiBaseInfos,
-            IMetaData,
-            IGPSInfoAware,
-            IGPSPointsAware,
-            IHasLocationInfoLinked
-    {
-        public Metadata? _Meta { get; set; }
+    //public class LTSPoiLinked
+    //    : PoiBaseInfos,
+    //        IMetaData,
+    //        IGPSInfoAware,
+    //        IGPSPointsAware,
+    //        IHasLocationInfoLinked
+    //{
+    //    public Metadata? _Meta { get; set; }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public string? Self
-        {
-            get { return this.Id != null ? "Poi/" + Uri.EscapeDataString(this.Id) : null; }
-        }
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public string? Self
+    //    {
+    //        get { return this.Id != null ? "Poi/" + Uri.EscapeDataString(this.Id) : null; }
+    //    }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public bool OdhActive
-        {
-            get { return this.SmgActive; }
-        }
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public bool OdhActive
+    //    {
+    //        get { return this.SmgActive; }
+    //    }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<ODHTags> ODHTags
-        {
-            get
-            {
-                return this.SmgTags != null
-                    ? this
-                        .SmgTags.Select(x => new ODHTags() { Id = x, Self = "PoiTypes/" + x })
-                        .ToList()
-                    : new List<ODHTags>();
-            }
-        }
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public ICollection<ODHTags> ODHTags
+    //    {
+    //        get
+    //        {
+    //            return this.SmgTags != null
+    //                ? this
+    //                    .SmgTags.Select(x => new ODHTags() { Id = x, Self = "PoiTypes/" + x })
+    //                    .ToList()
+    //                : new List<ODHTags>();
+    //        }
+    //    }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<ODHActivityPoiTypesLink> PoiTypes
-        {
-            get
-            {
-                var returnlist = new List<ODHActivityPoiTypesLink>();
-                returnlist.Add(
-                    new ODHActivityPoiTypesLink()
-                    {
-                        Id = this.Type,
-                        Self = "PoiTypes/" + Uri.EscapeDataString(this.Type),
-                        Type = "Type",
-                    }
-                );
-                if (
-                    !String.IsNullOrEmpty(this.SubType)
-                    && this.SubType != "no Subtype"
-                    && this.SubType != "Essen Trinken"
-                )
-                    returnlist.Add(
-                        new ODHActivityPoiTypesLink()
-                        {
-                            Id = this.SubType,
-                            Self = "PoiTypes/" + Uri.EscapeDataString(this.SubType),
-                            Type = "SubType",
-                        }
-                    );
-                if (!String.IsNullOrEmpty(this.PoiType))
-                    returnlist.Add(
-                        new ODHActivityPoiTypesLink()
-                        {
-                            Id = this.PoiType,
-                            Self = "PoiTypes/" + Uri.EscapeDataString(this.PoiType),
-                            Type = "PoiType",
-                        }
-                    );
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public ICollection<ODHActivityPoiTypesLink> PoiTypes
+    //    {
+    //        get
+    //        {
+    //            var returnlist = new List<ODHActivityPoiTypesLink>();
+    //            returnlist.Add(
+    //                new ODHActivityPoiTypesLink()
+    //                {
+    //                    Id = this.Type,
+    //                    Self = "PoiTypes/" + Uri.EscapeDataString(this.Type),
+    //                    Type = "Type",
+    //                }
+    //            );
+    //            if (
+    //                !String.IsNullOrEmpty(this.SubType)
+    //                && this.SubType != "no Subtype"
+    //                && this.SubType != "Essen Trinken"
+    //            )
+    //                returnlist.Add(
+    //                    new ODHActivityPoiTypesLink()
+    //                    {
+    //                        Id = this.SubType,
+    //                        Self = "PoiTypes/" + Uri.EscapeDataString(this.SubType),
+    //                        Type = "SubType",
+    //                    }
+    //                );
+    //            if (!String.IsNullOrEmpty(this.PoiType))
+    //                returnlist.Add(
+    //                    new ODHActivityPoiTypesLink()
+    //                    {
+    //                        Id = this.PoiType,
+    //                        Self = "PoiTypes/" + Uri.EscapeDataString(this.PoiType),
+    //                        Type = "PoiType",
+    //                    }
+    //                );
 
-                return returnlist;
-            }
-        }
+    //            return returnlist;
+    //        }
+    //    }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<AreaLink> Areas
-        {
-            get
-            {
-                return this.AreaId != null
-                    ? this
-                        .AreaId.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
-                        .ToList()
-                    : new List<AreaLink>();
-            }
-        }
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public ICollection<AreaLink> Areas
+    //    {
+    //        get
+    //        {
+    //            return this.AreaId != null
+    //                ? this
+    //                    .AreaId.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
+    //                    .ToList()
+    //                : new List<AreaLink>();
+    //        }
+    //    }
 
-        //Overwrites The LocationInfo
-        public new LocationInfoLinked? LocationInfo { get; set; }
+    //    //Overwrites The LocationInfo
+    //    public new LocationInfoLinked? LocationInfo { get; set; }
 
-        //Overwrites LTSTags
-        public new List<LTSTagsLinked>? LTSTags { get; set; }
+    //    //Overwrites LTSTags
+    //    public new List<LTSTagsLinked>? LTSTags { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public IDictionary<string, GpsInfo> GpsPoints
-        {
-            get { return this.GpsInfo.ToGpsPointsDictionary(true); }
-        }
-    }
+    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public IDictionary<string, GpsInfo> GpsPoints
+    //    {
+    //        get { return this.GpsInfo.ToGpsPointsDictionary(true); }
+    //    }
+    //}
 
-    public class LTSActivityLinked
-        : PoiBaseInfos,
-            IMetaData,
-            IGPSInfoAware,
-            IGPSPointsAware,
-            IHasLocationInfoLinked
-    {
-        public Metadata? _Meta { get; set; }
+    //public class LTSActivityLinked
+    //    : PoiBaseInfos,
+    //        IMetaData,
+    //        IGPSInfoAware,
+    //        IGPSPointsAware,
+    //        IHasLocationInfoLinked
+    //{
+    //    public Metadata? _Meta { get; set; }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public string? Self
-        {
-            get { return this.Id != null ? "Activity/" + Uri.EscapeDataString(this.Id) : null; }
-        }
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public string? Self
+    //    {
+    //        get { return this.Id != null ? "Activity/" + Uri.EscapeDataString(this.Id) : null; }
+    //    }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public bool OdhActive
-        {
-            get { return this.SmgActive; }
-        }
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public bool OdhActive
+    //    {
+    //        get { return this.SmgActive; }
+    //    }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<ODHTags> ODHTags
-        {
-            get
-            {
-                return this.SmgTags != null
-                    ? this
-                        .SmgTags.Select(x => new ODHTags() { Id = x, Self = "ActivityTypes/" + x })
-                        .ToList()
-                    : new List<ODHTags>();
-            }
-        }
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public ICollection<ODHTags> ODHTags
+    //    {
+    //        get
+    //        {
+    //            return this.SmgTags != null
+    //                ? this
+    //                    .SmgTags.Select(x => new ODHTags() { Id = x, Self = "ActivityTypes/" + x })
+    //                    .ToList()
+    //                : new List<ODHTags>();
+    //        }
+    //    }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<ODHActivityPoiTypesLink> ActivityTypes
-        {
-            get
-            {
-                var returnlist = new List<ODHActivityPoiTypesLink>();
-                returnlist.Add(
-                    new ODHActivityPoiTypesLink()
-                    {
-                        Id = this.Type,
-                        Self = "ActivityTypes/" + Uri.EscapeDataString(this.Type),
-                        Type = "Type",
-                    }
-                );
-                if (
-                    !String.IsNullOrEmpty(this.SubType)
-                    && this.SubType != "no Subtype"
-                    && this.SubType != "Essen Trinken"
-                )
-                    returnlist.Add(
-                        new ODHActivityPoiTypesLink()
-                        {
-                            Id = this.SubType,
-                            Self = "ActivityTypes/" + Uri.EscapeDataString(this.SubType),
-                            Type = "SubType",
-                        }
-                    );
-                if (!String.IsNullOrEmpty(this.PoiType))
-                    returnlist.Add(
-                        new ODHActivityPoiTypesLink()
-                        {
-                            Id = this.PoiType,
-                            Self = "ActivityTypes/" + Uri.EscapeDataString(this.PoiType),
-                            Type = "PoiType",
-                        }
-                    );
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public ICollection<ODHActivityPoiTypesLink> ActivityTypes
+    //    {
+    //        get
+    //        {
+    //            var returnlist = new List<ODHActivityPoiTypesLink>();
+    //            returnlist.Add(
+    //                new ODHActivityPoiTypesLink()
+    //                {
+    //                    Id = this.Type,
+    //                    Self = "ActivityTypes/" + Uri.EscapeDataString(this.Type),
+    //                    Type = "Type",
+    //                }
+    //            );
+    //            if (
+    //                !String.IsNullOrEmpty(this.SubType)
+    //                && this.SubType != "no Subtype"
+    //                && this.SubType != "Essen Trinken"
+    //            )
+    //                returnlist.Add(
+    //                    new ODHActivityPoiTypesLink()
+    //                    {
+    //                        Id = this.SubType,
+    //                        Self = "ActivityTypes/" + Uri.EscapeDataString(this.SubType),
+    //                        Type = "SubType",
+    //                    }
+    //                );
+    //            if (!String.IsNullOrEmpty(this.PoiType))
+    //                returnlist.Add(
+    //                    new ODHActivityPoiTypesLink()
+    //                    {
+    //                        Id = this.PoiType,
+    //                        Self = "ActivityTypes/" + Uri.EscapeDataString(this.PoiType),
+    //                        Type = "PoiType",
+    //                    }
+    //                );
 
-                return returnlist;
-            }
-        }
+    //            return returnlist;
+    //        }
+    //    }
 
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<AreaLink> Areas
-        {
-            get
-            {
-                return this.AreaId != null
-                    ? this
-                        .AreaId.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
-                        .ToList()
-                    : new List<AreaLink>();
-            }
-        }
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public ICollection<AreaLink> Areas
+    //    {
+    //        get
+    //        {
+    //            return this.AreaId != null
+    //                ? this
+    //                    .AreaId.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
+    //                    .ToList()
+    //                : new List<AreaLink>();
+    //        }
+    //    }
 
-        //Overwrites The LocationInfo
-        public new LocationInfoLinked? LocationInfo { get; set; }
+    //    //Overwrites The LocationInfo
+    //    public new LocationInfoLinked? LocationInfo { get; set; }
 
-        //Overwrites LTSTags
-        public new List<LTSTagsLinked>? LTSTags { get; set; }
+    //    //Overwrites LTSTags
+    //    public new List<LTSTagsLinked>? LTSTags { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public IDictionary<string, GpsInfo> GpsPoints
-        {
-            get { return this.GpsInfo.ToGpsPointsDictionary(true); }
-        }
-    }
+    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+    //    public IDictionary<string, GpsInfo> GpsPoints
+    //    {
+    //        get { return this.GpsInfo.ToGpsPointsDictionary(true); }
+    //    }
+    //}
 
     public class ArticlesLinked : Article, IMetaData, IHasTagInfo
     {
