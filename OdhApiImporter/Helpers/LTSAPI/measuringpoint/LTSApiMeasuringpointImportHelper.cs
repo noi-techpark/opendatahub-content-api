@@ -322,9 +322,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     string id = data.data.rid.ToLower();
 
                     var measuringpointparsed = MeasuringpointParser.ParseLTSMeasuringpoint(data.data, false);
-                    
-                    //GET OLD Venue
-                    var measuringpointindb = await LoadDataFromDB<MeasuringpointLinked>(id, IDStyle.uppercase);
+
+                    //GET OLD Measuringpoint TO CHECK MeasuringpointV2 vs MeasuringpointLinked
+                    var measuringpointindb = await LoadDataFromDB<MeasuringpointV2>(id, IDStyle.uppercase);
 
                     //TODO Create LocationInfo!
              
@@ -389,7 +389,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            MeasuringpointLinked objecttosave,
+            MeasuringpointV2 objecttosave,
             LTSWeatherSnowsData weathersnowlts,
             IDictionary<string, JArray>? jsonfiles
         )
@@ -414,7 +414,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 
                 objecttosave.Id = objecttosave.Id.ToLower();
 
-                return await QueryFactory.UpsertData<MeasuringpointLinked>(
+                return await QueryFactory.UpsertData<MeasuringpointV2>(
                     objecttosave,
                     new DataInfo("measuringpoints", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.measuringpoints.import", importerURL),
@@ -456,7 +456,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result = await QueryFactory.DeleteData<MeasuringpointLinked>(
+                result = await QueryFactory.DeleteData<MeasuringpointV2>(
                 id.ToLower(),
                 new DataInfo("Measuringpoints", CRUDOperation.Delete),
                 new CRUDConstraints(),
@@ -484,7 +484,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
 
-                var data = await query.GetObjectSingleAsync<MeasuringpointLinked>();
+                var data = await query.GetObjectSingleAsync<MeasuringpointV2>();
 
                 if (data != null)
                 {
@@ -502,7 +502,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //    .Where("id", id)
                         //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
 
-                        result = await QueryFactory.UpsertData<MeasuringpointLinked>(
+                        result = await QueryFactory.UpsertData<MeasuringpointV2>(
                                data,
                                new DataInfo("measuringpoints", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                                new EditInfo("lts.measuringpoints.import.deactivate", importerURL),
@@ -531,7 +531,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
      
-        private async Task MergeMeasuringpointTags(MeasuringpointLinked vNew, MeasuringpointLinked vOld)
+        private async Task MergeMeasuringpointTags(MeasuringpointV2 vNew, MeasuringpointV2 vOld)
         {
             //if (vOld != null)
             //{                                

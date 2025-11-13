@@ -332,7 +332,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //DistanceCalculation
                     //await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    //GET OLD Venue
+                    //GET OLD Venue TO CHECK VenueLinked vs VenueV2
                     var venueindb = await LoadDataFromDB<VenueLinked>(id, IDStyle.lowercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
@@ -431,7 +431,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            VenueLinked objecttosave,
+            VenueV2 objecttosave,
             LTSVenueData venuelts,
             IDictionary<string, JArray>? jsonfiles
         )
@@ -456,7 +456,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 
                 objecttosave.Id = objecttosave.Id.ToLower();
 
-                return await QueryFactory.UpsertData<VenueLinked>(
+                return await QueryFactory.UpsertData<VenueV2>(
                     objecttosave,
                     new DataInfo("venues", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.venues.import", importerURL),
