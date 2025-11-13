@@ -32,6 +32,7 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("v2")]
     public class VenueFlattenedController : OdhController
     {
