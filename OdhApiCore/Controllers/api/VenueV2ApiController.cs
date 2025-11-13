@@ -33,9 +33,9 @@ namespace OdhApiCore.Controllers
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
     [Route("v2")]
-    public class VenueV2Controller : OdhController
+    public class VenueFlattenedController : OdhController
     {
-        public VenueV2Controller(
+        public VenueFlattenedController(
             IWebHostEnvironment env,
             ISettings settings,
             ILogger<VenueController> logger,
@@ -82,7 +82,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(JsonResult<VenueV2>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(JsonResult<VenueFlattened>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -169,7 +169,7 @@ namespace OdhApiCore.Controllers
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
         /// //[Authorize(Roles = "DataReader,VenueReader")]
-        [ProducesResponseType(typeof(VenueV2), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(VenueFlattened), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("Venue/{id}", Name = "SingleVenueV2")]
@@ -196,8 +196,8 @@ namespace OdhApiCore.Controllers
         #region Converters
 
         [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpGet, Route("Venue/ConvertVenueToVenueV2/{id}")]
-        public async Task<IActionResult> ConvertVenueToVenueV2(string id, bool savetotable = false)
+        [HttpGet, Route("Venue/ConvertVenueToVenueFlattened/{id}")]
+        public async Task<IActionResult> ConvertVenueToVenueFlattened(string id, bool savetotable = false)
         {
             var query = QueryFactory
                 .Query("venues_v2")
@@ -211,7 +211,7 @@ namespace OdhApiCore.Controllers
 
             var venuecodedata = await venuecodequery.GetObjectListAsync<DDVenueCodes>();
 
-            var convertresult = VenueV2Converter.ConvertVenueListToVenueV2(data, venuecodedata);
+            var convertresult = VenueFlattenedConverter.ConvertVenueListToVenueFlattened(data, venuecodedata);
 
             if (savetotable)
             {
@@ -219,7 +219,7 @@ namespace OdhApiCore.Controllers
                 foreach (var venue in convertresult)
                 {
                     result.Add(
-                        await QueryFactory.UpsertData<VenueV2>(
+                        await QueryFactory.UpsertData<VenueFlattened>(
                             venue,
                             new DataInfo("venuesv2", CRUDOperation.Create),
                             new EditInfo("venueconverter", "api"),
@@ -251,7 +251,7 @@ namespace OdhApiCore.Controllers
 
             foreach (var data in datalist)
             {
-                var converted = VenueV2Converter.ConvertVenueTagToTag(data);
+                var converted = VenueFlattenedConverter.ConvertVenueTagToTag(data);
                 listtaglinked.Add(converted);
 
                 if (savetotable)
@@ -458,7 +458,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Venue")]
-        public Task<IActionResult> Post([FromBody] VenueV2 venue)
+        public Task<IActionResult> Post([FromBody] VenueFlattened venue)
         {
             return DoAsyncReturn(async () =>
             {
@@ -476,7 +476,7 @@ namespace OdhApiCore.Controllers
                 await venue.UpdateTagsExtension(QueryFactory);
 
                 //TODO UPDATE/INSERT ALSO in Destinationdata Column Or lets not support Destinationdata anymore?
-                return await UpsertData<VenueV2>(
+                return await UpsertData<VenueFlattened>(
                     venue,
                     new DataInfo("venuesv2", CRUDOperation.Create),
                     new CompareConfig(false, false),
@@ -499,14 +499,14 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut, Route("Venue/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] VenueV2 venue)
+        public Task<IActionResult> Put(string id, [FromBody] VenueFlattened venue)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
-                venue.Id = Helper.IdGenerator.CheckIdFromType<VenueV2>(id);
+                venue.Id = Helper.IdGenerator.CheckIdFromType<VenueFlattened>(id);
 
                 //Check all Languages
                 venue.CheckMyInsertedLanguages(null);
@@ -518,7 +518,7 @@ namespace OdhApiCore.Controllers
                 await venue.UpdateTagsExtension(QueryFactory);
 
                 //TODO UPDATE/INSERT ALSO in Destinationdata Column
-                return await UpsertData<VenueV2>(
+                return await UpsertData<VenueFlattened>(
                     venue,
                     new DataInfo("venuesv2", CRUDOperation.Update, true),
                     new CompareConfig(false, false),
@@ -547,9 +547,9 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<VenueV2>(id);
+                id = Helper.IdGenerator.CheckIdFromType<VenueFlattened>(id);
 
-                return await DeleteData<VenueV2>(
+                return await DeleteData<VenueFlattened>(
                     id,
                     new DataInfo("venuesv2", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)

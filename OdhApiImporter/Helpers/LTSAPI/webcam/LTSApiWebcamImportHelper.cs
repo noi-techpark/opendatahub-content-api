@@ -23,11 +23,11 @@ using System.Threading.Tasks;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
-    public class LTSApiVenueImportHelper : ImportHelper, IImportHelperLTS
+    public class LTSApiWebcamImportHelper : ImportHelper, IImportHelperLTS
     {
         public bool opendata = false;
 
-        public LTSApiVenueImportHelper(
+        public LTSApiWebcamImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -65,26 +65,26 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var venuelts = await GetVenuesFromLTSV2(id, null, null, null);
+            var webcamlts = await GetWebcamsFromLTSV2(id, null, null, null);
 
             //Check if Data is accessible on LTS
-            if (venuelts != null && venuelts.FirstOrDefault().ContainsKey("success") && (Boolean)venuelts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
+            if (webcamlts != null && webcamlts.FirstOrDefault().ContainsKey("success") && (Boolean)webcamlts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
             {     //Import Single Data & Deactivate Data
-                var result = await SaveVenuesToPG(venuelts);
+                var result = await SaveWebcamsToPG(webcamlts);
                 return result;
             }
             //If data is not accessible on LTS Side, delete or disable it
-            else if (venuelts != null && venuelts.FirstOrDefault().ContainsKey("status") && ((int)venuelts.FirstOrDefault()["status"] == 403 || (int)venuelts.FirstOrDefault()["status"] == 404))
+            else if (webcamlts != null && webcamlts.FirstOrDefault().ContainsKey("status") && ((int)webcamlts.FirstOrDefault()["status"] == 403 || (int)webcamlts.FirstOrDefault()["status"] == 404))
             {
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableVenuesData(id, false, false);
+                    return await DeleteOrDisableWebcamsData(id, false, false);
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableVenuesData(id, true, true);
+                    return await DeleteOrDisableWebcamsData(id, true, true);
                 }
             }
             else
@@ -106,7 +106,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
        )
         {
             //Import the List
-            var lastchangedlts = await GetVenuesFromLTSV2(null, lastchanged, null, null);
+            var lastchangedlts = await GetWebcamsFromLTSV2(null, lastchanged, null, null);
             List<string> lastchangedlist = new List<string>();
 
             if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
@@ -120,11 +120,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "lastchanged.venues",
+                    "lastchanged.webcams",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.venues",
+                        sourceinterface = "lts.webcams",
                         success = false,
                         error = "Could not fetch last changed List",
                     }
@@ -141,7 +141,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var deletedlts = await GetVenuesFromLTSV2(null, null, deletedfrom, null);
+            var deletedlts = await GetWebcamsFromLTSV2(null, null, deletedfrom, null);
             List<string> lastdeletedlist = new List<string>();
 
             if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
@@ -155,11 +155,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deleted.venues",
+                    "deleted.webcams",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.venues",
+                        sourceinterface = "lts.webcams",
                         success = false,
                         error = "Could not fetch deleted List",
                     }
@@ -178,7 +178,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var activelistlts = await GetVenuesFromLTSV2(null, null, null, active);
+            var activelistlts = await GetWebcamsFromLTSV2(null, null, null, active);
             List<string> activeList = new List<string>();
 
             if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
@@ -192,11 +192,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "active.venues",
+                    "active.webcams",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.venues",
+                        sourceinterface = "lts.webcams",
                         success = false,
                         error = "Could not fetch active List",
                     }
@@ -206,59 +206,59 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return activeList;
         }
 
-        private async Task<List<JObject>> GetVenuesFromLTSV2(string venueid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
+        private async Task<List<JObject>> GetWebcamsFromLTSV2(string webcamid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
             try
             {
                 LtsApi ltsapi = GetLTSApi(opendata);
                 
-                if(venueid != null)
+                if(webcamid != null)
                 {
                     //Get Single Venue
 
                     var qs = new LTSQueryStrings() { page_size = 1 };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.VenueDetailRequest(venueid, dict);
+                    return await ltsapi.WebcamDetailRequest(webcamid, dict);
                 }
                 else if (lastchanged != null)
                 {
-                    //Get the Last Changed Venues list
+                    //Get the Last Changed Webcams list
 
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false }; //To check filter_onlyTourismOrganizationMember
+                    var qs = new LTSQueryStrings() { fields = "rid" };
 
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.VenueListRequest(dict, true);
+                    return await ltsapi.WebcamListRequest(dict, true);
                 }
                 else if (deletedfrom != null)
                 {
-                    //Get the Active Venues list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+                    //Get the Active Webcams list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
+                    var qs = new LTSQueryStrings() { fields = "rid" };
                 
                     if (deletedfrom != null)
                         qs.filter_lastUpdate = deletedfrom;
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.VenueDeletedRequest(dict, true);
+                    return await ltsapi.WebcamDeletedRequest(dict, true);
                 }
                 else if (activelist != null)
                 {
-                    //Get the Active Venues list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+                    //Get the Active Webcams list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full" };
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_representationMode = "full" };
                 
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.VenueListRequest(dict, true);
+                    return await ltsapi.WebcamListRequest(dict, true);
                 }
                 else
                     return null;
@@ -268,11 +268,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "list.venues",
+                    "list.webcams",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.venues",
+                        sourceinterface = "lts.webcams",
                         success = false,
                         error = ex.Message,
                     }
@@ -281,7 +281,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<UpdateDetail> SaveVenuesToPG(List<JObject> ltsdata)
+        private async Task<UpdateDetail> SaveWebcamsToPG(List<JObject> ltsdata)
         {
             //var newimportcounter = 0;
             //var updateimportcounter = 0;
@@ -294,12 +294,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 List<string> idlistlts = new List<string>();
 
-                List<LTSVenue> venuedata = new List<LTSVenue>();
+                List<LTSWebcam> webcamdata = new List<LTSWebcam>();
 
                 foreach (var ltsdatasingle in ltsdata)
                 {
-                    venuedata.Add(
-                        ltsdatasingle.ToObject<LTSVenue>()
+                    webcamdata.Add(
+                        ltsdatasingle.ToObject<LTSWebcam>()
                     );
                 }
 
@@ -318,11 +318,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     );
                 }
 
-                foreach (var data in venuedata)
+                foreach (var data in webcamdata)
                 {
                     string id = data.data.rid.ToLower();
 
-                    var venueparsed = VenueParser.ParseLTSVenueV1(data.data, false);
+                    var webcamparsed = WebcamInfoParser.ParseLTSWebcam(data.data, false);
 
                     //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
                     //venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
@@ -332,8 +332,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //DistanceCalculation
                     //await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    //GET OLD Venue TO CHECK VenueLinked vs VenueV2
-                    var venueindb = await LoadDataFromDB<VenueLinked>(id, IDStyle.lowercase);
+                    //GET OLD Webcam
+                    var webcamindb = await LoadDataFromDB<WebcamInfoLinked>(id, IDStyle.uppercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     //await MergeVenueTags(venueparsed, venueindb);
@@ -365,7 +365,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //await venueparsed.UpdateTagsExtension(QueryFactory, null);
 
 
-                    var result = await InsertDataToDB(venueparsed, data.data, jsondata);
+                    var result = await InsertDataToDB(webcamparsed, data.data, jsondata);
 
                     //newimportcounter = newimportcounter + result.created ?? 0;
                     //updateimportcounter = updateimportcounter + result.updated ?? 0;
@@ -390,11 +390,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     WriteLog.LogToConsole(
                         id,
                         "dataimport",
-                        "single.venues",
+                        "single.webcams",
                         new ImportLog()
                         {
                             sourceid = id,
-                            sourceinterface = "lts.venues",
+                            sourceinterface = "lts.webcams",
                             success = true,
                             error = "",
                         }
@@ -417,22 +417,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 });
             }
 
-
-            //To check, this works only for single updates             
-            //return new UpdateDetail()
-            //{
-            //    updated = updateimportcounter,
-            //    created = newimportcounter,
-            //    deleted = deleteimportcounter,
-            //    error = errorimportcounter,
-            //};
-
             return updatedetails.FirstOrDefault();
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            VenueV2 objecttosave,
-            LTSVenueData venuelts,
+            WebcamInfoLinked objecttosave,
+            LTSWebcamData webcamlts,
             IDictionary<string, JArray>? jsonfiles
         )
         {
@@ -452,14 +442,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 //Set PublishedOn with allowedtaglist
                 objecttosave.CreatePublishedOnList(autopublishtaglist);
 
-                var rawdataid = await InsertInRawDataDB(venuelts);
+                var rawdataid = await InsertInRawDataDB(webcamlts);
                 
                 objecttosave.Id = objecttosave.Id.ToLower();
 
-                return await QueryFactory.UpsertData<VenueV2>(
+                return await QueryFactory.UpsertData<WebcamInfoLinked>(
                     objecttosave,
-                    new DataInfo("venues", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                    new EditInfo("lts.venues.import", importerURL),
+                    new DataInfo("webcams", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                    new EditInfo("lts.webcams.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
                     rawdataid,
@@ -472,25 +462,25 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<int> InsertInRawDataDB(LTSVenueData venuelts)
+        private async Task<int> InsertInRawDataDB(LTSWebcamData webcamlts)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
                     datasource = "lts",
                     importdate = DateTime.Now,
-                    raw = JsonConvert.SerializeObject(venuelts),
-                    sourceinterface = "venues",
-                    sourceid = venuelts.rid,
-                    sourceurl = "https://go.lts.it/api/v1/venues",
-                    type = "venue",
+                    raw = JsonConvert.SerializeObject(webcamlts),
+                    sourceinterface = "webcams",
+                    sourceid = webcamlts.rid,
+                    sourceurl = "https://go.lts.it/api/v1/webcams",
+                    type = "webcam",
                     license = "open",
                     rawformat = "json",
                 }
             );
         }
         
-        public async Task<UpdateDetail> DeleteOrDisableVenuesData(string id, bool delete, bool reduced)
+        public async Task<UpdateDetail> DeleteOrDisableWebcamsData(string id, bool delete, bool reduced)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
@@ -498,9 +488,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result = await QueryFactory.DeleteData<VenueLinked>(
+                result = await QueryFactory.DeleteData<WebcamInfoLinked>(
                 id.ToLower(),
-                new DataInfo("venues", CRUDOperation.Delete),
+                new DataInfo("webcams", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
                 );
@@ -524,9 +514,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
+                var query = QueryFactory.Query(table).Select("data").Where("id", id.ToUpper());
 
-                var data = await query.GetObjectSingleAsync<VenueLinked>();
+                var data = await query.GetObjectSingleAsync<WebcamInfoLinked>();
 
                 if (data != null)
                 {
@@ -544,10 +534,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //    .Where("id", id)
                         //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
 
-                        result = await QueryFactory.UpsertData<VenueLinked>(
+                        result = await QueryFactory.UpsertData<WebcamInfoLinked>(
                                data,
-                               new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                               new EditInfo("lts.venues.import.deactivate", importerURL),
+                               new DataInfo("webcams", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new EditInfo("lts.webcams.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
                         );
@@ -573,86 +563,25 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
      
-        private async Task MergeVenueTags(VenueLinked vNew, VenueLinked vOld)
+        private async Task MergeWebcamsTags(WebcamInfoLinked vNew, WebcamInfoLinked vOld)
         {
-            if (vOld != null)
-            {                                
-                ////Readd all Redactional Tags to check if this query fits
-                //var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
-                //if (redactionalassignedTags != null)
-                //{
-                //    foreach (var tag in redactionalassignedTags)
-                //    {
-                //        vNew.TagIds.Add(tag.Id);
-                //    }
-                //}
-            }
+            //if (vOld != null)
+            //{                                
+            //    //Readd all Redactional Tags to check if this query fits
+            //    var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+            //    if (redactionalassignedTags != null)
+            //    {
+            //        foreach (var tag in redactionalassignedTags)
+            //        {
+            //            vNew.TagIds.Add(tag.Id);
+            //        }
+            //    }
+            //}
 
             //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
 
             //TODO import the Redactional Tags from SmgTags into Tags?
-        }
-
-        //TODO Pois ODHTags assignment
-        //private async Task AssignODHTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
-        //{
-        //    List<string> tagstopreserve = new List<string>();
-        //    //Remove all ODHTags that where automatically assigned         
-        //    if(gastroOld != null && gastroOld.SmgTags != null)
-        //        tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
-            
-        //    gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
-        //}
-        
-        //TODO Metatitle + metadesc
-        //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
-        //private async Task AddMetaTitle(ODHActivityPoiLinked gastroNew)
-        //{
-        //    if (gastroNew != null && gastroNew.Detail != null)
-        //    {
-        //        if (gastroNew.Detail.ContainsKey("de"))
-        //        {
-        //            string city = GetCityForGastroSeo("de", gastroNew);
-
-        //            gastroNew.Detail["de"].MetaTitle = gastroNew.Detail["de"].Title + " • " + city + " (Südtirol)";
-        //            gastroNew.Detail["de"].MetaDesc = "Kontakt •  Reservierung •  Öffnungszeiten → " + gastroNew.Detail["de"].Title + ", " + city + ". Hier finden Feinschmecker das passende Restaurant, Cafe, Almhütte, uvm.";
-        //        }
-        //        if (gastroNew.Detail.ContainsKey("it"))
-        //        {
-        //            string city = GetCityForGastroSeo("it", gastroNew);
-
-        //            gastroNew.Detail["it"].MetaTitle = gastroNew.Detail["it"].Title + " • " + city + " (Alto Adige)";
-        //            gastroNew.Detail["it"].MetaDesc = "Contatto • prenotazione • orari d'apertura → " + gastroNew.Detail["it"].Title + ", " + city + ". Il posto giusto per i buongustai: ristorante, cafè, baita, e tanto altro.";
-        //        }
-        //        if (gastroNew.Detail.ContainsKey("en"))
-        //        {
-        //            string city = GetCityForGastroSeo("en", gastroNew);
-
-        //            gastroNew.Detail["en"].MetaTitle = gastroNew.Detail["en"].Title + " • " + city + " (South Tyrol)";
-        //            gastroNew.Detail["en"].MetaDesc = "•  Contact •  reservation •  opening times →  " + gastroNew.Detail["en"].Title + ". Find the perfect restaurant, cafe, alpine chalet in South Tyrol.";
-        //        }
-
-        //        //foreach (var detail in gastroNew.Detail)
-        //        //{
-        //        //    //Check this
-        //        //    detail.Value.MetaTitle = detail.Value.Title + " | suedtirol.info";
-        //        //}
-        //    }
-        //}
-
-        //to check
-        //private async Task SetODHActiveBasedOnRepresentationMode(ODHActivityPoiLinked gastroNew)
-        //{
-        //    if(gastroNew.Mapping != null && gastroNew.Mapping.ContainsKey("lts") && gastroNew.Mapping["lts"].ContainsKey("representationMode"))
-        //    {                
-        //            var representationmode = gastroNew.Mapping["lts"]["representationMode"];
-        //        if (representationmode == "full")
-        //        {
-        //            gastroNew.SmgActive = true;
-        //        }
-        //    }
-        //}
-
+        }   
 
     }
 }

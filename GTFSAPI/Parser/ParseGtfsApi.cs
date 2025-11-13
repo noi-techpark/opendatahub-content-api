@@ -18,9 +18,9 @@ namespace GTFSAPI
 {
     public class ParseGtfsApi
     {
-        public static List<StaTimeTableStopsCsv> GetParsetStaTimeTableStops(Stream stream)
+        public static List<StopsCsv> GetParsetStaTimeTableStops(Stream stream)
         {
-            List<StaTimeTableStopsCsv> result = new List<StaTimeTableStopsCsv>();
+            List<StopsCsv> result = new List<StopsCsv>();
             CultureInfo enculture = new CultureInfo("en");
             string[] read;
 
@@ -37,7 +37,7 @@ namespace GTFSAPI
 
                     if (read != null)
                     {
-                        StaTimeTableStopsCsv parsedstop = new StaTimeTableStopsCsv();
+                        StopsCsv parsedstop = new StopsCsv();
 
                         parsedstop.stop_id = read[0];
                         parsedstop.stop_name = read[1];
@@ -83,7 +83,7 @@ namespace GTFSAPI
             return result;
         }
 
-        public static ODHActivityPoiLinked ParseStaTimeTableStopsToODHActivityPoi(ODHActivityPoiLinked? parsedobject, StaTimeTableStopsCsv statimetablestops)
+        public static ODHActivityPoiLinked ParseStaTimeTableStopsToODHActivityPoi(ODHActivityPoiLinked? parsedobject, StopsCsv statimetablestops)
         {
 
             //Parse and add to list 
@@ -125,14 +125,5 @@ namespace GTFSAPI
 
     }
 
-    public class StaTimeTableStopsCsv
-    {
-        public string stop_id { get; set; }
-        public string stop_name { get; set; }
-        public double stop_lat { get; set; }
-        public double stop_lon { get; set; }        
-        public string location_type { get; set; }
-        public string parent_station { get; set; }
-
-    }
+    
 }

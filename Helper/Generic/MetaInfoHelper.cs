@@ -103,8 +103,8 @@ namespace Helper
                 WeatherForecastLinked wf => GetMetaDataForWeatherForecast(wf),
                 SnowReportBaseData sb => GetMetaDataForSnowReport(sb),
                 TourismMetaData tm => GetMetaDataForMetaData(tm),
-                EventV2 ev => GetMetadataforEvent(ev),
-                VenueV2 ev => GetMetadataforVenue(ev),
+                EventFlattened ev => GetMetadataforEvent(ev),
+                VenueFlattened ev => GetMetadataforVenue(ev),
                 GeoShapeJson gj => GetMetadataForGeoShapeJson(gj),
                 Announcement ri => GetMetadataforAnnouncement(ri),
                 _ => throw new Exception("not known odh type"),
@@ -193,7 +193,7 @@ namespace Helper
             return GetMetadata(data, sourcemeta, reduced);
         }
 
-        public static Metadata GetMetadataforEvent(EventV2 data)
+        public static Metadata GetMetadataforEvent(EventFlattened data)
         {
             string sourcemeta = data.Source.ToLower();
             bool reduced = false;
@@ -311,7 +311,7 @@ namespace Helper
             return data._Meta = GetMetadata(data, "lts", reduced);
         }
 
-        public static Metadata GetMetadataforVenue(VenueV2 data)
+        public static Metadata GetMetadataforVenue(VenueFlattened data)
         {
             bool reduced = false;
             if (data._Meta != null)

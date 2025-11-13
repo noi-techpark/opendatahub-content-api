@@ -18,9 +18,9 @@ using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers
 {
-    public class MobilityEventsV2ImportHelper : ImportHelper, IImportHelper
+    public class MobilityEventsFlattenedImportHelper : ImportHelper, IImportHelper
     {
-        public MobilityEventsV2ImportHelper(
+        public MobilityEventsFlattenedImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -84,7 +84,7 @@ namespace OdhApiImporter.Helpers
                 {
                     if (!String.IsNullOrEmpty(kvp.Key))
                     {
-                        var eventtosave = ParseNinjaData.ParseNinjaEventToODHEventV2(
+                        var eventtosave = ParseNinjaData.ParseNinjaEventToODHEventFlattened(
                             kvp.Key.Replace(" ", ""),
                             kvp.Value,
                             kvp.Value.room.Replace(" ", "")
@@ -194,7 +194,7 @@ namespace OdhApiImporter.Helpers
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            EventV2 eventtosave,
+            EventFlattened eventtosave,
             KeyValuePair<string, NinjaEvent> ninjaevent
         )
         {
@@ -216,7 +216,7 @@ namespace OdhApiImporter.Helpers
 
                 var rawdataid = await InsertInRawDataDB(ninjaevent);
 
-                return await QueryFactory.UpsertData<EventV2>(
+                return await QueryFactory.UpsertData<EventFlattened>(
                     eventtosave,
                     new DataInfo("eventsv2", Helper.Generic.CRUDOperation.CreateAndUpdate),
                     new EditInfo("mobility.eventv2.import", importerURL),
@@ -265,7 +265,7 @@ namespace OdhApiImporter.Helpers
             {
                 var query = QueryFactory.Query("eventsv2").Select("data").Where("id", eventid);
 
-                var data = await query.GetObjectSingleAsync<EventV2>();
+                var data = await query.GetObjectSingleAsync<EventFlattened>();
 
                 if (data != null)
                 {

@@ -437,23 +437,23 @@ namespace OdhApiImporter.Controllers
 
         //Events Centro Trevi and DRIN
         [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("NINJA/EventV2/Update")]
+        [HttpGet, Route("NINJA/EventFlattened/Update")]
         public async Task<IActionResult> UpdateAllNinjaEventsV2(
             CancellationToken cancellationToken = default
         )
         {
             UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Update Ninja EventsV2";
+            string operation = "Update Ninja EventsFlattened";
             string updatetype = GetUpdateType(null);
             string source = "mobilityapi";
 
             try
             {
-                MobilityEventsV2ImportHelper ninjaimporthelper = new MobilityEventsV2ImportHelper(
+                MobilityEventsFlattenedImportHelper ninjaimporthelper = new MobilityEventsFlattenedImportHelper(
                     settings,
                     QueryFactory,
                     "eventsv2",
-                    UrlGeneratorStatic("NINJA/EventsV2")
+                    UrlGeneratorStatic("NINJA/EventFlattened")
                 );
                 updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -461,7 +461,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Ninja EventsV2 update succeeded",
+                    "Ninja EventsFlattened update succeeded",
                     "",
                     updatedetail,
                     true
@@ -476,7 +476,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Ninja EventsV2 update failed",
+                    "Ninja EventsFlattened update failed",
                     "",
                     updatedetail,
                     ex,
@@ -488,23 +488,23 @@ namespace OdhApiImporter.Controllers
 
         //Events Centro Trevi and DRIN
         [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("NINJA/VenueV2/Update")]
-        public async Task<IActionResult> UpdateAllNinjaVenuesV2(
+        [HttpGet, Route("NINJA/VenueFlattened/Update")]
+        public async Task<IActionResult> UpdateAllNinjaVenuesFlattened(
             CancellationToken cancellationToken = default
         )
         {
             UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Update Ninja VenuesV2";
+            string operation = "Update Ninja VenuesFlattened";
             string updatetype = GetUpdateType(null);
             string source = "mobilityapi";
 
             try
             {
-                MobilityVenuesV2ImportHelper ninjaimporthelper = new MobilityVenuesV2ImportHelper(
+                MobilityVenuesFlattenedImportHelper ninjaimporthelper = new MobilityVenuesFlattenedImportHelper(
                     settings,
                     QueryFactory,
                     "venuesv2",
-                    UrlGeneratorStatic("NINJA/VenueV2")
+                    UrlGeneratorStatic("NINJA/VenueFlattened")
                 );
                 updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -512,7 +512,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Ninja VenueV2 update succeeded",
+                    "Ninja VenuesFlattened update succeeded",
                     "",
                     updatedetail,
                     true
@@ -527,7 +527,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Ninja VenueV2 update failed",
+                    "Ninja VenuesFlattened update failed",
                     "",
                     updatedetail,
                     ex,

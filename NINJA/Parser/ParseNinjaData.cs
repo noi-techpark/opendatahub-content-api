@@ -460,10 +460,10 @@ namespace NINJA.Parser
 
         #endregion
 
-        #region EventV2Parsing
+        #region EventFlattenedParsing
 
         //V2 Parsing
-        public static VenueV2 ParseNinjaEventPlaceToVenueV2(
+        public static VenueFlattened ParseNinjaEventPlaceToVenueFlattened(
             string id,
             NinjaData<NinjaPlaceRoom> place,
             string? rootvenueid
@@ -474,7 +474,7 @@ namespace NINJA.Parser
             if (String.IsNullOrEmpty(rootvenueid))
                 isroom = false;
 
-            VenueV2 venue = new VenueV2();
+            VenueFlattened venue = new VenueFlattened();
             venue.Id = "VEN_CULTURE_" + id.ToUpper();
 
             string source = !String.IsNullOrEmpty(place.smetadata.id)
@@ -718,7 +718,7 @@ namespace NINJA.Parser
             return new List<Tags>() { tag };
         }
 
-        public static EventV2 ParseNinjaEventToODHEventV2(
+        public static EventFlattened ParseNinjaEventToODHEventFlattened(
             string id,
             NinjaEvent ninjaevent,
             string venueId
@@ -729,7 +729,7 @@ namespace NINJA.Parser
                 if (id == "------")
                     throw new Exception("incomplete data, no id");
 
-                EventV2 myevent = new EventV2();
+                EventFlattened myevent = new EventFlattened();
                 myevent.Id = "EV_CULTURE_" + id.ToUpper();
 
                 myevent.LastChange = DateTime.Now;
