@@ -541,7 +541,7 @@ namespace OdhApiImporter.Helpers
                     //    );
                     //}
 
-                    throw new Exception("Events Update Raven Migrated!");                    
+                    throw new Exception("Events Update Raven Migrated!");
 
                 case "webcam":
                     mydata = await GetDataFromRaven.GetRavenData<WebcamInfoRaven>(
@@ -605,317 +605,332 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "metaregion":
-                    mydata = await GetDataFromRaven.GetRavenData<MetaRegion>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<MetaRegion, MetaRegionLinked>(
-                            (MetaRegion)mydata,
-                            TransformToPGObject.GetMetaRegionPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<MetaRegion>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<MetaRegion, MetaRegionLinked>(
+                    //        (MetaRegion)mydata,
+                    //        TransformToPGObject.GetMetaRegionPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((MetaRegionLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((MetaRegionLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<MetaRegionLinked>(
-                        (MetaRegionLinked)mypgdata,
-                        "metaregions",
-                        true,
-                        true,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<MetaRegionLinked>(
+                    //    (MetaRegionLinked)mypgdata,
+                    //    "metaregions",
+                    //    true,
+                    //    true,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("MetaRegion Update Raven Migrated!");
 
                 case "region":
-                    mydata = await GetDataFromRaven.GetRavenData<Region>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<Region, RegionLinked>(
-                            (Region)mydata,
-                            TransformToPGObject.GetRegionPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<Region>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<Region, RegionLinked>(
+                    //        (Region)mydata,
+                    //        TransformToPGObject.GetRegionPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((RegionLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((RegionLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<RegionLinked>(
-                        (RegionLinked)mypgdata,
-                        "regions",
-                        true,
-                        true,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<RegionLinked>(
+                    //    (RegionLinked)mypgdata,
+                    //    "regions",
+                    //    true,
+                    //    true,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
+                    //break;
 
-                    break;
+                    throw new Exception("Region Update Raven Migrated!");
 
                 case "tv":
-                    mydata = await GetDataFromRaven.GetRavenData<Tourismverein>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken,
-                        "TourismAssociation/"
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            Tourismverein,
-                            TourismvereinLinked
-                        >((Tourismverein)mydata, TransformToPGObject.GetTourismAssociationPGObject);
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<Tourismverein>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken,
+                    //    "TourismAssociation/"
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<
+                    //        Tourismverein,
+                    //        TourismvereinLinked
+                    //    >((Tourismverein)mydata, TransformToPGObject.GetTourismAssociationPGObject);
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((TourismvereinLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((TourismvereinLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<TourismvereinLinked>(
-                        (TourismvereinLinked)mypgdata,
-                        "tvs",
-                        true,
-                        true,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<TourismvereinLinked>(
+                    //    (TourismvereinLinked)mypgdata,
+                    //    "tvs",
+                    //    true,
+                    //    true,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("TV Update Raven Migrated!");
 
                 case "municipality":
-                    mydata = await GetDataFromRaven.GetRavenData<Municipality>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            Municipality,
-                            MunicipalityLinked
-                        >((Municipality)mydata, TransformToPGObject.GetMunicipalityPGObject);
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<Municipality>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<
+                    //        Municipality,
+                    //        MunicipalityLinked
+                    //    >((Municipality)mydata, TransformToPGObject.GetMunicipalityPGObject);
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((MunicipalityLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((MunicipalityLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<MunicipalityLinked>(
-                        (MunicipalityLinked)mypgdata,
-                        "municipalities",
-                        true,
-                        false,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<MunicipalityLinked>(
+                    //    (MunicipalityLinked)mypgdata,
+                    //    "municipalities",
+                    //    true,
+                    //    false,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Municipality Update Raven Migrated!");
 
                 case "district":
-                    mydata = await GetDataFromRaven.GetRavenData<District>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<District, DistrictLinked>(
-                            (District)mydata,
-                            TransformToPGObject.GetDistrictPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<District>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<District, DistrictLinked>(
+                    //        (District)mydata,
+                    //        TransformToPGObject.GetDistrictPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((DistrictLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((DistrictLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<DistrictLinked>(
-                        (DistrictLinked)mypgdata,
-                        "districts",
-                        true,
-                        false,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<DistrictLinked>(
+                    //    (DistrictLinked)mypgdata,
+                    //    "districts",
+                    //    true,
+                    //    false,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Districts Update Raven Migrated!");
 
                 case "experiencearea":
-                    mydata = await GetDataFromRaven.GetRavenData<ExperienceArea>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            ExperienceArea,
-                            ExperienceAreaLinked
-                        >((ExperienceArea)mydata, TransformToPGObject.GetExperienceAreaPGObject);
-                    else
-                        throw new Exception("No data found!");
+                //mydata = await GetDataFromRaven.GetRavenData<ExperienceArea>(
+                //    datatype,
+                //    id,
+                //    settings.RavenConfig.ServiceUrl,
+                //    settings.RavenConfig.User,
+                //    settings.RavenConfig.Password,
+                //    cancellationToken
+                //);
+                //if (mydata != null)
+                //    mypgdata = TransformToPGObject.GetPGObject<
+                //        ExperienceArea,
+                //        ExperienceAreaLinked
+                //    >((ExperienceArea)mydata, TransformToPGObject.GetExperienceAreaPGObject);
+                //else
+                //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((ExperienceAreaLinked)mypgdata).CreatePublishedOnList();
+                ////Add the PublishedOn Logic
+                //((ExperienceAreaLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<ExperienceAreaLinked>(
-                        (ExperienceAreaLinked)mypgdata,
-                        "experienceareas",
-                        true,
-                        false,
-                        false
-                    );
+                //myupdateresult = await SaveRavenObjectToPG<ExperienceAreaLinked>(
+                //    (ExperienceAreaLinked)mypgdata,
+                //    "experienceareas",
+                //    true,
+                //    false,
+                //    false
+                //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                ////Check if the Object has Changed and Push all infos to the channels
+                //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                //    myupdateresult,
+                //    mypgdata.Id,
+                //    datatype,
+                //    null,
+                //    "redactional.push"
+                //);
 
-                    break;
+                //break;
+
+                throw new Exception("ExperienceArea Update Raven Migrated!");
 
                 case "skiarea":
-                    mydata = await GetDataFromRaven.GetRavenData<SkiAreaRaven>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<SkiAreaRaven, SkiAreaLinked>(
-                            (SkiAreaRaven)mydata,
-                            TransformToPGObject.GetSkiAreaPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<SkiAreaRaven>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<SkiAreaRaven, SkiAreaLinked>(
+                    //        (SkiAreaRaven)mydata,
+                    //        TransformToPGObject.GetSkiAreaPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((SkiAreaLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((SkiAreaLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<SkiAreaLinked>(
-                        (SkiAreaLinked)mypgdata,
-                        "skiareas",
-                        true,
-                        true,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<SkiAreaLinked>(
+                    //    (SkiAreaLinked)mypgdata,
+                    //    "skiareas",
+                    //    true,
+                    //    true,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("SkiArea Update Raven Migrated!");
 
                 case "skiregion":
-                    mydata = await GetDataFromRaven.GetRavenData<SkiRegion>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<SkiRegion, SkiRegionLinked>(
-                            (SkiRegion)mydata,
-                            TransformToPGObject.GetSkiRegionPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<SkiRegion>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<SkiRegion, SkiRegionLinked>(
+                    //        (SkiRegion)mydata,
+                    //        TransformToPGObject.GetSkiRegionPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((SkiRegionLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((SkiRegionLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<SkiRegionLinked>(
-                        (SkiRegionLinked)mypgdata,
-                        "skiregions",
-                        true,
-                        true,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<SkiRegionLinked>(
+                    //    (SkiRegionLinked)mypgdata,
+                    //    "skiregions",
+                    //    true,
+                    //    true,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("SkiRegion Update Raven Migrated!");
 
                 case "article":
                     mydata = await GetDataFromRaven.GetRavenData<ArticlesLinked>(
@@ -996,73 +1011,75 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "measuringpoint":
-                    mydata = await GetDataFromRaven.GetRavenData<MeasuringpointRaven>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken,
-                        "Weather/Measuringpoint/"
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            MeasuringpointRaven,
-                            MeasuringpointLinked
-                        >(
-                            (MeasuringpointRaven)mydata,
-                            TransformToPGObject.GetMeasuringpointPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<MeasuringpointRaven>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken,
+                    //    "Weather/Measuringpoint/"
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<
+                    //        MeasuringpointRaven,
+                    //        MeasuringpointLinked
+                    //    >(
+                    //        (MeasuringpointRaven)mydata,
+                    //        TransformToPGObject.GetMeasuringpointPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Measuringpoint, Fill SkiAreaIds
-                    var areaids = ((MeasuringpointLinked)mypgdata).AreaIds;
-                    if (areaids != null)
-                        ((MeasuringpointLinked)mypgdata).SkiAreaIds = await QueryFactory
-                            .Query()
-                            .GetSkiAreaIdsfromSkiAreasAsync(areaids, cancellationToken);
+                    ////Measuringpoint, Fill SkiAreaIds
+                    //var areaids = ((MeasuringpointLinked)mypgdata).AreaIds;
+                    //if (areaids != null)
+                    //    ((MeasuringpointLinked)mypgdata).SkiAreaIds = await QueryFactory
+                    //        .Query()
+                    //        .GetSkiAreaIdsfromSkiAreasAsync(areaids, cancellationToken);
 
-                    //Add the PublishedOn Logic
-                    ((MeasuringpointLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((MeasuringpointLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<MeasuringpointLinked>(
-                        (MeasuringpointLinked)mypgdata,
-                        "measuringpoints",
-                        true,
-                        false,
-                        true
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<MeasuringpointLinked>(
+                    //    (MeasuringpointLinked)mypgdata,
+                    //    "measuringpoints",
+                    //    true,
+                    //    false,
+                    //    true
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype
+                    //);
 
-                    //Check if data has to be reduced and save it
-                    if (
-                        ReduceDataTransformer.ReduceDataCheck<MeasuringpointLinked>(
-                            (MeasuringpointLinked)mypgdata
-                        ) == true
-                    )
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (MeasuringpointLinked)mypgdata,
-                            ReduceDataTransformer.CopyLTSMeasuringpointToReducedObject
-                        );
+                    ////Check if data has to be reduced and save it
+                    //if (
+                    //    ReduceDataTransformer.ReduceDataCheck<MeasuringpointLinked>(
+                    //        (MeasuringpointLinked)mypgdata
+                    //    ) == true
+                    //)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (MeasuringpointLinked)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSMeasuringpointToReducedObject
+                    //    );
 
-                        updateresultreduced = await SaveRavenObjectToPG<MeasuringpointLinked>(
-                            (MeasuringpointLinkedReduced)reducedobject,
-                            "measuringpoints",
-                            false,
-                            false,
-                            false
-                        );
-                    }
+                    //    updateresultreduced = await SaveRavenObjectToPG<MeasuringpointLinked>(
+                    //        (MeasuringpointLinkedReduced)reducedobject,
+                    //        "measuringpoints",
+                    //        false,
+                    //        false,
+                    //        false
+                    //    );
+                    //}
 
-                    break;
+                    //break;
+
+                    throw new Exception("MeasuringPoint Update Raven Migrated!");
 
                 case "venue":
                     //TODO ADD new Venue Model
@@ -1137,41 +1154,43 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "wine":
-                    mydata = await GetDataFromRaven.GetRavenData<WineLinked>(
-                        "WineAward",
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<WineLinked, WineLinked>(
-                            (WineLinked)mydata,
-                            TransformToPGObject.GetWinePGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<WineLinked>(
+                    //    "WineAward",
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<WineLinked, WineLinked>(
+                    //        (WineLinked)mydata,
+                    //        TransformToPGObject.GetWinePGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((WineLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((WineLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<WineLinked>(
-                        (WineLinked)mypgdata,
-                        "wines",
-                        true,
-                        false,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<WineLinked>(
+                    //    (WineLinked)mypgdata,
+                    //    "wines",
+                    //    true,
+                    //    false,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
+
+                    throw new Exception("Wine Update Raven Migrated!");
 
                     break;
 
@@ -1258,32 +1277,34 @@ namespace OdhApiImporter.Helpers
 
                 case "odhactivitypoi":
 
-                    //Check Source
-                    var mydata = await GetDataFromRaven.GetRavenData<ODHActivityPoiLinked>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                    {
-                        if (((ODHActivityPoiLinked)mydata).Source.ToLower() == "lts")
-                            throw new Exception("Activity, Poi, Gastronomy Delete Raven Migrated!");
-                    }
+                    ////Check Source
+                    //var mydata = await GetDataFromRaven.GetRavenData<ODHActivityPoiLinked>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //{
+                    //    if (((ODHActivityPoiLinked)mydata).Source.ToLower() == "lts")
+                    //        throw new Exception("Activity, Poi, Gastronomy Delete Raven Migrated!");
+                    //}
 
 
-                    //Delete
-                    deleteresult = await DeleteRavenObjectFromPG<ODHActivityPoiLinked>(
-                    id,
-                    "smgpois",
-                    true
-                    );
+                    ////Delete
+                    //deleteresult = await DeleteRavenObjectFromPG<ODHActivityPoiLinked>(
+                    //id,
+                    //"smgpois",
+                    //true
+                    //);
 
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("ODHActivityPoi Delete Raven Migrated!");
 
                 case "event":
 
@@ -1295,91 +1316,107 @@ namespace OdhApiImporter.Helpers
 
                 case "metaregion":
 
-                    deleteresult = await DeleteRavenObjectFromPG<MetaRegionLinked>(
-                        id,
-                        "metaregions",
-                        false
-                    );
+                    //deleteresult = await DeleteRavenObjectFromPG<MetaRegionLinked>(
+                    //    id,
+                    //    "metaregions",
+                    //    false
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Metaregion Delete Raven Migrated!");
 
                 case "region":
 
-                    deleteresult = await DeleteRavenObjectFromPG<RegionLinked>(
-                        id,
-                        "regions",
-                        false
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    //deleteresult = await DeleteRavenObjectFromPG<RegionLinked>(
+                    //    id,
+                    //    "regions",
+                    //    false
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Region Delete Raven Migrated!");
 
                 case "tv":
 
-                    deleteresult = await DeleteRavenObjectFromPG<TourismvereinLinked>(
-                        id,
-                        "tvs",
-                        false
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    //deleteresult = await DeleteRavenObjectFromPG<TourismvereinLinked>(
+                    //    id,
+                    //    "tvs",
+                    //    false
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("TV Delete Raven Migrated!");
 
                 case "municipality":
 
-                    deleteresult = await DeleteRavenObjectFromPG<MunicipalityLinked>(
-                        id,
-                        "municipalities",
-                        false
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    //deleteresult = await DeleteRavenObjectFromPG<MunicipalityLinked>(
+                    //    id,
+                    //    "municipalities",
+                    //    false
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Municipality Delete Raven Migrated!");
 
                 case "district":
 
-                    deleteresult = await DeleteRavenObjectFromPG<DistrictLinked>(
-                        id,
-                        "districts",
-                        false
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    //deleteresult = await DeleteRavenObjectFromPG<DistrictLinked>(
+                    //    id,
+                    //    "districts",
+                    //    false
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("District Delete Raven Migrated!");
 
                 case "experiencearea":
 
-                    deleteresult = await DeleteRavenObjectFromPG<ExperienceAreaLinked>(
-                        id,
-                        "experienceareas",
-                        false
-                    );
+                    //deleteresult = await DeleteRavenObjectFromPG<ExperienceAreaLinked>(
+                    //    id,
+                    //    "experienceareas",
+                    //    false
+                    //);
 
-                    break;
+                    //break;
+
+                    throw new Exception("ExperienceArea Delete Raven Migrated!");
 
                 case "skiarea":
 
-                    //Delete
-                    deleteresult = await DeleteRavenObjectFromPG<SkiAreaLinked>(
-                        id,
-                        "skiareas",
-                        false
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    ////Delete
+                    //deleteresult = await DeleteRavenObjectFromPG<SkiAreaLinked>(
+                    //    id,
+                    //    "skiareas",
+                    //    false
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("SkiArea Delete Raven Migrated!");
 
                 case "skiregion":
 
-                    //Delete
-                    deleteresult = await DeleteRavenObjectFromPG<SkiRegionLinked>(
-                        id,
-                        "skiregions",
-                        false
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    ////Delete
+                    //deleteresult = await DeleteRavenObjectFromPG<SkiRegionLinked>(
+                    //    id,
+                    //    "skiregions",
+                    //    false
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("SkiRegion Delete Raven Migrated!");
 
                 case "article":
 
@@ -1405,14 +1442,16 @@ namespace OdhApiImporter.Helpers
 
                 case "measuringpoint":
 
-                    deleteresult = await DeleteRavenObjectFromPG<MeasuringpointLinked>(
-                        id,
-                        "measuringpoints",
-                        true
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    //deleteresult = await DeleteRavenObjectFromPG<MeasuringpointLinked>(
+                    //    id,
+                    //    "measuringpoints",
+                    //    true
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Measuringpoint Delete Raven Migrated!");
 
                 case "venue":
 
@@ -1427,9 +1466,11 @@ namespace OdhApiImporter.Helpers
 
                 case "wine":
 
-                    deleteresult = await DeleteRavenObjectFromPG<WineLinked>(id, "wines", false);
+                    //deleteresult = await DeleteRavenObjectFromPG<WineLinked>(id, "wines", false);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Wine Delete Raven Migrated!");
 
                 case "webcam":
                     //TODO DELETE ALL ASSIGNMENTS OF THIS Webcam
