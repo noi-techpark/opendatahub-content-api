@@ -578,57 +578,57 @@ namespace OdhApiImporter.Helpers
 
         #region ODHActivityPoi
 
-        public async Task<int> UpdateAllODHActivityPoiOldTags(string source)
-        {
-            //Load all data from PG and resave
-            var query = QueryFactory
-                .Query()
-                .SelectRaw("data")
-                .From("smgpois")
-                .Where("gen_source", source);
+        //public async Task<int> UpdateAllODHActivityPoiOldTags(string source)
+        //{
+        //    //Load all data from PG and resave
+        //    var query = QueryFactory
+        //        .Query()
+        //        .SelectRaw("data")
+        //        .From("smgpois")
+        //        .Where("gen_source", source);
 
-            var data = await query.GetObjectListAsync<ODHActivityPoiOld>();
-            int i = 0;
+        //    var data = await query.GetObjectListAsync<ODHActivityPoiOld>();
+        //    int i = 0;
 
-            foreach (var stapoi in data)
-            {
-                if (stapoi.Tags != null)
-                {
-                    //CopyClassHelper.CopyPropertyValues
-                    var tags = stapoi.Tags;
+        //    foreach (var stapoi in data)
+        //    {
+        //        if (stapoi.Tags != null)
+        //        {
+        //            //CopyClassHelper.CopyPropertyValues
+        //            var tags = stapoi.Tags;
 
-                    stapoi.Tags = null;
+        //            stapoi.Tags = null;
 
-                    var stapoiv2 = (ODHActivityPoiLinked)stapoi;
+        //            var stapoiv2 = (ODHActivityPoiLinked)stapoi;
 
-                    stapoiv2.Tags = new List<Tags>();
-                    foreach (var tagdict in tags)
-                    {
-                        foreach (var tagvalue in tagdict.Value)
-                        {
-                            stapoiv2.Tags.Add(tagvalue);
-                        }
-                    }
+        //            stapoiv2.Tags = new List<Tags>();
+        //            foreach (var tagdict in tags)
+        //            {
+        //                foreach (var tagvalue in tagdict.Value)
+        //                {
+        //                    stapoiv2.Tags.Add(tagvalue);
+        //                }
+        //            }
 
-                    //Save tp DB
-                    //TODO CHECK IF THIS WORKS
-                    var queryresult = await QueryFactory
-                        .Query("smgpois")
-                        .Where("id", stapoiv2.Id)
-                        .UpdateAsync(
-                            new JsonBData()
-                            {
-                                id = stapoiv2.Id?.ToLower() ?? "",
-                                data = new JsonRaw(stapoiv2),
-                            }
-                        );
+        //            //Save tp DB
+        //            //TODO CHECK IF THIS WORKS
+        //            var queryresult = await QueryFactory
+        //                .Query("smgpois")
+        //                .Where("id", stapoiv2.Id)
+        //                .UpdateAsync(
+        //                    new JsonBData()
+        //                    {
+        //                        id = stapoiv2.Id?.ToLower() ?? "",
+        //                        data = new JsonRaw(stapoiv2),
+        //                    }
+        //                );
 
-                    i++;
-                }
-            }
+        //            i++;
+        //        }
+        //    }
 
-            return i;
-        }
+        //    return i;
+        //}
 
         public async Task<int> UpdateAllODHActivityPoiTagIds(
             string? id,
@@ -2345,8 +2345,6 @@ namespace OdhApiImporter.Helpers
             }
         }
 
-
-
         #endregion
 
         #region WineAward
@@ -2407,15 +2405,169 @@ namespace OdhApiImporter.Helpers
         }
 
 
-        
+
+
+        #endregion
+
+        #region Venue
+
+        public async Task<Tuple<int, string>> VenueToVenueV2()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("venue_v2");
+
+            var data = await query.GetObjectListAsync<VenueLinked>();
+            int i = 0;
+
+            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
+
+            foreach (var venue in data)
+            {
+                results.Add(await UpdateVenueToNewDataModel(venue));
+            }
+
+            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
+            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
+
+            return Tuple.Create(updatedcount, String.Join(",", failed));
+        }
+
+        public async Task<Tuple<int, string>> UpdateVenueToNewDataModel(VenueLinked venue)
+        {            
+            try
+            {
+                string reduced = "";
+                //If it is a reduced object
+                if (venue._Meta.Reduced)
+                    reduced = "_REDUCED";
+
+                //Save tp DB
+                //TODO Add all missing values
+                var venue2 = new VenueV2();
+                venue2.Id = venue.Id;
+                venue2.Active = venue.Active;
+
+                //If Reduced use the ID without reduced
+                if (venue._Meta.Reduced)
+                {
+                    venue2.Id = venue2.Id.Replace("_REDUCED", "");
+                    venue2._Meta.Id = venue2.Id.Replace("_REDUCED", "");
+                }
+
+
+                var idtoupdate = venue2.Id;
+                if (!venue2.Id.Contains("_REDUCED"))
+                    idtoupdate = venue2.Id + reduced;
+
+
+                var queryresult = await QueryFactory
+                    .Query("venues")
+                    .Where("id", idtoupdate)
+                    //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = idtoupdate,
+                            data = new JsonRaw(venue2),
+                        }
+                    );
+
+                return Tuple.Create<int, string>(queryresult, venue2.Id);
+            }
+            catch (Exception ex)
+            {
+                return Tuple.Create<int, string>(0, venue.Id);
+            }
+        }
+
+
+        #endregion
+
+        #region ODHAcivityPoi
+
+        //TODO add the REDUCED gen_id fix for all not updated items!
+
+        #endregion
+
+        #region Measuringpoint
+
+        public async Task<Tuple<int, string>> MeasuringpointToMeasuringpointV2()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("measuringpoint");
+
+            var data = await query.GetObjectListAsync<MeasuringpointLinked>();
+            int i = 0;
+
+            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
+
+            foreach (var measuringpoint in data)
+            {
+                results.Add(await UpdateMeasuringpointToNewDataModel(measuringpoint));
+            }
+
+            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
+            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
+
+            return Tuple.Create(updatedcount, String.Join(",", failed));
+        }
+
+        public async Task<Tuple<int, string>> UpdateMeasuringpointToNewDataModel(MeasuringpointLinked measuringpoint)
+        {
+            try
+            {
+                string reduced = "";
+                //If it is a reduced object
+                if (measuringpoint._Meta.Reduced)
+                    reduced = "_REDUCED";
+
+                //Save tp DB
+                //TODO Add all missing values
+                var measuringpoint2 = new MeasuringpointV2();
+                measuringpoint2.Id = measuringpoint.Id;
+                measuringpoint2.Active = measuringpoint.Active;
+
+                //If Reduced use the ID without reduced
+                if (measuringpoint._Meta.Reduced)
+                {
+                    measuringpoint2.Id = measuringpoint2.Id.Replace("_REDUCED", "");
+                    measuringpoint2._Meta.Id = measuringpoint2.Id.Replace("_REDUCED", "");
+                }
+
+
+                var idtoupdate = measuringpoint2.Id;
+                if (!measuringpoint2.Id.Contains("_REDUCED"))
+                    idtoupdate = measuringpoint2.Id + reduced;
+
+
+                var queryresult = await QueryFactory
+                    .Query("measuringpoints")
+                    .Where("id", idtoupdate)
+                    //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = idtoupdate,
+                            data = new JsonRaw(measuringpoint2),
+                        }
+                    );
+
+                return Tuple.Create<int, string>(queryresult, measuringpoint2.Id);
+            }
+            catch (Exception ex)
+            {
+                return Tuple.Create<int, string>(0, measuringpoint.Id);
+            }
+        }
+
 
         #endregion
     }
 
-    public class ODHActivityPoiOld : ODHActivityPoiLinked
-    {
-        public new IDictionary<string, List<Tags>> Tags { get; set; }
-    }
+    //public class ODHActivityPoiOld : ODHActivityPoiLinked
+    //{
+    //    public new IDictionary<string, List<Tags>> Tags { get; set; }
+    //}
 
     #region obsolete
 
