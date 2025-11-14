@@ -16,9 +16,9 @@ namespace Helper.Converters
 {
     #region Event V2 Converters
 
-    public class EventV2Converter
+    public class EventFlattenedConverter
     {
-        public static IEnumerable<EventConversionResult> ConvertEventListToEventV2<T>(
+        public static IEnumerable<EventConversionResult> ConvertEventListToEventFlattened<T>(
             IEnumerable<T> events,
             IEnumerable<EventTypes> eventtypes = null,
             IEnumerable<VenueType> venuetypes = null
@@ -32,7 +32,7 @@ namespace Helper.Converters
                 if (eventv1 is EventShortLinked)
                 {
                     result.Add(
-                        ConvertEventShortToEventV2(
+                        ConvertEventShortToEventFlattened(
                             eventv1 as EventShortLinked,
                             eventtypes,
                             venuetypes
@@ -42,7 +42,7 @@ namespace Helper.Converters
                 if (eventv1 is EventLinked)
                 {
                     result.Add(
-                        ConvertEventToEventV2(eventv1 as EventLinked, eventtypes, venuetypes)
+                        ConvertEventToEventFlattened(eventv1 as EventLinked, eventtypes, venuetypes)
                     );
                 }
             }
@@ -51,21 +51,21 @@ namespace Helper.Converters
         }
 
         //Convert Event to EventV2
-        private static EventConversionResult ConvertEventToEventV2(
+        private static EventConversionResult ConvertEventToEventFlattened(
             EventLinked eventv1,
             IEnumerable<EventTypes> eventtypes = null,
             IEnumerable<VenueType> venuetypes = null
         )
         {
-            List<EventV2> eventv2list = new List<EventV2>();
-            List<VenueV2> venuev2list = new List<VenueV2>();
+            List<EventFlattened> eventv2list = new List<EventFlattened>();
+            List<VenueFlattened> venuev2list = new List<VenueFlattened>();
 
             int eventcounter = 0;
 
             foreach (var eventdate in eventv1.EventDate)
             {
                 //Try to map all to EventsV2
-                EventV2 eventv2 = new EventV2();
+                EventFlattened eventv2 = new EventFlattened();
 
                 eventv2.PublishedOn = eventv1.PublishedOn;
                 eventv2.Id = eventv1.Id + "_" + eventcounter.ToString();
@@ -128,7 +128,7 @@ namespace Helper.Converters
                 }
 
                 //Creating Venue
-                VenueV2 venue = new VenueV2();
+                VenueFlattened venue = new VenueFlattened();
 
                 string venuename = eventv1
                     .EventAdditionalInfos.GetEnglishOrFirstKeyFromDictionary()
@@ -209,21 +209,21 @@ namespace Helper.Converters
         }
 
         //Convert EventShort to EventV2
-        private static EventConversionResult ConvertEventShortToEventV2(
+        private static EventConversionResult ConvertEventShortToEventFlattened(
             EventShortLinked eventv1,
             IEnumerable<EventTypes> eventtypes = null,
             IEnumerable<VenueType> venuetypes = null
         )
         {
-            List<EventV2> eventv2list = new List<EventV2>();
-            List<VenueV2> venuev2list = new List<VenueV2>();
+            List<EventFlattened> eventv2list = new List<EventFlattened>();
+            List<VenueFlattened> venuev2list = new List<VenueFlattened>();
 
             int eventcounter = 0;
 
             foreach (var room in eventv1.RoomBooked)
             {
                 //Try to map all to EventsV2
-                EventV2 eventv2 = new EventV2();
+                EventFlattened eventv2 = new EventFlattened();
 
                 eventv2.PublishedOn = eventv1.PublishedOn;
                 eventv2.Id = eventv1.Id + "_" + eventcounter;
@@ -377,7 +377,7 @@ namespace Helper.Converters
                 //Space, SpaceDesc, SpaceType, Comment, SpaceAbbrev, SpaceDescRoomMapping
 
                 //Create Venue
-                VenueV2 venue = new VenueV2();
+                VenueFlattened venue = new VenueFlattened();
                 venue.Id = "eventeuracnoi_" + room.Space.ToLower() + "_" + room.SpaceType;
                 venue.Id = venue.Id.ToUpper();
 
@@ -432,9 +432,9 @@ namespace Helper.Converters
         }
 
         //Convert EventV2 to Event, pass all the Venues, the Root Event should be the first in List
-        private static EventLinked ConvertEventV2ToEvent(
-            EventV2 eventv2,
-            List<VenueV2> venuev2list,
+        private static EventLinked ConvertEventFlattenedToEvent(
+            EventFlattened eventv2,
+            List<VenueFlattened> venuev2list,
             List<EventTypes> eventtypes
         )
         {
@@ -645,33 +645,33 @@ namespace Helper.Converters
 
     #region VenueV2 Converter
 
-    public class VenueV2Converter
+    public class VenueFlattenedConverter
     {
-        public static IEnumerable<VenueV2> ConvertVenueListToVenueV2(
+        public static IEnumerable<VenueFlattened> ConvertVenueListToVenueFlattened(
             IEnumerable<VenueLinked> venues,
             IEnumerable<DDVenueCodes> venuecodes
         )
         {
-            var venuestoreturn = new List<VenueV2>();
+            var venuestoreturn = new List<VenueFlattened>();
 
             foreach (var venue in venues)
             {
-                var result = ConvertVenueLinkedToVenueV2(venue, venuecodes);
+                var result = ConvertVenueLinkedToVenueFlattened(venue, venuecodes);
                 venuestoreturn.AddRange(result);
             }
 
             return venuestoreturn;
         }
 
-        private static IEnumerable<VenueV2> ConvertVenueLinkedToVenueV2(
+        private static IEnumerable<VenueFlattened> ConvertVenueLinkedToVenueFlattened(
             VenueLinked venuev1,
             IEnumerable<DDVenueCodes> venuecodes
         )
         {
-            List<VenueV2> venues = new List<VenueV2>();
+            List<VenueFlattened> venues = new List<VenueFlattened>();
 
             //Root Venue
-            VenueV2 venuev2 = new VenueV2();
+            VenueFlattened venuev2 = new VenueFlattened();
 
             venuev2.Id = venuev1.Id;
             venuev2.HasLanguage = venuev1.HasLanguage;
@@ -709,7 +709,7 @@ namespace Helper.Converters
             //Subvenue
             foreach (var subvenuev1 in venuev1.RoomDetails)
             {
-                VenueV2 subvenuev2 = new VenueV2();
+                VenueFlattened subvenuev2 = new VenueFlattened();
                 subvenuev2.Id = subvenuev1.Id;
                 //Infos from root
                 subvenuev2.HasLanguage = venuev1.HasLanguage;
@@ -860,14 +860,14 @@ namespace Helper.Converters
     {
         public EventConversionResult() { }
 
-        public EventConversionResult(IEnumerable<EventV2> events, IEnumerable<VenueV2> venues)
+        public EventConversionResult(IEnumerable<EventFlattened> events, IEnumerable<VenueFlattened> venues)
         {
             this.Events = events;
             this.Venues = venues;
         }
 
-        public IEnumerable<EventV2> Events { get; set; }
-        public IEnumerable<VenueV2> Venues { get; set; }
+        public IEnumerable<EventFlattened> Events { get; set; }
+        public IEnumerable<VenueFlattened> Venues { get; set; }
     }
 
     #endregion

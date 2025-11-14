@@ -447,7 +447,8 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("venues_v2")
                     .Select(venuecolumn)
-                    .Where("id", id.ToUpper())
+                    //.Where("id", id.ToUpper())
+                    .Where("gen_id", id.ToUpper())
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)

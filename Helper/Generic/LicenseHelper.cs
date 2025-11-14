@@ -173,7 +173,7 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
-        public static LicenseInfo GetLicenseforEvent(EventV2 data)
+        public static LicenseInfo GetLicenseforEvent(EventFlattened data)
         {
             var isopendata = false;
             var licensetype = "Closed";
@@ -530,7 +530,7 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
-        public static LicenseInfo GetLicenseforVenue(VenueV2 data)
+        public static LicenseInfo GetLicenseforVenue(VenueFlattened data)
         {
             var isopendata = false;
             var licensetype = "Closed";

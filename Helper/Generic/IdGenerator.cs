@@ -66,8 +66,8 @@ namespace Helper
             {
                 Accommodation or AccommodationLinked or AccommodationV2 => IDStyle.uppercase,
                 AccoRoom or AccommodationRoomLinked => IDStyle.uppercase,
-                LTSActivityLinked => IDStyle.uppercase,
-                LTSPoiLinked => IDStyle.uppercase,
+                //LTSActivityLinked => IDStyle.uppercase,
+                //LTSPoiLinked => IDStyle.uppercase,
                 //GastronomyLinked => IDStyle.uppercase,
                 Event or EventLinked => IDStyle.uppercase,
                 ODHActivityPoi or ODHActivityPoiLinked => IDStyle.lowercase,
@@ -110,8 +110,8 @@ namespace Helper
                 Type _
                     when odhtype == typeof(AccoRoom)
                         || odhtype == typeof(AccommodationRoomLinked) => IDStyle.uppercase,
-                Type _ when odhtype == typeof(LTSActivityLinked) => IDStyle.uppercase,
-                Type _ when odhtype == typeof(LTSPoiLinked) => IDStyle.uppercase,
+                //Type _ when odhtype == typeof(LTSActivityLinked) => IDStyle.uppercase,
+                //Type _ when odhtype == typeof(LTSPoiLinked) => IDStyle.uppercase,
                 //Type _ when odhtype == typeof(GastronomyLinked) => IDStyle.uppercase,
                 Type _ when odhtype == typeof(Event) || odhtype == typeof(EventLinked) =>
                     IDStyle.uppercase,

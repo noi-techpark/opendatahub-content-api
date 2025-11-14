@@ -828,7 +828,7 @@ namespace Helper
             );
 
             return query
-                .IdUpperFilter(idlist)
+                .IdUpperFilter(idlist, "gen_id")
                 .SyncSourceInterfaceFilter_GeneratedColumn(sourcelist)
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
                 .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
@@ -929,7 +929,7 @@ namespace Helper
             );
 
             return query
-                .IdUpperFilter(idlist)
+                .IdUpperFilter(idlist, "gen_id")
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
                 .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
                 .PublishedOnFilter_GeneratedColumn(publishedonlist) //.PublishedOnFilter(publishedonlist)
@@ -1098,7 +1098,7 @@ namespace Helper
 
             //TODO
             return query
-                .IdUpperFilter(idlist)
+                .IdUpperFilter(idlist, "gen_id")
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.VenueActiveFilter(activefilter)
                 .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.VenueODHActiveFilter(smgactivefilter)
                 .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.VenueODHTagFilter(smgtaglist)

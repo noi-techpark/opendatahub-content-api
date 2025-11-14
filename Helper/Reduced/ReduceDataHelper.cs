@@ -29,16 +29,16 @@ namespace Helper
                         ? true
                         : false
                     : false,
-                LTSActivityLinked => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
-                LTSPoiLinked => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
+                //LTSActivityLinked => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
+                //LTSPoiLinked => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
                 //GastronomyLinked => myobject.Source != null
                 //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
                 //        ? true
@@ -79,137 +79,137 @@ namespace Helper
         }
 
         //LTS ActivityData
-        public static LTSActivityLinkedReduced CopyLTSActivityToReducedObject(
-            LTSActivityLinked myactivity
-        )
-        {
-            var reduced = new LTSActivityLinkedReduced();
+        //public static LTSActivityLinkedReduced CopyLTSActivityToReducedObject(
+        //    LTSActivityLinked myactivity
+        //)
+        //{
+        //    var reduced = new LTSActivityLinkedReduced();
 
-            reduced.Id = myactivity.Id + "_REDUCED";
-            //Activity/Number
-            reduced.WayNumber = myactivity.WayNumber;
-            //Features/IsWithLight
-            reduced.IsWithLigth = myactivity.IsWithLigth;
-            //Features/HasRentals
-            reduced.HasRentals = myactivity.HasRentals;
-            //Features/LiftAvailable
-            reduced.LiftAvailable = myactivity.LiftAvailable;
-            //Features/FeetClimb
-            reduced.FeetClimb = myactivity.FeetClimb;
-            //Features/BikeTransport
-            reduced.BikeTransport = myactivity.BikeTransport;
-            //Features/isOpen
-            reduced.IsOpen = myactivity.IsOpen;
+        //    reduced.Id = myactivity.Id + "_REDUCED";
+        //    //Activity/Number
+        //    reduced.WayNumber = myactivity.WayNumber;
+        //    //Features/IsWithLight
+        //    reduced.IsWithLigth = myactivity.IsWithLigth;
+        //    //Features/HasRentals
+        //    reduced.HasRentals = myactivity.HasRentals;
+        //    //Features/LiftAvailable
+        //    reduced.LiftAvailable = myactivity.LiftAvailable;
+        //    //Features/FeetClimb
+        //    reduced.FeetClimb = myactivity.FeetClimb;
+        //    //Features/BikeTransport
+        //    reduced.BikeTransport = myactivity.BikeTransport;
+        //    //Features/isOpen
+        //    reduced.IsOpen = myactivity.IsOpen;
 
-            //Position/Longitude,Latitude,Altitude
-            //reduced.GpsPoints = myactivity.GpsPoints;
-            reduced.GpsInfo = myactivity.GpsInfo;
+        //    //Position/Longitude,Latitude,Altitude
+        //    //reduced.GpsPoints = myactivity.GpsPoints;
+        //    reduced.GpsInfo = myactivity.GpsInfo;
 
-            //Name
-            reduced.Detail = ReducedDataHelper.ReduceDetailInfo(myactivity.Detail);
-            //ContactInfo/URL
-            reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForActivity(
-                myactivity.ContactInfos
-            );
+        //    //Name
+        //    reduced.Detail = ReducedDataHelper.ReduceDetailInfo(myactivity.Detail);
+        //    //ContactInfo/URL
+        //    reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForActivity(
+        //        myactivity.ContactInfos
+        //    );
 
-            //Tag
-            reduced.SmgTags = myactivity.SmgTags;
-            reduced.LTSTags =
-                myactivity.LTSTags != null
-                    ? ReducedDataHelper.ReduceLtsTags(myactivity.LTSTags).ToList()
-                    : null;
+        //    //Tag
+        //    reduced.SmgTags = myactivity.SmgTags;
+        //    reduced.LTSTags =
+        //        myactivity.LTSTags != null
+        //            ? ReducedDataHelper.ReduceLtsTags(myactivity.LTSTags).ToList()
+        //            : null;
 
-            //ODH Fields
-            reduced.Shortname = myactivity.Shortname;
-            reduced.Type = myactivity.Type;
-            reduced.SubType = myactivity.SubType;
-            reduced.PoiType = myactivity.PoiType;
-            reduced.AdditionalPoiInfos = myactivity.AdditionalPoiInfos;
-            reduced.Source = myactivity.Source;
+        //    //ODH Fields
+        //    reduced.Shortname = myactivity.Shortname;
+        //    reduced.Type = myactivity.Type;
+        //    reduced.SubType = myactivity.SubType;
+        //    reduced.PoiType = myactivity.PoiType;
+        //    reduced.AdditionalPoiInfos = myactivity.AdditionalPoiInfos;
+        //    reduced.Source = myactivity.Source;
 
-            //ODH Fields
-            reduced.Active = myactivity.Active;
-            reduced.SmgActive = myactivity.SmgActive;
-            reduced.LastChange = myactivity.LastChange;
-            reduced.FirstImport = myactivity.FirstImport;
-            reduced.HasLanguage = myactivity.HasLanguage;
+        //    //ODH Fields
+        //    reduced.Active = myactivity.Active;
+        //    reduced.SmgActive = myactivity.SmgActive;
+        //    reduced.LastChange = myactivity.LastChange;
+        //    reduced.FirstImport = myactivity.FirstImport;
+        //    reduced.HasLanguage = myactivity.HasLanguage;
 
-            ///LocationInfo, ODH Object calculated with
-            reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(
-                myactivity.LocationInfo
-            );
+        //    ///LocationInfo, ODH Object calculated with
+        //    reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(
+        //        myactivity.LocationInfo
+        //    );
 
-            //License + Meta
-            reduced.LicenseInfo = myactivity.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "ltsactivity",
-                "lts",
-                reduced.LastChange,
-                true
-            );
-            //reduced.PublishedOn = HelperClass.GetPublishenOnList("ltsactivity", reduced.SmgActive);
+        //    //License + Meta
+        //    reduced.LicenseInfo = myactivity.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "ltsactivity",
+        //        "lts",
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    //reduced.PublishedOn = HelperClass.GetPublishenOnList("ltsactivity", reduced.SmgActive);
 
-            //ImageGallery
-            reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(myactivity.ImageGallery);
+        //    //ImageGallery
+        //    reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(myactivity.ImageGallery);
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
 
         //LTS PoiData
-        public static LTSPoiLinkedReduced CopyLTSPoiToReducedObject(LTSPoiLinked mypoi)
-        {
-            var reduced = new LTSPoiLinkedReduced();
+        //public static LTSPoiLinkedReduced CopyLTSPoiToReducedObject(LTSPoiLinked mypoi)
+        //{
+        //    var reduced = new LTSPoiLinkedReduced();
 
-            //TODO
-            reduced.Id = mypoi.Id + "_REDUCED";
-            reduced.HasFreeEntrance = mypoi.HasFreeEntrance; //Features/HasFreeEntrance
-            //Position/Longitude,Latitude,Altitude
-            reduced.GpsInfo = mypoi.GpsInfo;
-            //reduced.GpsPoints = mypoi.GpsPoints;
+        //    //TODO
+        //    reduced.Id = mypoi.Id + "_REDUCED";
+        //    reduced.HasFreeEntrance = mypoi.HasFreeEntrance; //Features/HasFreeEntrance
+        //    //Position/Longitude,Latitude,Altitude
+        //    reduced.GpsInfo = mypoi.GpsInfo;
+        //    //reduced.GpsPoints = mypoi.GpsPoints;
 
-            reduced.Detail = ReducedDataHelper.ReduceDetailInfo(mypoi.Detail);
-            reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForPoi(mypoi.ContactInfos);
+        //    reduced.Detail = ReducedDataHelper.ReduceDetailInfo(mypoi.Detail);
+        //    reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForPoi(mypoi.ContactInfos);
 
-            //Tag
-            reduced.SmgTags = mypoi.SmgTags;
-            reduced.LTSTags =
-                mypoi.LTSTags != null
-                    ? ReducedDataHelper.ReduceLtsTags(mypoi.LTSTags).ToList()
-                    : null;
+        //    //Tag
+        //    reduced.SmgTags = mypoi.SmgTags;
+        //    reduced.LTSTags =
+        //        mypoi.LTSTags != null
+        //            ? ReducedDataHelper.ReduceLtsTags(mypoi.LTSTags).ToList()
+        //            : null;
 
-            //ODH Fields
-            reduced.Active = mypoi.Active;
-            reduced.SmgActive = mypoi.SmgActive;
-            reduced.LastChange = mypoi.LastChange;
-            reduced.FirstImport = mypoi.FirstImport;
-            reduced.HasLanguage = mypoi.HasLanguage;
-            reduced.Shortname = mypoi.Shortname;
-            reduced.AdditionalPoiInfos = mypoi.AdditionalPoiInfos;
-            reduced.Type = mypoi.Type;
-            reduced.SubType = mypoi.SubType;
-            reduced.PoiType = mypoi.PoiType;
-            reduced.Source = mypoi.Source;
+        //    //ODH Fields
+        //    reduced.Active = mypoi.Active;
+        //    reduced.SmgActive = mypoi.SmgActive;
+        //    reduced.LastChange = mypoi.LastChange;
+        //    reduced.FirstImport = mypoi.FirstImport;
+        //    reduced.HasLanguage = mypoi.HasLanguage;
+        //    reduced.Shortname = mypoi.Shortname;
+        //    reduced.AdditionalPoiInfos = mypoi.AdditionalPoiInfos;
+        //    reduced.Type = mypoi.Type;
+        //    reduced.SubType = mypoi.SubType;
+        //    reduced.PoiType = mypoi.PoiType;
+        //    reduced.Source = mypoi.Source;
 
-            ///LocationInfo, ODH Object calculated with
-            reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(mypoi.LocationInfo);
+        //    ///LocationInfo, ODH Object calculated with
+        //    reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(mypoi.LocationInfo);
 
-            //License + Meta
-            reduced.LicenseInfo = mypoi.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "ltspoi",
-                "lts",
-                reduced.LastChange,
-                true
-            );
-            //reduced.PublishedOn = HelperClass.GetPublishenOnList("ltspoi", reduced.SmgActive);
+        //    //License + Meta
+        //    reduced.LicenseInfo = mypoi.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "ltspoi",
+        //        "lts",
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    //reduced.PublishedOn = HelperClass.GetPublishenOnList("ltspoi", reduced.SmgActive);
 
-            //ImageGallery
-            reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(mypoi.ImageGallery);
+        //    //ImageGallery
+        //    reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(mypoi.ImageGallery);
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
 
         ////LTS Gastronomic Data ACTIVE: (IsEnabled=1 and RepresentationRestricition=1)
         //public static GastronomyLinkedReduced CopyLTSGastronomyToReducedObject(

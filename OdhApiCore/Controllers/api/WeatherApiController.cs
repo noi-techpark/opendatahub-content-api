@@ -1622,7 +1622,8 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("measuringpoints")
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    //.Where("id", id.ToUpper())
+                    .Where("gen_id", id.ToUpper())
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)

@@ -108,9 +108,7 @@ namespace LCS
                             .WeatherForecast
                     )
                     {
-                        WeatherObservation myobservation = new WeatherObservation();
-                        myobservation.Level = "";
-                        myobservation.LevelId = "";
+                        WeatherObservation myobservation = new WeatherObservation();                        
                         myobservation.Id = measuringpoint.Observation.WeatherForecasts.ID;
                         myobservation.IconID = weatherobservation.IconID;
                         myobservation.Date = null;

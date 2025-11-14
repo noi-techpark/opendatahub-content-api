@@ -363,122 +363,122 @@ namespace RAVEN
             return data;
         }
 
-        public static LTSActivityLinked GetActivityPGObject(LTSActivityLinked data)
-        {
-            LTSActivityLinked data2 = new LTSActivityLinked();
-            data2.Active = data.Active;
-            data2.AdditionalPoiInfos = data.AdditionalPoiInfos;
-            data2.AltitudeDifference = data.AltitudeDifference;
-            data2.AltitudeHighestPoint = data.AltitudeHighestPoint;
-            data2.AltitudeLowestPoint = data.AltitudeLowestPoint;
-            data2.AltitudeSumDown = data.AltitudeSumDown;
-            data2.AltitudeSumUp = data.AltitudeSumUp;
-            data2.AreaId = data.AreaId;
-            data2.BikeTransport = data.BikeTransport;
-            data2.ContactInfos = data.ContactInfos;
-            data2.Detail = data.Detail;
-            data2.Difficulty = data.Difficulty;
-            data2.DistanceDuration = data.DistanceDuration;
-            data2.DistanceLength = data.DistanceLength;
-            data2.Exposition = data.Exposition;
-            data2.FeetClimb = data.FeetClimb;
-            data2.FirstImport = data.FirstImport;
-            data2.GpsInfo = data.GpsInfo;
-            //data2.GpsPoints = new Dictionary<string, GpsInfo>();
-            data2.GpsTrack = data.GpsTrack;
-            data2.HasFreeEntrance = data.HasFreeEntrance;
-            data2.HasLanguage = data.HasLanguage;
-            data2.HasRentals = data.HasRentals;
-            data2.Highlight = data.Highlight;
-            data2.Id = data.Id;
-            data2.ImageGallery = data.ImageGallery;
-            data2.IsOpen = data.IsOpen;
-            data2.IsPrepared = data.IsPrepared;
-            data2.IsWithLigth = data.IsWithLigth;
-            data2.LastChange = data.LastChange;
-            data2.LiftAvailable = data.LiftAvailable;
-            data2.LocationInfo = data.LocationInfo;
-            data2.LTSTags = data.LTSTags;
-            data2.OperationSchedule = data.OperationSchedule;
-            data2.OutdooractiveID = data.OutdooractiveID;
-            data2.PoiType = data.PoiType;
-            data2.Ratings = data.Ratings;
-            data2.RunToValley = data.RunToValley;
-            data2.Shortname = data.Shortname;
-            data2.SmgActive = data.SmgActive;
-            data2.SmgId = data.SmgId;
-            data2.SmgTags = data.SmgTags;
-            data2.SubType = data.SubType;
-            data2.TourismorganizationId = data.TourismorganizationId;
-            data2.Type = data.Type;
-            data2.OwnerRid = data.OwnerRid;
-            data2.ChildPoiIds = data.ChildPoiIds;
-            data2.MasterPoiIds = data.MasterPoiIds;
-            data2.CopyrightChecked = data.CopyrightChecked;
-            data2.OutdooractiveElevationID = data.OutdooractiveElevationID;
-            data2.WayNumber = data.WayNumber;
-            data2.Number = data.Number;
-            data2.LicenseInfo = data.LicenseInfo;
+        //public static LTSActivityLinked GetActivityPGObject(LTSActivityLinked data)
+        //{
+        //    LTSActivityLinked data2 = new LTSActivityLinked();
+        //    data2.Active = data.Active;
+        //    data2.AdditionalPoiInfos = data.AdditionalPoiInfos;
+        //    data2.AltitudeDifference = data.AltitudeDifference;
+        //    data2.AltitudeHighestPoint = data.AltitudeHighestPoint;
+        //    data2.AltitudeLowestPoint = data.AltitudeLowestPoint;
+        //    data2.AltitudeSumDown = data.AltitudeSumDown;
+        //    data2.AltitudeSumUp = data.AltitudeSumUp;
+        //    data2.AreaId = data.AreaId;
+        //    data2.BikeTransport = data.BikeTransport;
+        //    data2.ContactInfos = data.ContactInfos;
+        //    data2.Detail = data.Detail;
+        //    data2.Difficulty = data.Difficulty;
+        //    data2.DistanceDuration = data.DistanceDuration;
+        //    data2.DistanceLength = data.DistanceLength;
+        //    data2.Exposition = data.Exposition;
+        //    data2.FeetClimb = data.FeetClimb;
+        //    data2.FirstImport = data.FirstImport;
+        //    data2.GpsInfo = data.GpsInfo;
+        //    //data2.GpsPoints = new Dictionary<string, GpsInfo>();
+        //    data2.GpsTrack = data.GpsTrack;
+        //    data2.HasFreeEntrance = data.HasFreeEntrance;
+        //    data2.HasLanguage = data.HasLanguage;
+        //    data2.HasRentals = data.HasRentals;
+        //    data2.Highlight = data.Highlight;
+        //    data2.Id = data.Id;
+        //    data2.ImageGallery = data.ImageGallery;
+        //    data2.IsOpen = data.IsOpen;
+        //    data2.IsPrepared = data.IsPrepared;
+        //    data2.IsWithLigth = data.IsWithLigth;
+        //    data2.LastChange = data.LastChange;
+        //    data2.LiftAvailable = data.LiftAvailable;
+        //    data2.LocationInfo = data.LocationInfo;
+        //    data2.LTSTags = data.LTSTags;
+        //    data2.OperationSchedule = data.OperationSchedule;
+        //    data2.OutdooractiveID = data.OutdooractiveID;
+        //    data2.PoiType = data.PoiType;
+        //    data2.Ratings = data.Ratings;
+        //    data2.RunToValley = data.RunToValley;
+        //    data2.Shortname = data.Shortname;
+        //    data2.SmgActive = data.SmgActive;
+        //    data2.SmgId = data.SmgId;
+        //    data2.SmgTags = data.SmgTags;
+        //    data2.SubType = data.SubType;
+        //    data2.TourismorganizationId = data.TourismorganizationId;
+        //    data2.Type = data.Type;
+        //    data2.OwnerRid = data.OwnerRid;
+        //    data2.ChildPoiIds = data.ChildPoiIds;
+        //    data2.MasterPoiIds = data.MasterPoiIds;
+        //    data2.CopyrightChecked = data.CopyrightChecked;
+        //    data2.OutdooractiveElevationID = data.OutdooractiveElevationID;
+        //    data2.WayNumber = data.WayNumber;
+        //    data2.Number = data.Number;
+        //    data2.LicenseInfo = data.LicenseInfo;
 
-            if (String.IsNullOrEmpty(data.Source))
-                data2.Source = "lts";
-            else
-                data2.Source = data.Source.ToLower();
+        //    if (String.IsNullOrEmpty(data.Source))
+        //        data2.Source = "lts";
+        //    else
+        //        data2.Source = data.Source.ToLower();
 
-            data2.Id = data2.Id.ToUpper();
+        //    data2.Id = data2.Id.ToUpper();
 
-            if (data2.SmgTags != null && data2.SmgTags.Count > 0)
-                data2.SmgTags = data2.SmgTags.Select(x => x.ToLower()).ToList();
+        //    if (data2.SmgTags != null && data2.SmgTags.Count > 0)
+        //        data2.SmgTags = data2.SmgTags.Select(x => x.ToLower()).ToList();
 
-            if (data2.LTSTags != null)
-            {
-                foreach (var myltstag in data2.LTSTags)
-                {
-                    myltstag.Id = myltstag.Id.ToLower();
-                }
-            }
+        //    if (data2.LTSTags != null)
+        //    {
+        //        foreach (var myltstag in data2.LTSTags)
+        //        {
+        //            myltstag.Id = myltstag.Id.ToLower();
+        //        }
+        //    }
 
-            if (String.IsNullOrEmpty(data2.Source))
-                data2.Source = "lts";
+        //    if (String.IsNullOrEmpty(data2.Source))
+        //        data2.Source = "lts";
 
-            data2._Meta = MetadataHelper.GetMetadataobject<LTSActivityLinked>(
-                data2,
-                MetadataHelper.GetMetadataforActivity
-            ); //GetMetadata(data.Id, "ltsactivity", "lts", data.LastChange);
-            data2.PublishedOn = new List<string>();
+        //    data2._Meta = MetadataHelper.GetMetadataobject<LTSActivityLinked>(
+        //        data2,
+        //        MetadataHelper.GetMetadataforActivity
+        //    ); //GetMetadata(data.Id, "ltsactivity", "lts", data.LastChange);
+        //    data2.PublishedOn = new List<string>();
 
-            return data2;
-        }
+        //    return data2;
+        //}
 
-        public static LTSPoiLinked GetPoiPGObject(LTSPoiLinked data)
-        {
-            data.Id = data.Id.ToUpper();
+        //public static LTSPoiLinked GetPoiPGObject(LTSPoiLinked data)
+        //{
+        //    data.Id = data.Id.ToUpper();
 
-            if (data.SmgTags != null && data.SmgTags.Count > 0)
-                data.SmgTags = data.SmgTags.Select(x => x.ToLower()).ToList();
+        //    if (data.SmgTags != null && data.SmgTags.Count > 0)
+        //        data.SmgTags = data.SmgTags.Select(x => x.ToLower()).ToList();
 
-            if (data.LTSTags != null)
-            {
-                foreach (var myltstag in data.LTSTags)
-                {
-                    myltstag.Id = myltstag.Id.ToLower();
-                }
-            }
+        //    if (data.LTSTags != null)
+        //    {
+        //        foreach (var myltstag in data.LTSTags)
+        //        {
+        //            myltstag.Id = myltstag.Id.ToLower();
+        //        }
+        //    }
 
-            if (String.IsNullOrEmpty(data.Source))
-                data.Source = "lts";
-            else
-                data.Source = data.Source.ToLower();
+        //    if (String.IsNullOrEmpty(data.Source))
+        //        data.Source = "lts";
+        //    else
+        //        data.Source = data.Source.ToLower();
 
-            data.PublishedOn = new List<string>();
+        //    data.PublishedOn = new List<string>();
 
-            data._Meta = MetadataHelper.GetMetadataobject<LTSPoiLinked>(
-                data,
-                MetadataHelper.GetMetadataforPoi
-            ); //GetMetadata(data.Id, "ltspoi", "lts", data.LastChange);
+        //    data._Meta = MetadataHelper.GetMetadataobject<LTSPoiLinked>(
+        //        data,
+        //        MetadataHelper.GetMetadataforPoi
+        //    ); //GetMetadata(data.Id, "ltspoi", "lts", data.LastChange);
 
-            return data;
-        }
+        //    return data;
+        //}
 
         public static ArticlesLinked GetArticlePGObject(ArticlesLinked data)
         {
