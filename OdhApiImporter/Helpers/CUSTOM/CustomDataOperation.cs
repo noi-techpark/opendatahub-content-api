@@ -2419,7 +2419,7 @@ namespace OdhApiImporter.Helpers
         public async Task<Tuple<int, string>> VenueToVenueV2()
         {
             //Load all data from PG and resave
-            var query = QueryFactory.Query().SelectRaw("data").From("venue_v2");
+            var query = QueryFactory.Query().SelectRaw("data").From("venues_v2");
 
             var data = await query.GetObjectListAsync<VenueLinked>();
             int i = 0;
@@ -2486,7 +2486,6 @@ namespace OdhApiImporter.Helpers
                         roomdetailv2.VenueRoomProperties.SquareMeters = roomdetail.SquareMeters;
                         roomdetailv2.Placement = roomdetail.Indoor != null && roomdetail.Indoor.Value ? "indoor" : null;
                                                                        
-
                         //Roomdeatil VenueFeature
                         if (roomdetail.VenueFeatures != null)
                         {
@@ -2515,6 +2514,8 @@ namespace OdhApiImporter.Helpers
 
                         //Create Tags
                         await roomdetailv2.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(roomdetailv2));
+
+                        venue2.RoomDetails.Add(roomdetailv2);
                     }
                 }
                 
@@ -2555,11 +2556,11 @@ namespace OdhApiImporter.Helpers
                 if (!venue2.Id.Contains("_REDUCED"))
                     idtoupdate = venue2.Id + reduced;
 
-
+                //Clear the table and insert
                 var queryresult = await QueryFactory
                     .Query("venues")
                     .Where("id", idtoupdate)                    
-                    .UpdateAsync(
+                    .InsertAsync(
                         new JsonBData()
                         {
                             id = idtoupdate,
@@ -2583,7 +2584,7 @@ namespace OdhApiImporter.Helpers
         public async Task<Tuple<int, string>> MeasuringpointToMeasuringpointV2()
         {
             //Load all data from PG and resave
-            var query = QueryFactory.Query().SelectRaw("data").From("measuringpoint");
+            var query = QueryFactory.Query().SelectRaw("data").From("measuringpoints");
 
             var data = await query.GetObjectListAsync<MeasuringpointLinked>();
             int i = 0;

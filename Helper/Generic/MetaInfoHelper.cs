@@ -106,6 +106,7 @@ namespace Helper
                 EventFlattened ev => GetMetadataforEvent(ev),
                 VenueFlattened ev => GetMetadataforVenue(ev),
                 VenueV2 vv => GetMetadataforVenue(vv),
+                MeasuringpointV2 mv => GetMetadataforMeasuringpoint(mv),
                 GeoShapeJson gj => GetMetadataForGeoShapeJson(gj),
                 Announcement ri => GetMetadataforAnnouncement(ri),
                 _ => throw new Exception("not known odh type"),
@@ -260,6 +261,15 @@ namespace Helper
         }
 
         public static Metadata GetMetadataforMeasuringpoint(MeasuringpointLinked data)
+        {
+            bool reduced = false;
+            if (data._Meta != null)
+                reduced = (bool)data._Meta.Reduced;
+
+            return GetMetadata(data, "lts", reduced);
+        }
+
+        public static Metadata GetMetadataforMeasuringpoint(MeasuringpointV2 data)
         {
             bool reduced = false;
             if (data._Meta != null)
