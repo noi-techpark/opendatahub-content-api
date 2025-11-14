@@ -2451,6 +2451,97 @@ namespace OdhApiImporter.Helpers
                 var venue2 = new VenueV2();
                 venue2.Id = venue.Id;
                 venue2.Active = venue.Active;
+                //venue2.AdditionalProperties 
+                venue2.Beds = venue.Beds;
+                venue2.ContactInfos = venue.ContactInfos;
+                venue2.Detail = venue.Detail;
+                venue2.DistanceInfo = venue.DistanceInfo;
+                venue2.FirstImport = venue.FirstImport;
+                venue2.GpsInfo = venue.GpsInfo;
+                venue2.HasLanguage = venue.HasLanguage;
+                venue2.ImageGallery = venue.ImageGallery;
+                venue2.LastChange = venue.LastChange;
+                venue2.LicenseInfo = venue.LicenseInfo;
+                venue2.LocationInfo = venue.LocationInfo;
+                venue2.Mapping = venue.Mapping;
+                venue2.OperationSchedule = venue.OperationSchedule;
+                venue2.PublishedOn = venue.PublishedOn;
+                venue2.Shortname = venue.Shortname;
+                venue2.Source = venue.Source;
+                venue2._Meta = venue._Meta;
+                
+                if(venue.RoomDetails != null)
+                {
+                    venue2.RoomDetails = new List<VenueRoomDetailsV2>();
+
+                    foreach (var roomdetail in venue.RoomDetails)
+                    {
+                        VenueRoomDetailsV2 roomdetailv2 = new VenueRoomDetailsV2();
+                        roomdetailv2.ImageGallery = roomdetail.ImageGallery;
+                        roomdetailv2.Detail = roomdetail.Detail;
+                        roomdetailv2.Id = roomdetail.Id;
+                        roomdetailv2.Shortname = roomdetail.Shortname;
+
+                        roomdetailv2.VenueRoomProperties = new VenueRoomProperties();
+                        roomdetailv2.VenueRoomProperties.SquareMeters = roomdetail.SquareMeters;
+                        roomdetailv2.Placement = roomdetail.Indoor != null && roomdetail.Indoor.Value ? "indoor" : null;
+                                                                       
+
+                        //Roomdeatil VenueFeature
+                        if (roomdetail.VenueFeatures != null)
+                        {
+                            if(roomdetailv2.TagIds == null)
+                                roomdetailv2.TagIds = new List<string>();
+
+                            foreach (var venuefeat in roomdetail.VenueFeatures)
+                            {
+                                roomdetailv2.TagIds.Add(venuefeat.Id);
+                            }
+                        }
+                        if (roomdetail.VenueSetup != null)
+                        {
+                            if (roomdetailv2.TagIds == null)
+                            {
+                                roomdetailv2.TagIds = new List<string>();
+                                roomdetailv2.Tags = new List<Tags>();
+                            }
+
+                            foreach (var venuesetup in roomdetail.VenueSetup)
+                            {
+                                roomdetailv2.TagIds.Add(venuesetup.Id);
+                                roomdetailv2.Tags.Add(new Tags() { Id = venuesetup.Id, TagEntry = new Dictionary<string, string>() { { "maxCapacity", venuesetup.Capacity.ToString() } } });
+                            }
+                        }                        
+
+                        //Create Tags
+                        await roomdetailv2.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(roomdetailv2));
+                    }
+                }
+                
+
+                //venue.VenueCategory
+                if(venue.VenueCategory != null)
+                {
+                    venue2.TagIds = new List<string>();
+                    foreach (var venuecat in venue.VenueCategory)
+                    {
+                        venue2.TagIds.Add(venuecat.Id);
+                    }
+                }
+                
+                //Create Tags
+                await venue2.UpdateTagsExtension(QueryFactory);
+
+                //not needed anymore
+                //venue.RoomCount
+                //venue.SyncSourceInterface
+                //venue.SmgTags
+                //venue.SmgActive
+                //venue.ODHTags
+                //venue.OdhActive
+
+
+
 
                 //If Reduced use the ID without reduced
                 if (venue._Meta.Reduced)
@@ -2467,8 +2558,7 @@ namespace OdhApiImporter.Helpers
 
                 var queryresult = await QueryFactory
                     .Query("venues")
-                    .Where("id", idtoupdate)
-                    //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+                    .Where("id", idtoupdate)                    
                     .UpdateAsync(
                         new JsonBData()
                         {
@@ -2525,6 +2615,42 @@ namespace OdhApiImporter.Helpers
                 var measuringpoint2 = new MeasuringpointV2();
                 measuringpoint2.Id = measuringpoint.Id;
                 measuringpoint2.Active = measuringpoint.Active;
+
+                measuringpoint2.AreaIds = measuringpoint.AreaIds;
+                measuringpoint2.DistanceInfo = measuringpoint.DistanceInfo;
+                measuringpoint2.FirstImport = measuringpoint.FirstImport;
+                measuringpoint2.GpsInfo = measuringpoint.GpsInfo;
+                measuringpoint2.LastChange = measuringpoint.LastChange;
+                measuringpoint2.LastSnowDate = measuringpoint.LastSnowDate;
+                measuringpoint2.LastUpdate = measuringpoint.LastUpdate;
+                measuringpoint2.LicenseInfo = measuringpoint.LicenseInfo;
+                measuringpoint2.LocationInfo = measuringpoint.LocationInfo;
+                measuringpoint2.Mapping = measuringpoint.Mapping;
+                measuringpoint2.newSnowHeight = measuringpoint.newSnowHeight;
+                measuringpoint2.PublishedOn = measuringpoint.PublishedOn;
+                measuringpoint2.Shortname = measuringpoint.Shortname;
+                measuringpoint2.SkiAreaIds = measuringpoint.SkiAreaIds;
+                measuringpoint2._Meta = measuringpoint._Meta;
+                measuringpoint2.SnowHeight = measuringpoint.SnowHeight;
+                measuringpoint2.Source = measuringpoint.Source;
+                measuringpoint2.Temperature = measuringpoint.Temperature;
+                measuringpoint2.WeatherObservation = measuringpoint.WeatherObservation;
+
+                measuringpoint2.Detail = new Dictionary<string, DetailGeneric>()
+                {
+                    { "de", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "de" } },
+                    { "it", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "it" } },
+                    { "en", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "en" } }
+                };
+
+                measuringpoint2.HasLanguage = measuringpoint2.Detail.Keys.ToList();
+
+                //not needed at the moment
+                //measuringpoint2.Tags
+                //measuringpoint2.TagIds
+                //measuringpoint2.AdditionalProperties
+
+
 
                 //If Reduced use the ID without reduced
                 if (measuringpoint._Meta.Reduced)

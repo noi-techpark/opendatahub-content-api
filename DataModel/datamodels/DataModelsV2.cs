@@ -804,6 +804,8 @@ namespace DataModel
                     : null;
             }
         }
+
+        public ICollection<Tags>? Tags { get; set; }
     }
 
     #endregion
@@ -827,7 +829,8 @@ namespace DataModel
         IDetailInfosAware,
         IContactInfosAware,
         IMetaData,
-        IHasLocationInfoLinked
+        IHasLocationInfoLinked,
+        IHasTagInfo
     {
         public VenueV2()
         {
@@ -877,7 +880,7 @@ namespace DataModel
         //public ICollection<VenueType>? VenueCategory { get; set; }
     }
 
-    public class VenueRoomDetailsV2
+    public class VenueRoomDetailsV2 : IHasTagInfo
     {
         public VenueRoomDetailsV2()
         {
@@ -899,7 +902,7 @@ namespace DataModel
         //Add to Tags with TagEntry
         //public ICollection<VenueSetup>? VenueSetup { get; set; }
 
-        public List<string> TagIds { get; set; }
+        public ICollection<string> TagIds { get; set; }
 
         public ICollection<Tags> Tags { get; set; }
         
