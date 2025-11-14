@@ -462,11 +462,11 @@ namespace Helper
                             }
                         }
                         else if (mydata is MeasuringpointV2)
+                        { 
                             if ((mydata as MeasuringpointV2).Active)
                             {
                                 publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
-                            }
-                        {
+                            }                        
                         }
                         break;
 
