@@ -454,9 +454,19 @@ namespace Helper
                         break;
 
                     case "measuringpoint":
-                        if ((mydata as MeasuringpointLinked).Active)
-                        {                            
-                            publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                        if (mydata is MeasuringpointLinked)
+                        {
+                            if ((mydata as MeasuringpointLinked).Active)
+                            {
+                                publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                            }
+                        }
+                        else if (mydata is MeasuringpointV2)
+                            if ((mydata as MeasuringpointV2).Active)
+                            {
+                                publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                            }
+                        {
                         }
                         break;
 
@@ -464,6 +474,13 @@ namespace Helper
                         if (mydata is VenueLinked)
                         {
                             if ((mydata as VenueLinked).Active == true)
+                            {
+                                publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                            }
+                        }
+                        else if (mydata is VenueV2)
+                        {
+                            if ((mydata as VenueV2).Active == true)
                             {
                                 publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
                             }
