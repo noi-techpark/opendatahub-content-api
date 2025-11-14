@@ -2090,7 +2090,12 @@ namespace OdhApiImporter.Helpers
                 {
                     string originalid = data.Id;
 
-                    data.Id = data.Id.Replace("_REDUCED", "");
+                    if(Helper.IdGenerator.GetIDStyle(data) == IDStyle.lowercase)
+                        data.Id = data.Id.Replace("_reduced", "");
+                    else
+                        data.Id = data.Id.Replace("_REDUCED", "");
+
+
                     //Save tp DB
                     //TODO CHECK IF THIS WORKS
                     var queryresult = await QueryFactory
