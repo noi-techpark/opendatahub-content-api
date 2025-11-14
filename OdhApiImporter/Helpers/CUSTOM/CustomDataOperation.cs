@@ -2483,12 +2483,6 @@ namespace OdhApiImporter.Helpers
 
         #endregion
 
-        #region ODHAcivityPoi
-
-        //TODO add the REDUCED gen_id fix for all not updated items!
-
-        #endregion
-
         #region Measuringpoint
 
         public async Task<Tuple<int, string>> MeasuringpointToMeasuringpointV2()

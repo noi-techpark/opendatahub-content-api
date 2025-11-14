@@ -1145,6 +1145,10 @@ namespace OdhApiImporter.Controllers
 
             if (table == "events")
                 throw new Exception("EventDatamodel changed, caution! use CleanEventsDataModel");
+            if (table == "measuringpoints")
+                throw new Exception("Measuringpoints Datamodel changed, caution! use CleanEventsDataModel");
+            if (table == "venues")
+                throw new Exception("Venues Datamodel changed, caution! use CleanEventsDataModel");
 
             CustomDataOperation customdataoperation = new CustomDataOperation(
                 settings,
