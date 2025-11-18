@@ -352,8 +352,8 @@ namespace OdhApiImporter.Helpers
             {
                 var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
                     QueryFactory,
-                    gpspoint.Latitude,
-                    gpspoint.Longitude,
+                    gpspoint.Latitude.GetValueOrDefault(0),
+                    gpspoint.Longitude.GetValueOrDefault(0),
                     30000
                 );
                 if (district == null)
