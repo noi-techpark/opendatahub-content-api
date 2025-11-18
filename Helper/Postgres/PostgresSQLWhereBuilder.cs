@@ -1391,8 +1391,8 @@ namespace Helper
             string? searchfilter,
             string? language,
             IDictionary<string, List<string>>? tagdict,
-            DateTime? start,
-            DateTime? end,
+            DateTimeOffset? start,
+            DateTimeOffset? end,
             string? additionalfilter,
             IEnumerable<string> userroles
         )

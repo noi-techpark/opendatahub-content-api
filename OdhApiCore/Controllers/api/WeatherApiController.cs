@@ -1044,8 +1044,8 @@ namespace OdhApiCore.Controllers
                         var distance = DistanceCalculator.Distance(
                             geosearchresult.latitude,
                             geosearchresult.longitude,
-                            weatherealtime.latitude,
-                            weatherealtime.longitude,
+                            weatherealtime.latitude.GetValueOrDefault(0),
+                            weatherealtime.longitude.GetValueOrDefault(0),
                             'K'
                         );
 

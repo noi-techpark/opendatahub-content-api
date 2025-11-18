@@ -4,6 +4,7 @@
 
 using NetTopologySuite.Geometries;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DataModel
 {
@@ -90,7 +91,19 @@ namespace DataModel
         public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
     }
 
+    public static class GeoDictionaryExtensions
+    {
+        public static GpsInfo? GetDefaultGeoInfo(this IDictionary<string, GpsInfo> geoDictionary)
+        {
+            return geoDictionary.Values.FirstOrDefault(gpsInfo => gpsInfo.Default == true);
+        }
 
+        public static bool GeoInfoIsValid(this IDictionary<string, GpsInfo> geoDictionary)
+        {
+            var defaults = geoDictionary.Where(g => g.Value.Default == true);
+            return defaults.Count() == 1;
+        }
+    }
 
     #region olddeprecated
 
