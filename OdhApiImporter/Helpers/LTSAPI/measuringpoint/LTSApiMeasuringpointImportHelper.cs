@@ -282,12 +282,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<UpdateDetail> SaveMeasuringpointsToPG(List<JObject> ltsdata, CancellationToken cancellationToken = default)
-        {
-            //var newimportcounter = 0;
-            //var updateimportcounter = 0;
-            //var errorimportcounter = 0;
-            //var deleteimportcounter = 0;
-
+        {            
             List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
             if (ltsdata != null)
@@ -319,7 +314,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 foreach (var data in weathersnowdata)
                 {
-                    string id = data.data.rid.ToLower();
+                    string id = data.data.rid.ToUpper();
 
                     var measuringpointparsed = MeasuringpointParser.ParseLTSMeasuringpoint(data.data, false);
 

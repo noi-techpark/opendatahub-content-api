@@ -77,7 +77,7 @@ namespace Helper
                 ODHActivityPoiLinked odhapl => GetMetadataforOdhActivityPoi(odhapl, reduced),
                 PackageLinked pl => GetMetadataforPackage(pl),
                 MeasuringpointLinked ml => GetMetadataforMeasuringpoint(ml),
-                WebcamInfoLinked wil => GetMetadataforWebcam(wil),
+                WebcamInfoLinked wil => GetMetadataforWebcam(wil, reduced),
                 ArticlesLinked al => GetMetadataforArticle(al),
                 DDVenue ddv => GetMetadataforDDVenue(ddv),
                 VenueLinked vl => GetMetadataforVenue(vl),
@@ -105,8 +105,8 @@ namespace Helper
                 TourismMetaData tm => GetMetaDataForMetaData(tm),
                 EventFlattened ev => GetMetadataforEvent(ev),
                 VenueFlattened ev => GetMetadataforVenue(ev),
-                VenueV2 vv => GetMetadataforVenue(vv),
-                MeasuringpointV2 mv => GetMetadataforMeasuringpoint(mv),
+                VenueV2 vv => GetMetadataforVenue(vv, reduced),
+                MeasuringpointV2 mv => GetMetadataforMeasuringpoint(mv, reduced),
                 GeoShapeJson gj => GetMetadataForGeoShapeJson(gj),
                 Announcement ri => GetMetadataforAnnouncement(ri),
                 _ => throw new Exception("not known odh type"),
@@ -262,20 +262,29 @@ namespace Helper
 
         public static Metadata GetMetadataforMeasuringpoint(MeasuringpointLinked data)
         {
+            string? sourcemeta = data.Source?.ToLower();
+
             bool reduced = false;
             if (data._Meta != null)
                 reduced = (bool)data._Meta.Reduced;
 
-            return GetMetadata(data, "lts", reduced);
+            return GetMetadata(data, sourcemeta, reduced);
         }
 
-        public static Metadata GetMetadataforMeasuringpoint(MeasuringpointV2 data)
+        public static Metadata GetMetadataforMeasuringpoint(MeasuringpointV2 data, bool reduced = false)
         {
-            bool reduced = false;
-            if (data._Meta != null)
-                reduced = (bool)data._Meta.Reduced;
+            string? sourcemeta = data.Source?.ToLower();
 
-            return GetMetadata(data, "lts", reduced);
+            return GetMetadata(data, sourcemeta, reduced);
+        }
+
+        public static Metadata GetMetadataforWebcam(WebcamInfoLinked data, bool reduced)
+        {
+            string sourcemeta = data.Source?.ToLower() ?? "";
+            if (sourcemeta == "content")
+                sourcemeta = "idm";
+            
+            return GetMetadata(data, sourcemeta, reduced);
         }
 
         public static Metadata GetMetadataforWebcam(WebcamInfoLinked data)
