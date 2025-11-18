@@ -16,7 +16,7 @@ namespace HDS
 {
     public class GetDataFromHDS
     {
-        public static Task<ParseResult<HDSMarket>> ImportCSVMarketFromHDS(string? csvcontent)
+        public static Task<ParseResult<T>> ImportCSVMarketFromHDS<T>(string? csvcontent)
         {
             try
             {                
@@ -29,7 +29,7 @@ namespace HDS
                     //NewLine = "\r\n" Environment.NewLine,
                     //MissingFieldFound = null  //Hack for server?
                 };
-                var records = default(IEnumerable<HDSMarket>);
+                var records = default(IEnumerable<T>);
 
                 //Import from File or from posted data
                 using (
@@ -43,9 +43,9 @@ namespace HDS
                     //csv.Configuration.Delimiter = ";";
                     csv.Read();
                     csv.ReadHeader();
-                    records = csv.GetRecords<HDSMarket>();
+                    records = csv.GetRecords<T>();
 
-                    ParseResult<HDSMarket> myresult = new HDS.ParseResult<HDSMarket>();
+                    ParseResult<T> myresult = new HDS.ParseResult<T>();
                     myresult.Success = true;
                     myresult.Error = false;
                     myresult.records = records.ToList();
@@ -56,12 +56,12 @@ namespace HDS
             catch (Exception ex)
             {
                 return Task.FromResult(
-                    new ParseResult<HDSMarket>()
+                    new ParseResult<T>()
                     {
                         Error = true,
                         Success = false,
                         ErrorMessage = ex.Message,
-                        records = Enumerable.Empty<HDSMarket>(),
+                        records = Enumerable.Empty<T>(),
                     }
                 );
             }

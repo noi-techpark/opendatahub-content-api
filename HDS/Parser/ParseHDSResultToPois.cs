@@ -267,6 +267,19 @@ namespace HDS
             return mypoi;
         }
 
+        public static ODHActivityPoiLinked ParseHDSYearMarketToODHActivityPoi(
+            HDSYearMarket market
+        )
+        {
+            var mypoi = new ODHActivityPoiLinked();
+
+            //ID
+            var id = "hds:yearmarket:" + System.Guid.NewGuid();
+            mypoi.Id = id;
+
+            return mypoi;
+        }
+
         private static OperationSchedule? ParseOperationScheduleFromCSV(
             HDSMarket market
         )

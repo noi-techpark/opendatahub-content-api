@@ -3330,40 +3330,41 @@ namespace OdhApiImporter.Controllers
         #region HDS
 
         [Authorize(Roles = "DataWriter,HDSPoiImport")]
-        [HttpPost, Route("HDS/MarketCalendar/Update")]
-        public async Task<IActionResult> SaveHDSDataToPois(
+        [HttpPost, Route("HDS/MarketCalendar/Update/{type}")]
+        public async Task<IActionResult> SaveHDSDataToPois(string type,
             CancellationToken cancellationToken
         )
         {
             UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Import MarketCalendar";
+            string operation = $"Import HDS {type}";
             string updatetype = GetUpdateType(null);
             string source = "csv";
             string otherinfo = "hds";
 
             try
             {
-                StaVendingpointsImportHelper staimporthelper = new StaVendingpointsImportHelper(
+                HdsImportHelper hdsimporthelper = new HdsImportHelper(
                     settings,
                     QueryFactory,
-                    UrlGeneratorStatic("HDS/MarketCalendar")
+                    UrlGeneratorStatic("HDS/MarketCalendar"),
+                    type
                 );
-
-                updatedetail = await staimporthelper.PostVendingPointsFromSTA(
-                    Request,
-                    cancellationToken
+                
+                updatedetail = await hdsimporthelper.PostHDSMarketCalendar(
+                Request,
+                cancellationToken
                 );
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    "",
-                    source,
-                    operation,
-                    updatetype,
-                    "Import Vendingpoints succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
+                        "",
+                        source,
+                        operation,
+                        updatetype,
+                        $"Import HDS {type} succeeded",
+                        otherinfo,
+                        updatedetail,
+                        true
+                    );
 
                 return Ok(updateResult);
             }
@@ -3374,7 +3375,7 @@ namespace OdhApiImporter.Controllers
                     source,
                     operation,
                     updatetype,
-                    "Import Vendingpoints failed",
+                    $"Import HDS {type} failed",
                     otherinfo,
                     updatedetail,
                     ex,
