@@ -70,7 +70,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //Check if Data is accessible on LTS
             if (measuringpointlts != null && measuringpointlts.FirstOrDefault().ContainsKey("success") && (Boolean)measuringpointlts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
             {     //Import Single Data & Deactivate Data
-                var result = await SaveMeasuringpointsToPG(measuringpointlts);
+                var result = await SaveMeasuringpointsToPG(measuringpointlts, cancellationToken);
                 return result;
             }
             //If data is not accessible on LTS Side, delete or disable it
@@ -281,7 +281,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<UpdateDetail> SaveMeasuringpointsToPG(List<JObject> ltsdata)
+        private async Task<UpdateDetail> SaveMeasuringpointsToPG(List<JObject> ltsdata, CancellationToken cancellationToken = default)
         {
             //var newimportcounter = 0;
             //var updateimportcounter = 0;
@@ -326,19 +326,23 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //GET OLD Measuringpoint TO CHECK MeasuringpointV2 vs MeasuringpointLinked
                     var measuringpointindb = await LoadDataFromDB<MeasuringpointV2>(id, IDStyle.uppercase);
 
-                    //TODO Create LocationInfo!
-             
-                    if (!opendata)
-                    {
-                        
-                    }                 
+                    await MergeMeasuringpointTags(measuringpointparsed, measuringpointindb);
+
+                    //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
+                    measuringpointparsed.LocationInfo = await measuringpointindb.UpdateLocationInfoExtension(
+                        QueryFactory
+                    );
+
+                    //DistanceCalculation
+                    await measuringpointparsed.UpdateDistanceCalculation(QueryFactory);
+
+                    //Create Tags and preserve the old TagEntries
+                    await measuringpointparsed.UpdateTagsExtension(QueryFactory);
+
+                    await AssignSkiAreaIDs(measuringpointparsed, cancellationToken);
 
                     var result = await InsertDataToDB(measuringpointparsed, data.data, jsondata);
-
-                    //newimportcounter = newimportcounter + result.created ?? 0;
-                    //updateimportcounter = updateimportcounter + result.updated ?? 0;
-                    //errorimportcounter = errorimportcounter + result.error ?? 0;
-
+          
                     updatedetails.Add(new UpdateDetail()
                     {
                         created = result.created,
@@ -396,9 +400,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             try
             {
-                //TODO!
                 //Set LicenseInfo
-                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforVenue(objecttosave, opendata);
+                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforMeasuringpoint(objecttosave, opendata);
 
                 //TODO!
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
@@ -533,22 +536,29 @@ namespace OdhApiImporter.Helpers.LTSAPI
      
         private async Task MergeMeasuringpointTags(MeasuringpointV2 vNew, MeasuringpointV2 vOld)
         {
-            //if (vOld != null)
-            //{                                
-            //    //Readd all Redactional Tags to check if this query fits
-            //    var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
-            //    if (redactionalassignedTags != null)
-            //    {
-            //        foreach (var tag in redactionalassignedTags)
-            //        {
-            //            vNew.TagIds.Add(tag.Id);
-            //        }
-            //    }
-            //}
-
-            //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
-
-            //TODO import the Redactional Tags from SmgTags into Tags?
-        }        
+            if (vOld != null)
+            {
+                //Readd all Redactional Tags to check if this query fits
+                var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                if (redactionalassignedTags != null)
+                {
+                    foreach (var tag in redactionalassignedTags)
+                    {
+                        vNew.TagIds.Add(tag.Id);
+                    }
+                }
+            }
+        }
+        
+        private async Task AssignSkiAreaIDs(MeasuringpointV2 measuringpoint, CancellationToken cancellationToken)
+        {
+            //Measuringpoint, Fill SkiAreaIds
+            if (measuringpoint.AreaIds != null)
+            {
+                measuringpoint.SkiAreaIds = await QueryFactory
+                    .Query()
+                    .GetSkiAreaIdsfromSkiAreasAsync(measuringpoint.AreaIds, cancellationToken);
+            }
+        }
     }
 }

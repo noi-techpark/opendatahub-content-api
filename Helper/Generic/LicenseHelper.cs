@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using DataModel;
 
@@ -404,19 +405,74 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
-        public static LicenseInfo GetLicenseforMeasuringpoint(Measuringpoint data)
+        public static LicenseInfo GetLicenseforMeasuringpoint(Measuringpoint data, bool opendata = false)
         {
-            var isopendata = false;
             var licensetype = "Closed";
             var licenseholder = @"https://www.lts.it";
 
-            if (data.Active)
-            {
-                isopendata = true;
+            if (opendata)
+            {                
                 licensetype = "CC0";
             }
 
-            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !opendata);
+        }
+
+        public static LicenseInfo GetLicenseforMeasuringpoint(MeasuringpointV2 data, bool opendata = false)
+        {
+            var licensetype = "Closed";
+            var licenseholder = @"https://www.lts.it";
+
+            if (opendata)
+            {
+                licensetype = "CC0";
+            }
+
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !opendata);
+        }
+
+
+        public static LicenseInfo GetLicenseforWebcam(WebcamInfo data, bool opendata = true)
+        {            
+            var licensetype = "CC0";
+            var licenseholder = @"https://www.lts.it";
+
+            if(!opendata)
+            {
+                licensetype = "closed";
+            }
+
+            if (data.Source?.ToLower() == "content")
+            {                
+                licenseholder = @"https://www.idm-suedtirol.com";
+            }
+
+            if (data.Source?.ToLower() == "dss")
+            {
+                licenseholder = @"https://www.dolomitisuperski.com";
+            }
+
+            if (data.Source?.ToLower() == "feratel")
+            {
+                licenseholder = @"https://www.feratel.com/";
+            }
+
+            if (data.Source?.ToLower() == "panomax")
+            {                
+                licenseholder = @"https://www.panomax.com/";
+            }
+
+            if (data.Source?.ToLower() == "panocloud")
+            {
+                licenseholder = @"https://www.it-wms.com/";
+            }
+
+            if (data.Source?.ToLower() == "a22")
+            {
+                licenseholder = @"https://www.autobrennero.it/";
+            }
+
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !opendata);
         }
 
         public static LicenseInfo GetLicenseforWebcam(WebcamInfo data)

@@ -732,7 +732,8 @@ namespace DataModel
             IMetaData,
             IGPSPointsAware,
             IGPSInfoAware,
-            IHasLocationInfoLinked        
+            IHasLocationInfoLinked,
+            IHasTagInfo
     {
         public MeasuringpointV2()
         {

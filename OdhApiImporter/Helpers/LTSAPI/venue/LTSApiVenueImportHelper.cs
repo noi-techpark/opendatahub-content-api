@@ -322,7 +322,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     string id = data.data.rid.ToLower();
 
-                    var venueparsed = VenueParser.ParseLTSVenueV1(data.data, false);
+                    var venueparsed = VenueParser.ParseLTSVenue(data.data, false);
 
                     //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
                     //venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
@@ -330,7 +330,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //);
 
                     //DistanceCalculation
-                    //await venueparsed.UpdateDistanceCalculation(QueryFactory);
+                    await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Venue TO CHECK VenueLinked vs VenueV2
                     var venueindb = await LoadDataFromDB<VenueLinked>(id, IDStyle.lowercase);
@@ -362,7 +362,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }
 
                     //Create Tags and preserve the old TagEntries
-                    //await venueparsed.UpdateTagsExtension(QueryFactory, null);
+                    await venueparsed.UpdateTagsExtension(QueryFactory, null);
 
 
                     var result = await InsertDataToDB(venueparsed, data.data, jsondata);
