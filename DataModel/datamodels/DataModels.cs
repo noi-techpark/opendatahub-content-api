@@ -16,13 +16,16 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text.Json.Serialization;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
+// using System.Text.Json.Serialization; // this is not the package used to serialize
+using Newtonsoft.Json;
 
 namespace DataModel
 {
     #region District Municipality Region
 
-    public class Region : BaseInfos, IImageGalleryAware, IGpsPolygon, IPublishedOn
+    public class Region : BaseInfos, IImageGalleryAware, IPublishedOn
     {
         public Region()
         {
@@ -43,7 +46,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class MetaRegion : BaseInfos, IImageGalleryAware, IGpsPolygon
+    public class MetaRegion : BaseInfos, IImageGalleryAware
     {
         public MetaRegion()
         {
@@ -63,7 +66,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class ExperienceArea : BaseInfos, IImageGalleryAware, IGpsPolygon
+    public class ExperienceArea : BaseInfos, IImageGalleryAware
     {
         public ICollection<string>? DistrictIds { get; set; }
         public ICollection<string>? TourismvereinIds { get; set; }
@@ -72,7 +75,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class Tourismverein : BaseInfos, IImageGalleryAware, IGpsPolygon
+    public class Tourismverein : BaseInfos, IImageGalleryAware
     {
         public string? RegionId { get; set; }
 
@@ -86,7 +89,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class Municipality : BaseInfos, IImageGalleryAware, IGpsPolygon
+    public class Municipality : BaseInfos, IImageGalleryAware
     {
         public string? Plz { get; set; }
 
@@ -106,7 +109,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class District : BaseInfos, IImageGalleryAware, IGpsPolygon
+    public class District : BaseInfos, IImageGalleryAware
     {
         public Nullable<bool> IsComune { get; set; }
 
@@ -439,10 +442,12 @@ namespace DataModel
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
         public string? Gpstype { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public Nullable<double> Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
+        public string Geometry { get; set; }
+        public bool? Default { get; set; }
 
         public DistanceInfo? DistanceInfo { get; set; }
 
@@ -751,8 +756,8 @@ namespace DataModel
 
     //    //GPS Info
     //    public string? Gpstype { get; set; }
-    //    public double Latitude { get; set; }
-    //    public double Longitude { get; set; }
+    //    public double? Latitude { get; set; }
+    //    public double? Longitude { get; set; }
     //    public Nullable<double> Altitude { get; set; }
     //    public string? AltitudeUnitofMeasure { get; set; }
 
@@ -882,11 +887,12 @@ namespace DataModel
 
         //GPS Info
         public string? Gpstype { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        
+        public string Geometry { get; set; }
+        public bool? Default { get; set; }
         
         
         public string? DistrictId { get; set; }
@@ -1815,8 +1821,8 @@ namespace DataModel
         [SwaggerSchema("Snow depth (cm)")]
         public string? hs { get; set; }
         public DateTime lastUpdated { get; set; }
-        public double latitude { get; set; }
-        public double longitude { get; set; }
+        public double? latitude { get; set; }
+        public double? longitude { get; set; }
 
         [SwaggerSchema(
             "Only for weather stations on the mountain: [1] if the weather station is a snow measuring field, [2] if the weather station is a wind station, [null] otherwise"
@@ -2162,10 +2168,12 @@ namespace DataModel
 
         //GPS
         public string? Gpstype { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public Nullable<double> Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
+        public string Geometry { get; set; }
+        public bool? Default { get; set; }
         public DistanceInfo? DistanceInfo { get; set; }
 
         //Observation
@@ -2303,8 +2311,8 @@ namespace DataModel
 
         ////GPS
         //public string Gpstype { get; set; }
-        //public double Latitude { get; set; }
-        //public double Longitude { get; set; }
+        //public double? Latitude { get; set; }
+        //public double? Longitude { get; set; }
         //public Nullable<double> Altitude { get; set; }
         //public string AltitudeUnitofMeasure { get; set; }
 
@@ -3477,10 +3485,12 @@ namespace DataModel
         public string? Shortname { get; set; }
 
         public string? Gpstype { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
+        public string Geometry { get; set; }
+        public bool? Default { get; set; }
 
         public IDictionary<string, Detail> Detail { get; set; }
         public IDictionary<string, ContactInfos> ContactInfos { get; set; }
@@ -3721,10 +3731,47 @@ namespace DataModel
             }
         )]
         public string? Gpstype { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
+        public string? Geometry { get; set; }
+        public bool? Default { get; set; }
+
+        [JsonIgnore]
+        public Geometry? Geometry4326
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Geometry)) return null;
+                try
+                {
+                    // Use NTS to parse the WKT string
+                    var reader = new WKTReader();
+                    var geo = reader.Read(Geometry);
+                    geo.SRID = 4326;
+                    return geo;
+                }
+                catch (ParseException)
+                {
+                    return null;
+                }
+            }
+        }
+
+        [JsonIgnore]
+        public bool IsValidGeometry 
+        {
+            get
+            {
+                var geo = Geometry4326;
+                
+                if (geo == null) return false;
+                if (!geo.IsValid) return false;
+                
+                return true;
+            }
+        }
     }
 
     public class DistanceInfo : IDistanceInfo

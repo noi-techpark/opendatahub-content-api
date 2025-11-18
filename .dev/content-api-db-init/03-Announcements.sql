@@ -7,6 +7,7 @@
 CREATE TABLE public.announcements (
 	id varchar(100) NOT NULL,
 	"data" jsonb NULL,
+	geo public.geometry NOT NULL,
 	gen_active bool GENERATED ALWAYS AS ((data #> '{Active}'::text[])::boolean) STORED NULL,
 	gen_haslanguage _text GENERATED ALWAYS AS (json_array_to_pg_array(data #> '{HasLanguage}'::text[])) STORED NULL,
 	gen_licenseinfo_closeddata bool GENERATED ALWAYS AS ((data #> '{LicenseInfo,ClosedData}'::text[])::boolean) STORED NULL,
@@ -19,19 +20,6 @@ CREATE TABLE public.announcements (
 	gen_begindate TIMESTAMPTZ GENERATED ALWAYS AS (text2tstz(data #>> '{StartTime}')) STORED NULL,
     gen_enddate TIMESTAMPTZ GENERATED ALWAYS AS (text2tstz(data #>> '{EndTime}')) STORED NULL,
 	gen_access_role _text GENERATED ALWAYS AS (calculate_access_array(data #>> '{_Meta,Source}'::text[], (data #> '{LicenseInfo,ClosedData}'::text[])::boolean, (data #> '{_Meta,Reduced}'::text[])::boolean)) STORED NULL,
-	gen_geometry public.geometry GENERATED ALWAYS AS (
-        ST_SetSRID(
-            ST_GeomFromText(data #>> '{WKTGeometry4326}'), 
-            4326
-        )
-    ) STORED NULL,
-	gen_center_position public.geometry GENERATED ALWAYS AS (
-        ST_Centroid(
-            ST_SetSRID(
-                ST_GeomFromText(data #>> '{WKTGeometry4326}'), 
-                4326
-            )
-        )
-    ) STORED NULL,
+	gen_center_position public.geometry GENERATED ALWAYS AS ( ST_Centroid(geo) ) STORED NULL,
 	CONSTRAINT roadincidents_pkey PRIMARY KEY (id)
 );

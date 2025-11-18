@@ -264,6 +264,7 @@ namespace OdhApiCore.Controllers
         }
 
         //CREATE and UPDATE data
+        #region LEGACY UpsertData
         protected async Task<IActionResult> UpsertData<T>(
             T data,
             DataInfo datainfo,
@@ -276,7 +277,7 @@ namespace OdhApiCore.Controllers
             //TODO Username and provenance of the insert/edit
             //Get the Name Identifier TO CHECK what about service accounts?
             string editor =
-                this.User != null && this.User.Claims != null ? 
+                this.User != null && this.User.Claims != null ?
                 this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
                     : "anonymous";
 
@@ -308,10 +309,49 @@ namespace OdhApiCore.Controllers
 
             return ReturnCRUDResult(result);
         }
+        
+        #endregion
+        protected async Task<IActionResult> UpsertData<T>(
+            QueryFactoryExtension.Upsertable<T> data,
+            DataInfo datainfo,
+            CompareConfig compareconfig,
+            CRUDConstraints crudconstraints,
+            string editsource = "api"
+        )
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            //TODO Username and provenance of the insert/edit
+            //Get the Name Identifier TO CHECK what about service accounts?
+            string editor =
+                this.User != null && this.User.Claims != null ? 
+                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
+                    : "anonymous";
+
+            if (
+                HttpContext.Request.Headers.ContainsKey("Referer")
+                && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
+            )
+            {
+                editsource = HttpContext.Request.Headers["Referer"];
+            }
+
+            var result = await QueryFactory.UpsertData<T>(
+                data,
+                datainfo,
+                new EditInfo(editor, editsource),
+                crudconstraints,
+                compareconfig
+            );
+
+            //push modified data to all published Channels
+            result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
+
+            return ReturnCRUDResult(result);
+        }
 
         //BATCH CREATE and UPDATE data
         protected async Task<IActionResult> UpsertDataArray<T>(
-            IEnumerable<T> dataList,
+            IEnumerable<Helper.QueryFactoryExtension.Upsertable<T>> dataList,
             DataInfo datainfo,
             CompareConfig compareconfig,
             CRUDConstraints createConstraints,
@@ -333,13 +373,6 @@ namespace OdhApiCore.Controllers
             )
             {
                 editsource = HttpContext.Request.Headers["Referer"];
-
-                //Hack if Referer is infrastructure v2 api make an upsert
-                if (HttpContext.Request.Headers["Referer"] == "https://tourism.importer.v2")
-                {
-                    datainfo.ErrorWhendataExists = false;
-                    datainfo.ErrorWhendataIsNew = false;
-                }
             }
 
             try

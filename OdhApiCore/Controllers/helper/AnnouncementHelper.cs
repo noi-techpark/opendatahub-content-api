@@ -18,8 +18,8 @@ namespace OdhApiCore.Controllers.api
         public List<string> idlist;
         public List<string> sourcelist;
         public List<string> languagelist;
-        public DateTime? begin;
-        public DateTime? end;
+        public DateTimeOffset? begin;
+        public DateTimeOffset? end;
         public IDictionary<string, List<string>> tagdict;
 
         //New Publishedonlist
@@ -61,16 +61,24 @@ namespace OdhApiCore.Controllers.api
             //tagfilter
             tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
 
-            begin = DateTime.MinValue;
-            end = DateTime.MaxValue;
+            begin = DateTimeOffset.MinValue;
+            end = DateTimeOffset.MaxValue;
 
-            if (!String.IsNullOrEmpty(begindate))
-                if (begindate != "null")
-                    begin = Convert.ToDateTime(begindate);
+            if (!String.IsNullOrEmpty(begindate) && begindate != "null")
+            {
+                if (DateTimeOffset.TryParse(begindate, out DateTimeOffset parsedBegin))
+                {
+                    begin = parsedBegin;
+                }
+            }
 
-            if (!String.IsNullOrEmpty(enddate))
-                if (enddate != "null")
-                    end = Convert.ToDateTime(enddate);
+            if (!String.IsNullOrEmpty(enddate) && enddate != "null")
+            {
+                if (DateTimeOffset.TryParse(enddate, out DateTimeOffset parsedEnd))
+                {
+                    end = parsedEnd;
+                }
+            }
         }
     }
 }
