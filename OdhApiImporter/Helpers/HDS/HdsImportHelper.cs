@@ -73,6 +73,8 @@ namespace OdhApiImporter.Helpers
                     return await ImportMarketCalendarFromCSV(jsonContent, cancellationToken);
                 else if(type == "yearmarket")
                     return await ImportYearMarketCalendarFromCSV(jsonContent, cancellationToken);
+                else
+                    throw new Exception("type invalid");
             }
             else
                 throw new Exception("no Content");

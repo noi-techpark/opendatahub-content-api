@@ -25,216 +25,84 @@ namespace HDS
             var id = "hds:market:" + System.Guid.NewGuid();
             mypoi.Id = id;
 
-            //ADD MAPPING
-            //if (market.STA_ID is { })
-            //{
-            //    var staid = new Dictionary<string, string>() { { "sta_id", vendingpoint.STA_ID } };
-            //    mypoi.Mapping.TryAddOrUpdate("sta", staid);
-            //}
-
             //GPSData
-            //var commaCulture = new CultureInfo("en")
-            //{
-            //    NumberFormat = { NumberDecimalSeparator = "," },
-            //};
+            var commaCulture = new CultureInfo("de")
+            {
+                NumberFormat = { NumberDecimalSeparator = "." },
+            };
 
-            //double gpslat = !String.IsNullOrEmpty(vendingpoint.latitude)
-            //    ? Convert.ToDouble(vendingpoint.latitude, commaCulture)
-            //    : 0;
-            //double gpslong = !String.IsNullOrEmpty(vendingpoint.longitude)
-            //    ? Convert.ToDouble(vendingpoint.longitude, commaCulture)
-            //    : 0;
+            if(!String.IsNullOrEmpty(market.Geoloc))
+            {
+                var splitted = market.Geoloc.Split(",");
+                double gpslat = !String.IsNullOrEmpty(splitted[0].Trim())
+                    ? Convert.ToDouble(splitted[0].Trim(), commaCulture)
+                    : 0;
+                double gpslong = !String.IsNullOrEmpty(splitted[1].Trim())
+                    ? Convert.ToDouble(splitted[1].Trim(), commaCulture)
+                    : 0;
 
-            //if (gpslat != 0 && gpslong != 0)
-            //{
-            //    GpsInfo gpsinfo = new GpsInfo();
-            //    gpsinfo.Gpstype = "position";
-            //    gpsinfo.Latitude = gpslat;
-            //    gpsinfo.Longitude = gpslong;
+                if (gpslat != 0 && gpslong != 0)
+                {
+                    GpsInfo gpsinfo = new GpsInfo();
+                    gpsinfo.Gpstype = "position";
+                    gpsinfo.Latitude = gpslat;
+                    gpsinfo.Longitude = gpslong;
 
-            //    mypoi.GpsPoints.TryAddOrUpdate(gpsinfo.Gpstype, gpsinfo);
+                    mypoi.GpsPoints.TryAddOrUpdate(gpsinfo.Gpstype, gpsinfo);
 
-            //    if (mypoi.GpsInfo == null)
-            //        mypoi.GpsInfo = new List<GpsInfo>();
-            //    mypoi.GpsInfo.Add(gpsinfo);
-            //}
+                    if (mypoi.GpsInfo == null)
+                        mypoi.GpsInfo = new List<GpsInfo>();
+                    mypoi.GpsInfo.Add(gpsinfo);
+                }
+            }
 
             ////END GPsData
 
-            ////TODO
-
-            ////Properties Parsing
-            //List<PoiProperty> mypoipropertylist = new List<PoiProperty>();
-
-            //PoiProperty pPhasWebsite = new PoiProperty()
-            //{
-            //    Name = "haswebsite",
-            //    Value = vendingpoint.Website == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPhasWebsite);
-
-            //PoiProperty pPsuedtirolpassdienste = new PoiProperty()
-            //{
-            //    Name = "suedtirolpass_services",
-            //    Value = vendingpoint.SuedtirolPassDienste == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPsuedtirolpassdienste);
-
-            //PoiProperty pPsuedtirolpassover65 = new PoiProperty()
-            //{
-            //    Name = "suedtirolpass_over65_apply",
-            //    Value = vendingpoint.SuedtirolPass65PlusBeantragung == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPsuedtirolpassover65);
-
-            //PoiProperty pPduplicate = new PoiProperty()
-            //{
-            //    Name = "duplicate",
-            //    Value = vendingpoint.Duplikat == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPduplicate);
-
-            //PoiProperty pPHwertkarte = new PoiProperty()
-            //{
-            //    Name = "chargecard",
-            //    Value = vendingpoint.Wertkarte == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPHwertkarte);
-
-            //PoiProperty pPstadtfahrkartecitybus = new PoiProperty()
-            //{
-            //    Name = "city_card_bus",
-            //    Value = vendingpoint.StadtfahrkarteoCitybus == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPstadtfahrkartecitybus);
-
-            //PoiProperty pPmobilcard = new PoiProperty()
-            //{
-            //    Name = "mobilecard",
-            //    Value = vendingpoint.Mobilcard == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPmobilcard);
-
-            //PoiProperty pPbikemobilcard = new PoiProperty()
-            //{
-            //    Name = "bike_mobilecard",
-            //    Value = vendingpoint.bikemobilCard == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPbikemobilcard);
-
-            //PoiProperty pPmobilecard = new PoiProperty()
-            //{
-            //    Name = "museum_mobilecard",
-            //    Value = vendingpoint.MuseumobilCard == "1" ? "True" : "False",
-            //};
-            //mypoipropertylist.Add(pPmobilecard);
-
-            //mypoi.PoiProperty.TryAddOrUpdate("de", mypoipropertylist);
-            //mypoi.PoiProperty.TryAddOrUpdate("it", mypoipropertylist);
-            //mypoi.PoiProperty.TryAddOrUpdate("en", mypoipropertylist);
-            //mypoi.PoiProperty.TryAddOrUpdate("ld", mypoipropertylist);
-
-            ////End Properties Parsing
-
             ////DETAIL Parsing
 
-            //Detail detailde = new Detail();
-            //detailde.Language = "de";
-            //detailde.Title = vendingpoint.Salepoint_Name_STA_DE;
+            var namesplitted = market.Municipality.Split("-");
 
-            //if (!String.IsNullOrEmpty(vendingpoint.Zusatzinfo_DE))
-            //    detailde.AdditionalText = vendingpoint.Zusatzinfo_DE;
+            Detail detailde = new Detail();
+            detailde.Language = "de";
+            detailde.Title = namesplitted[0].Trim();
+            
+            mypoi.Detail.TryAddOrUpdate("de", detailde);
 
-            //mypoi.Detail.TryAddOrUpdate("de", detailde);
+            Detail detailit = new Detail();
+            detailit.Language = "it";
+            detailit.Title = namesplitted.Length > 1 ? namesplitted[1].Trim() : namesplitted[0].Trim();
 
-            //Detail detailit = new Detail();
-            //detailit.Language = "it";
-            //detailit.Title = vendingpoint.Salepoint_Name_STA_IT;
-
-            //if (!String.IsNullOrEmpty(vendingpoint.Zusatzinfo_IT))
-            //    detailde.AdditionalText = vendingpoint.Zusatzinfo_IT;
-
-            //mypoi.Detail.TryAddOrUpdate("it", detailit);
-
-            //Detail detailen = new Detail();
-            //detailen.Language = "en";
-            //detailen.Title = vendingpoint.Salepoint_Name_STA_EN;
-
-            //if (!String.IsNullOrEmpty(vendingpoint.Zusatzinfo_EN))
-            //    detailde.AdditionalText = vendingpoint.Zusatzinfo_EN;
-
-            //mypoi.Detail.TryAddOrUpdate("en", detailen);
-
-            //Detail detaillad = new Detail();
-            //detaillad.Language = "ld"; //ISO 639-3
-            //detaillad.Title = vendingpoint.Salepoint_Name_STA_LAD;
-
-            //if (!String.IsNullOrEmpty(vendingpoint.Zusatzinfo_LAD))
-            //    detailde.AdditionalText = vendingpoint.Zusatzinfo_LAD;
-
-            //mypoi.Detail.TryAddOrUpdate("ld", detaillad);
+            mypoi.Detail.TryAddOrUpdate("it", detailit);
 
             ////End DETAIL Parsing
 
-            ////Address Parsing
-            //ContactInfos contactInfosde = new ContactInfos();
-            //contactInfosde.CompanyName = vendingpoint.Salepoint_Name_STA_DE;
-            //contactInfosde.ZipCode = vendingpoint.CAP;
-            //contactInfosde.Address = vendingpoint.Adresse_DE;
-            //contactInfosde.City = vendingpoint.Stadt;
-            //contactInfosde.Phonenumber = vendingpoint.Tel;
-            //contactInfosde.Email = vendingpoint.E_Mail;
-            //contactInfosde.Language = "de";
-            ////contactInfosde.Vat = vendingpoint.Parita_IVA; TO CHECK WITH ROBERTO
-            //mypoi.ContactInfos.TryAddOrUpdate("de", contactInfosde);
+            /// Image Parsing
 
-            //ContactInfos contactInfosit = new ContactInfos();
-            //contactInfosit.CompanyName = vendingpoint.Salepoint_Name_STA_IT;
-            //contactInfosit.ZipCode = vendingpoint.CAP;
-            //contactInfosit.Address = vendingpoint.Adresse_IT_EN_LAD;
-            //contactInfosit.City = vendingpoint.cittaIT_EN_LAD;
-            //contactInfosit.Phonenumber = vendingpoint.Tel;
-            //contactInfosit.Email = vendingpoint.E_Mail;
-            //contactInfosit.Language = "it";
-            ////contactInfosit.Vat = vendingpoint.Parita_IVA; TO CHECK WITH ROBERTO
-            //mypoi.ContactInfos.TryAddOrUpdate("it", contactInfosit);
+            mypoi.ImageGallery.Add(
+                new ImageGallery()
+                {
+                    ImageSource = "hds",
+                    ImageUrl = market.Foto,
+                    ListPosition = 0,
+                    ImageName = market.Municipality,
+                    //License,
+                    //LicenseHolder
+                });
 
-            //ContactInfos contactInfosen = new ContactInfos();
-            //contactInfosen.CompanyName = vendingpoint.Salepoint_Name_STA_EN;
-            //contactInfosen.ZipCode = vendingpoint.CAP;
-            //contactInfosen.Address = vendingpoint.Adresse_IT_EN_LAD;
-            //contactInfosen.City = vendingpoint.cittaIT_EN_LAD;
-            //contactInfosen.Phonenumber = vendingpoint.Tel;
-            //contactInfosen.Email = vendingpoint.E_Mail;
-            //contactInfosen.Language = "en";
-            ////contactInfosen.Vat = vendingpoint.Parita_IVA; TO CHECK WITH ROBERTO
-            //mypoi.ContactInfos.TryAddOrUpdate("en", contactInfosen);
+            
+            /// End Image Parsing
 
-            //ContactInfos contactInfoslad = new ContactInfos();
-            //contactInfoslad.CompanyName = vendingpoint.Salepoint_Name_STA_LAD;
-            //contactInfoslad.ZipCode = vendingpoint.CAP;
-            //contactInfoslad.Address = vendingpoint.Adresse_IT_EN_LAD;
-            //contactInfoslad.City = vendingpoint.cittaIT_EN_LAD;
-            //contactInfoslad.Phonenumber = vendingpoint.Tel;
-            //contactInfoslad.Email = vendingpoint.E_Mail;
-            //contactInfoslad.Language = "ld";
-            ////contactInfoslad.Vat = vendingpoint.Parita_IVA; TO CHECK WITH ROBERTO
-            //mypoi.ContactInfos.TryAddOrUpdate("ld", contactInfoslad);
 
-            ////END Address Parsing
 
-            ////TODO
             ////OpeningTimes Parsing
 
-            ////Standard open all year? Make use of DB with Festive days and add them as closed?
-            //var operationschedule = ParseOperationScheduleFromCSV(vendingpoint);
+            var operationschedule = ParseOperationScheduleFromCSV(market.Weekday, market.Frequency, market.Seasonality);
 
-            //if (operationschedule != null)
-            //{
-            //    mypoi.OperationSchedule = new List<OperationSchedule>();
-
-            //    mypoi.OperationSchedule.Add(operationschedule);
-            //}
+            if (operationschedule != null)
+            {
+                mypoi.OperationSchedule = new List<OperationSchedule>();
+                mypoi.OperationSchedule.Add(operationschedule);
+            }
 
             ////END Openingtimes Parsing
 
@@ -246,21 +114,17 @@ namespace HDS
             //mypoi.SmgTags.Add("mobilität");
             //mypoi.SmgTags.Add("verkaufstellen ticket oeffentliche verkehrsmittel");
 
-            ////ODH Categorizations
-            ////TODO LOAD Categorizations
-            //mypoi.Type = "Mobilität";
-            //mypoi.SubType = "Verkaufstellen Ticket Oeffentliche Verkehrsmittel";
+            //TagIDs
+            
+            mypoi.SyncSourceInterface = "market";
+            mypoi.SyncUpdateMode = "full";
+            mypoi.Source = "hds";
 
-            //mypoi.SyncSourceInterface = "sta";
-            //mypoi.SyncUpdateMode = "Full";
-            //mypoi.Source = "sta";
+            mypoi.Active = true;
+            
+            mypoi.HasLanguage = new List<string>() { "de", "it" };
 
-            //mypoi.Active = true;
-            //mypoi.SmgActive = true;
-
-            //mypoi.HasLanguage = new List<string>() { "de", "it", "en", "ld" };
-
-            //mypoi.Shortname = mypoi.Detail["de"].Title;
+            mypoi.Shortname = mypoi.Detail["de"].Title;
 
             mypoi.LastChange = DateTime.Now;
 
@@ -280,10 +144,14 @@ namespace HDS
             return mypoi;
         }
 
+
         private static OperationSchedule? ParseOperationScheduleFromCSV(
-            HDSMarket market
+            string weekday, string frequency, string seasonality
         )
         {
+            OperationSchedule myoperationschedule = new OperationSchedule();
+            myoperationschedule.Type = "2";
+
             //if (
             //    !String.IsNullOrEmpty(vendingpoint.Wochentags_Beginn)
             //    || !String.IsNullOrEmpty(vendingpoint.Samstag_Beginn)
@@ -628,7 +496,7 @@ namespace HDS
             //    return myoperationschedule;
             //}
             //else
-                return null;
+            return null;
         }
     }
 }

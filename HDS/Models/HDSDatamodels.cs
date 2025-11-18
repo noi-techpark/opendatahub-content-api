@@ -43,7 +43,7 @@ namespace HDS
 
         [Index(7)]
         [Name("Ganzjährig/sainsonal - Annuale/stagionale")]
-        public string? Typee { get; set; }
+        public string? Seasonality { get; set; }
      
     }
 
