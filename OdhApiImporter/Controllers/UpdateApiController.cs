@@ -3327,6 +3327,65 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region HDS
+
+        [Authorize(Roles = "DataWriter,HDSPoiImport")]
+        [HttpPost, Route("HDS/MarketCalendar/Update")]
+        public async Task<IActionResult> SaveHDSDataToPois(
+            CancellationToken cancellationToken
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import MarketCalendar";
+            string updatetype = GetUpdateType(null);
+            string source = "csv";
+            string otherinfo = "hds";
+
+            try
+            {
+                StaVendingpointsImportHelper staimporthelper = new StaVendingpointsImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("HDS/MarketCalendar")
+                );
+
+                updatedetail = await staimporthelper.PostVendingPointsFromSTA(
+                    Request,
+                    cancellationToken
+                );
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    "Import Vendingpoints succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    "Import Vendingpoints failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        #endregion
 
         protected Func<string, string> UrlGeneratorStatic
         {
