@@ -640,8 +640,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 tagstopreserve = poiOld.SmgTags.Except(tagstoremove.Select(x => x.Id)).ToList();
 
             //Add the activity Tag
-            if (!poiNew.SmgTags.Contains("activity"))
-                poiNew.SmgTags.Add("activity");
+            if (!poiNew.SmgTags.Contains("poi"))
+                poiNew.SmgTags.Add("poi");
 
             //Readd all mapped Tags
             foreach (var ltstag in poiNew.TagIds)
