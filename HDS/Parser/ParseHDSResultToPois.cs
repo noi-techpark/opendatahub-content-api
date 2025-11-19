@@ -152,351 +152,92 @@ namespace HDS
             OperationSchedule myoperationschedule = new OperationSchedule();
             myoperationschedule.Type = "2";
 
-            //if (
-            //    !String.IsNullOrEmpty(vendingpoint.Wochentags_Beginn)
-            //    || !String.IsNullOrEmpty(vendingpoint.Samstag_Beginn)
-            //    || !String.IsNullOrEmpty(vendingpoint.Sonntag_Beginn)
-            //)
-            //{
-            //    OperationSchedule myoperationschedule = new OperationSchedule();
-            //    myoperationschedule.OperationscheduleName = new Dictionary<string, string>()
-            //    {
-            //        { "de", "Öffnungszeiten" },
-            //        { "it", "orario d'apertura" },
-            //        { "en", "Opening time" },
-            //    };
-            //    myoperationschedule.Start = new DateTime(DateTime.Now.Year, 1, 1);
-            //    myoperationschedule.Stop = new DateTime(DateTime.Now.Year, 12, 31);
-            //    myoperationschedule.Type = "2";
+            //JÄHRLICH - ANNUALE || SAISONAL - STAGIONALE
+            if (seasonality == "JÄHRLICH - ANNUALE")
+            {
+                //SET Start and End to whole year
+                myoperationschedule.Start = new DateTime(2025, 01, 01);
+                myoperationschedule.Stop = new DateTime(2025, 12, 31);
+            }
+            else if (seasonality == "SAISONAL - STAGIONALE")
+            {
+                //Parse frequency WÖCHENTLICH (APRIL-OKTOBER) - SETTIMANALE (APRILE-OTTOBRE) || WÖCHENTLICH (JULI-SEPTEMBER) - SETTIMANALE (LUGLIO-SETTEMBRE)
+                var splittedfrequency = frequency.Replace(" - ", "|").Split('|');
+                string parsedfrequency = "";
+                if (splittedfrequency != null && splittedfrequency.Length > 0)
+                    parsedfrequency = splittedfrequency[0].Trim().Replace("WÖCHENTLICH", "").Replace("(","").Replace(")", "");
 
-            //    ////Try Parsing Columns
-            //    TimeSpan beginweekday = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Wochentags_Beginn,
-            //        CultureInfo.InvariantCulture,
-            //        out beginweekday
-            //    );
+                var parsedfrequencysplitted = parsedfrequency.Split("-");
 
-            //    TimeSpan endweekdaynoon = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Pause_Start,
-            //        CultureInfo.InvariantCulture,
-            //        out endweekdaynoon
-            //    );
+                if(parsedfrequencysplitted != null && parsedfrequencysplitted.Length > 1)
+                {
+                    var startmonth = GetMonthByName(parsedfrequencysplitted[0]);
+                    var endmonth = GetMonthByName(parsedfrequencysplitted[1]);
 
-            //    TimeSpan beginweekdaynoon = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Pause_Ende,
-            //        CultureInfo.InvariantCulture,
-            //        out beginweekdaynoon
-            //    );
+                    if(startmonth > 0)
+                        myoperationschedule.Start = new DateTime(2025, startmonth, 01);
+                    if (endmonth > 0)
+                        myoperationschedule.Stop = GetLastDateOfMonth(2025, endmonth);
+                }
+            }
 
-            //    TimeSpan endweekday = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Wochentags_Ende,
-            //        CultureInfo.InvariantCulture,
-            //        out endweekday
-            //    );
+            if (weekday != null)
+            {
+                myoperationschedule.OperationScheduleTime = new List<OperationScheduleTime>();
 
-            //    //Saturday
+                var splittedweekday = weekday.Split("-");
+                if (splittedweekday.Length > 0)
+                {
+                    var parsedweekday = splittedweekday[0].Trim();
 
-            //    TimeSpan beginsaturday = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Samstag_Beginn,
-            //        CultureInfo.InvariantCulture,
-            //        out beginsaturday
-            //    );
+                    //Add closed Schedule
+                    OperationScheduleTime myopeningtime = new OperationScheduleTime();
+                    myopeningtime.Monday = parsedweekday == "MONTAG" ? true : false;
+                    myopeningtime.Tuesday = parsedweekday == "DIENSTAG" ? true : false;
+                    myopeningtime.Wednesday = parsedweekday == "MITTWOCH" ? true : false;
+                    myopeningtime.Thursday = parsedweekday == "DONNERSTAG" ? true : false;
+                    //myoptimeclosed.Thursday = myday == "Thursday" ? true : false;
+                    myopeningtime.Friday = parsedweekday == "FREITAG" ? true : false;
+                    myopeningtime.Saturday = parsedweekday == "SAMSTAG" ? true : false;
+                    myopeningtime.Sunday = parsedweekday == "SONNTAG" ? true : false;
 
-            //    TimeSpan endsaturdaynoon = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Pause_Samstag_Beginn,
-            //        CultureInfo.InvariantCulture,
-            //        out endsaturdaynoon
-            //    );
+                    myopeningtime.Timecode = 1;
+                    myopeningtime.State = 2;
 
-            //    TimeSpan beginsaturdaynoon = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Pause_Samstag_Ende,
-            //        CultureInfo.InvariantCulture,
-            //        out beginsaturdaynoon
-            //    );
+                    myopeningtime.Start = new TimeSpan(0, 0, 1);
+                    myopeningtime.End = new TimeSpan(23, 59, 59);
 
-            //    TimeSpan endsaturday = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Samstag_Ende,
-            //        CultureInfo.InvariantCulture,
-            //        out endsaturday
-            //    );
+                    myoperationschedule.OperationScheduleTime.Add(myopeningtime);
+                }
+            }
 
-            //    //Sunday
+            return myoperationschedule;
+        }
 
-            //    TimeSpan beginsunday = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Sonntag_Beginn,
-            //        CultureInfo.InvariantCulture,
-            //        out beginsunday
-            //    );
+        private static int GetMonthByName(string name)
+        {
+            return name switch
+            {
+                "JÄNNER" => 1,
+                "FEBRUAR" => 2,
+                "MÄRZ" => 3,
+                "APRIL" => 4,
+                "MAI" => 5,
+                "JUNI" => 6,
+                "JULI" => 7,
+                "AUGUST" => 8,
+                "SEPTEMBER" => 9,
+                "OKTOBER" => 10,
+                "NOVEMBER" => 11,
+                "DEZEMBER" => 12,
+                _ => 0
+            };
+        }
 
-            //    TimeSpan endsundaynoon = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Pause_Sonntag_Beginn,
-            //        CultureInfo.InvariantCulture,
-            //        out endsundaynoon
-            //    );
-
-            //    TimeSpan beginsundaynoon = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Pause_Sonntag_Ende,
-            //        CultureInfo.InvariantCulture,
-            //        out beginsundaynoon
-            //    );
-
-            //    TimeSpan endsunday = default(TimeSpan);
-            //    TimeSpan.TryParse(
-            //        vendingpoint.Sonntag_Ende,
-            //        CultureInfo.InvariantCulture,
-            //        out endsunday
-            //    );
-
-            //    myoperationschedule.OperationScheduleTime = new List<OperationScheduleTime>();
-
-            //    //Add openingtime for Weekday, Saturday and Sunday
-
-            //    if (beginweekday != TimeSpan.Zero && endweekday != TimeSpan.Zero)
-            //    {
-            //        //If no pause
-            //        if (beginweekdaynoon == TimeSpan.Zero || endweekdaynoon == TimeSpan.Zero)
-            //        {
-            //            OperationScheduleTime myoptime = new OperationScheduleTime();
-            //            myoptime.Monday = true;
-            //            myoptime.Tuesday = true;
-            //            myoptime.Wednesday = true;
-            //            myoptime.Thursday = true;
-            //            //myoptime.Thursday = true;
-            //            myoptime.Friday = true;
-            //            myoptime.Saturday = false;
-            //            myoptime.Sunday = false;
-
-            //            myoptime.Timecode = 1;
-            //            myoptime.State = 2;
-
-            //            myoptime.Start = beginweekday;
-            //            myoptime.End = endweekday;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime);
-            //        }
-            //        else
-            //        {
-            //            OperationScheduleTime myoptime1 = new OperationScheduleTime();
-            //            myoptime1.Monday = true;
-            //            myoptime1.Tuesday = true;
-            //            myoptime1.Wednesday = true;
-            //            myoptime1.Thursday = true;
-            //            //myoptime1.Thursday = true;
-            //            myoptime1.Friday = true;
-            //            myoptime1.Saturday = false;
-            //            myoptime1.Sunday = false;
-
-            //            myoptime1.Timecode = 1;
-            //            myoptime1.State = 2;
-
-            //            myoptime1.Start = beginweekday;
-            //            myoptime1.End = endweekdaynoon;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime1);
-
-            //            OperationScheduleTime myoptime2 = new OperationScheduleTime();
-            //            myoptime2.Monday = true;
-            //            myoptime2.Tuesday = true;
-            //            myoptime2.Wednesday = true;
-            //            myoptime2.Thursday = true;
-            //            //myoptime2.Thursday = true;
-            //            myoptime2.Friday = true;
-            //            myoptime2.Saturday = false;
-            //            myoptime2.Sunday = false;
-
-            //            myoptime2.Timecode = 1;
-            //            myoptime2.State = 2;
-
-            //            myoptime2.Start = beginweekdaynoon;
-            //            myoptime2.End = endweekday;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime2);
-            //        }
-            //    }
-            //    //SATURDAY
-            //    if (beginsaturday != TimeSpan.Zero && endsaturday != TimeSpan.Zero)
-            //    {
-            //        //If no pause
-            //        if (beginsaturdaynoon == TimeSpan.Zero || endsaturdaynoon == TimeSpan.Zero)
-            //        {
-            //            OperationScheduleTime myoptime = new OperationScheduleTime();
-            //            myoptime.Monday = false;
-            //            myoptime.Tuesday = false;
-            //            myoptime.Wednesday = false;
-            //            myoptime.Thursday = false;
-            //            //myoptime.Thursday = false;
-            //            myoptime.Friday = false;
-            //            myoptime.Saturday = true;
-            //            myoptime.Sunday = false;
-
-            //            myoptime.Timecode = 1;
-            //            myoptime.State = 2;
-
-            //            myoptime.Start = beginsaturday;
-            //            myoptime.End = endsaturday;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime);
-            //        }
-            //        else
-            //        {
-            //            OperationScheduleTime myoptime1 = new OperationScheduleTime();
-            //            myoptime1.Monday = false;
-            //            myoptime1.Tuesday = false;
-            //            myoptime1.Wednesday = false;
-            //            myoptime1.Thursday = false;
-            //            //myoptime1.Thursday = false;
-            //            myoptime1.Friday = false;
-            //            myoptime1.Saturday = true;
-            //            myoptime1.Sunday = false;
-
-            //            myoptime1.Timecode = 1;
-            //            myoptime1.State = 2;
-
-            //            myoptime1.Start = beginsaturday;
-            //            myoptime1.End = endsaturdaynoon;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime1);
-
-            //            OperationScheduleTime myoptime2 = new OperationScheduleTime();
-            //            myoptime2.Monday = false;
-            //            myoptime2.Tuesday = false;
-            //            myoptime2.Wednesday = false;
-            //            myoptime2.Thursday = false;
-            //            //myoptime2.Thursday = false;
-            //            myoptime2.Friday = false;
-            //            myoptime2.Saturday = true;
-            //            myoptime2.Sunday = false;
-
-            //            myoptime2.Timecode = 1;
-            //            myoptime2.State = 2;
-
-            //            myoptime2.Start = beginsaturdaynoon;
-            //            myoptime2.End = endsaturday;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime2);
-            //        }
-            //    }
-
-            //    if (beginsunday != TimeSpan.Zero && endsunday != TimeSpan.Zero)
-            //    {
-            //        //If no pause
-            //        if (beginsaturdaynoon == TimeSpan.Zero || endsaturdaynoon == TimeSpan.Zero)
-            //        {
-            //            OperationScheduleTime myoptime = new OperationScheduleTime();
-            //            myoptime.Monday = false;
-            //            myoptime.Tuesday = false;
-            //            myoptime.Wednesday = false;
-            //            myoptime.Thursday = false;
-            //            //myoptime.Thursday = false;
-            //            myoptime.Friday = false;
-            //            myoptime.Saturday = true;
-            //            myoptime.Sunday = false;
-
-            //            myoptime.Timecode = 1;
-            //            myoptime.State = 2;
-
-            //            myoptime.Start = beginsunday;
-            //            myoptime.End = endsunday;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime);
-            //        }
-            //        else
-            //        {
-            //            OperationScheduleTime myoptime1 = new OperationScheduleTime();
-            //            myoptime1.Monday = false;
-            //            myoptime1.Tuesday = false;
-            //            myoptime1.Wednesday = false;
-            //            myoptime1.Thursday = false;
-            //            //myoptime1.Thursday = false;
-            //            myoptime1.Friday = false;
-            //            myoptime1.Saturday = false;
-            //            myoptime1.Sunday = true;
-
-            //            myoptime1.Timecode = 1;
-            //            myoptime1.State = 2;
-
-            //            myoptime1.Start = beginsunday;
-            //            myoptime1.End = endsundaynoon;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime1);
-
-            //            OperationScheduleTime myoptime2 = new OperationScheduleTime();
-            //            myoptime2.Monday = false;
-            //            myoptime2.Tuesday = false;
-            //            myoptime2.Wednesday = false;
-            //            myoptime2.Thursday = false;
-            //            //myoptime2.Thursday = false;
-            //            myoptime2.Friday = false;
-            //            myoptime2.Saturday = false;
-            //            myoptime2.Sunday = true;
-
-            //            myoptime2.Timecode = 1;
-            //            myoptime2.State = 2;
-
-            //            myoptime2.Start = beginsundaynoon;
-            //            myoptime2.End = endsunday;
-
-            //            myoperationschedule.OperationScheduleTime.Add(myoptime2);
-            //        }
-            //    }
-
-            //    //Exceptions, Closed on a certain day
-            //    if (!String.IsNullOrEmpty(vendingpoint.Zusatzinfo_EN))
-            //    {
-            //        if (vendingpoint.Zusatzinfo_EN.EndsWith("closed"))
-            //        {
-            //            //Find out the day
-            //            var myday = vendingpoint.Zusatzinfo_EN.Replace(" closed", "");
-
-            //            //var validdays = new List<string>() { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
-            //            var validdays = new List<string>()
-            //            {
-            //                "Monday",
-            //                "Tuesday",
-            //                "Wednesday",
-            //                "Thursday",
-            //                "Friday",
-            //            }; //Excluding Saturday and Sunday because they can set separately
-
-            //            if (validdays.Contains(myday))
-            //            {
-            //                //Add closed Schedule
-            //                OperationScheduleTime myoptimeclosed = new OperationScheduleTime();
-            //                myoptimeclosed.Monday = myday == "Monday" ? true : false;
-            //                myoptimeclosed.Tuesday = myday == "Tuesday" ? true : false;
-            //                myoptimeclosed.Wednesday = myday == "Wednesday" ? true : false;
-            //                myoptimeclosed.Thursday = myday == "Thursday" ? true : false;
-            //                //myoptimeclosed.Thursday = myday == "Thursday" ? true : false;
-            //                myoptimeclosed.Friday = myday == "Friday" ? true : false;
-            //                myoptimeclosed.Saturday = myday == "Saturday" ? true : false;
-            //                myoptimeclosed.Sunday = myday == "Sunday" ? true : false;
-
-            //                myoptimeclosed.Timecode = 1;
-            //                myoptimeclosed.State = 1;
-
-            //                myoptimeclosed.Start = new TimeSpan(0, 0, 1);
-            //                myoptimeclosed.End = new TimeSpan(23, 59, 59);
-
-            //                myoperationschedule.OperationScheduleTime.Add(myoptimeclosed);
-            //            }
-            //        }
-            //    }
-
-            //    return myoperationschedule;
-            //}
-            //else
-            return null;
+        private static DateTime GetLastDateOfMonth(int year, int month)
+        {
+            int lastDay = DateTime.DaysInMonth(year, month);
+            return new DateTime(year, month, lastDay);
         }
     }
 }
