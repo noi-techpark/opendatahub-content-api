@@ -258,8 +258,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     //Get the Active Gastronomies list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full" };
-                
+                    //Toggle representationmode filtering for active inactive sync
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false };
+                    //var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full" };
+
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
 
