@@ -12,6 +12,7 @@ using Helper;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.Location;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -73,12 +74,11 @@ namespace OdhApiCore.Controllers
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <param name="destinationdataformat">If set to true, data will be returned in AlpineBits Destinationdata Format</param>
-        /// <returns>Collection of VenueLinked Objects</returns>
+        /// <returns>Collection of VenueV2 Objects</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(JsonResult<VenueLinked>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(JsonResult<VenueV2>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -115,7 +115,7 @@ namespace OdhApiCore.Controllers
             string? rawsort = null,
             bool removenullvalues = false,
             bool getasidarray = false,
-            bool destinationdataformat = false,
+            //bool destinationdataformat = false,
             CancellationToken cancellationToken = default
         )
         {
@@ -157,7 +157,7 @@ namespace OdhApiCore.Controllers
                 rawsort: rawsort,
                 removenullvalues: removenullvalues,
                 getasidarray: getasidarray,
-                destinationdataformat: destinationdataformat,
+                //destinationdataformat: destinationdataformat,
                 cancellationToken: cancellationToken
             );
         }
@@ -169,13 +169,11 @@ namespace OdhApiCore.Controllers
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <param name="destinationdataformat">If set to true, data will be returned in AlpineBits Destinationdata Format</param>
-        /// <returns>VenueLinked Object</returns>
+        /// <returns>VenueV2 Object</returns>
         /// <response code="200">Object created</response>
         /// <response code="400">Request Error</response>
-        /// <response code="500">Internal Server Error</response>
-        /// //[Authorize(Roles = "DataReader,VenueReader")]
-        [ProducesResponseType(typeof(VenueLinked), StatusCodes.Status200OK)]
+        /// <response code="500">Internal Server Error</response>        
+        [ProducesResponseType(typeof(VenueV2), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("Venue/{id}", Name = "SingleVenue")]
@@ -184,7 +182,6 @@ namespace OdhApiCore.Controllers
             string? language,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             bool removenullvalues = false,
-            bool destinationdataformat = false,
             CancellationToken cancellationToken = default
         )
         {
@@ -193,7 +190,7 @@ namespace OdhApiCore.Controllers
                 language,
                 fields: fields ?? Array.Empty<string>(),
                 removenullvalues: removenullvalues,
-                destinationdataformat: destinationdataformat,
+                //destinationdataformat: destinationdataformat,
                 cancellationToken
             );
         }
@@ -211,7 +208,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        //[OdhCacheOutputUntilToday(23, 59)]
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag?validforentity=venue)")]
         [ProducesResponseType(typeof(IEnumerable<DDVenueCodes>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -257,7 +254,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        //[OdhCacheOutputUntilToday(23, 59)]
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag/{id})")]
         [ProducesResponseType(typeof(DDVenueCodes), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -312,7 +309,7 @@ namespace OdhApiCore.Controllers
             string? rawsort,
             bool removenullvalues,
             bool getasidarray,
-            bool destinationdataformat,
+            //bool destinationdataformat,
             CancellationToken cancellationToken
         )
         {
@@ -341,13 +338,13 @@ namespace OdhApiCore.Controllers
                     cancellationToken
                 );
 
-                var venuecolumn = destinationdataformat ? "destinationdata as data" : "data";
+                //var venuecolumn = destinationdataformat ? "destinationdata as data" : "data";
 
                 var query = QueryFactory
                     .Query()
                     .When(getasidarray, x => x.Select("id"))
-                    .When(!getasidarray, x => x.SelectRaw(venuecolumn))
-                    .From("venues_v2")
+                    .When(!getasidarray, x => x.SelectRaw("data"))
+                    .From("venues")
                     .VenueWhereExpression(
                         languagelist: myvenuehelper.languagelist,
                         idlist: myvenuehelper.idlist,
@@ -432,8 +429,7 @@ namespace OdhApiCore.Controllers
             string id,
             string? language,
             string[] fields,
-            bool removenullvalues,
-            bool destinationdataformat,
+            bool removenullvalues,            
             CancellationToken cancellationToken
         )
         {
@@ -442,12 +438,11 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
-                var venuecolumn = destinationdataformat ? "destinationdata as data" : "data";
+                //var venuecolumn = destinationdataformat ? "destinationdata as data" : "data";
 
                 var query = QueryFactory
                     .Query("venues_v2")
-                    .Select(venuecolumn)
-                    //.Where("id", id.ToUpper())
+                    .Select("data")                    
                     .Where("gen_id", id.ToUpper())
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
@@ -583,17 +578,14 @@ namespace OdhApiCore.Controllers
         /// <summary>
         /// POST Insert new Venue
         /// </summary>
-        /// <param name="poi">Venue Object</param>
+        /// <param name="venue">Venue Object</param>
         /// <returns>Http Response</returns>
-        //[ApiExplorerSettings(IgnoreApi = true)]
-        //[InvalidateCacheOutput(nameof(GetVenueList))]
-        //[Authorize(Roles = "DataWriter,DataCreate,VenueManager,VenueCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Venue")]
-        public Task<IActionResult> Post([FromBody] VenueLinked venue)
+        public Task<IActionResult> Post([FromBody] VenueV2 venue)
         {
             return DoAsyncReturn(async () =>
             {
@@ -605,14 +597,18 @@ namespace OdhApiCore.Controllers
                 venue.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo
                 venue.LocationInfo = await venue.UpdateLocationInfoExtension(QueryFactory);
-                //TODO DISTANCE Calculation
+                //DistanceCalculation
+                await venue.UpdateDistanceCalculation(QueryFactory);
                 //TRIM all strings
                 venue.TrimStringProperties();
 
-                //TODO UPDATE/INSERT ALSO in Destinationdata Column
-                return await UpsertData<VenueLinked>(
+                //Populate Tags (Id/Source/Type)
+                await venue.UpdateTagsExtension(QueryFactory);
+
+                
+                return await UpsertData<VenueV2>(
                     venue,
-                    new DataInfo("venues_v2", CRUDOperation.Create),
+                    new DataInfo("venues", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
@@ -633,27 +629,30 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut, Route("Venue/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] VenueLinked venue)
+        public Task<IActionResult> Put(string id, [FromBody] VenueV2 venue)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
-                venue.Id = Helper.IdGenerator.CheckIdFromType<VenueLinked>(id);
+                venue.Id = Helper.IdGenerator.CheckIdFromType<VenueV2>(id);
 
                 //GENERATE HasLanguage
                 venue.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo
                 venue.LocationInfo = await venue.UpdateLocationInfoExtension(QueryFactory);
-                //TODO DISTANCE Calculation
+                //DistanceCalculation
+                await venue.UpdateDistanceCalculation(QueryFactory);
                 //TRIM all strings
                 venue.TrimStringProperties();
 
-                //TODO UPDATE/INSERT ALSO in Destinationdata Column
-                return await UpsertData<VenueLinked>(
+                //Populate Tags (Id/Source/Type)
+                await venue.UpdateTagsExtension(QueryFactory);
+                
+                return await UpsertData<VenueV2>(
                     venue,
-                    new DataInfo("venues_v2", CRUDOperation.Update, true),
+                    new DataInfo("venues", CRUDOperation.Update, true),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
@@ -680,9 +679,9 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<VenueLinked>(id);
+                id = Helper.IdGenerator.CheckIdFromType<VenueV2>(id);
 
-                return await DeleteData<VenueLinked>(
+                return await DeleteData<VenueV2>(
                     id,
                     new DataInfo("venues_v2", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)

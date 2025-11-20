@@ -2,18 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AspNetCore.CacheOutput;
 using DataModel;
+using DataModel.Annotations;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.Location;
 using Helper.Tagging;
+using LTSAPI.Parser;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -22,6 +19,11 @@ using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers
 {
@@ -208,7 +210,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        //[OdhCacheOutputUntilToday(23, 59)]
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag?types=eventtopic)")]
         [ProducesResponseType(typeof(IEnumerable<EventTypes>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -253,7 +255,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        //[OdhCacheOutputUntilToday(23, 59)]
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag/{id})")]
         [ProducesResponseType(typeof(EventTypes), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -619,7 +621,8 @@ namespace OdhApiCore.Controllers
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
 
-                //TODO DISTANCE Calculation
+                //DistanceCalculation
+                await odhevent.UpdateDistanceCalculation(QueryFactory);
 
                 //Populate Tags (Id/Source/Type)
                 await odhevent.UpdateTagsExtension(QueryFactory);
@@ -664,7 +667,8 @@ namespace OdhApiCore.Controllers
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
 
-                //TODO DISTANCE Calculation
+                //DistanceCalculation
+                await odhevent.UpdateDistanceCalculation(QueryFactory);
 
                 //Populate Tags (Id/Source/Type)
                 await odhevent.UpdateTagsExtension(QueryFactory);

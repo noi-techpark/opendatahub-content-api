@@ -255,6 +255,7 @@ namespace OdhApiCore.Controllers.api
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag?validforentity=odhactivitypoi)")]
         [ProducesResponseType(typeof(IEnumerable<SmgPoiTypes>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -299,6 +300,7 @@ namespace OdhApiCore.Controllers.api
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag/{id})")]
         [ProducesResponseType(typeof(SmgPoiTypes), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -706,7 +708,8 @@ namespace OdhApiCore.Controllers.api
                 if (errordict != null && errordict.Count > 0)
                     return BadRequest(String.Join(",", errordict.Values));
 
-                //TODO DISTANCE Calculation
+                //DistanceCalculation
+                await odhactivitypoi.UpdateDistanceCalculation(QueryFactory);
 
                 //TODO check for Reduced Data
 
@@ -781,7 +784,8 @@ namespace OdhApiCore.Controllers.api
                 if (errordict != null && errordict.Count > 0)
                     return BadRequest(String.Join(",", errordict.Values));
 
-                //TODO DISTANCE Calculation
+                //DistanceCalculation
+                await odhactivitypoi.UpdateDistanceCalculation(QueryFactory);
 
                 //TODO check for Reduced Data
 
