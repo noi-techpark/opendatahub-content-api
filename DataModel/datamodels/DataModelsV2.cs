@@ -2,10 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using System;
+using System.Collections.Generic;
 using DataModel.Annotations;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Linq;
-using DataModel;
 
 namespace DataModel
 {
@@ -681,7 +682,9 @@ namespace DataModel
         public List<string>? AreaIds { get; set; }
         
         
-        public IEnumerable<string>? SkiAreaIds { get; set; }                
+        public IEnumerable<string>? SkiAreaIds { get; set; }
+
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
@@ -762,7 +765,9 @@ namespace DataModel
         }
 
         public bool Active { get; set; }
-            
+
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
+
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
         public IDictionary<string, GpsInfo> GpsPoints
