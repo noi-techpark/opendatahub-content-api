@@ -8,14 +8,17 @@ using Helper.Generic;
 using Helper.Identity;
 using Helper.Tagging;
 using LTSAPI;
+using MessagePack.Formatters;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Controllers.api;
+using OdhApiCore.Repositories;
 using OdhApiCore.Responses;
 using OdhNotifier;
+using Schema.NET;
 using ServiceReferenceLCS;
 using SqlKata.Execution;
 using System;
@@ -219,7 +222,7 @@ namespace OdhApiCore.Controllers
                                     polygonsearchresult.srid,
                                     polygonsearchresult.operation,
                                     polygonsearchresult.reduceprecision,
-                                    "gen_geometry"
+                                    "geo"
                                 )
                             )
                     )
@@ -299,7 +302,7 @@ namespace OdhApiCore.Controllers
         #endregion
 
         #region POST PUT DELETE
-
+        
         /// <summary>
         /// POST Insert new Announcement
         /// </summary>
@@ -314,8 +317,16 @@ namespace OdhApiCore.Controllers
         {
             return DoAsyncReturn(async () =>
             {
-                if (!announcement.IsValidGeometry) {
-                    return BadRequest(new { error = "Invalid WKT" });
+                if (!announcement.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in announcement.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
                 }
 
                 //Additional Read Filters to Add Check
@@ -330,7 +341,7 @@ namespace OdhApiCore.Controllers
                 announcement.TrimStringProperties();
 
                 return await UpsertData<Announcement>(
-                    announcement,
+                    new UpsertableAnnouncement(announcement),
                     new DataInfo("announcements", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(createFilter, UserRolesToFilter)
@@ -367,9 +378,18 @@ namespace OdhApiCore.Controllers
                 for (int i = 0; i < announcements.Count; i++)
                 {
                     var announcement = announcements[i];
-
-                    if (!announcement.IsValidGeometry)
-                        ModelState.AddModelError($"[{i}].WKTGeometry4326", "Invalid WKT geometry");
+                    if (!announcement.Geo.GeoInfoIsValid())
+                    {
+                        ModelState.AddModelError($"[{i}].Geo", "Exactly one default GeoInfo must be present");
+                    }
+                    
+                    foreach (var kv in announcement.Geo)
+                    {
+                        if (!kv.Value.IsValidGeometry)
+                        {
+                            ModelState.AddModelError($"[{i}].Geo[{kv.Key}].Geometry", "Invalid WKT geometry");
+                        }
+                    }
 
                     if (announcement.Id == null)
                         ModelState.AddModelError($"[{i}].Id", "Id is required");
@@ -389,7 +409,7 @@ namespace OdhApiCore.Controllers
                 }
 
                 return await UpsertDataArray<Announcement>(
-                    announcements,
+                    announcements.Select(a => new UpsertableAnnouncement(a)),
                     new DataInfo("announcements", CRUDOperation.CreateAndUpdate, true),
                     new CompareConfig(true, false), // Enable comparison to detect unchanged
                     new CRUDConstraints(createFilter, UserRolesToFilter),
@@ -413,6 +433,18 @@ namespace OdhApiCore.Controllers
         {
             return DoAsyncReturn(async () =>
             {
+                if (!announcement.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in announcement.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
@@ -422,7 +454,7 @@ namespace OdhApiCore.Controllers
                 announcement.TrimStringProperties();
 
                 return await UpsertData<Announcement>(
-                    announcement,
+                    new UpsertableAnnouncement(announcement),
                     new DataInfo("announcements", CRUDOperation.Update, true),
                     new CompareConfig(true, false),
                     new CRUDConstraints(updateFilter, UserRolesToFilter)

@@ -137,6 +137,19 @@ namespace DataModel
         public JToken? changes { get; init; }
 
         public IDictionary<string, NotifierResponse>? pushed { get; set; }
+
+        public static PGCRUDResult Default => new PGCRUDResult
+        {
+            created = 0,
+            updated = 0,
+            deleted = 0,
+            error = 0,
+            compareobject = false,
+            objectchanged = 0,
+            objectimagechanged = 0,
+            pushchannels = new List<string>(),
+            pushed = new Dictionary<string, NotifierResponse>()
+        };
     }
 
     public struct JsonGenerationResult

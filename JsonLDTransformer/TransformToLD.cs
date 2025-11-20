@@ -73,8 +73,8 @@ namespace JsonLDTransformer
 
             geoLD mygeo = new geoLD();
             mygeo.type = "http://schema.org/GeoCoordinates";
-            mygeo.latitude = acco.Latitude;
-            mygeo.longitude = acco.Longitude;
+            mygeo.latitude = acco.Latitude.GetValueOrDefault(0);
+            mygeo.longitude = acco.Longitude.GetValueOrDefault(0);
 
             myhotel.geo = mygeo;
 
@@ -110,8 +110,10 @@ namespace JsonLDTransformer
 
             geoLD mygeo = new geoLD();
             mygeo.type = "http://schema.org/GeoCoordinates";
-            mygeo.latitude = gastro.GpsInfo.Where(x => x.Gpstype == "position").Count() > 0 ? gastro.GpsInfo.Where(x => x.Gpstype == "position").FirstOrDefault().Latitude : 0;
-            mygeo.longitude = gastro.GpsInfo.Where(x => x.Gpstype == "position").Count() > 0 ? gastro.GpsInfo.Where(x => x.Gpstype == "position").FirstOrDefault().Longitude : 0;
+            mygeo.latitude = gastro.GpsInfo.Where(x => x.Gpstype == "position").Count() > 0 ?
+                gastro.GpsInfo.Where(x => x.Gpstype == "position").FirstOrDefault().Latitude.GetValueOrDefault(0) : 0;
+            mygeo.longitude = gastro.GpsInfo.Where(x => x.Gpstype == "position").Count() > 0 ?
+                gastro.GpsInfo.Where(x => x.Gpstype == "position").FirstOrDefault().Longitude.GetValueOrDefault(0) : 0;
 
             mygastro.geo = mygeo;
 

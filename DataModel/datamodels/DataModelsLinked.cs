@@ -574,8 +574,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -586,8 +586,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -756,8 +756,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -768,8 +768,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1413,8 +1413,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1425,8 +1425,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1544,8 +1544,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1556,8 +1556,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1678,8 +1678,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1690,8 +1690,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1792,8 +1792,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1804,8 +1804,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1940,8 +1940,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -1952,8 +1952,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -2078,8 +2078,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -2090,8 +2090,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -2316,8 +2316,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -2328,8 +2328,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -2417,8 +2417,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -2429,8 +2429,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -2574,8 +2574,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Latitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
         }
@@ -2586,8 +2586,8 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Longitude
+                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
         }

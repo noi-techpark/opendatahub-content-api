@@ -3,14 +3,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel.Annotations;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
-// using System.Text.Json.Serialization; // this is not the package used to serialize
-using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
 using System.Linq;
+using DataModel;
 
 namespace DataModel
 {
@@ -45,34 +40,6 @@ namespace DataModel
         public ICollection<string>? HasLanguage { get; set; }
 
         public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
-        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
-        public string? Source { get; set; }
-
-        public ICollection<string>? TagIds { get; set; }
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
-    }
-
-    public class GenericWithGeometry :
-        IIdentifiable,
-        IMetaData,
-        IMappingAware,
-        IGeometryAware,
-        ILicenseInfo,
-        ISource,
-        IShortName,
-        IHasLanguage,
-        IImportDateassigneable
-    {
-        public string? Id { get; set; }
-        public Metadata? _Meta { get; set; }
-        public LicenseInfo? LicenseInfo { get; set; }
-
-        public string? Shortname { get; set; }
-
-        public DateTime? FirstImport { get; set; }
-        public DateTime? LastChange { get; set; }
-        public ICollection<string>? HasLanguage { get; set; }
-        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
 
         //We define what classes this Additionalproperties can be
         [PolymorphicDictionary(
@@ -85,57 +52,10 @@ namespace DataModel
             "RoadIncidentProperties", typeof(RoadIncidentProperties)
         )]
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
         public string? Source { get; set; }
 
         public ICollection<string>? TagIds { get; set; }
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
-
-        // Geometry aware helpers
-        public string WKTGeometry4326 { get; set; }
-
-        [JsonIgnore]
-        public bool HasWKTGeometry
-        {
-            get => !string.IsNullOrWhiteSpace(WKTGeometry4326);
-        }
-
-        [JsonIgnore]
-        public Geometry? Geometry
-        {
-            get
-            {
-                if (!HasWKTGeometry) return null;
-
-                try
-                {
-                    // Use NTS to parse the WKT string
-                    var reader = new WKTReader();
-                    var geo = reader.Read(WKTGeometry4326);
-                    geo.SRID = 4326;
-                    return geo;
-                }
-                catch (ParseException)
-                {
-                    // Return null on parsing failure (invalid WKT)
-                    return null;
-                }
-            }
-        }
-
-        [JsonIgnore]
-        public bool IsValidGeometry 
-        {
-            get
-            {
-                var geo = Geometry;
-                
-                // 1. Must exist (parsed successfully)
-                if (geo == null) return false;
-                if (!geo.IsValid) return false;
-                
-                return true;
-            }
-        }
     }
 
     #endregion
@@ -1188,7 +1108,7 @@ namespace DataModel
 
     #region Announcements
 
-    public class Announcement : GenericWithGeometry, IActivateable
+    public class Announcement : Generic, IActivateable, IGeoAware
     {        
         public bool Active { get; set; }
 
@@ -1196,13 +1116,9 @@ namespace DataModel
         public DateTime? EndTime { get; set; }
 
         public IDictionary<string, DetailGeneric> Detail { get; set; }
-        public ICollection<RelatedContent>? RelatedContent { get; set; }
+        public ICollection<RelatedContent>? RelatedContent { get; set; }      
 
-        //We define what classes this Additionalproperties can be
-        [PolymorphicDictionary(
-            "RoadIncidentProperties", typeof(RoadIncidentProperties)
-        )]
-        new public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
 

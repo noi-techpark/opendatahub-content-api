@@ -221,8 +221,8 @@ namespace OdhApiImporter.Helpers.DSS
                         {
                             var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
                                 QueryFactory,
-                                parsedobject.GpsInfo.FirstOrDefault()!.Latitude,
-                                parsedobject.GpsInfo.FirstOrDefault()!.Longitude,
+                                parsedobject.GpsInfo.FirstOrDefault()!.Latitude.GetValueOrDefault(0),
+                                parsedobject.GpsInfo.FirstOrDefault()!.Longitude.GetValueOrDefault(0),
                                 10000
                             );
 
