@@ -2467,7 +2467,7 @@ namespace DataModel
         }
     }
 
-    public class WebcamInfoLinked : WebcamInfo, IMetaData
+    public class WebcamInfoLinked : WebcamInfo, IMetaData, IHasTagInfo
     {
         public Metadata? _Meta { get; set; }
 
@@ -2508,6 +2508,10 @@ namespace DataModel
                     : new List<ODHTags>();
             }
         }
+
+        public ICollection<Tags>? Tags { get; set; }
+
+        public ICollection<string>? TagIds { get; set; }
     }
 
     public class MeasuringpointLinked

@@ -323,53 +323,22 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     string id = data.data.rid.ToLower();
 
                     var webcamparsed = WebcamInfoParser.ParseLTSWebcam(data.data, false);
-
-                    //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
-                    //venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
-                    //    QueryFactory
-                    //);
-
-                    //DistanceCalculation
-                    //await venueparsed.UpdateDistanceCalculation(QueryFactory);
-
+                    
                     //GET OLD Webcam
                     var webcamindb = await LoadDataFromDB<WebcamInfoLinked>(id, IDStyle.uppercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
-                    //await MergeVenueTags(venueparsed, venueindb);
+                    await MergeWebcamTags(webcamparsed, webcamindb);
               
                     if (!opendata)
                     {
-                        //TO CHECK
-                        //Add the SmgTags for IDM
-                        //await AssignODHTags(venueparsed, vewnueindb);
-
-                        //TO CHECK
-                        //await SetODHActiveBasedOnRepresentationMode(venueparsed);
-
-                        //TO CHECK
-                        //Add the MetaTitle for IDM
-                        //await AddMetaTitle(venueparsed);
-
-                        //Add the values to Tags (TagEntry) not needed anymore?
-                        //await AddTagEntryToTags(venueparsed);
-
-                        //Traduce all Tags with Source IDM to english tags
-                        //await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                        //    venueparsed,
-                        //    settings.JsonConfig.Jsondir
-                        //);
+                        
                     }
 
                     //Create Tags and preserve the old TagEntries
-                    //await venueparsed.UpdateTagsExtension(QueryFactory, null);
-
+                    await webcamparsed.UpdateTagsExtension(QueryFactory, null);
 
                     var result = await InsertDataToDB(webcamparsed, data.data, jsondata);
-
-                    //newimportcounter = newimportcounter + result.created ?? 0;
-                    //updateimportcounter = updateimportcounter + result.updated ?? 0;
-                    //errorimportcounter = errorimportcounter + result.error ?? 0;
 
                     updatedetails.Add(new UpdateDetail()
                     {
@@ -430,17 +399,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 //TODO!
                 //Set LicenseInfo
-                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforVenue(objecttosave, opendata);
+                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforWebcam(objecttosave, opendata);
 
                 //TODO!
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
-                //Add the PublishedOn Logic
-                //Exception here all Tags with autopublish has to be passed
-                var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
-                //Set PublishedOn with allowedtaglist
-                objecttosave.CreatePublishedOnList(autopublishtaglist);
+                //Set PublishedOn
+                objecttosave.CreatePublishedOnList();
 
                 var rawdataid = await InsertInRawDataDB(webcamlts);
                 
@@ -563,20 +529,20 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
      
-        private async Task MergeWebcamsTags(WebcamInfoLinked vNew, WebcamInfoLinked vOld)
+        private async Task MergeWebcamTags(WebcamInfoLinked vNew, WebcamInfoLinked vOld)
         {
-            //if (vOld != null)
-            //{                                
-            //    //Readd all Redactional Tags to check if this query fits
-            //    var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
-            //    if (redactionalassignedTags != null)
-            //    {
-            //        foreach (var tag in redactionalassignedTags)
-            //        {
-            //            vNew.TagIds.Add(tag.Id);
-            //        }
-            //    }
-            //}
+            if (vOld != null)
+            {
+                //Readd all Redactional Tags to check if this query fits
+                var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                if (redactionalassignedTags != null)
+                {
+                    foreach (var tag in redactionalassignedTags)
+                    {
+                        vNew.TagIds.Add(tag.Id);
+                    }
+                }
+            }
 
             //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
 
