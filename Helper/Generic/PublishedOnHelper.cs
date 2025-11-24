@@ -508,12 +508,12 @@ namespace Helper
                         }
                         break;
 
-                    //TO CHECK, import all and set it active on Marketplace?
                     case "webcam":
-                        if ((mydata as WebcamInfoLinked).SmgActive == true)
-                        {                            
-                            publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
-                        }
+                        //Currently no idm-marketplace needed
+                        //if ((mydata as WebcamInfoLinked).Active == true)
+                        //{                            
+                        //    publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                        //}
                         break;
 
                     case "wineaward":

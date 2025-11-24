@@ -320,7 +320,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 foreach (var data in webcamdata)
                 {
-                    string id = data.data.rid.ToLower();
+                    string id = data.data.rid.ToUpper();
 
                     var webcamparsed = WebcamInfoParser.ParseLTSWebcam(data.data, false);
                     
@@ -410,7 +410,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 var rawdataid = await InsertInRawDataDB(webcamlts);
                 
-                objecttosave.Id = objecttosave.Id.ToLower();
+                objecttosave.Id = objecttosave.Id.ToUpper();
 
                 return await QueryFactory.UpsertData<WebcamInfoLinked>(
                     objecttosave,
@@ -455,7 +455,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (delete)
             {
                 result = await QueryFactory.DeleteData<WebcamInfoLinked>(
-                id.ToLower(),
+                id.ToUpper(),
                 new DataInfo("webcams", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
