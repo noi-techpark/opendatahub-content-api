@@ -628,6 +628,41 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
+        public static LicenseInfo GetLicenseforVenue(VenueV2 data, bool opendata = true)
+        {
+            var isopendata = opendata;
+            var licensetype = "CC0";
+            var licenseholder = @"https://www.lts.it";
+
+            if (!opendata)
+            {
+                licensetype = "closed";
+            }
+
+            if (data.Source.ToLower() == "trevilab")
+            {
+                isopendata = true;
+                licensetype = "CC0";
+                licenseholder =
+                    @"https://www.provincia.bz.it/arte-cultura/cultura/centro-trevi.asp";
+            }
+            else if (data.Source.ToLower() == "drin")
+            {
+                isopendata = true;
+                licensetype = "CC0";
+                licenseholder = @"https://www.provincia.bz.it/arte-cultura/giovani/drin.asp";
+            }
+            else
+            {
+                isopendata = true;
+                licensetype = "unknown";
+                licenseholder = "unknown";
+            }
+
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
+        }
+
+
         public static LicenseInfo GetLicenseforEventShort(EventShort data)
         {
             var isopendata = true;

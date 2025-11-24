@@ -397,11 +397,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             try
             {
-                //TODO!
                 //Set LicenseInfo
                 objecttosave.LicenseInfo = LicenseHelper.GetLicenseforWebcam(objecttosave, opendata);
 
-                //TODO!
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 

@@ -438,9 +438,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             try
             {
-                //TODO!
                 //Set LicenseInfo
-                //objecttosave.LicenseInfo = LicenseHelper.GetLicenseforVenue(objecttosave, opendata);
+                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforVenue(objecttosave, opendata);
 
                 //TODO!
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
