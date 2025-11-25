@@ -324,15 +324,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var venueparsed = VenueParser.ParseLTSVenue(data.data, false);
 
-                    //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
-                    //venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
-                    //    QueryFactory
-                    //);
+                    //POPULATE LocationInfo
+                    venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
+                        QueryFactory
+                    );
 
                     //DistanceCalculation
                     await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    //GET OLD Venue TO CHECK VenueLinked vs VenueV2
+                    //GET OLD Venue
                     var venueindb = await LoadDataFromDB<VenueV2>(id, IDStyle.lowercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
@@ -340,36 +340,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
               
                     if (!opendata)
                     {
-                        //TO CHECK
-                        //Add the SmgTags for IDM
-                        //await AssignODHTags(venueparsed, vewnueindb);
-
-                        //TO CHECK
-                        //await SetODHActiveBasedOnRepresentationMode(venueparsed);
-
-                        //TO CHECK
-                        //Add the MetaTitle for IDM
-                        //await AddMetaTitle(venueparsed);
-
                         //Add the values to Tags (TagEntry) not needed anymore?
                         //await AddTagEntryToTags(venueparsed);
-
-                        //Traduce all Tags with Source IDM to english tags
-                        //await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                        //    venueparsed,
-                        //    settings.JsonConfig.Jsondir
-                        //);
                     }
 
                     //Create Tags and preserve the old TagEntries
                     await venueparsed.UpdateTagsExtension(QueryFactory, null);
 
-
                     var result = await InsertDataToDB(venueparsed, data.data, jsondata);
-
-                    //newimportcounter = newimportcounter + result.created ?? 0;
-                    //updateimportcounter = updateimportcounter + result.updated ?? 0;
-                    //errorimportcounter = errorimportcounter + result.error ?? 0;
 
                     updatedetails.Add(new UpdateDetail()
                     {
@@ -417,16 +395,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 });
             }
 
-
-            //To check, this works only for single updates             
-            //return new UpdateDetail()
-            //{
-            //    updated = updateimportcounter,
-            //    created = newimportcounter,
-            //    deleted = deleteimportcounter,
-            //    error = errorimportcounter,
-            //};
-
             return updatedetails.FirstOrDefault();
         }
 
@@ -440,8 +408,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 //Set LicenseInfo
                 objecttosave.LicenseInfo = LicenseHelper.GetLicenseforVenue(objecttosave, opendata);
-
-                //TODO!
+                
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 

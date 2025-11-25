@@ -544,65 +544,67 @@ namespace OdhApiImporter.Helpers
                     throw new Exception("Events Update Raven Migrated!");
 
                 case "webcam":
-                    mydata = await GetDataFromRaven.GetRavenData<WebcamInfoRaven>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken,
-                        "WebcamInfo/"
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            WebcamInfoRaven,
-                            WebcamInfoLinked
-                        >((WebcamInfoRaven)mydata, TransformToPGObject.GetWebcamInfoPGObject);
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<WebcamInfoRaven>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken,
+                    //    "WebcamInfo/"
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<
+                    //        WebcamInfoRaven,
+                    //        WebcamInfoLinked
+                    //    >((WebcamInfoRaven)mydata, TransformToPGObject.GetWebcamInfoPGObject);
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //Add the PublishedOn Logic
-                    ((WebcamInfoLinked)mypgdata).CreatePublishedOnList();
+                    ////Add the PublishedOn Logic
+                    //((WebcamInfoLinked)mypgdata).CreatePublishedOnList();
 
-                    myupdateresult = await SaveRavenObjectToPG<WebcamInfoLinked>(
-                        (WebcamInfoLinked)mypgdata,
-                        "webcams",
-                        true,
-                        false,
-                        true
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<WebcamInfoLinked>(
+                    //    (WebcamInfoLinked)mypgdata,
+                    //    "webcams",
+                    //    true,
+                    //    false,
+                    //    true
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    //Check if data has to be reduced and save it
-                    if (
-                        ReduceDataTransformer.ReduceDataCheck<WebcamInfoLinked>(
-                            (WebcamInfoLinked)mypgdata
-                        ) == true
-                    )
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (WebcamInfoLinked)mypgdata,
-                            ReduceDataTransformer.CopyLTSWebcamInfoToReducedObject
-                        );
+                    ////Check if data has to be reduced and save it
+                    //if (
+                    //    ReduceDataTransformer.ReduceDataCheck<WebcamInfoLinked>(
+                    //        (WebcamInfoLinked)mypgdata
+                    //    ) == true
+                    //)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (WebcamInfoLinked)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSWebcamInfoToReducedObject
+                    //    );
 
-                        updateresultreduced = await SaveRavenObjectToPG<WebcamInfoLinked>(
-                            (WebcamInfoLinkedReduced)reducedobject,
-                            "webcams",
-                            false,
-                            false,
-                            false
-                        );
-                    }
+                    //    updateresultreduced = await SaveRavenObjectToPG<WebcamInfoLinked>(
+                    //        (WebcamInfoLinkedReduced)reducedobject,
+                    //        "webcams",
+                    //        false,
+                    //        false,
+                    //        false
+                    //    );
+                    //}
 
-                    break;
+                    //break;
+
+                    throw new Exception("Webcam Update Raven Migrated!");
 
                 case "metaregion":
                     //mydata = await GetDataFromRaven.GetRavenData<MetaRegion>(
@@ -1082,76 +1084,75 @@ namespace OdhApiImporter.Helpers
                     throw new Exception("MeasuringPoint Update Raven Migrated!");
 
                 case "venue":
-                    //TODO ADD new Venue Model
+                    //mydata = await GetDataFromRaven.GetRavenData<DDVenue>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
 
-                    mydata = await GetDataFromRaven.GetRavenData<DDVenue>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
+                    //if (mydata != null)
+                    //{
+                    //    mypgdata = TransformToPGObject.GetPGObject<DDVenue, DDVenue>(
+                    //        (DDVenue)mydata,
+                    //        TransformToPGObject.GetVenuePGObject
+                    //    );
+                    //    mydata = TransformToPGObject.GetPGObject<DDVenue, VenueLinked>(
+                    //        (DDVenue)mydata,
+                    //        TransformToPGObject.GetVenuePGObjectV2
+                    //    );
+                    //}
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    if (mydata != null)
-                    {
-                        mypgdata = TransformToPGObject.GetPGObject<DDVenue, DDVenue>(
-                            (DDVenue)mydata,
-                            TransformToPGObject.GetVenuePGObject
-                        );
-                        mydata = TransformToPGObject.GetPGObject<DDVenue, VenueLinked>(
-                            (DDVenue)mydata,
-                            TransformToPGObject.GetVenuePGObjectV2
-                        );
-                    }
-                    else
-                        throw new Exception("No data found!");
+                    ////Add the PublishedOn Logic
+                    //((VenueLinked)mydata).CreatePublishedOnList();
+                    //((DDVenue)mypgdata).odhdata.PublishedOn = (
+                    //    (VenueLinked)mydata
+                    //).PublishedOn.ToList();
 
-                    //Add the PublishedOn Logic
-                    ((VenueLinked)mydata).CreatePublishedOnList();
-                    ((DDVenue)mypgdata).odhdata.PublishedOn = (
-                        (VenueLinked)mydata
-                    ).PublishedOn.ToList();
+                    ////TODO Compare result
+                    //myupdateresult = await SaveRavenDestinationdataObjectToPG<VenueLinked, DDVenue>(
+                    //    (VenueLinked)mydata,
+                    //    (DDVenue)mypgdata,
+                    //    "venues_v2",
+                    //    true
+                    //);
 
-                    //TODO Compare result
-                    myupdateresult = await SaveRavenDestinationdataObjectToPG<VenueLinked, DDVenue>(
-                        (VenueLinked)mydata,
-                        (DDVenue)mypgdata,
-                        "venues_v2",
-                        true
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype
-                    );
+                    ////Check if data has to be reduced and save it
+                    //if (ReduceDataTransformer.ReduceDataCheck<DDVenue>((DDVenue)mypgdata) == true)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (VenueLinked)mydata,
+                    //        ReduceDataTransformer.CopyLTSVenueToReducedObject
+                    //    );
+                    //    var reducedobjectdd = ReduceDataTransformer.GetReducedObject(
+                    //        (DDVenue)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSVenueToReducedObject
+                    //    );
 
-                    //Check if data has to be reduced and save it
-                    if (ReduceDataTransformer.ReduceDataCheck<DDVenue>((DDVenue)mypgdata) == true)
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (VenueLinked)mydata,
-                            ReduceDataTransformer.CopyLTSVenueToReducedObject
-                        );
-                        var reducedobjectdd = ReduceDataTransformer.GetReducedObject(
-                            (DDVenue)mypgdata,
-                            ReduceDataTransformer.CopyLTSVenueToReducedObject
-                        );
+                    //    updateresultreduced = await SaveRavenDestinationdataObjectToPG<
+                    //        VenueLinked,
+                    //        DDVenue
+                    //    >(
+                    //        (VenueReduced)reducedobject,
+                    //        (DDVenueReduced)reducedobjectdd,
+                    //        "venues_v2",
+                    //        false
+                    //    );
+                    //}
+                    //break;
 
-                        updateresultreduced = await SaveRavenDestinationdataObjectToPG<
-                            VenueLinked,
-                            DDVenue
-                        >(
-                            (VenueReduced)reducedobject,
-                            (DDVenueReduced)reducedobjectdd,
-                            "venues_v2",
-                            false
-                        );
-                    }
-
-                    break;
+                    throw new Exception("Venue Update Raven Migrated!");
 
                 case "wine":
                     //mydata = await GetDataFromRaven.GetRavenData<WineLinked>(
@@ -1189,11 +1190,10 @@ namespace OdhApiImporter.Helpers
                     //    null,
                     //    "redactional.push"
                     //);
+                    //break;
 
                     throw new Exception("Wine Update Raven Migrated!");
-
-                    break;
-
+                    
                 default:
                     throw new Exception("no match found");
             }
@@ -1455,14 +1455,16 @@ namespace OdhApiImporter.Helpers
 
                 case "venue":
 
-                    deleteresult = await DeleteRavenObjectFromPG<VenueLinked>(
-                        id,
-                        "venues_v2",
-                        true
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    //deleteresult = await DeleteRavenObjectFromPG<VenueLinked>(
+                    //    id,
+                    //    "venues_v2",
+                    //    true
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Venue Delete Raven Migrated!");
 
                 case "wine":
 
@@ -1474,9 +1476,11 @@ namespace OdhApiImporter.Helpers
 
                 case "webcam":
                     //TODO DELETE ALL ASSIGNMENTS OF THIS Webcam
-                    deleteresult = await DeleteRavenObjectFromPG<VenueLinked>(id, "webcams", true);
+                    //deleteresult = await DeleteRavenObjectFromPG<VenueLinked>(id, "webcams", true);
 
-                    break;
+                    //break;
+
+                    throw new Exception("Webcam Delete Raven Migrated!");
 
                 default:
                     throw new Exception("no match found");
