@@ -27,6 +27,7 @@
     <ProjectReference Include="..\EBMS\EBMS.csproj" />
     <ProjectReference Include="..\FERATEL\FERATEL.csproj" />
     <ProjectReference Include="..\GTFSAPI\GTFSAPI.csproj" />
+    <ProjectReference Include="..\HDS\HDS.csproj" />
     <ProjectReference Include="..\Helper\Helper.csproj" />    
     <ProjectReference Include="..\LOOPTEC\LOOPTEC.csproj" />
     <ProjectReference Include="..\MSS\MSS.csproj" />
