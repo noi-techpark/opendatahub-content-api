@@ -333,10 +333,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Venue TO CHECK VenueLinked vs VenueV2
-                    var venueindb = await LoadDataFromDB<VenueLinked>(id, IDStyle.lowercase);
+                    var venueindb = await LoadDataFromDB<VenueV2>(id, IDStyle.lowercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
-                    //await MergeVenueTags(venueparsed, venueindb);
+                    await MergeVenueTags(venueparsed, venueindb);
               
                     if (!opendata)
                     {
@@ -497,7 +497,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result = await QueryFactory.DeleteData<VenueLinked>(
+                result = await QueryFactory.DeleteData<VenueV2>(
                 id.ToLower(),
                 new DataInfo("venues", CRUDOperation.Delete),
                 new CRUDConstraints(),
@@ -525,25 +525,17 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
 
-                var data = await query.GetObjectSingleAsync<VenueLinked>();
+                var data = await query.GetObjectSingleAsync<VenueV2>();
 
                 if (data != null)
                 {
                     if (
                         data.Active != false
-                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
                     )
                     {
                         data.Active = false;
-                        if (data is ISmgActive)
-                            ((ISmgActive)data).SmgActive = false;
-
-                        //updateresult = await QueryFactory
-                        //    .Query(table)
-                        //    .Where("id", id)
-                        //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
-
-                        result = await QueryFactory.UpsertData<VenueLinked>(
+                       
+                        result = await QueryFactory.UpsertData<VenueV2>(
                                data,
                                new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                                new EditInfo("lts.venues.import.deactivate", importerURL),
@@ -560,7 +552,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             objectchanged = result.objectchanged,
                             objectimagechanged = result.objectimagechanged,
                             comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                                result.compareobject != null && result.compareobject.Value ? 1 : 0,
                             pushchannels = result.pushchannels,
                             changes = result.changes,
                         };
@@ -572,86 +564,20 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
      
-        private async Task MergeVenueTags(VenueLinked vNew, VenueLinked vOld)
+        private async Task MergeVenueTags(VenueV2 vNew, VenueV2 vOld)
         {
             if (vOld != null)
-            {                                
-                ////Readd all Redactional Tags to check if this query fits
-                //var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
-                //if (redactionalassignedTags != null)
-                //{
-                //    foreach (var tag in redactionalassignedTags)
-                //    {
-                //        vNew.TagIds.Add(tag.Id);
-                //    }
-                //}
-            }
-
-            //TODO import ODHTags (eating drinking, gastronomy etc...) to Tags?
-
-            //TODO import the Redactional Tags from SmgTags into Tags?
-        }
-
-        //TODO Pois ODHTags assignment
-        //private async Task AssignODHTags(ODHActivityPoiLinked gastroNew, ODHActivityPoiLinked gastroOld)
-        //{
-        //    List<string> tagstopreserve = new List<string>();
-        //    //Remove all ODHTags that where automatically assigned         
-        //    if(gastroOld != null && gastroOld.SmgTags != null)
-        //        tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
-            
-        //    gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
-        //}
-        
-        //TODO Metatitle + metadesc
-        //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
-        //private async Task AddMetaTitle(ODHActivityPoiLinked gastroNew)
-        //{
-        //    if (gastroNew != null && gastroNew.Detail != null)
-        //    {
-        //        if (gastroNew.Detail.ContainsKey("de"))
-        //        {
-        //            string city = GetCityForGastroSeo("de", gastroNew);
-
-        //            gastroNew.Detail["de"].MetaTitle = gastroNew.Detail["de"].Title + " • " + city + " (Südtirol)";
-        //            gastroNew.Detail["de"].MetaDesc = "Kontakt •  Reservierung •  Öffnungszeiten → " + gastroNew.Detail["de"].Title + ", " + city + ". Hier finden Feinschmecker das passende Restaurant, Cafe, Almhütte, uvm.";
-        //        }
-        //        if (gastroNew.Detail.ContainsKey("it"))
-        //        {
-        //            string city = GetCityForGastroSeo("it", gastroNew);
-
-        //            gastroNew.Detail["it"].MetaTitle = gastroNew.Detail["it"].Title + " • " + city + " (Alto Adige)";
-        //            gastroNew.Detail["it"].MetaDesc = "Contatto • prenotazione • orari d'apertura → " + gastroNew.Detail["it"].Title + ", " + city + ". Il posto giusto per i buongustai: ristorante, cafè, baita, e tanto altro.";
-        //        }
-        //        if (gastroNew.Detail.ContainsKey("en"))
-        //        {
-        //            string city = GetCityForGastroSeo("en", gastroNew);
-
-        //            gastroNew.Detail["en"].MetaTitle = gastroNew.Detail["en"].Title + " • " + city + " (South Tyrol)";
-        //            gastroNew.Detail["en"].MetaDesc = "•  Contact •  reservation •  opening times →  " + gastroNew.Detail["en"].Title + ". Find the perfect restaurant, cafe, alpine chalet in South Tyrol.";
-        //        }
-
-        //        //foreach (var detail in gastroNew.Detail)
-        //        //{
-        //        //    //Check this
-        //        //    detail.Value.MetaTitle = detail.Value.Title + " | suedtirol.info";
-        //        //}
-        //    }
-        //}
-
-        //to check
-        //private async Task SetODHActiveBasedOnRepresentationMode(ODHActivityPoiLinked gastroNew)
-        //{
-        //    if(gastroNew.Mapping != null && gastroNew.Mapping.ContainsKey("lts") && gastroNew.Mapping["lts"].ContainsKey("representationMode"))
-        //    {                
-        //            var representationmode = gastroNew.Mapping["lts"]["representationMode"];
-        //        if (representationmode == "full")
-        //        {
-        //            gastroNew.SmgActive = true;
-        //        }
-        //    }
-        //}
-
-
+            {
+                //Readd all Redactional Tags to check if this query fits
+                var redactionalassignedTags = vOld.Tags != null ? vOld.Tags.Where(x => x.Source != "lts" && x.Source != "idm").ToList() : null;
+                if (redactionalassignedTags != null)
+                {
+                    foreach (var tag in redactionalassignedTags)
+                    {
+                        vNew.TagIds.Add(tag.Id);
+                    }
+                }
+            }            
+        }       
     }
 }
