@@ -1,4 +1,8 @@
-﻿using DataModel;
+﻿// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Location;
@@ -6,17 +10,8 @@ using Microsoft.AspNetCore.Http;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
-// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
-//
-// SPDX-License-Identifier: AGPL-3.0-or-later
-
-using DataModel;
-using Helper;
 using Helper.Tagging;
 using Newtonsoft.Json;
-using SqlKata.Execution;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,7 +22,7 @@ using HDS;
 
 namespace OdhApiImporter.Helpers
 {
-    public class HdsImportHelper //: ImportHelper, IImportHelper
+    public class HdsDataImportHelper //: ImportHelper, IImportHelper
     {
         private readonly QueryFactory QueryFactory;
         private readonly ISettings settings;
@@ -38,7 +33,7 @@ namespace OdhApiImporter.Helpers
         /// </summary>
         private string type;
 
-        public HdsImportHelper(
+        public HdsDataImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string importerURL,
@@ -73,6 +68,8 @@ namespace OdhApiImporter.Helpers
                     return await ImportMarketCalendarFromCSV(jsonContent, cancellationToken);
                 else if(type == "yearmarket")
                     return await ImportYearMarketCalendarFromCSV(jsonContent, cancellationToken);
+                else if (type == "municipality")
+                    return await ImportMunicipalityFromCSV(jsonContent, cancellationToken);
                 else
                     throw new Exception("type invalid");
             }
@@ -85,7 +82,7 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken
         )
         {
-            var dataparsed = await HDS.GetDataFromHDS.ImportCSVMarketFromHDS<HDSMarket>(csvcontent);
+            var dataparsed = await HDS.GetDataFromHDS.ImportCSVDataFromHDS<HDSMarket>(csvcontent);
 
             if (dataparsed.Success)
             {
@@ -277,7 +274,7 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken
         )
         {
-            var dataparsed = await HDS.GetDataFromHDS.ImportCSVMarketFromHDS<HDSYearMarket>(csvcontent);
+            var dataparsed = await HDS.GetDataFromHDS.ImportCSVDataFromHDS<HDSYearMarket>(csvcontent);
 
             if (dataparsed.Success)
             {
@@ -466,6 +463,89 @@ namespace OdhApiImporter.Helpers
                 throw new Exception("no data to import");
         }
 
+        private async Task<UpdateDetail> ImportMunicipalityFromCSV(
+            string csvcontent,
+            CancellationToken cancellationToken
+        )
+        {
+            var dataparsed = await HDS.GetDataFromHDS.ImportCSVDataFromHDS<HDSComune>(csvcontent);
+
+            if (dataparsed.Success)
+            {
+                var updatecounter = 0;
+                var newcounter = 0;
+                var deletecounter = 0;
+                var errorcounter = 0;
+
+                //Import Each Municipality
+                foreach (var municipality in dataparsed.records)
+                {
+                    if (municipality != null)
+                    {
+                        var name = municipality.Municipality.Split("-");
+
+                        //Search municipality
+                        var municipalityodhquery = QueryFactory.Query("municipality").Select("data")
+                            .SearchFilterWithGenId(PostgresSQLWhereBuilder.TitleFieldsToSearchFor("de"), name[0]);
+
+                        var municipalityodh = await municipalityodhquery.GetObjectSingleAsync<MunicipalityLinked>();
+
+                        if(municipalityodh != null)
+                        {
+                            //TODO Add the ContactInfo
+                            ContactInfos contactinfode = new ContactInfos();
+                            contactinfode.Address = municipality.Address;
+                            contactinfode.CountryCode = "IT";
+                            contactinfode.Phonenumber = municipality.Telephone;
+                            contactinfode.Email = municipality.Pec;
+                            contactinfode.ZipCode = municipality.PlzCap;
+                            contactinfode.LogoUrl = municipality.Logo;
+                            contactinfode.Givenname = municipality.Municipality;
+
+                            if (municipalityodh.ContactInfos == null)
+                                municipalityodh.ContactInfos = new Dictionary<string, ContactInfos>();
+
+                            municipalityodh.ContactInfos.TryAddOrUpdate("de", contactinfode);
+
+                            municipalityodh.Mapping.TryAddOrUpdate("hds", new Dictionary<string, string>() { { "name", municipality.Municipality } });
+
+                            //Save to Rawdatatable
+                            var rawdataid = await InsertInRawDataDB(municipality);
+
+                            //Save to PG
+                            //Check if data exists
+                            var result = await QueryFactory.UpsertData(
+                                municipalityodh,
+                                new DataInfo("municipalities", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                                new EditInfo("hds.municipality.import", importerURL),
+                                new CRUDConstraints(),
+                                new CompareConfig(true, false),
+                                rawdataid
+                            );
+
+                            if (result.updated != null)
+                                updatecounter = updatecounter + result.updated.Value;
+                            if (result.created != null)
+                                newcounter = newcounter + result.created.Value;
+                            if (result.deleted != null)
+                                deletecounter = deletecounter + result.deleted.Value;
+                        }
+                    }
+                }
+              
+                return new UpdateDetail()
+                {
+                    created = newcounter,
+                    updated = updatecounter,
+                    deleted = deletecounter,
+                    error = errorcounter,
+                };
+            }
+            else if (dataparsed.Error)
+                throw new Exception(dataparsed.ErrorMessage);
+            else
+                throw new Exception("no data to import");
+        }
 
         private async Task<int> InsertInRawDataDB(HDSMarket hdsmarket)
         {
@@ -503,6 +583,23 @@ namespace OdhApiImporter.Helpers
             );
         }
 
+        private async Task<int> InsertInRawDataDB(HDSComune hdsmunicipality)
+        {
+            return await QueryFactory.InsertInRawtableAndGetIdAsync(
+                new RawDataStore()
+                {
+                    datasource = "hds",
+                    importdate = DateTime.Now,
+                    raw = JsonConvert.SerializeObject(hdsmunicipality),
+                    sourceinterface = "csv",
+                    sourceid = "",
+                    sourceurl = "csvfile",
+                    type = "odhactivitypoi.municipality",
+                    license = "open",
+                    rawformat = "json",
+                }
+            );
+        }
 
         private async Task<List<string>> GetAllHDSData(string syncsourcedatabase)
         {

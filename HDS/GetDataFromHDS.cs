@@ -16,7 +16,7 @@ namespace HDS
 {
     public class GetDataFromHDS
     {
-        public static Task<ParseResult<T>> ImportCSVMarketFromHDS<T>(string? csvcontent)
+        public static Task<ParseResult<T>> ImportCSVDataFromHDS<T>(string? csvcontent)
         {
             try
             {                
