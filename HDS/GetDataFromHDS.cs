@@ -23,7 +23,7 @@ namespace HDS
                 //CSVReader Config
                 var config = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
-                    Delimiter = ";",
+                    Delimiter = ",",
                     //Problems with ANSI Encoding.... Windows generates csv Encoded in ANSI(ISO 8859-1) which does not work with UTF-8
                     Encoding = Encoding.UTF8,
                     //NewLine = "\r\n" Environment.NewLine,
@@ -39,8 +39,7 @@ namespace HDS
                             : new StreamReader(GenerateStreamFromString(csvcontent), Encoding.UTF8)
                 )
                 using (var csv = new CsvReader(reader, config))
-                {
-                    //csv.Configuration.Delimiter = ";";
+                {                    
                     csv.Read();
                     csv.ReadHeader();
                     records = csv.GetRecords<T>();

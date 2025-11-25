@@ -51,7 +51,7 @@ namespace HDS
     {
         [Index(0)]
         [Name("Monat -Mese")]
-        public string? Municipality { get; set; }
+        public string? Month { get; set; }
 
         [Index(1)]
         [Name("Giorno")]
@@ -59,15 +59,15 @@ namespace HDS
 
         [Index(2)]
         [Name("Data")]
-        public string? Frequency { get; set; }
+        public string? DateBegin { get; set; }
 
         [Index(3)]
         [Name("Gemeinde - Comune")]
-        public string? Standsnumber { get; set; }
+        public string? Municipality { get; set; }
 
         [Index(4)]
         [Name("MONATSMARKT - MENSILE")]
-        public string? Area { get; set; }
+        public string? Modality { get; set; }
 
         [Index(5)]
         [Name("Link")]
@@ -75,10 +75,10 @@ namespace HDS
 
         [Index(6)]
         [Name("Bezirksgemeinschaft")]
-        public string? Geoloc { get; set; }
+        public string? OrganizatedfromCommunity { get; set; }
 
         [Index(7)]
         [Name("Geolocation")]
-        public string? Typee { get; set; }
+        public string? Geoloc { get; set; }
     }
 }

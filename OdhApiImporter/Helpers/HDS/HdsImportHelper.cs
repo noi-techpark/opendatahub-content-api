@@ -12,10 +12,7 @@ using System.Collections.Generic;
 
 using DataModel;
 using Helper;
-using Helper.Generic;
-using Helper.Location;
 using Helper.Tagging;
-using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using SqlKata.Execution;
 using System;
@@ -36,6 +33,9 @@ namespace OdhApiImporter.Helpers
         private readonly ISettings settings;
         private string importerURL;
 
+        /// <summary>
+        /// Type (yearmarket, market: currently available)
+        /// </summary>
         private string type;
 
         public HdsImportHelper(
@@ -104,7 +104,7 @@ namespace OdhApiImporter.Helpers
                     }
                 );
 
-                //Import Each STA Vendingpoi to ODH
+                //Import Each HDS data to ODH
                 foreach (var market in dataparsed.records)
                 {
                     if (market != null)
@@ -116,8 +116,6 @@ namespace OdhApiImporter.Helpers
 
                         if (odhactivitypoi != null)
                         {
-                            //MetaData
-                            //odhactivitypoi._Meta = MetadataHelper.GetMetadataobject<ODHActivityPoiLinked>(odhactivitypoi, MetadataHelper.GetMetadataforOdhActivityPoi); //GetMetadata(data.Id, "odhactivitypoi", sourcemeta, data.LastChange);
                             //LicenseInfo                                                                                                                                    //License
                             odhactivitypoi.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(
                                 odhactivitypoi
