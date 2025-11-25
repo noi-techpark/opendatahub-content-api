@@ -2406,8 +2406,54 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        #endregion
 
+        #region Municipality
         
+        public async Task<Tuple<int, string>> UpdateMunicipalityMapping()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("municipalities");
+
+            var data = await query.GetObjectListAsync<MunicipalityLinked>();
+            int i = 0;
+
+            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
+
+            foreach (var municipality in data)
+            {
+                //Add Mapping
+                if(municipality.SiagId != null)
+                    municipality.Mapping.TryAddOrUpdate("siag", new Dictionary<string, string>() { { "id", municipality.SiagId } });
+
+                //CustomId ??
+                if (municipality.CustomId != null)
+                    municipality.Mapping.TryAddOrUpdate("idm", new Dictionary<string, string>() { { "id", municipality.CustomId } });
+
+
+                if (municipality.IstatNumber != null)
+                    municipality.Mapping.TryAddOrUpdate("istat", new Dictionary<string, string>() { { "istatnumber", municipality.IstatNumber }, { "inhabitants", municipality.Inhabitants.ToString() } });
+
+                var queryresult = await QueryFactory
+                   .Query("municipalities")
+                   .Where("id", municipality.Id)
+                   .UpdateAsync(
+                       new JsonBData()
+                       {
+                           id = municipality.Id,
+                           data = new JsonRaw(municipality),
+                       }
+                   );
+
+                results.Add(Tuple.Create<int, string>(queryresult, municipality.Id));
+            }
+
+            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
+            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
+
+            return Tuple.Create(updatedcount, String.Join(",", failed));
+        }
+
 
         #endregion
     }

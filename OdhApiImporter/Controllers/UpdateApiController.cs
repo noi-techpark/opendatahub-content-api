@@ -3343,7 +3343,7 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-                HdsImportHelper hdsimporthelper = new HdsImportHelper(
+                HdsDataImportHelper hdsimporthelper = new HdsDataImportHelper(
                     settings,
                     QueryFactory,
                     UrlGeneratorStatic("HDS/MarketCalendar"),
