@@ -333,7 +333,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await venueparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Venue
-                    var venueindb = await LoadDataFromDB<VenueV2>(id, IDStyle.lowercase);
+                    var venueindb = await LoadDataFromDB<VenueV2>(id, IDStyle.uppercase);
 
                     //Add manual assigned Tags to TagIds TO check if this should be activated
                     await MergeVenueTags(venueparsed, venueindb);
@@ -420,7 +420,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 var rawdataid = await InsertInRawDataDB(venuelts);
                 
-                objecttosave.Id = objecttosave.Id.ToLower();
+                objecttosave.Id = objecttosave.Id.ToUpper();
 
                 return await QueryFactory.UpsertData<VenueV2>(
                     objecttosave,
