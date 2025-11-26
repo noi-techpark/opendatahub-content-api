@@ -754,7 +754,8 @@ namespace DataModel
         IContactInfosAware,
         IMetaData,
         IHasLocationInfoLinked,
-        IHasTagInfo
+        IHasTagInfo,
+        IHasDistrictId
     {
         public VenueV2()
         {
@@ -802,8 +803,14 @@ namespace DataModel
         //public int? RoomCount { get; set; }
         public ICollection<VenueRoomDetailsV2>? RoomDetails { get; set; }
 
-        //switched to Tags
-        //public ICollection<VenueType>? VenueCategory { get; set; }
+        //DistrictId
+        public string? DistrictId
+        {
+            get
+            {
+                return this.LocationInfo != null && this.LocationInfo.DistrictInfo != null && this.LocationInfo.DistrictInfo.Id != null ? this.LocationInfo.DistrictInfo.Id : null;
+            }
+        }
     }
 
     public class VenueRoomDetailsV2 : IHasTagInfo
