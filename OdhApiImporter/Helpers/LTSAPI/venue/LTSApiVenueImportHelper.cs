@@ -339,9 +339,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await MergeVenueTags(venueparsed, venueindb);
               
                     if (!opendata)
-                    {
-                        //Add the values to Tags (TagEntry) not needed anymore?
-                        //await AddTagEntryToTags(venueparsed);
+                    {                        
+                        //Create Tags and preserve the old TagEntries                        
+                        foreach (var hallfeature in venueparsed.RoomDetails)
+                        {
+                            await hallfeature.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(hallfeature));
+                        }
                     }
 
                     //Create Tags and preserve the old TagEntries

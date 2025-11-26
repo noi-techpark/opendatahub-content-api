@@ -786,6 +786,7 @@ namespace DataModel
         
         public DistanceInfo? DistanceInfo { get; set; }
 
+        [Obsolete("Deprecated")]
         public int? Beds { get; set; }
 
         public ICollection<OperationSchedule>? OperationSchedule { get; set; }
