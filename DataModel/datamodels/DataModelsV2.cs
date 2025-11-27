@@ -784,10 +784,7 @@ namespace DataModel
 
         public ICollection<string>? PublishedOn { get; set; }
         
-        public DistanceInfo? DistanceInfo { get; set; }
-
-        [Obsolete("Deprecated")]
-        public int? Beds { get; set; }
+        public DistanceInfo? DistanceInfo { get; set; }        
 
         public ICollection<OperationSchedule>? OperationSchedule { get; set; }
 
@@ -799,9 +796,7 @@ namespace DataModel
         public LocationInfoLinked? LocationInfo { get; set; }
 
         public ICollection<Tags>? Tags { get; set; }
-
-        //New Details
-        //public int? RoomCount { get; set; }
+        
         public ICollection<VenueRoomDetailsV2>? RoomDetails { get; set; }
 
         //DistrictId
@@ -824,17 +819,6 @@ namespace DataModel
 
         public string? Id { get; set; }
         public string? Shortname { get; set; }
-
-        //public int? SquareMeters { get; set; }
-
-        //public int maxCapacity { get; set; }
-
-        //public bool? Indoor { get; set; }
-
-        //Add to Tags
-        //public ICollection<VenueType>? VenueFeatures { get; set; }
-        //Add to Tags with TagEntry
-        //public ICollection<VenueSetup>? VenueSetup { get; set; }
 
         public ICollection<string> TagIds { get; set; }
 

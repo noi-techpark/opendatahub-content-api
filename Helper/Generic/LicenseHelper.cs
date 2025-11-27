@@ -632,14 +632,19 @@ namespace Helper
         {
             var isopendata = opendata;
             var licensetype = "CC0";
-            var licenseholder = @"https://www.lts.it";
+            var licenseholder = @"";
 
             if (!opendata)
             {
                 licensetype = "closed";
             }
 
-            if (data.Source.ToLower() == "trevilab")
+            if (data.Source.ToLower() == "lts")
+            {                
+                licensetype = "CC0";
+                licenseholder = @"https://www.lts.it";
+            }
+            else if (data.Source.ToLower() == "trevilab")
             {
                 isopendata = true;
                 licensetype = "CC0";
