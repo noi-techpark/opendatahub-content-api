@@ -1553,56 +1553,56 @@ namespace OdhApiImporter.Helpers
             };
         }
 
-        //For Destinationdata Venue
-        private async Task<UpdateDetail> SaveRavenDestinationdataObjectToPG<T, V>(
-            T datatosave,
-            V destinationdatatosave,
-            string table,
-            bool deletereduceddata
-        )
-            where T : IIdentifiable,
-                IImportDateassigneable,
-                IMetaData,
-                ILicenseInfo,
-                IPublishedOn,
-                IImageGalleryAware,
-                new()
-            where V : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo
-        {
-            datatosave._Meta.LastUpdate = datatosave.LastChange;
+        ////For Destinationdata Venue
+        //private async Task<UpdateDetail> SaveRavenDestinationdataObjectToPG<T, V>(
+        //    T datatosave,
+        //    V destinationdatatosave,
+        //    string table,
+        //    bool deletereduceddata
+        //)
+        //    where T : IIdentifiable,
+        //        IImportDateassigneable,
+        //        IMetaData,
+        //        ILicenseInfo,
+        //        IPublishedOn,
+        //        IImageGalleryAware,
+        //        new()
+        //    where V : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo
+        //{
+        //    datatosave._Meta.LastUpdate = datatosave.LastChange;
 
-            var result = await QueryFactory.UpsertDataDestinationData<T, V>(
-                datatosave,
-                destinationdatatosave,
-                table,
-                false,
-                false,
-                true,
-                true
-            );
+        //    var result = await QueryFactory.UpsertDataDestinationData<T, V>(
+        //        datatosave,
+        //        destinationdatatosave,
+        //        table,
+        //        false,
+        //        false,
+        //        true,
+        //        true
+        //    );
 
-            //Delete the reduced data if available
-            if (deletereduceddata)
-                await QueryFactory.DeleteData<T>(
-                    datatosave.Id + "_reduced",
-                    new DataInfo(table, CRUDOperation.Delete),
-                    new CRUDConstraints()
-                );
+        //    //Delete the reduced data if available
+        //    if (deletereduceddata)
+        //        await QueryFactory.DeleteData<T>(
+        //            datatosave.Id + "_reduced",
+        //            new DataInfo(table, CRUDOperation.Delete),
+        //            new CRUDConstraints()
+        //        );
 
-            return new UpdateDetail()
-            {
-                created = result.created,
-                updated = result.updated,
-                deleted = result.deleted,
-                error = result.error,
-                comparedobjects =
-                    result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                objectchanged = result.objectchanged,
-                objectimagechanged = result.objectimagechanged,
-                pushchannels = result.pushchannels,
-                changes = result.changes,
-            };
-        }
+        //    return new UpdateDetail()
+        //    {
+        //        created = result.created,
+        //        updated = result.updated,
+        //        deleted = result.deleted,
+        //        error = result.error,
+        //        comparedobjects =
+        //            result.compareobject != null && result.compareobject.Value ? 1 : 0,
+        //        objectchanged = result.objectchanged,
+        //        objectimagechanged = result.objectimagechanged,
+        //        pushchannels = result.pushchannels,
+        //        changes = result.changes,
+        //    };
+        //}
 
         public async Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
             UpdateDetail myupdateresult,

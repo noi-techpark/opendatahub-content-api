@@ -901,8 +901,7 @@ namespace Helper
             IReadOnlyCollection<string> regionlist,
             IReadOnlyCollection<string> arealist,
             IReadOnlyCollection<string> skiarealist,
-            bool? activefilter,
-            bool? smgactivefilter,
+            bool? activefilter,            
             IReadOnlyCollection<string> publishedonlist,
             IReadOnlyCollection<string> sourcelist,
             string? searchfilter,
@@ -921,8 +920,7 @@ namespace Helper
                 tourismvereinlist,
                 regionlist,
                 arealist,
-                activefilter,
-                smgactivefilter,
+                activefilter,                
                 searchfilter,
                 language,
                 lastchange
@@ -931,7 +929,7 @@ namespace Helper
             return query
                 .IdUpperFilter(idlist, "gen_id")
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
-                .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
+                //.OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
                 .PublishedOnFilter_GeneratedColumn(publishedonlist) //.PublishedOnFilter(publishedonlist)
                 .LastChangedFilter_GeneratedColumn(lastchange) //.LastChangedFilter(lastchange)
                 .SourceFilter_GeneratedColumn(sourcelist)
@@ -1045,20 +1043,12 @@ namespace Helper
             IReadOnlyCollection<string> categorylist,
             IReadOnlyCollection<string> featurelist,
             IReadOnlyCollection<string> setuptypelist,
-            IReadOnlyCollection<string> smgtaglist,
             IReadOnlyCollection<string> districtlist,
             IReadOnlyCollection<string> municipalitylist,
             IReadOnlyCollection<string> tourismvereinlist,
             IReadOnlyCollection<string> regionlist,
-            IReadOnlyCollection<string> sourcelist,
-            bool capacity,
-            int capacitymin,
-            int capacitymax,
-            bool roomcount,
-            int roomcountmin,
-            int roomcountmax,
-            bool? activefilter,
-            bool? smgactivefilter,
+            IReadOnlyCollection<string> sourcelist,            
+            bool? activefilter,            
             IDictionary<string, List<string>>? tagdict,
             IReadOnlyCollection<string> publishedonlist,
             string? searchfilter,
@@ -1074,22 +1064,14 @@ namespace Helper
                 idlist,
                 categorylist,
                 featurelist,
-                setuptypelist,
-                smgtaglist,
+                setuptypelist,                
                 districtlist,
                 municipalitylist,
                 tourismvereinlist,
                 regionlist,
                 sourcelist,
                 languagelist,
-                capacity,
-                capacitymin,
-                capacitymax,
-                roomcount,
-                roomcountmin,
-                roomcountmax,
-                activefilter,
-                smgactivefilter,
+                activefilter,                
                 tagdict,
                 searchfilter,
                 language,
@@ -1100,8 +1082,8 @@ namespace Helper
             return query
                 .IdUpperFilter(idlist, "gen_id")
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.VenueActiveFilter(activefilter)
-                .OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.VenueODHActiveFilter(smgactivefilter)
-                .When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.VenueODHTagFilter(smgtaglist)
+                //.OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.VenueODHActiveFilter(smgactivefilter)
+                //.When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.VenueODHTagFilter(smgtaglist)
                 .LastChangedFilter_GeneratedColumn(lastchange) //.VenueLastChangedFilter(lastchange)
                 .SourceFilter_GeneratedColumn(sourcelist)
                 .When(
@@ -1118,10 +1100,13 @@ namespace Helper
                 //.LocFilterTvsFilter(tourismvereinlist) //.VenueLocFilterTvsFilter(tourismvereinlist)
                 //.LocFilterRegionFilter(regionlist) //.VenueLocFilterRegionFilter(regionlist)
                 .LocFilterCombined(regionlist, tourismvereinlist, municipalitylist, districtlist)
-                .VenueCategoryFilter(categorylist)
-                .VenueFeatureFilter(featurelist)
-                .VenueSetupTypeFilter(setuptypelist)
-                .VenueRoomCountFilter(roomcount, roomcountmin, roomcountmax)
+                //.VenueCategoryFilter(categorylist)
+                .When(categorylist.Count > 0, x => x.TaggingFilter_GeneratedColumn(new Dictionary<string, List<string>> { { "and", categorylist.ToList() } }))
+                //.VenueFeatureFilter(featurelist)
+                .When(featurelist.Count > 0, x => x.TaggingFilter_GeneratedColumn(new Dictionary<string, List<string>> { { "and", featurelist.ToList() } }))
+                //.VenueSetupTypeFilter(setuptypelist)
+                .When(setuptypelist.Count > 0, x => x.TaggingFilter_GeneratedColumn(new Dictionary<string, List<string>> { { "and", setuptypelist.ToList() } }))
+                //.VenueRoomCountFilter(roomcount, roomcountmin, roomcountmax)
                 //TODO
                 //.VenueCapacityFilter(capacity, capacitymin, capacitymax)
                 .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)

@@ -54,12 +54,8 @@ namespace OdhApiCore.Controllers
         /// <param name="featurefilter">Venue Features Filter (BITMASK) (Separator ',' List of Venuetype Bitmasks, refer to api/VenueTypes type:feature), (default:'null')</param>
         /// <param name="setuptypefilter">Venue SetupType Filter (BITMASK) (Separator ',' List of Venuetype Bitmasks, refer to api/VenueTypes type:seatType), (default:'null')</param>
         /// <param name="source">Source Filter(String, ), (default:'null')</param>
-        /// <param name="capacityfilter">Capacity Range Filter (Separator ',' example Value: 50,100 All Venues with rooms from 50 to 100 people), (default:'null')</param>
-        /// <param name="roomcountfilter">Room Count Range Filter (Separator ',' example Value: 2,5 All Venues with 2 to 5 rooms), (default:'null')</param>
-        /// <param name="odhtagfilter">ODH Taglist Filter (refers to Array SmgTags) (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=venue'), (default:'null')</param>
         /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active Venue Filter (possible Values: 'true' only Active Venues, 'false' only Disabled Venues), (default:'null')</param>
-        /// <param name="odhactive">ODH Active (Published) Venue Filter (possible Values: 'true' only published Venue, 'false' only not published Venue), (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="longitude">GeoFilter FLOAT Longitude Format: '11.369909', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="radius">Radius INTEGER to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -90,8 +86,6 @@ namespace OdhApiCore.Controllers
             uint pagenumber = 1,
             PageSize pagesize = null!,
             string? categoryfilter = null,
-            string? capacityfilter = null,
-            string? roomcountfilter = null,
             string? idlist = null,
             string? locfilter = null,
             string? featurefilter = null,
@@ -100,7 +94,6 @@ namespace OdhApiCore.Controllers
             string? tagfilter = null,
             string? source = null,
             LegacyBool active = null!,
-            LegacyBool odhactive = null!,
             string? publishedon = null,
             string? updatefrom = null,
             string? langfilter = null,
@@ -135,17 +128,13 @@ namespace OdhApiCore.Controllers
                 pagenumber: pagenumber,
                 pagesize: pagesize,
                 idfilter: idlist,
-                categoryfilter: categoryfilter,
-                capacityfilter: capacityfilter,
+                categoryfilter: categoryfilter,                
                 searchfilter: searchfilter,
-                locfilter: locfilter,
-                roomcountfilter: roomcountfilter,
+                locfilter: locfilter,                
                 featurefilter: featurefilter,
                 setuptypefilter: setuptypefilter,
                 sourcefilter: source,
-                active: active,
-                smgactive: odhactive,
-                smgtags: odhtagfilter,
+                active: active,                                
                 tagfilter: tagfilter,
                 seed: seed,
                 lastchange: updatefrom,
@@ -288,16 +277,12 @@ namespace OdhApiCore.Controllers
             int? pagesize,
             string? idfilter,
             string? categoryfilter,
-            string? capacityfilter,
             string? searchfilter,
             string? locfilter,
-            string? roomcountfilter,
             string? featurefilter,
             string? setuptypefilter,
             string? sourcefilter,
             bool? active,
-            bool? smgactive,
-            string? smgtags,
             string? tagfilter,
             string? seed,
             string? lastchange,
@@ -324,14 +309,10 @@ namespace OdhApiCore.Controllers
                     categoryfilter,
                     featurefilter,
                     setuptypefilter,
-                    locfilter,
-                    capacityfilter,
-                    roomcountfilter,
+                    locfilter,                    
                     langfilter,
                     sourcefilter,
                     active,
-                    smgactive,
-                    smgtags,
                     tagfilter,
                     lastchange,
                     publishedon,
@@ -350,22 +331,14 @@ namespace OdhApiCore.Controllers
                         idlist: myvenuehelper.idlist,
                         categorylist: myvenuehelper.categorylist,
                         featurelist: myvenuehelper.featurelist,
-                        setuptypelist: myvenuehelper.setuptypelist,
-                        smgtaglist: myvenuehelper.odhtaglist,
+                        setuptypelist: myvenuehelper.setuptypelist,                        
                         tagdict: myvenuehelper.tagdict,
                         districtlist: myvenuehelper.districtlist,
                         municipalitylist: myvenuehelper.municipalitylist,
                         tourismvereinlist: myvenuehelper.tourismvereinlist,
                         regionlist: myvenuehelper.regionlist,
                         sourcelist: myvenuehelper.sourcelist,
-                        capacity: myvenuehelper.capacity,
-                        capacitymin: myvenuehelper.capacitymin,
-                        capacitymax: myvenuehelper.capacitymax,
-                        roomcount: myvenuehelper.roomcount,
-                        roomcountmin: myvenuehelper.roomcountmin,
-                        roomcountmax: myvenuehelper.roomcountmax,
-                        activefilter: myvenuehelper.active,
-                        smgactivefilter: myvenuehelper.smgactive,
+                        activefilter: myvenuehelper.active,                        
                         publishedonlist: myvenuehelper.publishedonlist,
                         searchfilter: searchfilter,
                         language: language,
@@ -441,7 +414,7 @@ namespace OdhApiCore.Controllers
                 //var venuecolumn = destinationdataformat ? "destinationdata as data" : "data";
 
                 var query = QueryFactory
-                    .Query("venues_v2")
+                    .Query("venues")
                     .Select("data")                    
                     .Where("gen_id", id.ToUpper())
                     .When(
@@ -683,7 +656,7 @@ namespace OdhApiCore.Controllers
 
                 return await DeleteData<VenueV2>(
                     id,
-                    new DataInfo("venues_v2", CRUDOperation.Delete),
+                    new DataInfo("venues", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });

@@ -20,8 +20,7 @@ namespace OdhApiCore.Controllers
         public List<string> arealist;
         public List<string> skiarealist;
         public List<string> sourcelist;
-        public bool? active;
-        public bool? smgactive;
+        public bool? active;        
         public string? lastchange;
 
         //New Publishedonlist
@@ -34,8 +33,7 @@ namespace OdhApiCore.Controllers
             string? areafilter,
             string? skiareafilter,
             string? sourcefilter,
-            bool? activefilter,
-            bool? smgactivefilter,
+            bool? activefilter,            
             string? lastchange,
             string? publishedonfilter,
             CancellationToken cancellationToken
@@ -70,8 +68,7 @@ namespace OdhApiCore.Controllers
                 skiareafilter: skiareafilter,
                 areafilterlist: arealistfromarea,
                 sourcefilter: sourcefilter,
-                activefilter: activefilter,
-                smgactivefilter: smgactivefilter,
+                activefilter: activefilter,                
                 lastchange: lastchange,
                 publishedonfilter: publishedonfilter,
                 tourismusvereinids: tourismusvereinids
@@ -84,8 +81,7 @@ namespace OdhApiCore.Controllers
             string? skiareafilter,
             IEnumerable<string> areafilterlist,
             string? sourcefilter,
-            bool? activefilter,
-            bool? smgactivefilter,
+            bool? activefilter,            
             string? lastchange,
             string? publishedonfilter,
             IEnumerable<string>? tourismusvereinids
@@ -120,10 +116,7 @@ namespace OdhApiCore.Controllers
                 tourismvereinlist.AddRange(tourismusvereinids);
 
             //active
-            active = activefilter;
-
-            //smgactive
-            smgactive = smgactivefilter;
+            active = activefilter;            
 
             //skiarea filter
             skiarealist = Helper.CommonListCreator.CreateIdList(skiareafilter?.ToUpper());
