@@ -184,17 +184,17 @@ namespace Helper
         }
 
         #region PG CRUD Helpers
-        
+
         /// <summary>
         /// Inserts or Updates the Data
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="QueryFactory"></param>
         /// <param name="data"></param>
-        /// <param name="dataconfig"></param>
+        /// <param name="dataconfig">Create/Update/CreateAndUpdate</param>
         /// <param name="editinfo"></param>
         /// <param name="constraints">Constraints for CRUD operations</param>
-        /// <param name="compareConfig"></param>
+        /// <param name="compareConfig">Compare data/images true/false</param>
         /// <returns></returns>
         public static async Task<PGCRUDResult> UpsertData<T>(
             this QueryFactory QueryFactory,
@@ -211,6 +211,7 @@ namespace Helper
             //TOCHECK: What if no id is passed? Generate ID?
             //TOCHECK: Id Uppercase or Lowercase depending on table
             //TOCHECK: Shortname population?
+
 
             List<string> channelstopublish = new List<string>();
             int? objectchangedcount = null;
@@ -239,11 +240,14 @@ namespace Helper
             if (reduced)
                 reducedId = "_REDUCED";
 
+            var idtoprocess = IdGenerator.CheckIdFromType<T>(data.Id + reducedId);
+            IdGenerator.CheckIdFromType<T>(data);
+
             //Check if data exists already
             var queryresult = await QueryFactory
                 .Query(dataconfig.Table)
                 .Select("data")
-                .Where("id", data.Id + reducedId)
+                .Where("id", idtoprocess)
                 .When(
                     constraints.AccessRole.Count() > 0,
                     q => q.FilterDataByAccessRoles(constraints.AccessRole)
@@ -323,15 +327,15 @@ namespace Helper
                 {
                     createresult = await QueryFactory
                         .Query(dataconfig.Table)
-                        .InsertAsync(new JsonBData() { id = data.Id + reducedId, data = new JsonRaw(data) });
+                        .InsertAsync(new JsonBData() { id = idtoprocess, data = new JsonRaw(data) });
                 }
                 else
                 {
                     createresult = await QueryFactory
                         .Query(dataconfig.Table)
-                        .InsertAsync(new JsonBDataRaw() { id = data.Id + reducedId, data = new JsonRaw(data), rawdataid = rawdataid.Value });
+                        .InsertAsync(new JsonBDataRaw() { id = idtoprocess, data = new JsonRaw(data), rawdataid = rawdataid.Value });
                 }
-                
+
 
                 dataconfig.Operation = CRUDOperation.Create;
 
@@ -371,7 +375,7 @@ namespace Helper
                     };
 
                 //Set the FirstImport of the old data
-                if(queryresult.FirstImport != null)
+                if (queryresult.FirstImport != null)
                     data.FirstImport = queryresult.FirstImport;
 
                 //Set the Lastchanged of the old data, only if the Comparator is active
@@ -393,7 +397,7 @@ namespace Helper
                     {
                         objectchangedcount = 1;
                         data.LastChange = DateTime.Now;
-                    }                        
+                    }
                 }
 
                 //Compare Image Gallery Check if this works with a cast to IImageGalleryAware
@@ -428,19 +432,19 @@ namespace Helper
                     );
                 }
 
-                if(rawdataid == null)
+                if (rawdataid == null)
                 {
                     updateresult = await QueryFactory
                    .Query(dataconfig.Table)
-                   .Where("id", data.Id + reducedId)
-                   .UpdateAsync(new JsonBData() { id = data.Id + reducedId, data = new JsonRaw(data) });
+                   .Where("id", idtoprocess)
+                   .UpdateAsync(new JsonBData() { id = idtoprocess, data = new JsonRaw(data) });
                 }
                 else
                 {
                     updateresult = await QueryFactory
                    .Query(dataconfig.Table)
-                   .Where("id", data.Id + reducedId)
-                   .UpdateAsync(new JsonBDataRaw() { id = data.Id + reducedId, data = new JsonRaw(data), rawdataid = rawdataid.Value });
+                   .Where("id", idtoprocess)
+                   .UpdateAsync(new JsonBDataRaw() { id = idtoprocess, data = new JsonRaw(data), rawdataid = rawdataid.Value });
                 }
 
                 dataconfig.Operation = CRUDOperation.Update;
@@ -462,11 +466,11 @@ namespace Helper
                     objectchanged = objectchangedcount,
                     objectimagechanged = objectimagechangedcount,
                     pushchannels = channelstopublish,
-                    
+
                 };
 
             //If changes should be saved to DB
-            if(dataconfig.SaveChangesToDB)
+            if (dataconfig.SaveChangesToDB)
             {
                 if (objectchangedcount != null && objectchangedcount > 0)
                 {
@@ -511,7 +515,7 @@ namespace Helper
                 changes = equalityresult.patch,
             };
         }
-        
+
         /// <summary>
         /// Deletes the data
         /// </summary>

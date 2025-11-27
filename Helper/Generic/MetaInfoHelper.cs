@@ -70,14 +70,14 @@ namespace Helper
             {
                 AccommodationV2 al => GetMetadataforAccommodation(al),
                 AccommodationRoomLinked al => GetMetadataforAccommodationRoom(al),
-                LTSActivityLinked ltsal => GetMetadataforActivity(ltsal),
-                LTSPoiLinked ltspl => GetMetadataforPoi(ltspl),
+                //LTSActivityLinked ltsal => GetMetadataforActivity(ltsal),
+                //LTSPoiLinked ltspl => GetMetadataforPoi(ltspl),
                 //GastronomyLinked gl => GetMetadataforGastronomy(gl),
                 EventLinked el => GetMetadataforEvent(el, reduced),
                 ODHActivityPoiLinked odhapl => GetMetadataforOdhActivityPoi(odhapl, reduced),
                 PackageLinked pl => GetMetadataforPackage(pl),
                 MeasuringpointLinked ml => GetMetadataforMeasuringpoint(ml),
-                WebcamInfoLinked wil => GetMetadataforWebcam(wil),
+                WebcamInfoLinked wil => GetMetadataforWebcam(wil, reduced),
                 ArticlesLinked al => GetMetadataforArticle(al),
                 DDVenue ddv => GetMetadataforDDVenue(ddv),
                 VenueLinked vl => GetMetadataforVenue(vl),
@@ -103,8 +103,10 @@ namespace Helper
                 WeatherForecastLinked wf => GetMetaDataForWeatherForecast(wf),
                 SnowReportBaseData sb => GetMetaDataForSnowReport(sb),
                 TourismMetaData tm => GetMetaDataForMetaData(tm),
-                EventV2 ev => GetMetadataforEvent(ev),
-                VenueV2 ev => GetMetadataforVenue(ev),
+                EventFlattened ev => GetMetadataforEvent(ev),
+                VenueFlattened ev => GetMetadataforVenue(ev),
+                VenueV2 vv => GetMetadataforVenue(vv, reduced),
+                MeasuringpointV2 mv => GetMetadataforMeasuringpoint(mv, reduced),
                 GeoShapeJson gj => GetMetadataForGeoShapeJson(gj),
                 Announcement ri => GetMetadataforAnnouncement(ri),
                 _ => throw new Exception("not known odh type"),
@@ -152,27 +154,27 @@ namespace Helper
             return GetMetadata(data, datasource, false);
         }
 
-        public static Metadata GetMetadataforActivity(LTSActivityLinked data)
-        {
-            bool reduced = false;
-            if (data._Meta != null)
-                reduced = (bool)data._Meta.Reduced;
+        //public static Metadata GetMetadataforActivity(LTSActivityLinked data)
+        //{
+        //    bool reduced = false;
+        //    if (data._Meta != null)
+        //        reduced = (bool)data._Meta.Reduced;
 
-            var sourcemeta = "lts";
-            if (data.Source != null)
-                sourcemeta = data.Source.ToLower();
+        //    var sourcemeta = "lts";
+        //    if (data.Source != null)
+        //        sourcemeta = data.Source.ToLower();
 
-            return GetMetadata(data, sourcemeta, reduced);
-        }
+        //    return GetMetadata(data, sourcemeta, reduced);
+        //}
 
-        public static Metadata GetMetadataforPoi(LTSPoiLinked data)
-        {
-            bool reduced = false;
-            if (data._Meta != null)
-                reduced = (bool)data._Meta.Reduced;
+        //public static Metadata GetMetadataforPoi(LTSPoiLinked data)
+        //{
+        //    bool reduced = false;
+        //    if (data._Meta != null)
+        //        reduced = (bool)data._Meta.Reduced;
 
-            return GetMetadata(data, "lts", reduced);
-        }
+        //    return GetMetadata(data, "lts", reduced);
+        //}
 
         //public static Metadata GetMetadataforGastronomy(GastronomyLinked data)
         //{
@@ -193,7 +195,7 @@ namespace Helper
             return GetMetadata(data, sourcemeta, reduced);
         }
 
-        public static Metadata GetMetadataforEvent(EventV2 data)
+        public static Metadata GetMetadataforEvent(EventFlattened data)
         {
             string sourcemeta = data.Source.ToLower();
             bool reduced = false;
@@ -260,11 +262,29 @@ namespace Helper
 
         public static Metadata GetMetadataforMeasuringpoint(MeasuringpointLinked data)
         {
+            string? sourcemeta = data.Source?.ToLower();
+
             bool reduced = false;
             if (data._Meta != null)
                 reduced = (bool)data._Meta.Reduced;
 
-            return GetMetadata(data, "lts", reduced);
+            return GetMetadata(data, sourcemeta, reduced);
+        }
+
+        public static Metadata GetMetadataforMeasuringpoint(MeasuringpointV2 data, bool reduced = false)
+        {
+            string? sourcemeta = data.Source?.ToLower();
+
+            return GetMetadata(data, sourcemeta, reduced);
+        }
+
+        public static Metadata GetMetadataforWebcam(WebcamInfoLinked data, bool reduced)
+        {
+            string sourcemeta = data.Source?.ToLower() ?? "";
+            if (sourcemeta == "content")
+                sourcemeta = "idm";
+            
+            return GetMetadata(data, sourcemeta, reduced);
         }
 
         public static Metadata GetMetadataforWebcam(WebcamInfoLinked data)
@@ -311,7 +331,7 @@ namespace Helper
             return data._Meta = GetMetadata(data, "lts", reduced);
         }
 
-        public static Metadata GetMetadataforVenue(VenueV2 data)
+        public static Metadata GetMetadataforVenue(VenueFlattened data)
         {
             bool reduced = false;
             if (data._Meta != null)
@@ -320,6 +340,13 @@ namespace Helper
             var sourcemeta = "lts";
             if (data.Source != null)
                 sourcemeta = data.Source.ToLower();
+
+            return data._Meta = GetMetadata(data, sourcemeta, reduced);
+        }
+
+        public static Metadata GetMetadataforVenue(VenueV2 data, bool reduced = false)
+        {
+            string sourcemeta = data.Source.ToLower();
 
             return data._Meta = GetMetadata(data, sourcemeta, reduced);
         }

@@ -578,57 +578,57 @@ namespace OdhApiImporter.Helpers
 
         #region ODHActivityPoi
 
-        public async Task<int> UpdateAllODHActivityPoiOldTags(string source)
-        {
-            //Load all data from PG and resave
-            var query = QueryFactory
-                .Query()
-                .SelectRaw("data")
-                .From("smgpois")
-                .Where("gen_source", source);
+        //public async Task<int> UpdateAllODHActivityPoiOldTags(string source)
+        //{
+        //    //Load all data from PG and resave
+        //    var query = QueryFactory
+        //        .Query()
+        //        .SelectRaw("data")
+        //        .From("smgpois")
+        //        .Where("gen_source", source);
 
-            var data = await query.GetObjectListAsync<ODHActivityPoiOld>();
-            int i = 0;
+        //    var data = await query.GetObjectListAsync<ODHActivityPoiOld>();
+        //    int i = 0;
 
-            foreach (var stapoi in data)
-            {
-                if (stapoi.Tags != null)
-                {
-                    //CopyClassHelper.CopyPropertyValues
-                    var tags = stapoi.Tags;
+        //    foreach (var stapoi in data)
+        //    {
+        //        if (stapoi.Tags != null)
+        //        {
+        //            //CopyClassHelper.CopyPropertyValues
+        //            var tags = stapoi.Tags;
 
-                    stapoi.Tags = null;
+        //            stapoi.Tags = null;
 
-                    var stapoiv2 = (ODHActivityPoiLinked)stapoi;
+        //            var stapoiv2 = (ODHActivityPoiLinked)stapoi;
 
-                    stapoiv2.Tags = new List<Tags>();
-                    foreach (var tagdict in tags)
-                    {
-                        foreach (var tagvalue in tagdict.Value)
-                        {
-                            stapoiv2.Tags.Add(tagvalue);
-                        }
-                    }
+        //            stapoiv2.Tags = new List<Tags>();
+        //            foreach (var tagdict in tags)
+        //            {
+        //                foreach (var tagvalue in tagdict.Value)
+        //                {
+        //                    stapoiv2.Tags.Add(tagvalue);
+        //                }
+        //            }
 
-                    //Save tp DB
-                    //TODO CHECK IF THIS WORKS
-                    var queryresult = await QueryFactory
-                        .Query("smgpois")
-                        .Where("id", stapoiv2.Id)
-                        .UpdateAsync(
-                            new JsonBData()
-                            {
-                                id = stapoiv2.Id?.ToLower() ?? "",
-                                data = new JsonRaw(stapoiv2),
-                            }
-                        );
+        //            //Save tp DB
+        //            //TODO CHECK IF THIS WORKS
+        //            var queryresult = await QueryFactory
+        //                .Query("smgpois")
+        //                .Where("id", stapoiv2.Id)
+        //                .UpdateAsync(
+        //                    new JsonBData()
+        //                    {
+        //                        id = stapoiv2.Id?.ToLower() ?? "",
+        //                        data = new JsonRaw(stapoiv2),
+        //                    }
+        //                );
 
-                    i++;
-                }
-            }
+        //            i++;
+        //        }
+        //    }
 
-            return i;
-        }
+        //    return i;
+        //}
 
         public async Task<int> UpdateAllODHActivityPoiTagIds(
             string? id,
@@ -1863,6 +1863,72 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        public async Task<int> VenueSeatTypesToTags()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("venuetypes").WhereRaw("data->>'Type' = 'seatType'");
+
+            var data = await query.GetObjectListAsync<DDVenueCodes>();
+            int i = 0;
+
+            foreach (var topic in data)
+            {
+                TagLinked tag = new TagLinked();
+
+                tag.Id = topic.Id;
+                tag.Source = "lts";
+                tag.TagName = topic.TypeDesc;
+                tag._Meta = new Metadata()
+                {
+                    Id = tag.Id,
+                    LastUpdate = DateTime.Now,
+                    Reduced = false,
+                    Source = "lts",
+                    Type = "tag",
+                    UpdateInfo = new UpdateInfo()
+                    {
+                        UpdatedBy = "import",
+                        UpdateSource = "importer",
+                    },
+                };
+                tag.DisplayAsCategory = false;
+                tag.ValidForEntity = new List<string>() { "venue" };
+                tag.MainEntity = "venue";
+                tag.LastChange = DateTime.Now;
+                tag.LicenseInfo = new LicenseInfo()
+                {
+                    Author = "https://lts.it",
+                    ClosedData = false,
+                    License = "CC0",
+                    LicenseHolder = "https://lts.it",
+                };
+                tag.Shortname = tag.TagName.ContainsKey("en")
+                    ? tag.TagName["en"]
+                    : tag.TagName.FirstOrDefault().Value;
+                tag.FirstImport = DateTime.Now;
+                tag.PublishedOn = null;
+                tag.Types = new List<string>() { "seattype" };
+
+                tag.PublishDataWithTagOn = null;
+                tag.Mapping = null;
+                tag.IDMCategoryMapping = null;
+                tag.LTSTaggingInfo = null;
+                tag.MappedTagIds = null;
+
+                var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                    tag,
+                    new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                    new EditInfo("tag.modify", "importer"),
+                    new CRUDConstraints(),
+                    new CompareConfig(false, false)
+                );
+
+                i++;
+            }
+
+            return i;
+        }
+
         public async Task<int> ArticleTypesToTags()
         {
             //Load all data from PG and resave
@@ -2090,7 +2156,12 @@ namespace OdhApiImporter.Helpers
                 {
                     string originalid = data.Id;
 
-                    data.Id = data.Id.Replace("_REDUCED", "");
+                    if(Helper.IdGenerator.GetIDStyle(data) == IDStyle.lowercase)
+                        data.Id = data.Id.Replace("_reduced", "");
+                    else
+                        data.Id = data.Id.Replace("_REDUCED", "");
+
+
                     //Save tp DB
                     //TODO CHECK IF THIS WORKS
                     var queryresult = await QueryFactory
@@ -2345,8 +2416,6 @@ namespace OdhApiImporter.Helpers
             }
         }
 
-
-
         #endregion
 
         #region WineAward
@@ -2407,15 +2476,290 @@ namespace OdhApiImporter.Helpers
         }
 
 
-        
+
+
+        #endregion
+
+        #region Venue
+
+        public async Task<Tuple<int, string>> VenueToVenueV2()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("venues_v2");
+
+            var data = await query.GetObjectListAsync<VenueLinked>();
+            int i = 0;
+
+            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
+
+            foreach (var venue in data)
+            {
+                results.Add(await UpdateVenueToNewDataModel(venue));
+            }
+
+            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
+            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
+
+            return Tuple.Create(updatedcount, String.Join(",", failed));
+        }
+
+        public async Task<Tuple<int, string>> UpdateVenueToNewDataModel(VenueLinked venue)
+        {            
+            try
+            {
+                string reduced = "";
+                //If it is a reduced object
+                if (venue._Meta.Reduced)
+                    reduced = "_REDUCED";
+
+                //Save tp DB
+                //TODO Add all missing values
+                var venue2 = new VenueV2();
+                venue2.Id = venue.Id;
+                venue2.Active = venue.Active;
+                //venue2.AdditionalProperties 
+                venue2.Beds = venue.Beds;
+                venue2.ContactInfos = venue.ContactInfos;
+                venue2.Detail = venue.Detail;
+                venue2.DistanceInfo = venue.DistanceInfo;
+                venue2.FirstImport = venue.FirstImport;
+                venue2.GpsInfo = venue.GpsInfo;
+                venue2.HasLanguage = venue.HasLanguage;
+                venue2.ImageGallery = venue.ImageGallery;
+                venue2.LastChange = venue.LastChange;
+                venue2.LicenseInfo = venue.LicenseInfo;
+                venue2.LocationInfo = venue.LocationInfo;
+                venue2.Mapping = venue.Mapping;
+                venue2.OperationSchedule = venue.OperationSchedule;
+                venue2.PublishedOn = venue.PublishedOn;
+                venue2.Shortname = venue.Shortname;
+                venue2.Source = venue.Source;
+                venue2._Meta = venue._Meta;
+                
+                if(venue.RoomDetails != null)
+                {
+                    venue2.RoomDetails = new List<VenueRoomDetailsV2>();
+
+                    foreach (var roomdetail in venue.RoomDetails)
+                    {
+                        VenueRoomDetailsV2 roomdetailv2 = new VenueRoomDetailsV2();
+                        roomdetailv2.ImageGallery = roomdetail.ImageGallery;
+                        roomdetailv2.Detail = roomdetail.Detail;
+                        roomdetailv2.Id = roomdetail.Id;
+                        roomdetailv2.Shortname = roomdetail.Shortname;
+
+                        roomdetailv2.VenueRoomProperties = new VenueRoomProperties();
+                        roomdetailv2.VenueRoomProperties.SquareMeters = roomdetail.SquareMeters;
+                        roomdetailv2.Placement = roomdetail.Indoor != null && roomdetail.Indoor.Value ? "indoor" : null;
+                                                                       
+                        //Roomdeatil VenueFeature
+                        if (roomdetail.VenueFeatures != null)
+                        {
+                            if(roomdetailv2.TagIds == null)
+                                roomdetailv2.TagIds = new List<string>();
+
+                            foreach (var venuefeat in roomdetail.VenueFeatures)
+                            {
+                                roomdetailv2.TagIds.Add(venuefeat.Id);
+                            }
+                        }
+                        if (roomdetail.VenueSetup != null)
+                        {
+                            if (roomdetailv2.TagIds == null)
+                            {
+                                roomdetailv2.TagIds = new List<string>();
+                                roomdetailv2.Tags = new List<Tags>();
+                            }
+
+                            foreach (var venuesetup in roomdetail.VenueSetup)
+                            {
+                                roomdetailv2.TagIds.Add(venuesetup.Id);
+                                roomdetailv2.Tags.Add(new Tags() { Id = venuesetup.Id, TagEntry = new Dictionary<string, string>() { { "maxCapacity", venuesetup.Capacity.ToString() } } });
+                            }
+                        }                        
+
+                        //Create Tags
+                        await roomdetailv2.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(roomdetailv2));
+
+                        venue2.RoomDetails.Add(roomdetailv2);
+                    }
+                }
+                
+
+                //venue.VenueCategory
+                if(venue.VenueCategory != null)
+                {
+                    venue2.TagIds = new List<string>();
+                    foreach (var venuecat in venue.VenueCategory)
+                    {
+                        venue2.TagIds.Add(venuecat.Id);
+                    }
+                }
+                
+                //Create Tags
+                await venue2.UpdateTagsExtension(QueryFactory);
+
+                //not needed anymore
+                //venue.RoomCount
+                //venue.SyncSourceInterface
+                //venue.SmgTags
+                //venue.SmgActive
+                //venue.ODHTags
+                //venue.OdhActive
+
+
+
+
+                //If Reduced use the ID without reduced
+                if (venue._Meta.Reduced)
+                {
+                    venue2.Id = venue2.Id.Replace("_REDUCED", "");
+                    venue2._Meta.Id = venue2.Id.Replace("_REDUCED", "");
+                }
+
+
+                var idtoupdate = venue2.Id;
+                if (!venue2.Id.Contains("_REDUCED"))
+                    idtoupdate = venue2.Id + reduced;
+
+                //Clear the table and insert
+                var queryresult = await QueryFactory
+                    .Query("venues")
+                    .Where("id", idtoupdate)                    
+                    .InsertAsync(
+                        new JsonBData()
+                        {
+                            id = idtoupdate,
+                            data = new JsonRaw(venue2),
+                        }
+                    );
+
+                return Tuple.Create<int, string>(queryresult, venue2.Id);
+            }
+            catch (Exception ex)
+            {
+                return Tuple.Create<int, string>(0, venue.Id);
+            }
+        }
+
+
+        #endregion
+
+        #region Measuringpoint
+
+        public async Task<Tuple<int, string>> MeasuringpointToMeasuringpointV2()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("measuringpoints");
+
+            var data = await query.GetObjectListAsync<MeasuringpointLinked>();
+            int i = 0;
+
+            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
+
+            foreach (var measuringpoint in data)
+            {
+                results.Add(await UpdateMeasuringpointToNewDataModel(measuringpoint));
+            }
+
+            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
+            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
+
+            return Tuple.Create(updatedcount, String.Join(",", failed));
+        }
+
+        public async Task<Tuple<int, string>> UpdateMeasuringpointToNewDataModel(MeasuringpointLinked measuringpoint)
+        {
+            try
+            {
+                string reduced = "";
+                //If it is a reduced object
+                if (measuringpoint._Meta.Reduced)
+                    reduced = "_REDUCED";
+
+                //Save tp DB
+                //TODO Add all missing values
+                var measuringpoint2 = new MeasuringpointV2();
+                measuringpoint2.Id = measuringpoint.Id;
+                measuringpoint2.Active = measuringpoint.Active;
+
+                measuringpoint2.AreaIds = measuringpoint.AreaIds;
+                measuringpoint2.DistanceInfo = measuringpoint.DistanceInfo;
+                measuringpoint2.FirstImport = measuringpoint.FirstImport;
+                measuringpoint2.GpsInfo = measuringpoint.GpsInfo;
+                measuringpoint2.LastChange = measuringpoint.LastChange;
+                measuringpoint2.LastSnowDate = measuringpoint.LastSnowDate;
+                measuringpoint2.LastUpdate = measuringpoint.LastUpdate;
+                measuringpoint2.LicenseInfo = measuringpoint.LicenseInfo;
+                measuringpoint2.LocationInfo = measuringpoint.LocationInfo;
+                measuringpoint2.Mapping = measuringpoint.Mapping;
+                measuringpoint2.newSnowHeight = measuringpoint.newSnowHeight;
+                measuringpoint2.PublishedOn = measuringpoint.PublishedOn;
+                measuringpoint2.Shortname = measuringpoint.Shortname;
+                measuringpoint2.SkiAreaIds = measuringpoint.SkiAreaIds;
+                measuringpoint2._Meta = measuringpoint._Meta;
+                measuringpoint2.SnowHeight = measuringpoint.SnowHeight;
+                measuringpoint2.Source = measuringpoint.Source;
+                measuringpoint2.Temperature = measuringpoint.Temperature;
+                measuringpoint2.WeatherObservation = measuringpoint.WeatherObservation;
+
+                measuringpoint2.Detail = new Dictionary<string, DetailGeneric>()
+                {
+                    { "de", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "de" } },
+                    { "it", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "it" } },
+                    { "en", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "en" } }
+                };
+
+                measuringpoint2.HasLanguage = measuringpoint2.Detail.Keys.ToList();
+
+                //not needed at the moment
+                //measuringpoint2.Tags
+                //measuringpoint2.TagIds
+                //measuringpoint2.AdditionalProperties
+
+
+
+                //If Reduced use the ID without reduced
+                if (measuringpoint._Meta.Reduced)
+                {
+                    measuringpoint2.Id = measuringpoint2.Id.Replace("_REDUCED", "");
+                    measuringpoint2._Meta.Id = measuringpoint2.Id.Replace("_REDUCED", "");
+                }
+
+
+                var idtoupdate = measuringpoint2.Id;
+                if (!measuringpoint2.Id.Contains("_REDUCED"))
+                    idtoupdate = measuringpoint2.Id + reduced;
+
+
+                var queryresult = await QueryFactory
+                    .Query("measuringpoints")
+                    .Where("id", idtoupdate)
+                    //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = idtoupdate,
+                            data = new JsonRaw(measuringpoint2),
+                        }
+                    );
+
+                return Tuple.Create<int, string>(queryresult, measuringpoint2.Id);
+            }
+            catch (Exception ex)
+            {
+                return Tuple.Create<int, string>(0, measuringpoint.Id);
+            }
+        }
+
 
         #endregion
     }
 
-    public class ODHActivityPoiOld : ODHActivityPoiLinked
-    {
-        public new IDictionary<string, List<Tags>> Tags { get; set; }
-    }
+    //public class ODHActivityPoiOld : ODHActivityPoiLinked
+    //{
+    //    public new IDictionary<string, List<Tags>> Tags { get; set; }
+    //}
 
     #region obsolete
 

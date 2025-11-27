@@ -2211,8 +2211,8 @@ namespace DataModel
         }
 
         public string? Id { get; set; }
-        public string? Level { get; set; }
-        public string? LevelId { get; set; }
+        //public string? Level { get; set; }
+        //public string? LevelId { get; set; }
         public Dictionary<string, string> WeatherStatus { get; set; }
 
         //New

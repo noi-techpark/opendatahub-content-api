@@ -34,13 +34,14 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("v2")]
-    public class EventV2Controller : OdhController
+    public class EventFlattenedController : OdhController
     {
-        public EventV2Controller(
+        public EventFlattenedController(
             IWebHostEnvironment env,
             ISettings settings,
-            ILogger<EventV2Controller> logger,
+            ILogger<EventFlattenedController> logger,
             QueryFactory queryFactory,
             IOdhPushNotifier odhpushnotifier
         )
@@ -79,7 +80,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(JsonResult<EventV2>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(JsonResult<EventFlattened>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -159,7 +160,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">Object created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(EventV2), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(EventFlattened), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("Event/{id}", Name = "SingleEventV2")]
@@ -185,7 +186,7 @@ namespace OdhApiCore.Controllers
         #region Converters
 
         [ApiExplorerSettings(IgnoreApi = true)]
-        [ProducesResponseType(typeof(EventV2), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(EventFlattened), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("Event/ConvertEventShortToEventV2/{id}")]
@@ -201,7 +202,7 @@ namespace OdhApiCore.Controllers
                 .FilterDataByAccessRoles(UserRolesToFilterEndpoint("EventShort"));
 
             var data = await query.GetObjectListAsync<EventShortLinked>();
-            var convertresult = EventV2Converter.ConvertEventListToEventV2(data);
+            var convertresult = EventFlattenedConverter.ConvertEventListToEventFlattened(data);
 
             if (savetotable)
             {
@@ -211,7 +212,7 @@ namespace OdhApiCore.Controllers
                     foreach (var venue in datasingle.Venues)
                     {
                         result.Add(
-                            await QueryFactory.UpsertData<VenueV2>(
+                            await QueryFactory.UpsertData<VenueFlattened>(
                                 venue,
                                 new DataInfo("venuesv2", CRUDOperation.Create),
                                 new EditInfo("venueconverter", "api"),
@@ -223,7 +224,7 @@ namespace OdhApiCore.Controllers
                     foreach (var theevent in datasingle.Events)
                     {
                         result.Add(
-                            await QueryFactory.UpsertData<EventV2>(
+                            await QueryFactory.UpsertData<EventFlattened>(
                                 theevent,
                                 new DataInfo("eventsv2", CRUDOperation.Create),
                                 new EditInfo("venueconverter", "api"),
@@ -257,7 +258,7 @@ namespace OdhApiCore.Controllers
 
             var evtypedata = await evtypequery.GetObjectListAsync<EventTypes>();
 
-            var convertresult = EventV2Converter.ConvertEventListToEventV2(data, evtypedata);
+            var convertresult = EventFlattenedConverter.ConvertEventListToEventFlattened(data, evtypedata);
 
             if (savetotable)
             {
@@ -268,7 +269,7 @@ namespace OdhApiCore.Controllers
                     foreach (var venue in datasingle.Venues)
                     {
                         result.Add(
-                            await QueryFactory.UpsertData<VenueV2>(
+                            await QueryFactory.UpsertData<VenueFlattened>(
                                 venue,
                                 new DataInfo("venuesv2", CRUDOperation.Create),
                                 new EditInfo("venueconverter", "api"),
@@ -280,7 +281,7 @@ namespace OdhApiCore.Controllers
                     foreach (var theevent in datasingle.Events)
                     {
                         result.Add(
-                            await QueryFactory.UpsertData<EventV2>(
+                            await QueryFactory.UpsertData<EventFlattened>(
                                 theevent,
                                 new DataInfo("eventsv2", CRUDOperation.Create),
                                 new EditInfo("venueconverter", "api"),
@@ -312,7 +313,7 @@ namespace OdhApiCore.Controllers
 
             foreach (var data in datalist)
             {
-                var converted = EventV2Converter.ConvertEventTopicToTag(data);
+                var converted = EventFlattenedConverter.ConvertEventTopicToTag(data);
                 listtaglinked.Add(converted);
 
                 if (savetotable)
@@ -528,7 +529,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Event")]
-        public Task<IActionResult> Post([FromBody] EventV2 odhevent)
+        public Task<IActionResult> Post([FromBody] EventFlattened odhevent)
         {
             return DoAsyncReturn(async () =>
             {
@@ -546,7 +547,7 @@ namespace OdhApiCore.Controllers
                 //Populate Tags (Id/Source/Type)
                 await odhevent.UpdateTagsExtension(QueryFactory);
 
-                return await UpsertData<EventV2>(
+                return await UpsertData<EventFlattened>(
                     odhevent,
                     new DataInfo("eventsv2", CRUDOperation.Create),
                     new CompareConfig(false, false),
@@ -569,14 +570,14 @@ namespace OdhApiCore.Controllers
         [AuthorizeODH(PermissionAction.Update)]
         //[Authorize(Roles = "DataWriter,DataModify,EventManager,EventModify,EventUpdate")]
         [HttpPut, Route("Event/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] EventV2 odhevent)
+        public Task<IActionResult> Put(string id, [FromBody] EventFlattened odhevent)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Filters on the Action Update
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
-                odhevent.Id = Helper.IdGenerator.CheckIdFromType<EventV2>(id);
+                odhevent.Id = Helper.IdGenerator.CheckIdFromType<EventFlattened>(id);
 
                 //Check all Languages
                 odhevent.CheckMyInsertedLanguages(null);
@@ -587,7 +588,7 @@ namespace OdhApiCore.Controllers
                 //Populate Tags (Id/Source/Type)
                 await odhevent.UpdateTagsExtension(QueryFactory);
 
-                return await UpsertData<EventV2>(
+                return await UpsertData<EventFlattened>(
                     odhevent,
                     new DataInfo("eventsv2", CRUDOperation.Update, true),
                     new CompareConfig(true, true),
@@ -616,9 +617,9 @@ namespace OdhApiCore.Controllers
                 //Additional Filters on the Action Delete
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<EventV2>(id);
+                id = Helper.IdGenerator.CheckIdFromType<EventFlattened>(id);
 
-                return await DeleteData<EventV2>(
+                return await DeleteData<EventFlattened>(
                     id,
                     new DataInfo("eventsv2", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
