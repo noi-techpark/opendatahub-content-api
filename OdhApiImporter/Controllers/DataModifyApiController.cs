@@ -905,6 +905,33 @@ namespace OdhApiImporter.Controllers
         }
 
         [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("VenueSeatTypesToTags")]
+        public async Task<IActionResult> VenueSeatTypesToTags(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.VenueSeatTypesToTags();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "VenueSeatTypesToTags",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+        [Authorize(Roles = "DataPush")]
         [HttpGet, Route("ArticleTypesToTags")]
         public async Task<IActionResult> ArticleTypesToTags(CancellationToken cancellationToken)
         {

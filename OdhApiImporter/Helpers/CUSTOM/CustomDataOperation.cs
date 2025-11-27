@@ -1863,6 +1863,72 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        public async Task<int> VenueSeatTypesToTags()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("venuetypes").WhereRaw("data->>'Type' = 'seatType'");
+
+            var data = await query.GetObjectListAsync<DDVenueCodes>();
+            int i = 0;
+
+            foreach (var topic in data)
+            {
+                TagLinked tag = new TagLinked();
+
+                tag.Id = topic.Id;
+                tag.Source = "lts";
+                tag.TagName = topic.TypeDesc;
+                tag._Meta = new Metadata()
+                {
+                    Id = tag.Id,
+                    LastUpdate = DateTime.Now,
+                    Reduced = false,
+                    Source = "lts",
+                    Type = "tag",
+                    UpdateInfo = new UpdateInfo()
+                    {
+                        UpdatedBy = "import",
+                        UpdateSource = "importer",
+                    },
+                };
+                tag.DisplayAsCategory = false;
+                tag.ValidForEntity = new List<string>() { "venue" };
+                tag.MainEntity = "venue";
+                tag.LastChange = DateTime.Now;
+                tag.LicenseInfo = new LicenseInfo()
+                {
+                    Author = "https://lts.it",
+                    ClosedData = false,
+                    License = "CC0",
+                    LicenseHolder = "https://lts.it",
+                };
+                tag.Shortname = tag.TagName.ContainsKey("en")
+                    ? tag.TagName["en"]
+                    : tag.TagName.FirstOrDefault().Value;
+                tag.FirstImport = DateTime.Now;
+                tag.PublishedOn = null;
+                tag.Types = new List<string>() { "seattype" };
+
+                tag.PublishDataWithTagOn = null;
+                tag.Mapping = null;
+                tag.IDMCategoryMapping = null;
+                tag.LTSTaggingInfo = null;
+                tag.MappedTagIds = null;
+
+                var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                    tag,
+                    new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                    new EditInfo("tag.modify", "importer"),
+                    new CRUDConstraints(),
+                    new CompareConfig(false, false)
+                );
+
+                i++;
+            }
+
+            return i;
+        }
+
         public async Task<int> ArticleTypesToTags()
         {
             //Load all data from PG and resave
