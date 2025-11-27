@@ -577,7 +577,6 @@ namespace OdhApiCore.Controllers
 
                 //Populate Tags (Id/Source/Type)
                 await venue.UpdateTagsExtension(QueryFactory);
-
                 
                 return await UpsertData<VenueV2>(
                     venue,
@@ -626,7 +625,7 @@ namespace OdhApiCore.Controllers
                 return await UpsertData<VenueV2>(
                     venue,
                     new DataInfo("venues", CRUDOperation.Update, true),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });

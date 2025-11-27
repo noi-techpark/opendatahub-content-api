@@ -964,6 +964,9 @@ namespace Helper
             List<string> availablelanguages
         )
         {
+            if (availablelanguages == null)
+                availablelanguages = new List<string> { "de", "it", "en" };
+
             if (mydata.HasLanguage == null)
                 mydata.HasLanguage = new List<string>();
 

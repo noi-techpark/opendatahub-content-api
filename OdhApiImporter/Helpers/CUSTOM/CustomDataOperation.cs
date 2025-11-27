@@ -2518,7 +2518,7 @@ namespace OdhApiImporter.Helpers
                 venue2.Id = venue.Id;
                 venue2.Active = venue.Active;
                 //venue2.AdditionalProperties 
-                venue2.Beds = venue.Beds;
+                //venue2.Beds = venue.Beds;
                 venue2.ContactInfos = venue.ContactInfos;
                 venue2.Detail = venue.Detail;
                 venue2.DistanceInfo = venue.DistanceInfo;

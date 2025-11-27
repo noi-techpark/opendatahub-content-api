@@ -901,7 +901,8 @@ namespace Helper
             IReadOnlyCollection<string> regionlist,
             IReadOnlyCollection<string> arealist,
             IReadOnlyCollection<string> skiarealist,
-            bool? activefilter,            
+            bool? activefilter,
+            IDictionary<string, List<string>>? tagdict,
             IReadOnlyCollection<string> publishedonlist,
             IReadOnlyCollection<string> sourcelist,
             string? searchfilter,
@@ -920,7 +921,9 @@ namespace Helper
                 tourismvereinlist,
                 regionlist,
                 arealist,
-                activefilter,                
+                activefilter,
+                tagdict,
+                publishedonlist,
                 searchfilter,
                 language,
                 lastchange
@@ -933,6 +936,10 @@ namespace Helper
                 .PublishedOnFilter_GeneratedColumn(publishedonlist) //.PublishedOnFilter(publishedonlist)
                 .LastChangedFilter_GeneratedColumn(lastchange) //.LastChangedFilter(lastchange)
                 .SourceFilter_GeneratedColumn(sourcelist)
+                .When(
+                    tagdict != null && tagdict.Count > 0,
+                    q => q.TaggingFilter_GeneratedColumn(tagdict)
+                )
                 //.LocFilterDistrictFilter(districtlist)
                 //.LocFilterMunicipalityFilter(municipalitylist)
                 //.LocFilterTvsFilter(tourismvereinlist)

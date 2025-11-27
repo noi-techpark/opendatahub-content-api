@@ -2,22 +2,24 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
+using ServiceReferenceLCS;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers.api
 {
@@ -2022,6 +2024,16 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
+
+
                 return await UpsertData<MetaRegionLinked>(
                     data,
                     new DataInfo("metaregions", CRUDOperation.Create),
@@ -2049,6 +2061,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<RegionLinked>(
                     data,
                     new DataInfo("regions", CRUDOperation.Create),
@@ -2076,6 +2096,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<ExperienceAreaLinked>(
                     data,
                     new DataInfo("experienceareas", CRUDOperation.Create),
@@ -2103,6 +2131,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<TourismvereinLinked>(
                     data,
                     new DataInfo("tvs", CRUDOperation.Create),
@@ -2130,6 +2166,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<MunicipalityLinked>(
                     data,
                     new DataInfo("municipalities", CRUDOperation.Create),
@@ -2157,6 +2201,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<DistrictLinked>(
                     data,
                     new DataInfo("districts", CRUDOperation.Create),
@@ -2184,6 +2236,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                //data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                //await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<AreaLinked>(
                     data,
                     new DataInfo("areas", CRUDOperation.Create),
@@ -2211,6 +2271,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<SkiRegionLinked>(
                     data,
                     new DataInfo("skiregions", CRUDOperation.Create),
@@ -2238,6 +2306,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<SkiAreaLinked>(
                     data,
                     new DataInfo("skiareas", CRUDOperation.Create),
@@ -2265,6 +2341,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                //await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<WineLinked>(
                     data,
                     new DataInfo("wines", CRUDOperation.Create),
@@ -2293,6 +2377,13 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<MetaRegionLinked>(id);
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<MetaRegionLinked>(
                     data,
                     new DataInfo("metaregions", CRUDOperation.Update, true),
@@ -2321,6 +2412,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<RegionLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<RegionLinked>(
                     data,
                     new DataInfo("regions", CRUDOperation.Update, true),
@@ -2349,6 +2448,13 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<ExperienceAreaLinked>(id);
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<ExperienceAreaLinked>(
                     data,
                     new DataInfo("experienceareas", CRUDOperation.Update, true),
@@ -2377,6 +2483,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<TourismvereinLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<TourismvereinLinked>(
                     data,
                     new DataInfo("tvs", CRUDOperation.Update, true),
@@ -2405,6 +2519,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<MunicipalityLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<MunicipalityLinked>(
                     data,
                     new DataInfo("municipalities", CRUDOperation.Update, true),
@@ -2433,6 +2555,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<DistrictLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<DistrictLinked>(
                     data,
                     new DataInfo("districts", CRUDOperation.Update, true),
@@ -2461,6 +2591,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<AreaLinked>(id);
+
+                //GENERATE HasLanguage
+                //data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                //await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<AreaLinked>(
                     data,
                     new DataInfo("areas", CRUDOperation.Update, true),
@@ -2489,6 +2627,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<SkiRegionLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<SkiRegionLinked>(
                     data,
                     new DataInfo("skiregions", CRUDOperation.Update, true),
@@ -2517,6 +2663,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<SkiAreaLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<SkiAreaLinked>(
                     data,
                     new DataInfo("skiareas", CRUDOperation.Update, true),
@@ -2545,6 +2699,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<WineLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                //await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<WineLinked>(
                     data,
                     new DataInfo("wines", CRUDOperation.Update, true),

@@ -14,6 +14,8 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Tagging;
+using Helper.Location;
 using LCS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
@@ -511,7 +513,7 @@ namespace OdhApiCore.Controllers
         /// <param name="areafilter">Area ID (multiple IDs possible, separated by ",")</param>
         /// <param name="skiareafilter">Skiarea ID</param>
         /// <param name="active">Active Filter (possible Values: 'true' only Active Measuringpoints, 'false' only Disabled Measuringpoints), (default:'null')</param>
-        /// <param name="odhactive">ODH Active Filter Measuringpoints Filter (possible Values: 'true' only published Measuringpoints, 'false' only not published Measuringpoints), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter' target="_blank">Wiki geosort</a></param>
         /// <param name="longitude">GeoFilter FLOAT Longitude Format: '11.369909', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter' target="_blank">Wiki geosort</a></param>
         /// <param name="radius">Radius INTEGER to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter' target="_blank">Wiki geosort</a></param>
@@ -536,12 +538,12 @@ namespace OdhApiCore.Controllers
             PageSize pagesize = null!,
             string? idlist = null,
             string? locfilter = null,
+            string? tagfilter = null,
             string? areafilter = null,
             string? skiareafilter = null,
             string? language = null,
             string? source = null,
-            LegacyBool active = null!,
-            LegacyBool odhactive = null!,
+            LegacyBool active = null!,            
             string? publishedon = null,
             string? updatefrom = null,
             string? latitude = null,
@@ -580,6 +582,7 @@ namespace OdhApiCore.Controllers
                 skiareafilter: skiareafilter,
                 source: source,
                 active: active,
+                tagfilter: tagfilter,
                 publishedon: publishedon,                
                 seed: seed,
                 lastchange: updatefrom,
@@ -1463,7 +1466,8 @@ namespace OdhApiCore.Controllers
             string? areafilter,
             string? skiareafilter,
             string? source,
-            bool? active,            
+            bool? active,
+            string? tagfilter,
             string? lastchange,
             string? publishedon,
             string? searchfilter,
@@ -1497,7 +1501,8 @@ namespace OdhApiCore.Controllers
                     areafilterwithprefix,
                     skiareafilter,
                     source,
-                    active,                    
+                    active,
+                    tagfilter,
                     lastchange,
                     publishedon,
                     cancellationToken
@@ -1516,7 +1521,8 @@ namespace OdhApiCore.Controllers
                         regionlist: mymeasuringpointshelper.regionlist,
                         arealist: mymeasuringpointshelper.arealist,
                         skiarealist: mymeasuringpointshelper.skiarealist,
-                        activefilter: mymeasuringpointshelper.active,                        
+                        activefilter: mymeasuringpointshelper.active,
+                        tagdict: mymeasuringpointshelper.tagdict,
                         publishedonlist: mymeasuringpointshelper.publishedonlist,
                         sourcelist: mymeasuringpointshelper.sourcelist,
                         searchfilter: searchfilter,
@@ -1741,6 +1747,17 @@ namespace OdhApiCore.Controllers
 
                 measuringpoint.Id = Helper.IdGenerator.GenerateIDFromType(measuringpoint);
 
+                //POPULATE LocationInfo
+                measuringpoint.LocationInfo = await measuringpoint.UpdateLocationInfoExtension(QueryFactory);
+                //DistanceCalculation
+                await measuringpoint.UpdateDistanceCalculation(QueryFactory);
+
+                //TRIM all strings
+                measuringpoint.TrimStringProperties();
+
+                //Populate Tags (Id/Source/Type)
+                await measuringpoint.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<MeasuringpointV2>(
                     measuringpoint,
                     new DataInfo("measuringpoints", CRUDOperation.Create),
@@ -1771,10 +1788,21 @@ namespace OdhApiCore.Controllers
 
                 measuringpoint.Id = Helper.IdGenerator.CheckIdFromType<MeasuringpointV2>(id);
 
+                //POPULATE LocationInfo
+                measuringpoint.LocationInfo = await measuringpoint.UpdateLocationInfoExtension(QueryFactory);
+                //DistanceCalculation
+                await measuringpoint.UpdateDistanceCalculation(QueryFactory);
+
+                //TRIM all strings
+                measuringpoint.TrimStringProperties();
+
+                //Populate Tags (Id/Source/Type)
+                await measuringpoint.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<MeasuringpointV2>(
                     measuringpoint,
                     new DataInfo("measuringpoints", CRUDOperation.Update, true),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });

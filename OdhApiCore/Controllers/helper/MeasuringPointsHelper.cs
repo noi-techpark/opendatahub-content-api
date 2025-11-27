@@ -25,6 +25,7 @@ namespace OdhApiCore.Controllers
 
         //New Publishedonlist
         public List<string> publishedonlist;
+        public IDictionary<string, List<string>> tagdict;
 
         public static async Task<MeasuringPointsHelper> Create(
             QueryFactory queryFactory,
@@ -33,7 +34,8 @@ namespace OdhApiCore.Controllers
             string? areafilter,
             string? skiareafilter,
             string? sourcefilter,
-            bool? activefilter,            
+            bool? activefilter,
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter,
             CancellationToken cancellationToken
@@ -68,7 +70,8 @@ namespace OdhApiCore.Controllers
                 skiareafilter: skiareafilter,
                 areafilterlist: arealistfromarea,
                 sourcefilter: sourcefilter,
-                activefilter: activefilter,                
+                activefilter: activefilter,
+                tagfilter : tagfilter,
                 lastchange: lastchange,
                 publishedonfilter: publishedonfilter,
                 tourismusvereinids: tourismusvereinids
@@ -81,7 +84,8 @@ namespace OdhApiCore.Controllers
             string? skiareafilter,
             IEnumerable<string> areafilterlist,
             string? sourcefilter,
-            bool? activefilter,            
+            bool? activefilter,
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter,
             IEnumerable<string>? tourismusvereinids
@@ -123,6 +127,8 @@ namespace OdhApiCore.Controllers
 
             this.lastchange = lastchange;
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
     }
 }
