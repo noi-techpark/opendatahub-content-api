@@ -221,8 +221,8 @@ namespace OdhApiImporter.Helpers.DSS
                         {
                             var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
                                 QueryFactory,
-                                parsedobject.GpsInfo.FirstOrDefault()!.Latitude,
-                                parsedobject.GpsInfo.FirstOrDefault()!.Longitude,
+                                parsedobject.GpsInfo.FirstOrDefault()!.Latitude.GetValueOrDefault(0),
+                                parsedobject.GpsInfo.FirstOrDefault()!.Longitude.GetValueOrDefault(0),
                                 10000
                             );
 
@@ -657,7 +657,7 @@ namespace OdhApiImporter.Helpers.DSS
 
 
                 //Hack insert also in Activity table
-                await InsertInLegacyActivityTable(odhactivitypoi);
+                //await InsertInLegacyActivityTable(odhactivitypoi);
 
                 return pgcrudresult;
             }
@@ -707,322 +707,322 @@ namespace OdhApiImporter.Helpers.DSS
 
         #region ActivityHackDestinationdata
 
-        //TODO before each import clear activity table data
+        ////TODO before each import clear activity table data
 
-        private async Task<PGCRUDResult> InsertInLegacyActivityTable(
-            ODHActivityPoiLinked odhactivitypoi
-        )
-        {
-            //Transform to LTSActivityLinked
-            var activity = TransformODHActivityPoiToActivity(odhactivitypoi);
+        //private async Task<PGCRUDResult> InsertInLegacyActivityTable(
+        //    ODHActivityPoiLinked odhactivitypoi
+        //)
+        //{
+        //    //Transform to LTSActivityLinked
+        //    var activity = TransformODHActivityPoiToActivity(odhactivitypoi);
 
-            //Insert in Table
-            var pgcrudresult = await QueryFactory.UpsertData<LTSActivityLinked>(
-                activity,
-                new DataInfo("activities", CRUDOperation.Update),
-                new EditInfo("dss." + entitytype + ".import", importerURL),
-                new CRUDConstraints(),
-                new CompareConfig(false, false)
-            );
+        //    //Insert in Table
+        //    var pgcrudresult = await QueryFactory.UpsertData<LTSActivityLinked>(
+        //        activity,
+        //        new DataInfo("activities", CRUDOperation.Update),
+        //        new EditInfo("dss." + entitytype + ".import", importerURL),
+        //        new CRUDConstraints(),
+        //        new CompareConfig(false, false)
+        //    );
 
-            return pgcrudresult;
-        }
+        //    return pgcrudresult;
+        //}
 
-        private LTSActivityLinked TransformODHActivityPoiToActivity(
-            ODHActivityPoiLinked odhactivitypoi
-        )
-        {
-            //TODO Transform class
-            LTSActivityLinked myactivity = CastODHActivityTOLTSActivity(odhactivitypoi);
+        //private LTSActivityLinked TransformODHActivityPoiToActivity(
+        //    ODHActivityPoiLinked odhactivitypoi
+        //)
+        //{
+        //    //TODO Transform class
+        //    LTSActivityLinked myactivity = CastODHActivityTOLTSActivity(odhactivitypoi);
 
-            //Update Categorization
-            if (odhactivitypoi.SyncSourceInterface == "dssliftbase")
-            {
-                myactivity.Type = "Aufstiegsanlagen";
+        //    //Update Categorization
+        //    if (odhactivitypoi.SyncSourceInterface == "dssliftbase")
+        //    {
+        //        myactivity.Type = "Aufstiegsanlagen";
 
-                var types = GetSubTypeAndPoiTypeFromFlagDescription(
-                    myactivity.SmgTags?.ToList() ?? new()
-                );
+        //        var types = GetSubTypeAndPoiTypeFromFlagDescription(
+        //            myactivity.SmgTags?.ToList() ?? new()
+        //        );
 
-                myactivity.SubType = types.Item1;
-                myactivity.PoiType = types.Item2;
+        //        myactivity.SubType = types.Item1;
+        //        myactivity.PoiType = types.Item2;
 
-                myactivity.AdditionalPoiInfos.TryAddOrUpdate(
-                    "de",
-                    new AdditionalPoiInfos()
-                    {
-                        Language = "de",
-                        MainType = "Aufstiegsanlagen",
-                        SubType = "",
-                    }
-                );
-                myactivity.AdditionalPoiInfos.TryAddOrUpdate(
-                    "it",
-                    new AdditionalPoiInfos()
-                    {
-                        Language = "it",
-                        MainType = "lifts",
-                        SubType = "",
-                    }
-                );
-                myactivity.AdditionalPoiInfos.TryAddOrUpdate(
-                    "en",
-                    new AdditionalPoiInfos()
-                    {
-                        Language = "en",
-                        MainType = "ascensioni",
-                        SubType = "",
-                    }
-                );
-            }
-            else if (odhactivitypoi.SyncSourceInterface == "dssslopebase")
-            {
-                myactivity.Type = "Piste";
-                myactivity.SubType = "Ski Alpin";
+        //        myactivity.AdditionalPoiInfos.TryAddOrUpdate(
+        //            "de",
+        //            new AdditionalPoiInfos()
+        //            {
+        //                Language = "de",
+        //                MainType = "Aufstiegsanlagen",
+        //                SubType = "",
+        //            }
+        //        );
+        //        myactivity.AdditionalPoiInfos.TryAddOrUpdate(
+        //            "it",
+        //            new AdditionalPoiInfos()
+        //            {
+        //                Language = "it",
+        //                MainType = "lifts",
+        //                SubType = "",
+        //            }
+        //        );
+        //        myactivity.AdditionalPoiInfos.TryAddOrUpdate(
+        //            "en",
+        //            new AdditionalPoiInfos()
+        //            {
+        //                Language = "en",
+        //                MainType = "ascensioni",
+        //                SubType = "",
+        //            }
+        //        );
+        //    }
+        //    else if (odhactivitypoi.SyncSourceInterface == "dssslopebase")
+        //    {
+        //        myactivity.Type = "Piste";
+        //        myactivity.SubType = "Ski Alpin";
 
-                if (myactivity.Difficulty == "2")
-                    myactivity.PoiType = "blau";
-                if (myactivity.Difficulty == "4")
-                    myactivity.PoiType = "rot";
-                if (myactivity.Difficulty == "6")
-                    myactivity.PoiType = "schwarz";
+        //        if (myactivity.Difficulty == "2")
+        //            myactivity.PoiType = "blau";
+        //        if (myactivity.Difficulty == "4")
+        //            myactivity.PoiType = "rot";
+        //        if (myactivity.Difficulty == "6")
+        //            myactivity.PoiType = "schwarz";
 
-                myactivity.AdditionalPoiInfos.TryAddOrUpdate(
-                    "de",
-                    new AdditionalPoiInfos()
-                    {
-                        Language = "de",
-                        MainType = "Ski alpin",
-                        SubType = "Piste",
-                    }
-                );
-                myactivity.AdditionalPoiInfos.TryAddOrUpdate(
-                    "it",
-                    new AdditionalPoiInfos()
-                    {
-                        Language = "it",
-                        MainType = "Sci alpino",
-                        SubType = "piste",
-                    }
-                );
-                myactivity.AdditionalPoiInfos.TryAddOrUpdate(
-                    "en",
-                    new AdditionalPoiInfos()
-                    {
-                        Language = "en",
-                        MainType = "Ski alpin",
-                        SubType = "slopes",
-                    }
-                );
-            }
+        //        myactivity.AdditionalPoiInfos.TryAddOrUpdate(
+        //            "de",
+        //            new AdditionalPoiInfos()
+        //            {
+        //                Language = "de",
+        //                MainType = "Ski alpin",
+        //                SubType = "Piste",
+        //            }
+        //        );
+        //        myactivity.AdditionalPoiInfos.TryAddOrUpdate(
+        //            "it",
+        //            new AdditionalPoiInfos()
+        //            {
+        //                Language = "it",
+        //                MainType = "Sci alpino",
+        //                SubType = "piste",
+        //            }
+        //        );
+        //        myactivity.AdditionalPoiInfos.TryAddOrUpdate(
+        //            "en",
+        //            new AdditionalPoiInfos()
+        //            {
+        //                Language = "en",
+        //                MainType = "Ski alpin",
+        //                SubType = "slopes",
+        //            }
+        //        );
+        //    }
 
-            //Type to Tag
-            if (
-                !String.IsNullOrEmpty(myactivity.Type)
-                && (!myactivity.SmgTags?.Contains(myactivity.Type.ToLower()) ?? false)
-            )
-                myactivity.SmgTags?.Add(myactivity.Type.ToLower());
-            if (
-                !String.IsNullOrEmpty(myactivity.SubType)
-                && (!myactivity.SmgTags?.Contains(myactivity.SubType.ToLower()) ?? false)
-            )
-                myactivity.SmgTags?.Add(myactivity.SubType.ToLower());
-            if (
-                !String.IsNullOrEmpty(myactivity.PoiType)
-                && (!myactivity.SmgTags?.Contains(myactivity.PoiType.ToLower()) ?? false)
-            )
-                myactivity.SmgTags?.Add(myactivity.PoiType.ToLower());
+        //    //Type to Tag
+        //    if (
+        //        !String.IsNullOrEmpty(myactivity.Type)
+        //        && (!myactivity.SmgTags?.Contains(myactivity.Type.ToLower()) ?? false)
+        //    )
+        //        myactivity.SmgTags?.Add(myactivity.Type.ToLower());
+        //    if (
+        //        !String.IsNullOrEmpty(myactivity.SubType)
+        //        && (!myactivity.SmgTags?.Contains(myactivity.SubType.ToLower()) ?? false)
+        //    )
+        //        myactivity.SmgTags?.Add(myactivity.SubType.ToLower());
+        //    if (
+        //        !String.IsNullOrEmpty(myactivity.PoiType)
+        //        && (!myactivity.SmgTags?.Contains(myactivity.PoiType.ToLower()) ?? false)
+        //    )
+        //        myactivity.SmgTags?.Add(myactivity.PoiType.ToLower());
 
-            if (myactivity.SmgTags?.Contains("anderes") ?? false)
-                myactivity.SmgTags?.Remove("anderes");
-            if (myactivity.SmgTags?.Contains("winter") ?? false)
-                myactivity.SmgTags?.Remove("winter");
-            if (myactivity.SmgTags?.Contains("skirundtouren pisten") ?? false)
-                myactivity.SmgTags?.Remove("skirundtouren pisten");
-            if (myactivity.SmgTags?.Contains("activity") ?? false)
-                myactivity.SmgTags?.Remove("activity");
-            if (myactivity.SmgTags?.Contains("poi") ?? false)
-                myactivity.SmgTags?.Remove("poi");
+        //    if (myactivity.SmgTags?.Contains("anderes") ?? false)
+        //        myactivity.SmgTags?.Remove("anderes");
+        //    if (myactivity.SmgTags?.Contains("winter") ?? false)
+        //        myactivity.SmgTags?.Remove("winter");
+        //    if (myactivity.SmgTags?.Contains("skirundtouren pisten") ?? false)
+        //        myactivity.SmgTags?.Remove("skirundtouren pisten");
+        //    if (myactivity.SmgTags?.Contains("activity") ?? false)
+        //        myactivity.SmgTags?.Remove("activity");
+        //    if (myactivity.SmgTags?.Contains("poi") ?? false)
+        //        myactivity.SmgTags?.Remove("poi");
 
-            //Update GPS points position/valleystation/mountainstation
-            if (odhactivitypoi.GpsInfo != null)
-            {
-                foreach (var gpsinfo in odhactivitypoi.GpsInfo)
-                {
-                    var gpsresult = ReturnGpsInfoActivityKey(gpsinfo);
+        //    //Update GPS points position/valleystation/mountainstation
+        //    if (odhactivitypoi.GpsInfo != null)
+        //    {
+        //        foreach (var gpsinfo in odhactivitypoi.GpsInfo)
+        //        {
+        //            var gpsresult = ReturnGpsInfoActivityKey(gpsinfo);
 
-                    myactivity.GpsInfo?.Add(gpsresult.Item2);
-                    myactivity.GpsPoints.TryAddOrUpdate(gpsresult.Item1, gpsresult.Item2);
-                }
-            }
+        //            myactivity.GpsInfo?.Add(gpsresult.Item2);
+        //            myactivity.GpsPoints.TryAddOrUpdate(gpsresult.Item1, gpsresult.Item2);
+        //        }
+        //    }
 
-            return myactivity;
-        }
+        //    return myactivity;
+        //}
 
-        private Tuple<string?, string?> GetSubTypeAndPoiTypeFromFlagDescription(
-            List<string> odhtags
-        )
-        {
-            List<string> validtags = new List<string>();
+        //private Tuple<string?, string?> GetSubTypeAndPoiTypeFromFlagDescription(
+        //    List<string> odhtags
+        //)
+        //{
+        //    List<string> validtags = new List<string>();
 
-            List<string> dsslifttypes = new List<string>()
-            {
-                "Seilbahn",
-                "Kabinenbahn",
-                "Unterirdische Bahn",
-                "Sessellift",
-                "Sessellift",
-                "Skilift",
-                "Schrägaufzug",
-                "Klein-Skilift",
-                "Telemix",
-                "Standseilbahn/Zahnradbahn",
-                "Skibus",
-                "Zug",
-                "Sessellift",
-                "Sessellift",
-                "Sessellift",
-                "Förderband",
-                "4er Sessellift kuppelbar",
-                "6er Sessellift kuppelbar",
-                "8er Sessellift kuppelbar",
-            };
+        //    List<string> dsslifttypes = new List<string>()
+        //    {
+        //        "Seilbahn",
+        //        "Kabinenbahn",
+        //        "Unterirdische Bahn",
+        //        "Sessellift",
+        //        "Sessellift",
+        //        "Skilift",
+        //        "Schrägaufzug",
+        //        "Klein-Skilift",
+        //        "Telemix",
+        //        "Standseilbahn/Zahnradbahn",
+        //        "Skibus",
+        //        "Zug",
+        //        "Sessellift",
+        //        "Sessellift",
+        //        "Sessellift",
+        //        "Förderband",
+        //        "4er Sessellift kuppelbar",
+        //        "6er Sessellift kuppelbar",
+        //        "8er Sessellift kuppelbar",
+        //    };
 
-            foreach (var odhtag in odhtags)
-            {
-                if (
-                    odhtag != "activity"
-                    && odhtag != "poi"
-                    && odhtag != "anderes"
-                    && odhtag != "aufstiegsanlagen"
-                    && odhtag != "weitere aufstiegsanlagen"
-                    && odhtag != "winter"
-                    && odhtag != "skirundtouren pisten"
-                    && odhtag != "pisten"
-                    && odhtag != "ski alpin"
-                    && odhtag != "piste"
-                    && odhtag != "weitere pisten"
-                )
-                {
-                    validtags.Add(odhtag);
-                }
-            }
+        //    foreach (var odhtag in odhtags)
+        //    {
+        //        if (
+        //            odhtag != "activity"
+        //            && odhtag != "poi"
+        //            && odhtag != "anderes"
+        //            && odhtag != "aufstiegsanlagen"
+        //            && odhtag != "weitere aufstiegsanlagen"
+        //            && odhtag != "winter"
+        //            && odhtag != "skirundtouren pisten"
+        //            && odhtag != "pisten"
+        //            && odhtag != "ski alpin"
+        //            && odhtag != "piste"
+        //            && odhtag != "weitere pisten"
+        //        )
+        //        {
+        //            validtags.Add(odhtag);
+        //        }
+        //    }
 
-            string? subtype = null;
-            string? poitype = null;
+        //    string? subtype = null;
+        //    string? poitype = null;
 
-            if (validtags.Count > 0)
-            {
-                subtype = dsslifttypes.Where(x => x.ToLower() == validtags[0]).FirstOrDefault();
+        //    if (validtags.Count > 0)
+        //    {
+        //        subtype = dsslifttypes.Where(x => x.ToLower() == validtags[0]).FirstOrDefault();
 
-                if (validtags.Count > 1)
-                {
-                    poitype = dsslifttypes.Where(x => x.ToLower() == validtags[1]).FirstOrDefault();
-                }
-            }
+        //        if (validtags.Count > 1)
+        //        {
+        //            poitype = dsslifttypes.Where(x => x.ToLower() == validtags[1]).FirstOrDefault();
+        //        }
+        //    }
 
-            return Tuple.Create(subtype, poitype);
-        }
+        //    return Tuple.Create(subtype, poitype);
+        //}
 
-        private LTSActivityLinked CastODHActivityTOLTSActivity(ODHActivityPoiLinked odhactivitypoi)
-        {
-            var myactivity = new LTSActivityLinked();
+        //private LTSActivityLinked CastODHActivityTOLTSActivity(ODHActivityPoiLinked odhactivitypoi)
+        //{
+        //    var myactivity = new LTSActivityLinked();
 
-            myactivity.Active = odhactivitypoi.Active;
-            //myactivity.AdditionalPoiInfos = odhactivitypoi.AdditionalPoiInfos;
-            myactivity.AltitudeDifference = odhactivitypoi.AltitudeDifference;
-            myactivity.AltitudeHighestPoint = odhactivitypoi.AltitudeHighestPoint;
-            myactivity.AltitudeLowestPoint = odhactivitypoi.AltitudeLowestPoint;
-            myactivity.AltitudeSumDown = odhactivitypoi.AltitudeSumDown;
-            myactivity.AltitudeSumUp = odhactivitypoi.AltitudeSumUp;
-            myactivity.AreaId = odhactivitypoi.AreaId;
-            myactivity.ContactInfos = odhactivitypoi.ContactInfos;
-            myactivity.CopyrightChecked = odhactivitypoi.CopyrightChecked;
-            myactivity.BikeTransport = odhactivitypoi.BikeTransport;
-            myactivity.ChildPoiIds = odhactivitypoi.ChildPoiIds;
-            myactivity.Detail = odhactivitypoi.Detail;
-            myactivity.Difficulty = odhactivitypoi.Difficulty;
-            myactivity.DistanceDuration = odhactivitypoi.DistanceDuration;
-            myactivity.DistanceInfo = odhactivitypoi.DistanceInfo;
-            myactivity.DistanceLength = odhactivitypoi.DistanceLength;
-            myactivity.Exposition = odhactivitypoi.Exposition;
-            myactivity.FeetClimb = odhactivitypoi.FeetClimb;
-            myactivity.FirstImport = odhactivitypoi.FirstImport;
-            myactivity.GpsInfo = new List<GpsInfo>();
-            //myactivity.GpsPoints = odhactivitypoi.GpsPoints;
-            myactivity.GpsTrack = odhactivitypoi.GpsTrack;
-            myactivity.HasFreeEntrance = odhactivitypoi.HasFreeEntrance;
-            myactivity.HasLanguage = odhactivitypoi.HasLanguage;
-            myactivity.HasRentals = odhactivitypoi.HasRentals;
-            myactivity.Highlight = odhactivitypoi.Highlight;
-            myactivity.Id = odhactivitypoi.Id?.ToUpper();
-            myactivity.ImageGallery = odhactivitypoi.ImageGallery;
-            myactivity.IsOpen = odhactivitypoi.IsOpen;
-            myactivity.IsPrepared = odhactivitypoi.IsPrepared;
-            myactivity.IsWithLigth = odhactivitypoi.IsWithLigth;
-            myactivity.LastChange = odhactivitypoi.LastChange;
-            myactivity.LiftAvailable = odhactivitypoi.LiftAvailable;
-            myactivity.LicenseInfo = odhactivitypoi.LicenseInfo;
-            myactivity.LocationInfo = odhactivitypoi.LocationInfo;
-            myactivity.LTSTags = odhactivitypoi.LTSTags;
-            myactivity.Mapping = odhactivitypoi.Mapping;
-            myactivity.MasterPoiIds = odhactivitypoi.MasterPoiIds;
-            myactivity.Number = odhactivitypoi.Number;
-            myactivity.OperationSchedule = odhactivitypoi.OperationSchedule;
-            myactivity.OutdooractiveElevationID = odhactivitypoi.OutdooractiveElevationID;
-            myactivity.OutdooractiveID = odhactivitypoi.OutdooractiveID;
-            myactivity.OwnerRid = odhactivitypoi.OwnerRid;
-            myactivity.PublishedOn = odhactivitypoi.PublishedOn;
-            myactivity.Ratings = odhactivitypoi.Ratings;
-            myactivity.RunToValley = odhactivitypoi.RunToValley;
-            myactivity.Shortname = odhactivitypoi.Shortname;
-            myactivity.SmgActive = odhactivitypoi.SmgActive;
-            myactivity.SmgId = odhactivitypoi.SmgId;
-            myactivity.SmgTags = odhactivitypoi.SmgTags;
-            myactivity.Source = odhactivitypoi.Source;
-            myactivity.TourismorganizationId = odhactivitypoi.TourismorganizationId;
-            myactivity.WayNumber = odhactivitypoi.WayNumber;
+        //    myactivity.Active = odhactivitypoi.Active;
+        //    //myactivity.AdditionalPoiInfos = odhactivitypoi.AdditionalPoiInfos;
+        //    myactivity.AltitudeDifference = odhactivitypoi.AltitudeDifference;
+        //    myactivity.AltitudeHighestPoint = odhactivitypoi.AltitudeHighestPoint;
+        //    myactivity.AltitudeLowestPoint = odhactivitypoi.AltitudeLowestPoint;
+        //    myactivity.AltitudeSumDown = odhactivitypoi.AltitudeSumDown;
+        //    myactivity.AltitudeSumUp = odhactivitypoi.AltitudeSumUp;
+        //    myactivity.AreaId = odhactivitypoi.AreaId;
+        //    myactivity.ContactInfos = odhactivitypoi.ContactInfos;
+        //    myactivity.CopyrightChecked = odhactivitypoi.CopyrightChecked;
+        //    myactivity.BikeTransport = odhactivitypoi.BikeTransport;
+        //    myactivity.ChildPoiIds = odhactivitypoi.ChildPoiIds;
+        //    myactivity.Detail = odhactivitypoi.Detail;
+        //    myactivity.Difficulty = odhactivitypoi.Difficulty;
+        //    myactivity.DistanceDuration = odhactivitypoi.DistanceDuration;
+        //    myactivity.DistanceInfo = odhactivitypoi.DistanceInfo;
+        //    myactivity.DistanceLength = odhactivitypoi.DistanceLength;
+        //    myactivity.Exposition = odhactivitypoi.Exposition;
+        //    myactivity.FeetClimb = odhactivitypoi.FeetClimb;
+        //    myactivity.FirstImport = odhactivitypoi.FirstImport;
+        //    myactivity.GpsInfo = new List<GpsInfo>();
+        //    //myactivity.GpsPoints = odhactivitypoi.GpsPoints;
+        //    myactivity.GpsTrack = odhactivitypoi.GpsTrack;
+        //    myactivity.HasFreeEntrance = odhactivitypoi.HasFreeEntrance;
+        //    myactivity.HasLanguage = odhactivitypoi.HasLanguage;
+        //    myactivity.HasRentals = odhactivitypoi.HasRentals;
+        //    myactivity.Highlight = odhactivitypoi.Highlight;
+        //    myactivity.Id = odhactivitypoi.Id?.ToUpper();
+        //    myactivity.ImageGallery = odhactivitypoi.ImageGallery;
+        //    myactivity.IsOpen = odhactivitypoi.IsOpen;
+        //    myactivity.IsPrepared = odhactivitypoi.IsPrepared;
+        //    myactivity.IsWithLigth = odhactivitypoi.IsWithLigth;
+        //    myactivity.LastChange = odhactivitypoi.LastChange;
+        //    myactivity.LiftAvailable = odhactivitypoi.LiftAvailable;
+        //    myactivity.LicenseInfo = odhactivitypoi.LicenseInfo;
+        //    myactivity.LocationInfo = odhactivitypoi.LocationInfo;
+        //    myactivity.LTSTags = odhactivitypoi.LTSTags;
+        //    myactivity.Mapping = odhactivitypoi.Mapping;
+        //    myactivity.MasterPoiIds = odhactivitypoi.MasterPoiIds;
+        //    myactivity.Number = odhactivitypoi.Number;
+        //    myactivity.OperationSchedule = odhactivitypoi.OperationSchedule;
+        //    myactivity.OutdooractiveElevationID = odhactivitypoi.OutdooractiveElevationID;
+        //    myactivity.OutdooractiveID = odhactivitypoi.OutdooractiveID;
+        //    myactivity.OwnerRid = odhactivitypoi.OwnerRid;
+        //    myactivity.PublishedOn = odhactivitypoi.PublishedOn;
+        //    myactivity.Ratings = odhactivitypoi.Ratings;
+        //    myactivity.RunToValley = odhactivitypoi.RunToValley;
+        //    myactivity.Shortname = odhactivitypoi.Shortname;
+        //    myactivity.SmgActive = odhactivitypoi.SmgActive;
+        //    myactivity.SmgId = odhactivitypoi.SmgId;
+        //    myactivity.SmgTags = odhactivitypoi.SmgTags;
+        //    myactivity.Source = odhactivitypoi.Source;
+        //    myactivity.TourismorganizationId = odhactivitypoi.TourismorganizationId;
+        //    myactivity.WayNumber = odhactivitypoi.WayNumber;
 
-            return myactivity;
-        }
+        //    return myactivity;
+        //}
 
-        private Tuple<string, GpsInfo> ReturnGpsInfoActivityKey(GpsInfo gpsinfo)
-        {
-            string activitygpstypevalue = "";
-            string gpstypekey = "";
+        //private Tuple<string, GpsInfo> ReturnGpsInfoActivityKey(GpsInfo gpsinfo)
+        //{
+        //    string activitygpstypevalue = "";
+        //    string gpstypekey = "";
 
-            switch (gpsinfo.Gpstype)
-            {
-                case "valleystationpoint":
-                    activitygpstypevalue = "Talstation";
-                    gpstypekey = "position";
-                    break;
-                case "middlestationpoint":
-                    activitygpstypevalue = "Mittelstation";
-                    gpstypekey = "middleposition";
-                    break;
-                case "mountainstationpoint":
-                    activitygpstypevalue = "Bergstation";
-                    gpstypekey = "endposition";
-                    break;
-                case "position":
-                    activitygpstypevalue = "Startpunkt";
-                    gpstypekey = "position";
-                    break;
-            }
-            ;
+        //    switch (gpsinfo.Gpstype)
+        //    {
+        //        case "valleystationpoint":
+        //            activitygpstypevalue = "Talstation";
+        //            gpstypekey = "position";
+        //            break;
+        //        case "middlestationpoint":
+        //            activitygpstypevalue = "Mittelstation";
+        //            gpstypekey = "middleposition";
+        //            break;
+        //        case "mountainstationpoint":
+        //            activitygpstypevalue = "Bergstation";
+        //            gpstypekey = "endposition";
+        //            break;
+        //        case "position":
+        //            activitygpstypevalue = "Startpunkt";
+        //            gpstypekey = "position";
+        //            break;
+        //    }
+        //    ;
 
-            GpsInfo gpstoreturn = new GpsInfo()
-            {
-                Gpstype = activitygpstypevalue,
-                Altitude = gpsinfo.Altitude,
-                AltitudeUnitofMeasure = gpsinfo.AltitudeUnitofMeasure,
-                Latitude = gpsinfo.Latitude,
-                Longitude = gpsinfo.Longitude,
-            };
+        //    GpsInfo gpstoreturn = new GpsInfo()
+        //    {
+        //        Gpstype = activitygpstypevalue,
+        //        Altitude = gpsinfo.Altitude,
+        //        AltitudeUnitofMeasure = gpsinfo.AltitudeUnitofMeasure,
+        //        Latitude = gpsinfo.Latitude,
+        //        Longitude = gpsinfo.Longitude,
+        //    };
 
-            return Tuple.Create(gpstypekey, gpstoreturn);
-        }
+        //    return Tuple.Create(gpstypekey, gpstoreturn);
+        //}
 
         #endregion
     }

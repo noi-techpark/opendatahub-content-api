@@ -12,6 +12,7 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -51,6 +52,7 @@ namespace OdhApiCore.Controllers
         /// <param name="source">Source Filter (Separator ',' available sources 'lts','content'), (default:'null')</param>
         /// <param name="active">Active Webcam Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">ODH Active (Published) Webcam Filter (possible Values: 'true' only published data, 'false' only not published data), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="longitude">GeoFilter FLOAT Longitude Format: '11.369909', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="radius">Radius INTEGER to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -80,6 +82,7 @@ namespace OdhApiCore.Controllers
             string? idlist = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
+            string? tagfilter = null,
             string? seed = null,
             string? latitude = null,
             string? longitude = null,
@@ -116,6 +119,7 @@ namespace OdhApiCore.Controllers
                 searchfilter,
                 active?.Value,
                 odhactive?.Value,
+                tagfilter: tagfilter,
                 publishedon,
                 seed,
                 updatefrom,
@@ -172,6 +176,7 @@ namespace OdhApiCore.Controllers
             string? searchfilter,
             bool? active,
             bool? smgactive,
+            string? tagfilter,
             string? publishedon,
             string? seed,
             string? lastchange,
@@ -192,6 +197,7 @@ namespace OdhApiCore.Controllers
                 WebcamInfoHelper mywebcaminfohelper = WebcamInfoHelper.Create(
                     source,
                     idfilter,
+                    tagfilter,
                     active,
                     smgactive,
                     lastchange,
@@ -208,6 +214,7 @@ namespace OdhApiCore.Controllers
                         sourcelist: mywebcaminfohelper.sourcelist,
                         activefilter: mywebcaminfohelper.active,
                         smgactivefilter: mywebcaminfohelper.smgactive,
+                        tagdict: mywebcaminfohelper.tagdict,
                         publishedonlist: mywebcaminfohelper.publishedonlist,
                         searchfilter: searchfilter,
                         language: language,
@@ -284,7 +291,8 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("webcams")
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    //.Where("id", id.ToUpper())
+                    .Where("gen_id", id.ToUpper())
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)
@@ -334,6 +342,13 @@ namespace OdhApiCore.Controllers
 
                 webcam.Id = Helper.IdGenerator.GenerateIDFromType(webcam);
 
+                //GENERATE HasLanguage
+                webcam.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                webcam.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await webcam.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<WebcamInfoLinked>(
                     webcam,
                     new DataInfo("webcams", CRUDOperation.Create),
@@ -367,6 +382,13 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
                 webcam.Id = Helper.IdGenerator.CheckIdFromType<WebcamInfoLinked>(id);
+
+                //GENERATE HasLanguage
+                webcam.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                webcam.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await webcam.UpdateTagsExtension(QueryFactory);
 
                 return await UpsertData<WebcamInfoLinked>(
                     webcam,

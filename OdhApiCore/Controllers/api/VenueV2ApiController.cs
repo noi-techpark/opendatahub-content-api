@@ -32,10 +32,11 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("v2")]
-    public class VenueV2Controller : OdhController
+    public class VenueFlattenedController : OdhController
     {
-        public VenueV2Controller(
+        public VenueFlattenedController(
             IWebHostEnvironment env,
             ISettings settings,
             ILogger<VenueController> logger,
@@ -61,6 +62,7 @@ namespace OdhApiCore.Controllers
         /// <param name="capacityfilter">Capacity Range Filter (Separator ',' example Value: 50,100 All Venues with rooms from 50 to 100 people), (default:'null')</param>
         /// <param name="roomcountfilter">Room Count Range Filter (Separator ',' example Value: 2,5 All Venues with 2 to 5 rooms), (default:'null')</param>
         /// <param name="odhtagfilter">ODH Taglist Filter (refers to Array SmgTags) (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=venue'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active Venue Filter (possible Values: 'true' only Active Venues, 'false' only Disabled Venues), (default:'null')</param>
         /// <param name="odhactive">ODH Active (Published) Venue Filter (possible Values: 'true' only published Venue, 'false' only not published Venue), (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -81,7 +83,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(JsonResult<VenueV2>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(JsonResult<VenueFlattened>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -98,8 +100,8 @@ namespace OdhApiCore.Controllers
             string? idlist = null,
             string? locfilter = null,
             string? featurefilter = null,
-            string? setuptypefilter = null,
-            string? odhtagfilter = null,
+            string? setuptypefilter = null,            
+            string? tagfilter = null,
             string? source = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
@@ -141,7 +143,7 @@ namespace OdhApiCore.Controllers
                 sourcefilter: source,
                 active: active,
                 smgactive: odhactive,
-                smgtags: odhtagfilter,
+                tagfilter: tagfilter,
                 seed: seed,
                 lastchange: updatefrom,
                 langfilter: langfilter,
@@ -168,7 +170,7 @@ namespace OdhApiCore.Controllers
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
         /// //[Authorize(Roles = "DataReader,VenueReader")]
-        [ProducesResponseType(typeof(VenueV2), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(VenueFlattened), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("Venue/{id}", Name = "SingleVenueV2")]
@@ -195,8 +197,8 @@ namespace OdhApiCore.Controllers
         #region Converters
 
         [ApiExplorerSettings(IgnoreApi = true)]
-        [HttpGet, Route("Venue/ConvertVenueToVenueV2/{id}")]
-        public async Task<IActionResult> ConvertVenueToVenueV2(string id, bool savetotable = false)
+        [HttpGet, Route("Venue/ConvertVenueToVenueFlattened/{id}")]
+        public async Task<IActionResult> ConvertVenueToVenueFlattened(string id, bool savetotable = false)
         {
             var query = QueryFactory
                 .Query("venues_v2")
@@ -210,7 +212,7 @@ namespace OdhApiCore.Controllers
 
             var venuecodedata = await venuecodequery.GetObjectListAsync<DDVenueCodes>();
 
-            var convertresult = VenueV2Converter.ConvertVenueListToVenueV2(data, venuecodedata);
+            var convertresult = VenueFlattenedConverter.ConvertVenueListToVenueFlattened(data, venuecodedata);
 
             if (savetotable)
             {
@@ -218,7 +220,7 @@ namespace OdhApiCore.Controllers
                 foreach (var venue in convertresult)
                 {
                     result.Add(
-                        await QueryFactory.UpsertData<VenueV2>(
+                        await QueryFactory.UpsertData<VenueFlattened>(
                             venue,
                             new DataInfo("venuesv2", CRUDOperation.Create),
                             new EditInfo("venueconverter", "api"),
@@ -250,7 +252,7 @@ namespace OdhApiCore.Controllers
 
             foreach (var data in datalist)
             {
-                var converted = VenueV2Converter.ConvertVenueTagToTag(data);
+                var converted = VenueFlattenedConverter.ConvertVenueTagToTag(data);
                 listtaglinked.Add(converted);
 
                 if (savetotable)
@@ -295,7 +297,7 @@ namespace OdhApiCore.Controllers
             string? sourcefilter,
             bool? active,
             bool? smgactive,
-            string? smgtags,
+            string? tagfilter,
             string? seed,
             string? lastchange,
             string? langfilter,
@@ -320,13 +322,10 @@ namespace OdhApiCore.Controllers
                     featurefilter,
                     setuptypefilter,
                     locfilter,
-                    capacityfilter,
-                    roomcountfilter,
                     langfilter,
                     sourcefilter,
-                    active,
-                    smgactive,
-                    smgtags,
+                    active,                    
+                    tagfilter,
                     lastchange,
                     publishedon,
                     cancellationToken
@@ -343,20 +342,13 @@ namespace OdhApiCore.Controllers
                         categorylist: myvenuehelper.categorylist,
                         featurelist: myvenuehelper.featurelist,
                         setuptypelist: myvenuehelper.setuptypelist,
-                        smgtaglist: myvenuehelper.odhtaglist,
+                        tagdict: myvenuehelper.tagdict,
                         districtlist: myvenuehelper.districtlist,
                         municipalitylist: myvenuehelper.municipalitylist,
                         tourismvereinlist: myvenuehelper.tourismvereinlist,
                         regionlist: myvenuehelper.regionlist,
                         sourcelist: myvenuehelper.sourcelist,
-                        capacity: myvenuehelper.capacity,
-                        capacitymin: myvenuehelper.capacitymin,
-                        capacitymax: myvenuehelper.capacitymax,
-                        roomcount: myvenuehelper.roomcount,
-                        roomcountmin: myvenuehelper.roomcountmin,
-                        roomcountmax: myvenuehelper.roomcountmax,
                         activefilter: myvenuehelper.active,
-                        smgactivefilter: myvenuehelper.smgactive,
                         publishedonlist: myvenuehelper.publishedonlist,
                         searchfilter: searchfilter,
                         language: language,
@@ -455,7 +447,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Venue")]
-        public Task<IActionResult> Post([FromBody] VenueV2 venue)
+        public Task<IActionResult> Post([FromBody] VenueFlattened venue)
         {
             return DoAsyncReturn(async () =>
             {
@@ -473,7 +465,7 @@ namespace OdhApiCore.Controllers
                 await venue.UpdateTagsExtension(QueryFactory);
 
                 //TODO UPDATE/INSERT ALSO in Destinationdata Column Or lets not support Destinationdata anymore?
-                return await UpsertData<VenueV2>(
+                return await UpsertData<VenueFlattened>(
                     venue,
                     new DataInfo("venuesv2", CRUDOperation.Create),
                     new CompareConfig(false, false),
@@ -496,14 +488,14 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut, Route("Venue/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] VenueV2 venue)
+        public Task<IActionResult> Put(string id, [FromBody] VenueFlattened venue)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
-                venue.Id = Helper.IdGenerator.CheckIdFromType<VenueV2>(id);
+                venue.Id = Helper.IdGenerator.CheckIdFromType<VenueFlattened>(id);
 
                 //Check all Languages
                 venue.CheckMyInsertedLanguages(null);
@@ -515,7 +507,7 @@ namespace OdhApiCore.Controllers
                 await venue.UpdateTagsExtension(QueryFactory);
 
                 //TODO UPDATE/INSERT ALSO in Destinationdata Column
-                return await UpsertData<VenueV2>(
+                return await UpsertData<VenueFlattened>(
                     venue,
                     new DataInfo("venuesv2", CRUDOperation.Update, true),
                     new CompareConfig(false, false),
@@ -544,9 +536,9 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<VenueV2>(id);
+                id = Helper.IdGenerator.CheckIdFromType<VenueFlattened>(id);
 
-                return await DeleteData<VenueV2>(
+                return await DeleteData<VenueFlattened>(
                     id,
                     new DataInfo("venuesv2", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)

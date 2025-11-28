@@ -184,7 +184,9 @@ namespace OdhApiCore.Controllers
                     //Hack if there is another / in the route to check if it is not generating side effects
                     if (chunks[1].Split('/').Count() > 1)
                     {
-                        chunks[1] = chunks[1].Split('/')[1];
+                        var chunksadditional = chunks[1].Split('/');
+                        chunks[0] = chunks[0] + chunksadditional[0];
+                        chunks[1] = chunksadditional[1];
                     }
 
                     var (controller, id) = (chunks[0], chunks[1]);
@@ -264,6 +266,7 @@ namespace OdhApiCore.Controllers
         }
 
         //CREATE and UPDATE data
+        #region LEGACY UpsertData
         protected async Task<IActionResult> UpsertData<T>(
             T data,
             DataInfo datainfo,
@@ -276,7 +279,7 @@ namespace OdhApiCore.Controllers
             //TODO Username and provenance of the insert/edit
             //Get the Name Identifier TO CHECK what about service accounts?
             string editor =
-                this.User != null && this.User.Claims != null ? 
+                this.User != null && this.User.Claims != null ?
                 this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
                     : "anonymous";
 
@@ -307,6 +310,99 @@ namespace OdhApiCore.Controllers
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
 
             return ReturnCRUDResult(result);
+        }
+        
+        #endregion
+        protected async Task<IActionResult> UpsertData<T>(
+            QueryFactoryExtension.Upsertable<T> data,
+            DataInfo datainfo,
+            CompareConfig compareconfig,
+            CRUDConstraints crudconstraints,
+            string editsource = "api"
+        )
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            //TODO Username and provenance of the insert/edit
+            //Get the Name Identifier TO CHECK what about service accounts?
+            string editor =
+                this.User != null && this.User.Claims != null ? 
+                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
+                    : "anonymous";
+
+            if (
+                HttpContext.Request.Headers.ContainsKey("Referer")
+                && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
+            )
+            {
+                editsource = HttpContext.Request.Headers["Referer"];
+            }
+
+            var result = await QueryFactory.UpsertData<T>(
+                data,
+                datainfo,
+                new EditInfo(editor, editsource),
+                crudconstraints,
+                compareconfig
+            );
+
+            //push modified data to all published Channels
+            result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
+
+            return ReturnCRUDResult(result);
+        }
+
+        //BATCH CREATE and UPDATE data
+        protected async Task<IActionResult> UpsertDataArray<T>(
+            IEnumerable<Helper.QueryFactoryExtension.Upsertable<T>> dataList,
+            DataInfo datainfo,
+            CompareConfig compareconfig,
+            CRUDConstraints createConstraints,
+            CRUDConstraints updateConstraints,
+            string editsource = "api"
+        )
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            //Get the Name Identifier
+            string editor =
+                this.User != null && this.User.Claims != null ?
+                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault()?.Value
+                    ?? "anonymous"
+                    : "anonymous";
+
+            if (
+                HttpContext.Request.Headers.ContainsKey("Referer")
+                && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
+            )
+            {
+                editsource = HttpContext.Request.Headers["Referer"];
+            }
+
+            try
+            {
+                var batchResult = await QueryFactory.UpsertDataArray<T>(
+                    dataList,
+                    datainfo,
+                    new EditInfo(editor, editsource),
+                    createConstraints,
+                    updateConstraints,
+                    compareconfig
+                );
+
+                // Success - return the result
+                return Ok(batchResult);
+            }
+            catch (BatchValidationException ex)
+            {
+                // Convert structured validation errors to ModelState
+                foreach (var error in ex.ValidationErrors)
+                {
+                    foreach (var errorMessage in error.Value)
+                    {
+                        ModelState.AddModelError(error.Key, errorMessage);
+                    }
+                }
+                return ValidationProblem(ModelState);
+            }
         }
 
         //DELETE data

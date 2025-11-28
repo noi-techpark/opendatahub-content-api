@@ -15,28 +15,27 @@ namespace OdhApiCore.Controllers
         public List<string> categorylist;
         public List<string> featurelist;
         public List<string> setuptypelist;
-        public List<string> idlist;
-        public List<string> odhtaglist;
+        public List<string> idlist;        
         public List<string> sourcelist;
         public List<string> languagelist;
         public List<string> districtlist;
         public List<string> municipalitylist;
         public List<string> tourismvereinlist;
         public List<string> regionlist;
-        public bool? active;
-        public bool? smgactive;
+        public bool? active;        
         public string? lastchange;
 
-        public bool capacity;
-        public int capacitymin;
-        public int capacitymax;
+        //public bool capacity;
+        //public int capacitymin;
+        //public int capacitymax;
 
-        public bool roomcount;
-        public int roomcountmin;
-        public int roomcountmax;
+        //public bool roomcount;
+        //public int roomcountmin;
+        //public int roomcountmax;
 
         //New Publishedonlist
         public List<string> publishedonlist;
+        public IDictionary<string, List<string>> tagdict;
 
         public static async Task<VenueHelper> CreateAsync(
             QueryFactory queryFactory,
@@ -44,14 +43,11 @@ namespace OdhApiCore.Controllers
             string? categoryfilter,
             string? featurefilter,
             string? setuptypefilter,
-            string? locfilter,
-            string? capacityfilter,
-            string? roomcountfilter,
+            string? locfilter,            
             string? languagefilter,
             string? sourcefilter,
-            bool? activefilter,
-            bool? smgactivefilter,
-            string? odhtags,
+            bool? activefilter,                        
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter,
             CancellationToken cancellationToken
@@ -76,14 +72,11 @@ namespace OdhApiCore.Controllers
                 categoryfilter,
                 featurefilter,
                 setuptypefilter,
-                locfilter,
-                capacityfilter,
-                roomcountfilter,
+                locfilter,                                
                 languagefilter,
                 sourcefilter,
                 activefilter,
-                smgactivefilter,
-                odhtags,
+                tagfilter,
                 lastchange,
                 publishedonfilter,
                 tourismusvereinids
@@ -95,14 +88,11 @@ namespace OdhApiCore.Controllers
             string? categoryfilter,
             string? featurefilter,
             string? setuptypefilter,
-            string? locfilter,
-            string? capacityfilter,
-            string? roomcountfilter,
+            string? locfilter,            
             string? languagefilter,
             string? sourcefilter,
             bool? activefilter,
-            bool? smgactivefilter,
-            string? odhtags,
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter,
             IEnumerable<string>? tourismusvereinids
@@ -118,9 +108,7 @@ namespace OdhApiCore.Controllers
 
             idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToUpper());
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);
-            languagelist = Helper.CommonListCreator.CreateIdList(languagefilter);
-
-            odhtaglist = Helper.CommonListCreator.CreateIdList(odhtags);
+            languagelist = Helper.CommonListCreator.CreateIdList(languagefilter);            
 
             tourismvereinlist = new List<string>();
             regionlist = new List<string>();
@@ -138,25 +126,15 @@ namespace OdhApiCore.Controllers
 
             if (tourismusvereinids != null)
                 tourismvereinlist.AddRange(tourismusvereinids);
-
-            //Capacity
-            capacity = capacityfilter != null;
-            if (capacity)
-                (capacitymin, capacitymax) = CommonListCreator.CreateRangeString(capacityfilter);
-
-            //Altitude
-            roomcount = roomcountfilter != null;
-            if (roomcount)
-                (roomcountmin, roomcountmax) = CommonListCreator.CreateRangeString(roomcountfilter);
-
+            
             //active
             active = activefilter;
-            //smgactive
-            smgactive = smgactivefilter;
 
             this.lastchange = lastchange;
 
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+            
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
     }
 }

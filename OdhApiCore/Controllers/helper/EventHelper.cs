@@ -32,6 +32,7 @@ namespace OdhApiCore.Controllers
 
         //New Publishedonlist
         public List<string> publishedonlist;
+        public IDictionary<string, List<string>> tagdict;
 
         public static async Task<EventHelper> CreateAsync(
             QueryFactory queryFactory,
@@ -45,6 +46,7 @@ namespace OdhApiCore.Controllers
             bool? activefilter,
             bool? smgactivefilter,
             string? smgtags,
+            string? tagfilter,
             string? lastchange,
             string? langfilter,
             string? source,
@@ -77,6 +79,7 @@ namespace OdhApiCore.Controllers
                 activefilter: activefilter,
                 smgactivefilter: smgactivefilter,
                 smgtags: smgtags,
+                tagfilter: tagfilter,
                 lastchange: lastchange,
                 sourcefilter: source,
                 languagefilter: langfilter,
@@ -96,6 +99,7 @@ namespace OdhApiCore.Controllers
             bool? activefilter,
             bool? smgactivefilter,
             string? smgtags,
+            string? tagfilter,
             string? lastchange,
             string? languagefilter,
             string? sourcefilter,
@@ -151,6 +155,8 @@ namespace OdhApiCore.Controllers
                     end = Convert.ToDateTime(enddate);
 
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
 
         public static string? GetEventSortExpression(

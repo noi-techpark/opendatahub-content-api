@@ -24,7 +24,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helper
 {
-    public static class QueryFactoryExtension
+    public static partial class QueryFactoryExtension
     {
         #region Query Extension Methods Common used
 
@@ -191,10 +191,10 @@ namespace Helper
         /// <typeparam name="T"></typeparam>
         /// <param name="QueryFactory"></param>
         /// <param name="data"></param>
-        /// <param name="dataconfig"></param>
+        /// <param name="dataconfig">Create/Update/CreateAndUpdate</param>
         /// <param name="editinfo"></param>
-        /// <param name="constraints"></param>
-        /// <param name="compareConfig"></param>
+        /// <param name="constraints">Constraints for CRUD operations</param>
+        /// <param name="compareConfig">Compare data/images true/false</param>
         /// <returns></returns>
         public static async Task<PGCRUDResult> UpsertData<T>(
             this QueryFactory QueryFactory,
@@ -204,7 +204,7 @@ namespace Helper
             CRUDConstraints constraints,
             CompareConfig compareConfig,
             int? rawdataid = null,
-            bool reduced = false            
+            bool reduced = false
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
         {
@@ -335,7 +335,7 @@ namespace Helper
                         .Query(dataconfig.Table)
                         .InsertAsync(new JsonBDataRaw() { id = idtoprocess, data = new JsonRaw(data), rawdataid = rawdataid.Value });
                 }
-                
+
 
                 dataconfig.Operation = CRUDOperation.Create;
 
@@ -375,7 +375,7 @@ namespace Helper
                     };
 
                 //Set the FirstImport of the old data
-                if(queryresult.FirstImport != null)
+                if (queryresult.FirstImport != null)
                     data.FirstImport = queryresult.FirstImport;
 
                 //Set the Lastchanged of the old data, only if the Comparator is active
@@ -385,10 +385,10 @@ namespace Helper
                 //Compare the data
                 if (compareConfig.CompareData && queryresult != null)
                 {
-                    equalityresult = EqualityHelper.CompareClassesTest<T>(
+                    equalityresult = EqualityHelper.CompareClassesExtended<T>(
                         queryresult,
                         data,
-                        new List<string>() { "LastChange", "_Meta", "FirstImport" },
+                        compareConfig.FieldsToIgnore,
                         true
                     );
                     if (equalityresult.isequal)
@@ -397,7 +397,7 @@ namespace Helper
                     {
                         objectchangedcount = 1;
                         data.LastChange = DateTime.Now;
-                    }                        
+                    }
                 }
 
                 //Compare Image Gallery Check if this works with a cast to IImageGalleryAware
@@ -432,7 +432,7 @@ namespace Helper
                     );
                 }
 
-                if(rawdataid == null)
+                if (rawdataid == null)
                 {
                     updateresult = await QueryFactory
                    .Query(dataconfig.Table)
@@ -466,11 +466,11 @@ namespace Helper
                     objectchanged = objectchangedcount,
                     objectimagechanged = objectimagechangedcount,
                     pushchannels = channelstopublish,
-                    
+
                 };
 
             //If changes should be saved to DB
-            if(dataconfig.SaveChangesToDB)
+            if (dataconfig.SaveChangesToDB)
             {
                 if (objectchangedcount != null && objectchangedcount > 0)
                 {
@@ -728,134 +728,7 @@ namespace Helper
 
                 return 0;
             }
-        }
-
-        //TODO
-        public static async Task<PGCRUDResult> UpsertDataDestinationData<T, V>(
-            this QueryFactory QueryFactory,
-            T data,
-            V destinationdata,
-            string table,
-            bool errorwhendataexists = false,
-            bool errorwhendataisnew = false,
-            bool comparedata = false,
-            bool compareimagedata = false
-        )
-            where T : IIdentifiable,
-                IImportDateassigneable,
-                IMetaData,
-                IPublishedOn,
-                IImageGalleryAware,
-                new()
-            where V : IIdentifiable, IImportDateassigneable, IMetaData
-        {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data), "no data");
-
-            //Check if data exists
-            var query = QueryFactory.Query(table).Select("data").Where("id", data.Id);
-
-            var queryresult = await query.GetObjectSingleAsync<T>();
-
-            string operation = "";
-
-            int createresult = 0;
-            int updateresult = 0;
-            int errorresult = 0;
-            //bool compareresult = false;
-            EqualityResult equalityresult = new EqualityResult() { isequal = false, patch = null };
-
-            bool imagecompareresult = false;
-            List<string> channelstopublish = new List<string>();
-
-            data.LastChange = DateTime.Now;
-            destinationdata.LastChange = DateTime.Now;
-            //Setting MetaInfo
-            data._Meta = MetadataHelper.GetMetadataobject<T>(data);
-            destinationdata._Meta = MetadataHelper.GetMetadataobject<V>(destinationdata);
-
-            if (data.FirstImport == null)
-            {
-                data.FirstImport = DateTime.Now;
-                destinationdata.FirstImport = DateTime.Now;
-            }
-
-            if (queryresult == null)
-            {
-                if (errorwhendataisnew)
-                    throw new ArgumentNullException(nameof(data.Id), "Id does not exist");
-
-                createresult = await QueryFactory
-                    .Query(table)
-                    .InsertAsync(
-                        new JsonBDataDestinationData()
-                        {
-                            id = data.Id,
-                            data = new JsonRaw(data),
-                            destinationdata = new JsonRaw(destinationdata),
-                        }
-                    );
-                operation = "INSERT";
-            }
-            else
-            {
-                //Compare the data
-                if (comparedata && queryresult != null)
-                    equalityresult = EqualityHelper.CompareClassesTest<T>(
-                        queryresult,
-                        data,
-                        new List<string>() { "LastChange", "_Meta", "FirstImport" },
-                        true
-                    );
-
-                //Compare Image Gallery
-                if (compareimagedata && queryresult != null)
-                    imagecompareresult = EqualityHelper.CompareImageGallery(
-                        data.ImageGallery,
-                        queryresult.ImageGallery,
-                        new List<string>() { }
-                    );
-
-                //Check if Publishedon List changed and populate channels to publish information
-                channelstopublish.AddRange(
-                    data.PublishedOn.UnionIfNotNull(queryresult.PublishedOn)
-                );
-
-                if (errorwhendataexists)
-                    throw new ArgumentNullException(nameof(data.Id), "Id exists already");
-
-                updateresult = await QueryFactory
-                    .Query(table)
-                    .Where("id", data.Id)
-                    .UpdateAsync(
-                        new JsonBDataDestinationData()
-                        {
-                            id = data.Id,
-                            data = new JsonRaw(data),
-                            destinationdata = new JsonRaw(destinationdata),
-                        }
-                    );
-                operation = "UPDATE";
-            }
-
-            if (createresult == 0 && updateresult == 0)
-                errorresult = 1;
-
-            return new PGCRUDResult()
-            {
-                id = data.Id,
-                created = createresult,
-                updated = updateresult,
-                deleted = 0,
-                error = errorresult,
-                operation = operation,
-                compareobject = comparedata,
-                objectchanged = equalityresult.isequal ? 0 : 1,
-                objectimagechanged = imagecompareresult ? 0 : 1,
-                pushchannels = channelstopublish,
-                changes = equalityresult.patch,
-            };
-        }
+        }       
 
         #endregion
 

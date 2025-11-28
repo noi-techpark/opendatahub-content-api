@@ -18,24 +18,18 @@ namespace OdhApiCore.Controllers.api
         public List<string> idlist;
         public List<string> sourcelist;
         public List<string> languagelist;
-        public bool? active;
-        public string? lastchange;
-        public DateTime? begin;
-        public DateTime? end;
+        public DateTimeOffset? begin;
+        public DateTimeOffset? end;
         public IDictionary<string, List<string>> tagdict;
 
         //New Publishedonlist
-        public List<string> publishedonlist;
 
         public static async Task<AnnouncementHelper> CreateAsync(
             QueryFactory queryFactory,
             string? idfilter,
             string? languagefilter,
             string? sourcefilter,
-            bool? activefilter,
-            string? lastchange,
             string? tagfilter,
-            string? publishedonfilter,
             string? begindate,
             string? enddate,
             CancellationToken cancellationToken
@@ -45,10 +39,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter,
                 languagefilter,
                 sourcefilter,
-                activefilter,
                 tagfilter,
-                publishedonfilter,
-                lastchange,
                 begindate,
                 enddate
             );
@@ -58,38 +49,36 @@ namespace OdhApiCore.Controllers.api
             string? idfilter,
             string? languagefilter,
             string? sourcefilter,
-            bool? activefilter,
             string? tagfilter,
-            string? publishedonfilter,
-            string? lastchange,
             string? begindate,
             string? enddate
         )
-        {            
-            idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToUpper());
+        {   
+            // announcements id are forced to be lowercase
+            idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToLower());
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);
             languagelist = Helper.CommonListCreator.CreateIdList(languagefilter);
-            //active
-            active = activefilter;
-            //smgactive
-            publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
             //tagfilter
             tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
 
-            this.lastchange = lastchange;
+            begin = DateTimeOffset.MinValue;
+            end = DateTimeOffset.MaxValue;
 
-            begin = DateTime.MinValue;
-            end = DateTime.MaxValue;
+            if (!String.IsNullOrEmpty(begindate) && begindate != "null")
+            {
+                if (DateTimeOffset.TryParse(begindate, out DateTimeOffset parsedBegin))
+                {
+                    begin = parsedBegin;
+                }
+            }
 
-            if (!String.IsNullOrEmpty(begindate))
-                if (begindate != "null")
-                    begin = Convert.ToDateTime(begindate);
-
-            if (!String.IsNullOrEmpty(enddate))
-                if (enddate != "null")
-                    end = Convert.ToDateTime(enddate);
-
-            publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+            if (!String.IsNullOrEmpty(enddate) && enddate != "null")
+            {
+                if (DateTimeOffset.TryParse(enddate, out DateTimeOffset parsedEnd))
+                {
+                    end = parsedEnd;
+                }
+            }
         }
     }
 }

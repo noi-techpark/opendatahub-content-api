@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataModel;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using SqlKata.Execution;
 
 namespace Helper.Location
@@ -303,7 +302,7 @@ namespace Helper.Location
                         var isinsouthtyrol = await queryFactory
                             .Query()
                             .SelectRaw(
-                                $"ST_Contains((select geometry from shapes where name = 'Bolzano'), st_setsrid(st_makepoint(({gps.Longitude.ToString(culture)})::double precision, ({gps.Latitude.ToString(culture)})::double precision), 4326))"
+                                $"ST_Contains((select geometry from shapes where name = 'Bolzano'), st_setsrid(st_makepoint(({gps.Longitude.GetValueOrDefault(0).ToString(culture)})::double precision, ({gps.Latitude.GetValueOrDefault(0).ToString(culture)})::double precision), 4326))"
                             )
                             .FirstOrDefaultAsync<bool>();
 
@@ -322,8 +321,8 @@ namespace Helper.Location
 
                             var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
                                 queryFactory,
-                                gps.Latitude,
-                                gps.Longitude,
+                                gps.Latitude.GetValueOrDefault(0),
+                                gps.Longitude.GetValueOrDefault(0),
                                 30000,
                                 tvid
                             );

@@ -87,7 +87,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="durationfilter">Duration Range Filter (Separator ',' example Value: 1,3 Duration from 1 to 3 hours), (default:'null')</param>
         /// <param name="difficultyfilter">Difficulty Filter (possible values: '1' = easy, '2' = medium, '3' = difficult), (default:'null')</param>
         /// <param name="hascc0image">Image CC0 Filter (Return only Data with at least one Image tagged with a CC0 License, possible Values: 'true', 'false'), (default:'null')</param>
-        /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagSource.TagId,TagSource.TagId,TagId) example or(idm.summer,lts.hiking) - and(idm.themed hikes,lts.family hikings) - or(hiking) - and(idm.summer) - Combining and/or is not supported at the moment, default: 'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="publishedon">Published On Filter (Separator ',' List of publisher IDs), (default:'null')</param>
         /// <param name="updatefrom">Returns data changed after this date Format (yyyy-MM-dd), (default: 'null')</param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
@@ -255,6 +255,7 @@ namespace OdhApiCore.Controllers.api
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag?validforentity=odhactivitypoi)")]
         [ProducesResponseType(typeof(IEnumerable<SmgPoiTypes>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -299,6 +300,7 @@ namespace OdhApiCore.Controllers.api
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag/{id})")]
         [ProducesResponseType(typeof(SmgPoiTypes), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -706,7 +708,8 @@ namespace OdhApiCore.Controllers.api
                 if (errordict != null && errordict.Count > 0)
                     return BadRequest(String.Join(",", errordict.Values));
 
-                //TODO DISTANCE Calculation
+                //DistanceCalculation
+                await odhactivitypoi.UpdateDistanceCalculation(QueryFactory);
 
                 //TODO check for Reduced Data
 
@@ -781,7 +784,8 @@ namespace OdhApiCore.Controllers.api
                 if (errordict != null && errordict.Count > 0)
                     return BadRequest(String.Join(",", errordict.Values));
 
-                //TODO DISTANCE Calculation
+                //DistanceCalculation
+                await odhactivitypoi.UpdateDistanceCalculation(QueryFactory);
 
                 //TODO check for Reduced Data
 

@@ -2,22 +2,24 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
+using ServiceReferenceLCS;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers.api
 {
@@ -43,6 +45,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -72,8 +75,9 @@ namespace OdhApiCore.Controllers.api
         public async Task<IActionResult> GetMetaRegions(
             uint? pagenumber = null,
             PageSize pagesize = null!,
-            string? idlist = null,
+            string? idlist = null,            
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -110,10 +114,11 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
-                odhtagfilter,
+                odhtagfilter,                
                 lastchange: updatefrom,
                 publishedon,
                 cancellationToken
@@ -203,6 +208,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagenumber">Pagenumber</param>
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
@@ -235,6 +241,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null, 
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -270,8 +277,9 @@ namespace OdhApiCore.Controllers.api
             CommonHelper commonhelper = await CommonHelper.CreateAsync(
                 QueryFactory,
                 idfilter: idlist,
-                languagefilter: langfilter,
+                languagefilter: langfilter,                
                 visibleinsearch,
+                tagfilter,
                 source,
                 activefilter: active?.Value,
                 smgactivefilter: odhactive?.Value,
@@ -366,6 +374,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -396,6 +405,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -432,6 +442,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 activefilter: active?.Value,
                 smgactivefilter: odhactive?.Value,
@@ -526,6 +537,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -556,6 +568,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -592,6 +605,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 activefilter: active?.Value,
                 smgactivefilter: odhactive?.Value,
@@ -686,6 +700,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="visibleinsearch">Filter only Elements flagged with visibleinsearch: (possible values: 'true','false'), (default:'false')</param>
@@ -718,6 +733,7 @@ namespace OdhApiCore.Controllers.api
             bool? visibleinsearch = null,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -754,6 +770,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 visibleinsearch,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -848,6 +865,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="visibleinsearch">Filter only Elements flagged with visibleinsearch: (possible values: 'true','false'), (default:'false')</param>
@@ -879,6 +897,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -916,6 +935,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 visibleinsearch,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -1010,6 +1030,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="language">Language field selector, displays data and fields in the selected language (default:'null' all languages are displayed)</param>
@@ -1036,6 +1057,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -1058,6 +1080,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -1152,6 +1175,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -1182,6 +1206,7 @@ namespace OdhApiCore.Controllers.api
             PageSize pagesize = null!,
             string? idlist = null,
             string? odhtagfilter = null,
+            string? tagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
             string? source = null,
@@ -1218,6 +1243,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -1312,6 +1338,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of data IDs), (default:'null')</param>
         /// <param name="odhtagfilter">Taglist Filter (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=common'), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="active">Active data Filter (possible Values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="odhactive">Odhactive (Published) data Filter (possible Values: 'true' only published data, 'false' only not published data, (default:'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -1344,6 +1371,7 @@ namespace OdhApiCore.Controllers.api
             string? odhtagfilter = null,
             LegacyBool active = null!,
             LegacyBool odhactive = null!,
+            string? tagfilter = null,
             string? source = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? language = null,
@@ -1378,6 +1406,7 @@ namespace OdhApiCore.Controllers.api
                 idfilter: idlist,
                 languagefilter: langfilter,
                 null,
+                tagfilter,
                 source,
                 active?.Value,
                 odhactive?.Value,
@@ -1644,6 +1673,7 @@ namespace OdhApiCore.Controllers.api
                         commonhelper.smgtaglist,
                         activefilter: commonhelper.active,
                         odhactivefilter: commonhelper.smgactive,
+                        tagdict: commonhelper.tagdict,
                         publishedonlist: commonhelper.publishedonlist,
                         sourcelist: commonhelper.sourcelist,
                         searchfilter: searchfilter,
@@ -1725,9 +1755,10 @@ namespace OdhApiCore.Controllers.api
                         idlist: commonhelper.idlist,
                         languagelist: commonhelper.languagelist,
                         visibleinsearch: commonhelper.visibleinsearch,
-                        commonhelper.smgtaglist,
+                        commonhelper.smgtaglist,                        
                         activefilter: commonhelper.active,
                         odhactivefilter: commonhelper.smgactive,
+                        commonhelper.tagdict,
                         publishedonlist: commonhelper.publishedonlist,
                         sourcelist: commonhelper.sourcelist,
                         searchfilter: searchfilter,
@@ -1993,6 +2024,16 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
+
+
                 return await UpsertData<MetaRegionLinked>(
                     data,
                     new DataInfo("metaregions", CRUDOperation.Create),
@@ -2020,6 +2061,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<RegionLinked>(
                     data,
                     new DataInfo("regions", CRUDOperation.Create),
@@ -2047,6 +2096,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<ExperienceAreaLinked>(
                     data,
                     new DataInfo("experienceareas", CRUDOperation.Create),
@@ -2074,6 +2131,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<TourismvereinLinked>(
                     data,
                     new DataInfo("tvs", CRUDOperation.Create),
@@ -2101,6 +2166,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<MunicipalityLinked>(
                     data,
                     new DataInfo("municipalities", CRUDOperation.Create),
@@ -2128,6 +2201,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<DistrictLinked>(
                     data,
                     new DataInfo("districts", CRUDOperation.Create),
@@ -2155,6 +2236,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                //data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                //await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<AreaLinked>(
                     data,
                     new DataInfo("areas", CRUDOperation.Create),
@@ -2182,6 +2271,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<SkiRegionLinked>(
                     data,
                     new DataInfo("skiregions", CRUDOperation.Create),
@@ -2209,6 +2306,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<SkiAreaLinked>(
                     data,
                     new DataInfo("skiareas", CRUDOperation.Create),
@@ -2236,6 +2341,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Create", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                //await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<WineLinked>(
                     data,
                     new DataInfo("wines", CRUDOperation.Create),
@@ -2264,6 +2377,13 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<MetaRegionLinked>(id);
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<MetaRegionLinked>(
                     data,
                     new DataInfo("metaregions", CRUDOperation.Update, true),
@@ -2292,6 +2412,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<RegionLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<RegionLinked>(
                     data,
                     new DataInfo("regions", CRUDOperation.Update, true),
@@ -2320,6 +2448,13 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<ExperienceAreaLinked>(id);
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<ExperienceAreaLinked>(
                     data,
                     new DataInfo("experienceareas", CRUDOperation.Update, true),
@@ -2348,6 +2483,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<TourismvereinLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<TourismvereinLinked>(
                     data,
                     new DataInfo("tvs", CRUDOperation.Update, true),
@@ -2376,6 +2519,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<MunicipalityLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<MunicipalityLinked>(
                     data,
                     new DataInfo("municipalities", CRUDOperation.Update, true),
@@ -2404,6 +2555,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<DistrictLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<DistrictLinked>(
                     data,
                     new DataInfo("districts", CRUDOperation.Update, true),
@@ -2432,6 +2591,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<AreaLinked>(id);
+
+                //GENERATE HasLanguage
+                //data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                //await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<AreaLinked>(
                     data,
                     new DataInfo("areas", CRUDOperation.Update, true),
@@ -2460,6 +2627,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<SkiRegionLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<SkiRegionLinked>(
                     data,
                     new DataInfo("skiregions", CRUDOperation.Update, true),
@@ -2488,6 +2663,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<SkiAreaLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<SkiAreaLinked>(
                     data,
                     new DataInfo("skiareas", CRUDOperation.Update, true),
@@ -2516,6 +2699,14 @@ namespace OdhApiCore.Controllers.api
                     .TryGetValue("Update", out var additionalfilter);
 
                 data.Id = Helper.IdGenerator.CheckIdFromType<WineLinked>(id);
+
+                //GENERATE HasLanguage
+                data.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                data.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                //await data.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<WineLinked>(
                     data,
                     new DataInfo("wines", CRUDOperation.Update, true),

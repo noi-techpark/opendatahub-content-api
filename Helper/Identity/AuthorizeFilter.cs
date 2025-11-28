@@ -24,27 +24,41 @@ namespace Helper.Identity
 
     public class AuthorizeODHAttribute : TypeFilterAttribute
     {
+        // 1. New Constructor for LIST/ARRAY usage (Additional Usage)
+        // This allows: [AuthorizeODH(new[] {PermissionAction.Create, PermissionAction.Update})]
+        // or: [AuthorizeODH(actions: new[] {PermissionAction.Create, PermissionAction.Update})]
+        public AuthorizeODHAttribute(PermissionAction[] actions)
+            : base(typeof(AuthorizeODHActionFilter))
+        {
+            // Pass the array of actions to the filter
+            Arguments = new object[] { actions.ToList() };
+        }
+
+        // 2. Retrocompatible Constructor for SINGLE action usage (Legacy Usage)
+        // This allows: [AuthorizeODH(PermissionAction.Create)]
         public AuthorizeODHAttribute(PermissionAction action)
             : base(typeof(AuthorizeODHActionFilter))
         {
-            Arguments = new object[] { action };
+            // Convert the single action into a List<PermissionAction> 
+            // to maintain a consistent argument type for the filter.
+            Arguments = new object[] { new List<PermissionAction> { action } };
         }
     }
 
     public class AuthorizeODHActionFilter : IAuthorizationFilter
     {
-        private readonly PermissionAction _action;
+        private readonly List<PermissionAction> _actions;
 
-        public AuthorizeODHActionFilter(PermissionAction action)
+        public AuthorizeODHActionFilter(List<PermissionAction> actions)
         {
-            _action = action;
+            _actions = actions;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             bool isAuthorized = CheckAccess(
                 context.HttpContext.User,
-                _action,
+                _actions,
                 context.HttpContext.Request.Path.GetPathNextTo("/", "v1")
             ); // :)
 
@@ -54,15 +68,27 @@ namespace Helper.Identity
             }
         }
 
-        private bool CheckAccess(ClaimsPrincipal User, PermissionAction action, string endpoint)
+        private bool CheckAccess(ClaimsPrincipal User, List<PermissionAction> actions, string endpoint)
         {
-            if (!String.IsNullOrEmpty(endpoint))
-                return User.Claims.Any(c =>
-                    c.Type == ClaimTypes.Role
-                    && c.Value.StartsWith(endpoint + "_" + action.ToString())
-                );
-            else
+            // If the endpoint is null or empty, access is denied.
+            if (String.IsNullOrEmpty(endpoint))
                 return false;
+
+            // If the list of actions is null or empty, access is allowed by default 
+            // (though you might want to adjust this based on security policy, e.g., return false).
+            if (actions == null || actions.Count == 0)
+                return true; 
+
+            // The All() method checks if ALL elements in the 'actions' list satisfy the condition.
+            return actions.All(action =>
+                // For each action, we check if the User has a claim that matches the required format:
+                // "endpoint_ACTION"
+                User.Claims.Any(c =>
+                    c.Type == ClaimTypes.Role
+                    // Constructs the required role string, e.g., "products_Read"
+                    && c.Value.Equals(endpoint + "_" + action.ToString(), StringComparison.OrdinalIgnoreCase)
+                )
+            );
         }
     }
 }

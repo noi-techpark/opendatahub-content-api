@@ -68,6 +68,7 @@ namespace Helper
                     altitudemax: 0,
                     activefilter: null,
                     smgactivefilter: null,
+                    tagdict: new Dictionary<string, List<string>>(),
                     publishedonlist: publishedonlist,
                     sourcelist: new List<string>(),
                     searchfilter: null,

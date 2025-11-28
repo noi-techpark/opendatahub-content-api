@@ -19,9 +19,9 @@ using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers
 {
-    public class MobilityVenuesV2ImportHelper : ImportHelper, IImportHelper
+    public class MobilityVenuesFlattenedImportHelper : ImportHelper, IImportHelper
     {
-        public MobilityVenuesV2ImportHelper(
+        public MobilityVenuesFlattenedImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -54,11 +54,11 @@ namespace OdhApiImporter.Helpers
             WriteLog.LogToConsole(
                 "",
                 "dataimport",
-                "list.mobilityculture.venues.v2",
+                "list.mobilityculture.venues.flattened",
                 new ImportLog()
                 {
                     sourceid = "",
-                    sourceinterface = "mobility.culture.venues.v2",
+                    sourceinterface = "mobility.culture.venues.flattened",
                     success = true,
                     error = "",
                 }
@@ -83,12 +83,12 @@ namespace OdhApiImporter.Helpers
 
             foreach (var ninjadata in ninjaplaceroomarr)
             {
-                var venuetosave = default(VenueV2);
+                var venuetosave = default(VenueFlattened);
 
                 //From sheet places
                 if (ninjadata.smetadata.sheetName == "Places")
                 {
-                    venuetosave = ParseNinjaData.ParseNinjaEventPlaceToVenueV2(
+                    venuetosave = ParseNinjaData.ParseNinjaEventPlaceToVenueFlattened(
                         ninjadata.sname.Replace(" ", ""),
                         ninjadata,
                         null
@@ -97,7 +97,7 @@ namespace OdhApiImporter.Helpers
                 //From sheet rooms
                 else
                 {
-                    venuetosave = ParseNinjaData.ParseNinjaEventPlaceToVenueV2(
+                    venuetosave = ParseNinjaData.ParseNinjaEventPlaceToVenueFlattened(
                         ninjadata.sname.Replace(" ", ""),
                         ninjadata,
                         ninjadata.smetadata.place.Replace(" ", "")
@@ -204,7 +204,7 @@ namespace OdhApiImporter.Helpers
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            VenueV2 venuetosave,
+            VenueFlattened venuetosave,
             NinjaData<NinjaPlaceRoom> ninjavenue
         )
         {
@@ -226,7 +226,7 @@ namespace OdhApiImporter.Helpers
 
                 var rawdataid = await InsertInRawDataDB(ninjavenue);
 
-                return await QueryFactory.UpsertData<VenueV2>(
+                return await QueryFactory.UpsertData<VenueFlattened>(
                     venuetosave,
                     new DataInfo("venuesv2", Helper.Generic.CRUDOperation.CreateAndUpdate),
                     new EditInfo("mobility.venuev2.import", importerURL),
@@ -275,7 +275,7 @@ namespace OdhApiImporter.Helpers
             {
                 var query = QueryFactory.Query("venuesv2").Select("data").Where("id", venueid);
 
-                var data = await query.GetObjectSingleAsync<VenueV2>();
+                var data = await query.GetObjectSingleAsync<VenueFlattened>();
 
                 if (data != null)
                 {
@@ -314,7 +314,7 @@ namespace OdhApiImporter.Helpers
             return venueids.ToList();
         }
 
-        private async Task SetLocationInfo(VenueV2 venue)
+        private async Task SetLocationInfo(VenueFlattened venue)
         {
             if (
                 venue.GpsPoints != null
@@ -325,8 +325,8 @@ namespace OdhApiImporter.Helpers
             {
                 var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
                     QueryFactory,
-                    venue.GpsPoints["position"].Latitude,
-                    venue.GpsPoints["position"].Longitude,
+                    venue.GpsPoints["position"].Latitude.GetValueOrDefault(0),
+                    venue.GpsPoints["position"].Longitude.GetValueOrDefault(0),
                     30000
                 );
 

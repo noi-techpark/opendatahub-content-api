@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Swashbuckle.AspNetCore.Annotations;
+using NetTopologySuite.Geometries;
 
 namespace DataModel
 {
@@ -170,10 +171,13 @@ namespace DataModel
     public interface IGpsInfo
     {
         string? Gpstype { get; set; }
-        double Latitude { get; set; }
-        double Longitude { get; set; }
+        double? Latitude { get; set; }
+        double? Longitude { get; set; }
         double? Altitude { get; set; }
         string? AltitudeUnitofMeasure { get; set; }
+        bool? Default { get; set; }
+        // WKT srid 4326
+        string Geometry { get; set; }
     }
 
     public interface IGPSInfoAware
@@ -184,6 +188,19 @@ namespace DataModel
     public interface IGPSPointsAware
     {
         IDictionary<string, GpsInfo> GpsPoints { get; }
+    }
+    
+    public interface IGeoAware
+    {
+        // Geoaware entities have a Geo dictioanry holding key-ed geo information
+        // The key can be used as "type", and there are some well known keys (not enforced) like
+        // "position", "area", ...
+        //      GpsInfo in the context of IGeoAware is intended as follow:
+        //      All info MUST contain WKT 4326 Geometry string in the property 'Geometry'.
+        //      Info of `type` "position" MUST have "Latitude" and "Longitude" populated for backward compatibility and semplicity.
+        //      "Gpstype" is DEPRECATED and not needed since whe already have the key.
+        //      Every IGeoAware MUST have ONE AND ONLY ONE "default" info, which is the primary one.
+        IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public interface IDistanceInfoAware

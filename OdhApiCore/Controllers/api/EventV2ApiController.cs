@@ -34,13 +34,14 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [ApiExplorerSettings(IgnoreApi = true)]
     [Route("v2")]
-    public class EventV2Controller : OdhController
+    public class EventFlattenedController : OdhController
     {
-        public EventV2Controller(
+        public EventFlattenedController(
             IWebHostEnvironment env,
             ISettings settings,
-            ILogger<EventV2Controller> logger,
+            ILogger<EventFlattenedController> logger,
             QueryFactory queryFactory,
             IOdhPushNotifier odhpushnotifier
         )
@@ -56,15 +57,11 @@ namespace OdhApiCore.Controllers
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of Event IDs, 'null' = No Filter), (default:'null')</param>
         /// <param name="locfilter">Locfilter SPECIAL Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMVEREINID = (Filter by Tourismverein), mun + MUNICIPALITYID = (Filter by Municipality), fra + FRACTIONID = (Filter by Fraction), 'null' = (No Filter), (default:'null') <a href="https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#location-filter-locfilter" target="_blank">Wiki locfilter</a></param>
-        /// <param name="rancfilter">Rancfilter, Return only Events with this Ranc assigned (1 = not visible, 3 = visible, 4 = important, 5 = top-event),(default: 'null')</param>
-        /// <param name="topicfilter">Topic ID Filter (Filter by Topic ID) BITMASK refers to 'v1/EventTopics',(default: 'null')</param>
-        /// <param name="orgfilter">Organization Filter (Filter by Organizer RID)</param>
-        /// <param name="odhtagfilter">ODH Taglist Filter (refers to Array SmgTags) (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=event'), (default:'null')</param>
+         /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="begindate">BeginDate of Events (Format: yyyy-MM-dd), (default: 'null')</param>
         /// <param name="enddate">EndDate of Events (Format: yyyy-MM-dd), (default: 'null')</param>
         /// <param name="sort">Sorting Mode of Events ('asc': Ascending simple sort by next begindate, 'desc': simple descent sorting by next begindate, 'upcoming': Sort Events by next EventDate matching passed startdate, 'upcomingspecial': Sort Events by next EventDate matching passed startdate, multiple day events are showed at bottom, default: if no sort mode passed, sort by shortname )</param>
         /// <param name="active">Active Events Filter (possible Values: 'true' only Active Events, 'false' only Disabled Events), (default:'null')</param>
-        /// <param name="odhactive">ODH Active (Published) Events Filter (Refers to field OdhActive) Events Filter (possible Values: 'true' only published Events, 'false' only not published Events), (default:'null')</param>
         /// <param name="source">Filter by Source (Separator ','), (Sources available 'lts','trevilab','drin'),(default: 'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="longitude">GeoFilter FLOAT Longitude Format: '11.369909', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#geosorting-functionality' target="_blank">Wiki geosort</a></param>
@@ -83,7 +80,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(JsonResult<EventV2>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(JsonResult<EventFlattened>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -163,7 +160,7 @@ namespace OdhApiCore.Controllers
         /// <response code="200">Object created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(EventV2), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(EventFlattened), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("Event/{id}", Name = "SingleEventV2")]
@@ -189,7 +186,7 @@ namespace OdhApiCore.Controllers
         #region Converters
 
         [ApiExplorerSettings(IgnoreApi = true)]
-        [ProducesResponseType(typeof(EventV2), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(EventFlattened), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("Event/ConvertEventShortToEventV2/{id}")]
@@ -205,7 +202,7 @@ namespace OdhApiCore.Controllers
                 .FilterDataByAccessRoles(UserRolesToFilterEndpoint("EventShort"));
 
             var data = await query.GetObjectListAsync<EventShortLinked>();
-            var convertresult = EventV2Converter.ConvertEventListToEventV2(data);
+            var convertresult = EventFlattenedConverter.ConvertEventListToEventFlattened(data);
 
             if (savetotable)
             {
@@ -215,7 +212,7 @@ namespace OdhApiCore.Controllers
                     foreach (var venue in datasingle.Venues)
                     {
                         result.Add(
-                            await QueryFactory.UpsertData<VenueV2>(
+                            await QueryFactory.UpsertData<VenueFlattened>(
                                 venue,
                                 new DataInfo("venuesv2", CRUDOperation.Create),
                                 new EditInfo("venueconverter", "api"),
@@ -227,7 +224,7 @@ namespace OdhApiCore.Controllers
                     foreach (var theevent in datasingle.Events)
                     {
                         result.Add(
-                            await QueryFactory.UpsertData<EventV2>(
+                            await QueryFactory.UpsertData<EventFlattened>(
                                 theevent,
                                 new DataInfo("eventsv2", CRUDOperation.Create),
                                 new EditInfo("venueconverter", "api"),
@@ -261,7 +258,7 @@ namespace OdhApiCore.Controllers
 
             var evtypedata = await evtypequery.GetObjectListAsync<EventTypes>();
 
-            var convertresult = EventV2Converter.ConvertEventListToEventV2(data, evtypedata);
+            var convertresult = EventFlattenedConverter.ConvertEventListToEventFlattened(data, evtypedata);
 
             if (savetotable)
             {
@@ -272,7 +269,7 @@ namespace OdhApiCore.Controllers
                     foreach (var venue in datasingle.Venues)
                     {
                         result.Add(
-                            await QueryFactory.UpsertData<VenueV2>(
+                            await QueryFactory.UpsertData<VenueFlattened>(
                                 venue,
                                 new DataInfo("venuesv2", CRUDOperation.Create),
                                 new EditInfo("venueconverter", "api"),
@@ -284,7 +281,7 @@ namespace OdhApiCore.Controllers
                     foreach (var theevent in datasingle.Events)
                     {
                         result.Add(
-                            await QueryFactory.UpsertData<EventV2>(
+                            await QueryFactory.UpsertData<EventFlattened>(
                                 theevent,
                                 new DataInfo("eventsv2", CRUDOperation.Create),
                                 new EditInfo("venueconverter", "api"),
@@ -316,7 +313,7 @@ namespace OdhApiCore.Controllers
 
             foreach (var data in datalist)
             {
-                var converted = EventV2Converter.ConvertEventTopicToTag(data);
+                var converted = EventFlattenedConverter.ConvertEventTopicToTag(data);
                 listtaglinked.Add(converted);
 
                 if (savetotable)
@@ -532,7 +529,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Event")]
-        public Task<IActionResult> Post([FromBody] EventV2 odhevent)
+        public Task<IActionResult> Post([FromBody] EventFlattened odhevent)
         {
             return DoAsyncReturn(async () =>
             {
@@ -550,7 +547,7 @@ namespace OdhApiCore.Controllers
                 //Populate Tags (Id/Source/Type)
                 await odhevent.UpdateTagsExtension(QueryFactory);
 
-                return await UpsertData<EventV2>(
+                return await UpsertData<EventFlattened>(
                     odhevent,
                     new DataInfo("eventsv2", CRUDOperation.Create),
                     new CompareConfig(false, false),
@@ -573,14 +570,14 @@ namespace OdhApiCore.Controllers
         [AuthorizeODH(PermissionAction.Update)]
         //[Authorize(Roles = "DataWriter,DataModify,EventManager,EventModify,EventUpdate")]
         [HttpPut, Route("Event/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] EventV2 odhevent)
+        public Task<IActionResult> Put(string id, [FromBody] EventFlattened odhevent)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Filters on the Action Update
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
-                odhevent.Id = Helper.IdGenerator.CheckIdFromType<EventV2>(id);
+                odhevent.Id = Helper.IdGenerator.CheckIdFromType<EventFlattened>(id);
 
                 //Check all Languages
                 odhevent.CheckMyInsertedLanguages(null);
@@ -591,7 +588,7 @@ namespace OdhApiCore.Controllers
                 //Populate Tags (Id/Source/Type)
                 await odhevent.UpdateTagsExtension(QueryFactory);
 
-                return await UpsertData<EventV2>(
+                return await UpsertData<EventFlattened>(
                     odhevent,
                     new DataInfo("eventsv2", CRUDOperation.Update, true),
                     new CompareConfig(true, true),
@@ -620,9 +617,9 @@ namespace OdhApiCore.Controllers
                 //Additional Filters on the Action Delete
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<EventV2>(id);
+                id = Helper.IdGenerator.CheckIdFromType<EventFlattened>(id);
 
-                return await DeleteData<EventV2>(
+                return await DeleteData<EventFlattened>(
                     id,
                     new DataInfo("eventsv2", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)

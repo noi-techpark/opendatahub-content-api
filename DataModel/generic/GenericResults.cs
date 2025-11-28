@@ -137,6 +137,19 @@ namespace DataModel
         public JToken? changes { get; init; }
 
         public IDictionary<string, NotifierResponse>? pushed { get; set; }
+
+        public static PGCRUDResult Default => new PGCRUDResult
+        {
+            created = 0,
+            updated = 0,
+            deleted = 0,
+            error = 0,
+            compareobject = false,
+            objectchanged = 0,
+            objectimagechanged = 0,
+            pushchannels = new List<string>(),
+            pushed = new Dictionary<string, NotifierResponse>()
+        };
     }
 
     public struct JsonGenerationResult
@@ -483,6 +496,59 @@ namespace DataModel
 
         //public IList<Operation>? operations {get;set;}
         public JToken? patch { get; set; }
+    }
+
+    public class BatchCRUDResult
+    {
+        /// <summary>
+        /// Indicates if the entire batch operation succeeded (all items processed successfully)
+        /// </summary>
+        public bool Success { get; set; }
+
+        /// <summary>
+        /// Error message if the batch operation failed (transaction was rolled back)
+        /// </summary>
+        public string? ErrorMessage { get; set; }
+
+        /// <summary>
+        /// Total number of items in the batch
+        /// </summary>
+        public int TotalProcessed { get; set; }
+
+        /// <summary>
+        /// Number of items created (0 if transaction rolled back)
+        /// </summary>
+        public int Created { get; set; }
+
+        /// <summary>
+        /// Number of items updated (0 if transaction rolled back)
+        /// </summary>
+        public int Updated { get; set; }
+
+        /// <summary>
+        /// Number of items that were unchanged
+        /// </summary>
+        public int Unchanged { get; set; }
+
+        /// <summary>
+        /// Number of items with errors
+        /// </summary>
+        public int Errors { get; set; }
+    }
+
+    /// <summary>
+    /// Custom exception for batch operation validation errors
+    /// Contains structured error information that can be converted to ModelState errors
+    /// </summary>
+    public class BatchValidationException : Exception
+    {
+        public IDictionary<string, List<string>> ValidationErrors { get; }
+
+        public BatchValidationException(string message, IDictionary<string, List<string>> validationErrors)
+            : base(message)
+        {
+            ValidationErrors = validationErrors;
+        }
     }
 
     #endregion

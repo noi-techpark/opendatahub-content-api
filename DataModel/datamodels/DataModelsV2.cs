@@ -6,21 +6,26 @@ using System;
 using System.Collections.Generic;
 using DataModel.Annotations;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Linq;
 
 namespace DataModel
 {
     #region Generic Datamodel
 
-    public class Generic : 
-        IIdentifiable, 
-        IActivateable, 
-        IPublishedOn, 
-        IMetaData, 
-        IMappingAware, 
-        IGPSInfoAware, 
-        ILicenseInfo, 
-        ISource, 
-        IHasTagInfo, 
+    public class DetailGeneric : ILanguage
+    {
+        public string? BaseText { get; set; }
+        public string? Title { get; set; }
+
+        public string? Language { get; set; }
+    }
+
+    public class Generic :
+        IIdentifiable,
+        IMetaData,
+        IMappingAware,
+        ILicenseInfo,
+        ISource,
         IShortName,
         IHasLanguage,
         IImportDateassigneable
@@ -30,13 +35,11 @@ namespace DataModel
         public LicenseInfo? LicenseInfo { get; set; }
 
         public string? Shortname { get; set; }
-        public bool Active { get; set; }
 
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
         public ICollection<string>? HasLanguage { get; set; }
 
-        public ICollection<string>? PublishedOn { get; set; }
         public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
 
         //We define what classes this Additionalproperties can be
@@ -50,19 +53,16 @@ namespace DataModel
             "RoadIncidentProperties", typeof(RoadIncidentProperties)
         )]
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
         public string? Source { get; set; }
 
-        public ICollection<Tags>? Tags { get; set; }
         public ICollection<string>? TagIds { get; set; }
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
-
-
     }
 
     #endregion
 
-    #region EventsV2 Datamodel
-    public class EventV2
+    #region EventFlattened Datamodel
+    public class EventFlattened
         : IIdentifiable,
             IActivateable,
             IHasLanguage,
@@ -78,7 +78,7 @@ namespace DataModel
             ISource,
             IHasTagInfo
     {
-        public EventV2()
+        public EventFlattened()
         {
             Detail = new Dictionary<string, Detail>();
             ContactInfos = new Dictionary<string, ContactInfos>();
@@ -242,9 +242,9 @@ namespace DataModel
 
     #endregion
 
-    #region VenueV2 Datamodel
+    #region VenueFlattened Datamodel
 
-    public class VenueV2
+    public class VenueFlattened
         : IIdentifiable,
             IActivateable,
             IHasLanguage,
@@ -260,7 +260,7 @@ namespace DataModel
             ISource,
             IHasTagInfo
     {
-        public VenueV2()
+        public VenueFlattened()
         {
             Detail = new Dictionary<string, Detail>();
             ContactInfos = new Dictionary<string, ContactInfos>();
@@ -313,7 +313,7 @@ namespace DataModel
         public IDictionary<string, ICollection<VideoItems>>? VideoItems { get; set; }
 
         public VenueInfo VenueInfo { get; set; }
-        public LocationInfo? LocationInfo { get; set; }
+        public LocationInfoLinked? LocationInfo { get; set; }
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         public DistanceInfo? DistanceInfo { get; set; }
@@ -638,6 +638,213 @@ namespace DataModel
 
     #endregion
 
+    #region MeasuringPoints
+
+    public class MeasuringpointV2
+       : Generic, IIdentifiable,
+            IShortName,
+            IActivateable,
+            ILicenseInfo,
+            IImportDateassigneable,
+            ISource,
+            IMappingAware,
+            IDistanceInfoAware,
+            IPublishedOn,
+            IMetaData,
+            IGPSPointsAware,
+            IGPSInfoAware,
+            IHasLocationInfoLinked,
+            IHasTagInfo
+    {
+        public MeasuringpointV2()
+        {
+            Detail = new Dictionary<string, DetailGeneric>();
+            Mapping = new Dictionary<string, IDictionary<string, string>>();
+        }
+
+        public IDictionary<string, DetailGeneric> Detail { get; set; }
+        public ICollection<string>? PublishedOn { get; set; }
+
+        public DateTime? LastUpdate { get; set; }       
+        public bool Active { get; set; }                
+        public DistanceInfo? DistanceInfo { get; set; }
+
+        //Observation
+        public string? SnowHeight { get; set; }
+        public string? newSnowHeight { get; set; }
+        public string? Temperature { get; set; }
+        public DateTime? LastSnowDate { get; set; }
+        public List<WeatherObservation>? WeatherObservation { get; set; }
+
+        //Location
+        public LocationInfoLinked? LocationInfo { get; set; }        
+
+        public List<string>? AreaIds { get; set; }
+        
+        
+        public IEnumerable<string>? SkiAreaIds { get; set; }
+
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
+
+        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public IDictionary<string, GpsInfo> GpsPoints
+        {
+            get { return this.GpsInfo.ToGpsPointsDictionary(); }
+        }
+
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public string? Self
+        {
+            get
+            {
+                return this.Id != null
+                    ? "Weather/Measuringpoint/" + Uri.EscapeDataString(this.Id)
+                    : null;
+            }
+        }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<AreaLink>? Areas
+        {
+            get
+            {
+                return this.AreaIds != null
+                    ? this
+                        .AreaIds.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
+                        .ToList()
+                    : null;
+            }
+        }
+
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<SkiAreaLink>? SkiAreas
+        {
+            get
+            {
+                return this.SkiAreaIds != null
+                    ? this
+                        .SkiAreaIds.Select(x => new SkiAreaLink() { Id = x, Self = "SkiArea/" + x })
+                        .ToList()
+                    : null;
+            }
+        }
+
+        public ICollection<Tags>? Tags { get; set; }
+    }
+
+    #endregion
+
+    #region Venues
+
+    public class VenueV2 :
+        Generic,
+        IIdentifiable,
+        IShortName,
+        IActivateable,
+        IHasLanguage,
+        IImportDateassigneable,
+        ILicenseInfo,
+        ISource,
+        IMappingAware,
+        IDistanceInfoAware,
+        IGPSInfoAware,
+        IPublishedOn,
+        IImageGalleryAware,
+        IDetailInfosAware,
+        IContactInfosAware,
+        IMetaData,
+        IHasLocationInfoLinked,
+        IHasTagInfo,
+        IHasDistrictId
+    {
+        public VenueV2()
+        {
+            //Mapping New
+            Mapping = new Dictionary<string, IDictionary<string, string>>();
+            Detail = new Dictionary<string, Detail>();
+            ContactInfos = new Dictionary<string, ContactInfos>();
+        }
+
+        public bool Active { get; set; }
+
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
+
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        public IDictionary<string, GpsInfo> GpsPoints
+        {
+            get { return this.GpsInfo.ToGpsPointsDictionary(true); }
+        }
+
+        public IDictionary<string, Detail> Detail { get; set; }
+
+        public IDictionary<string, ContactInfos> ContactInfos { get; set; }
+
+        public ICollection<ImageGallery>? ImageGallery { get; set; }
+
+        public ICollection<string>? PublishedOn { get; set; }
+        
+        public DistanceInfo? DistanceInfo { get; set; }        
+
+        public ICollection<OperationSchedule>? OperationSchedule { get; set; }
+
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public string? Self
+        {
+            get { return this.Id != null ? "Venue/" + Uri.EscapeDataString(this.Id) : null; }
+        }
+        public LocationInfoLinked? LocationInfo { get; set; }
+
+        public ICollection<Tags>? Tags { get; set; }
+        
+        public ICollection<VenueRoomDetailsV2>? RoomDetails { get; set; }
+
+        //DistrictId
+        public string? DistrictId
+        {
+            get
+            {
+                return this.LocationInfo != null && this.LocationInfo.DistrictInfo != null && this.LocationInfo.DistrictInfo.Id != null ? this.LocationInfo.DistrictInfo.Id : null;
+            }
+        }
+    }
+
+    public class VenueRoomDetailsV2 : IHasTagInfo
+    {
+        public VenueRoomDetailsV2()
+        {
+            Detail = new Dictionary<string, Detail>();
+            Tags = new List<Tags>();
+        }
+
+        public string? Id { get; set; }
+        public string? Shortname { get; set; }
+
+        public ICollection<string> TagIds { get; set; }
+
+        public ICollection<Tags> Tags { get; set; }
+        
+        public IDictionary<string, Detail> Detail { get; set; }
+
+        public ICollection<ImageGallery>? ImageGallery { get; set; }
+
+        public VenueRoomProperties VenueRoomProperties { get; set; }
+
+        public string Placement { get; set; }
+    }
+
+    public class VenueRoomProperties
+    {
+        public int? SquareMeters { get; set; }
+        public int? RoomWidthInMeters { get; set; }
+        public int? RoomHeightInCentimeters { get; set; }
+        public int? RoomDepthInMeters { get; set; }
+        public int? DoorWidthInCentimeters { get; set; }
+        public int? DoorHeightInCentimeters { get; set; }
+    }
+
+    #endregion
+
     #region AdditionalInfos
 
     //AdditionalInfos Centrotrevi
@@ -898,25 +1105,54 @@ namespace DataModel
 
     #region Announcements
 
-    public class Announcement : Generic, IGPSPointsAware
+    public class Announcement : Generic, IActivateable, IGeoAware
     {        
+        public bool Active { get; set; }
+
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
 
-        public IDictionary<string, Detail> Detail { get; set; }
-        public ICollection<RelatedContent>? RelatedContent { get; set; }
+        public IDictionary<string, DetailGeneric> Detail { get; set; }
+        public ICollection<RelatedContent>? RelatedContent { get; set; }      
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public IDictionary<string, GpsInfo> GpsPoints
-        {
-            get { return this.GpsInfo.ToGpsPointsDictionary(); }
-        }
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
+
 
     public class RoadIncidentProperties
     {
-        //TODO Add the Properties for AdditionalProperties (direction, lanes, expected_delay, planned_incident)
+        // The top-level array of roads involved in the incident.
+        public List<RoadInvolved>? RoadsInvolved { get; set; }
+
+        // The delay as a numeric value.
+        public int? ExpectedDelayMinutes { get; set; }
+
+        // The delay as a human-readable string.
+        public string? ExpectedDelayString { get; set; }
+
+        public class RoadInvolved
+        {
+            // The name of the road (e.g., "Highway A1").
+            public string? Name { get; set; }
+
+            // The code of the road (e.g., "A1").
+            public string? Code { get; set; }
+
+            // The array of lanes affected on this road.
+            public List<LaneInfo>? Lanes { get; set; }
+            
+            public class LaneInfo
+            {
+                // The lane number (e.g., 1, 2, 3).
+                public int? Lane { get; set; }
+
+                // The specific name or description of the lane (e.g., "Left Lane").
+                public string? LaneName { get; set; }
+
+                // The direction of travel (e.g., "North", "Southbound").
+                public string? Direction { get; set; }
+            }
+        }
     }
 
     #endregion        

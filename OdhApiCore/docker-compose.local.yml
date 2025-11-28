@@ -1,0 +1,113 @@
+# SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: content-api
+services:
+  api:
+    build:
+      context: ../
+      dockerfile: OdhApiCore/Dockerfile.local
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+      ASPNETCORE_ConnectionStrings__PgConnection: ${PG_CONNECTION}
+      ASPNETCORE_MssConfig__Username: ${MSS_USER}
+      ASPNETCORE_MssConfig__Password: ${MSS_PSWD}
+      ASPNETCORE_MssConfig__ServiceUrl: ${MSS_SERVICEURL}
+      ASPNETCORE_LcsConfig__Username: ${LCS_USER}
+      ASPNETCORE_LcsConfig__Password: ${LCS_PSWD}
+      ASPNETCORE_LcsConfig__MessagePassword: ${LCS_MSGPSWD}
+      ASPNETCORE_LcsConfig__ServiceUrl: ${LCS_SERVICEURL}
+      ASPNETCORE_SiagConfig__Username: ${SIAG_USER}
+      ASPNETCORE_SiagConfig__Password: ${SIAG_PSWD}
+      ASPNETCORE_SiagConfig__ServiceUrl: ${SIAG_SERVICEURL}
+      ASPNETCORE_XmlConfig__XmldirWeather: ${XMLDIR}
+      ASPNETCORE_Xmldir__Xmldir: ${XMLDIR}
+      ASPNETCORE_S3ImageresizerConfig__Url: ${IMG_URL}
+      ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ${S3_BUCKET_ACCESSPOINT}
+      ASPNETCORE_S3ImageresizerConfig__AccessKey: ${S3_IMAGEUPLOADER_ACCESSKEY}
+      ASPNETCORE_S3ImageresizerConfig__SecretKey: ${S3_IMAGEUPLOADER_SECRETKEY}
+      ASPNETCORE_OauthServerConfig__Authority: ${OAUTH_AUTORITY}
+      ASPNETCORE_ProxyConfig__CaddyTest: ${CADDY_TEST_IP}
+      ASPNETCORE_ProxyConfig__CaddyProd: ${CADDY_PROD_IP}
+      ASPNETCORE_ElasticSearchConfig__ElasticUrl: ${ELK_URL}
+      ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ${ELK_TOKEN}
+      ASPNETCORE_JsonConfig__Jsondir: ${JSONPATH}
+      ASPNETCORE_DataBrowserConfig__Url: ${DATABROWSER_URL}
+      ASPNETCORE_FCMConfig__noi-communityapp__ServerKey: ${NOICOMMUNITY_SERVERKEY}
+      ASPNETCORE_FCMConfig__noi-communityapp__SenderId: ${NOICOMMUNITY_SENDERID}
+      ASPNETCORE_FCMConfig__noi-communityapp__ProjectName: ${NOICOMMUNITY_PROJECTNAME}
+      ASPNETCORE_FCMConfig__noi-communityapp__FCMServiceAccount: ${NOICOMMUNITY_FCMSERVICEACCOUNT}      
+      ASPNETCORE_NotifierConfig__idm-marketplace__Url: ${MARKETPLACE_PUSH_URL}
+      ASPNETCORE_NotifierConfig__idm-marketplace__User: ${MARKETPLACE_PUSH_USER}
+      ASPNETCORE_NotifierConfig__idm-marketplace__Password: ${MARKETPLACE_PUSH_PSWD}
+      ASPNETCORE_NotifierConfig__idm-marketplace__Header: ${MARKETPLACE_PUSH_HEADER}
+      ASPNETCORE_NotifierConfig__idm-marketplace__Token: ${MARKETPLACE_PUSH_TOKEN}
+      ASPNETCORE_S3Config__dc-meteorology-province-forecast__Filename: ${S3_WEATHERFORECAST_FILENAME}
+      ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessKey: ${S3_WEATHERFORECAST_ACCESSKEY}
+      ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessSecretKey: ${S3_WEATHERFORECAST_SECRET}
+      ASPNETCORE_LTSApiIDM__ServiceUrl: ${LTSAPI_IDM_SERVICEURL}
+      ASPNETCORE_LTSApiIDM__Username: ${LTSAPI_IDM_USERNAME}      
+      ASPNETCORE_LTSApiIDM__Password: ${LTSAPI_IDM_PASSWORD}
+      ASPNETCORE_LTSApiIDM__XLSClientid: ${LTSAPI_IDM_XLTSCLIENTID}
+      ASPNETCORE_LTSApiIDM__Opendata: ${LTSAPI_IDM_OPENDATA}
+      ASPNETCORE_LTSApiOpen__ServiceUrl: ${LTSAPI_OPENDATA_SERVICEURL}
+      ASPNETCORE_LTSApiOpen__Username: ${LTSAPI_OPENDATA_USERNAME}      
+      ASPNETCORE_LTSApiOpen__Password: ${LTSAPI_OPENDATA_PASSWORD}
+      ASPNETCORE_LTSApiOpen__XLSClientid: ${LTSAPI_OPENDATA_XLTSCLIENTID}
+      ASPNETCORE_LTSApiOpen__Opendata: ${LTSAPI_OPENDATA_OPENDATA}
+      ASPNETCORE_DigiWayConfig__cyclewaystyrol__ServiceUrl: ${DIGIWAY_CYCLEWAYSTIROL_URL}
+      ASPNETCORE_DigiWayConfig__cyclewaystyrol__Source: ${DIGIWAY_CYCLEWAYSTIROL_SOURCE}
+      ASPNETCORE_DigiWayConfig__cyclewaystyrol__Format: ${DIGIWAY_CYCLEWAYSTIROL_FORMAT}
+      ASPNETCORE_DigiWayConfig__cyclewaystyrol__SRid: ${DIGIWAY_CYCLEWAYSTIROL_SRID}
+      ASPNETCORE_DigiWayConfig__mountainbikeroutes__ServiceUrl: ${DIGIWAY_MTBROUTES_URL}
+      ASPNETCORE_DigiWayConfig__mountainbikeroutes__Source: ${DIGIWAY_MTBROUTES_SOURCE}
+      ASPNETCORE_DigiWayConfig__mountainbikeroutes__Format: ${DIGIWAY_MTBROUTES_FORMAT}
+      ASPNETCORE_DigiWayConfig__mountainbikeroutes__SRid: ${DIGIWAY_MTBROUTES_SRID}
+      ASPNETCORE_DigiWayConfig__hikingtrails__ServiceUrl: ${DIGIWAY_HIKINGTRAILS_URL}
+      ASPNETCORE_DigiWayConfig__hikingtrails__Source: ${DIGIWAY_HIKINGTRAILS_SOURCE}
+      ASPNETCORE_DigiWayConfig__hikingtrails__Format: ${DIGIWAY_HIKINGTRAILS_FORMAT}
+      ASPNETCORE_DigiWayConfig__hikingtrails__SRid: ${DIGIWAY_HIKINGTRAILS_SRID}
+      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__ServiceUrl: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_URL}
+      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__Source: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_SOURCE}
+      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__Format: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_FORMAT}
+      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__SRid: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_SRID}
+      ASPNETCORE_DigiWayConfig__radrouten_tirol__ServiceUrl: ${DIGIWAY_RADROUTENTYROL_URL}
+      ASPNETCORE_DigiWayConfig__radrouten_tirol__Source: ${DIGIWAY_RADROUTENTYROL_SOURCE}
+      ASPNETCORE_DigiWayConfig__radrouten_tirol__Format: ${DIGIWAY_RADROUTENTYROL_FORMAT}
+      ASPNETCORE_DigiWayConfig__radrouten_tirol__SRid: ${DIGIWAY_RADROUTENTYROL_SRID}
+      ASPNETCORE_DigiWayConfig__hikintrail_e5__ServiceUrl: ${DIGIWAY_HIKINGTRAILE5_URL}
+      ASPNETCORE_DigiWayConfig__hikintrail_e5__Source: ${DIGIWAY_HIKINGTRAILE5_SOURCE}
+      ASPNETCORE_DigiWayConfig__hikintrail_e5__Format: ${DIGIWAY_HIKINGTRAILE5_FORMAT}
+      ASPNETCORE_DigiWayConfig__hikintrail_e5__SRid: ${DIGIWAY_HIKINGTRAILE5_SRID}
+      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__ServiceUrl: ${DIGIWAY_TNMTB_URL}
+      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__Source: ${DIGIWAY_TNMTB_SOURCE}
+      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__Format: ${DIGIWAY_TNMTB_FORMAT}
+      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__SRid: ${DIGIWAY_TNMTB_SRID}
+      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__ServiceUrl: ${DIGIWAY_TNCYCLINGROUTE_URL}
+      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__Source: ${DIGIWAY_TNCYCLINGROUTE_SOURCE}
+      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__Format: ${DIGIWAY_TNCYCLINGROUTE_FORMAT}
+      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__SRid: ${DIGIWAY_TNCYCLINGROUTE_SRID}
+      ASPNETCORE_DigiWayConfig__sentieri_della_sat__ServiceUrl: ${DIGIWAY_TNHIKINGTRAIL_URL}
+      ASPNETCORE_DigiWayConfig__sentieri_della_sat__Source: ${DIGIWAY_TNHIKINGTRAIL_SOURCE}
+      ASPNETCORE_DigiWayConfig__sentieri_della_sat__Format: ${DIGIWAY_TNHIKINGTRAIL_FORMAT}
+      ASPNETCORE_DigiWayConfig__sentieri_della_sat__SRid: ${DIGIWAY_TNHIKINGTRAI_SRID}
+    ports:
+      - "8083:80"
+    env_file:
+      - .env
+
+  # The database service for the 'dev' profile.
+  db:
+    image: postgis/postgis:15-3.3-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: postgres
+    volumes:
+      - ../.dev/content-api-db-init:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    profiles:
+      - dev

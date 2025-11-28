@@ -56,8 +56,8 @@ namespace Helper
             if (mydata != null && (mydata as IGpsInfo) != null && (mydata as IGpsInfo).Longitude > 0 && (mydata as IGpsInfo).Latitude > 0)
             {
                 var distanceresult = DistanceCalculator.Distance(
-                    (mydata as IGpsInfo).Latitude,
-                    (mydata as IGpsInfo).Longitude,
+                    (mydata as IGpsInfo).Latitude.GetValueOrDefault(0),
+                    (mydata as IGpsInfo).Longitude.GetValueOrDefault(0),
                     latitude,
                     longitude,
                     'K'
@@ -96,8 +96,8 @@ namespace Helper
                 if (mygpsdata != null && mygpsdata.Longitude > 0 && mygpsdata.Latitude > 0)
                 {
                     var distanceresult = DistanceCalculator.Distance(
-                        mygpsdata.Latitude,
-                        mygpsdata.Longitude,
+                        mygpsdata.Latitude.GetValueOrDefault(0),
+                        mygpsdata.Longitude.GetValueOrDefault(0),
                         latitude,
                         longitude,
                         'K'

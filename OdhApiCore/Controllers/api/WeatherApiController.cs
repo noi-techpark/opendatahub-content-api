@@ -14,6 +14,8 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Tagging;
+using Helper.Location;
 using LCS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
@@ -250,7 +252,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(BezirksWeather), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Weather/District", Name = "SingleWeatherDistrict")]
+        [HttpGet, Route("Weather/District")]
         public async Task<IActionResult> GetDistrictWeather(
             uint? pagenumber = null,
             PageSize pagesize = null!,
@@ -291,7 +293,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(BezirksWeather), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Weather/District/{id}")]
+        [HttpGet, Route("Weather/District/{id}", Name = "SingleWeatherDistrict")]
         public async Task<IActionResult> GetDistrictWeatherSingle(
             string id,
             string? language = "en",
@@ -511,7 +513,7 @@ namespace OdhApiCore.Controllers
         /// <param name="areafilter">Area ID (multiple IDs possible, separated by ",")</param>
         /// <param name="skiareafilter">Skiarea ID</param>
         /// <param name="active">Active Filter (possible Values: 'true' only Active Measuringpoints, 'false' only Disabled Measuringpoints), (default:'null')</param>
-        /// <param name="odhactive">ODH Active Filter Measuringpoints Filter (possible Values: 'true' only published Measuringpoints, 'false' only not published Measuringpoints), (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
         /// <param name="latitude">GeoFilter FLOAT Latitude Format: '46.624975', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter' target="_blank">Wiki geosort</a></param>
         /// <param name="longitude">GeoFilter FLOAT Longitude Format: '11.369909', 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter' target="_blank">Wiki geosort</a></param>
         /// <param name="radius">Radius INTEGER to Search in Meters. Only Object withhin the given point and radius are returned and sorted by distance. Random Sorting is disabled if the GeoFilter Informations are provided, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter' target="_blank">Wiki geosort</a></param>
@@ -526,7 +528,7 @@ namespace OdhApiCore.Controllers
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>List of Measuringpoint Objects</returns>
-        [ProducesResponseType(typeof(IEnumerable<Measuringpoint>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<MeasuringpointV2>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -536,12 +538,12 @@ namespace OdhApiCore.Controllers
             PageSize pagesize = null!,
             string? idlist = null,
             string? locfilter = null,
+            string? tagfilter = null,
             string? areafilter = null,
             string? skiareafilter = null,
             string? language = null,
             string? source = null,
-            LegacyBool active = null!,
-            LegacyBool odhactive = null!,
+            LegacyBool active = null!,            
             string? publishedon = null,
             string? updatefrom = null,
             string? latitude = null,
@@ -580,8 +582,8 @@ namespace OdhApiCore.Controllers
                 skiareafilter: skiareafilter,
                 source: source,
                 active: active,
-                publishedon: publishedon,
-                smgactive: odhactive,
+                tagfilter: tagfilter,
+                publishedon: publishedon,                
                 seed: seed,
                 lastchange: updatefrom,
                 polygonsearchresult: polygonsearchresult,
@@ -602,10 +604,10 @@ namespace OdhApiCore.Controllers
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Measuringpoint Object</returns>
-        [ProducesResponseType(typeof(Measuringpoint), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MeasuringpointV2), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Weather/Measuringpoint/{id}", Name = "SingleMeasuringpoint")]
+        [HttpGet, Route("Weather/Measuringpoint/{id}", Name = "SingleWeatherMeasuringpoint")]
         public async Task<IActionResult> GetMeasuringPoint(
             string id,
             string? language = null,
@@ -743,7 +745,7 @@ namespace OdhApiCore.Controllers
             ServerTimeSpan = 3600,
             CacheKeyGenerator = typeof(CustomCacheKeyGenerator)
         )]
-        [HttpGet, Route("Weather/SnowReport/{id}", Name = "SingleSnowReport")]
+        [HttpGet, Route("Weather/SnowReport/{id}", Name = "SingleWeatherSnowReport")]
         public async Task<ActionResult> GetSnowReportBaseSingle(
             string id,
             string? lang = "en",
@@ -1044,8 +1046,8 @@ namespace OdhApiCore.Controllers
                         var distance = DistanceCalculator.Distance(
                             geosearchresult.latitude,
                             geosearchresult.longitude,
-                            weatherealtime.latitude,
-                            weatherealtime.longitude,
+                            weatherealtime.latitude.GetValueOrDefault(0),
+                            weatherealtime.longitude.GetValueOrDefault(0),
                             'K'
                         );
 
@@ -1465,7 +1467,7 @@ namespace OdhApiCore.Controllers
             string? skiareafilter,
             string? source,
             bool? active,
-            bool? smgactive,
+            string? tagfilter,
             string? lastchange,
             string? publishedon,
             string? searchfilter,
@@ -1500,7 +1502,7 @@ namespace OdhApiCore.Controllers
                     skiareafilter,
                     source,
                     active,
-                    smgactive,
+                    tagfilter,
                     lastchange,
                     publishedon,
                     cancellationToken
@@ -1520,7 +1522,7 @@ namespace OdhApiCore.Controllers
                         arealist: mymeasuringpointshelper.arealist,
                         skiarealist: mymeasuringpointshelper.skiarealist,
                         activefilter: mymeasuringpointshelper.active,
-                        smgactivefilter: mymeasuringpointshelper.smgactive,
+                        tagdict: mymeasuringpointshelper.tagdict,
                         publishedonlist: mymeasuringpointshelper.publishedonlist,
                         sourcelist: mymeasuringpointshelper.sourcelist,
                         searchfilter: searchfilter,
@@ -1622,7 +1624,8 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("measuringpoints")
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    //.Where("id", id.ToUpper())
+                    .Where("gen_id", id.ToUpper())
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)
@@ -1731,10 +1734,8 @@ namespace OdhApiCore.Controllers
         /// <returns>Http Response</returns>
         [ApiExplorerSettings(IgnoreApi = true)]
         [AuthorizeODH(PermissionAction.Create)]
-        //[Authorize(Roles = "DataWriter,DataCreate,MeasuringpointManager,MeasuringpointCreate")]
-        //[InvalidateCacheOutput(typeof(MeasuringpointController), nameof(Get))]
         [HttpPost, Route("Weather/Measuringpoint")]
-        public Task<IActionResult> Post([FromBody] MeasuringpointLinked measuringpoint)
+        public Task<IActionResult> Post([FromBody] MeasuringpointV2 measuringpoint)
         {
             measuringpoint.LicenseInfo = LicenseHelper.GetLicenseforMeasuringpoint(measuringpoint);
 
@@ -1746,7 +1747,18 @@ namespace OdhApiCore.Controllers
 
                 measuringpoint.Id = Helper.IdGenerator.GenerateIDFromType(measuringpoint);
 
-                return await UpsertData<MeasuringpointLinked>(
+                //POPULATE LocationInfo
+                measuringpoint.LocationInfo = await measuringpoint.UpdateLocationInfoExtension(QueryFactory);
+                //DistanceCalculation
+                await measuringpoint.UpdateDistanceCalculation(QueryFactory);
+
+                //TRIM all strings
+                measuringpoint.TrimStringProperties();
+
+                //Populate Tags (Id/Source/Type)
+                await measuringpoint.UpdateTagsExtension(QueryFactory);
+
+                return await UpsertData<MeasuringpointV2>(
                     measuringpoint,
                     new DataInfo("measuringpoints", CRUDOperation.Create),
                     new CompareConfig(false, false),
@@ -1763,10 +1775,8 @@ namespace OdhApiCore.Controllers
         /// <returns>Http Response</returns>
         [ApiExplorerSettings(IgnoreApi = true)]
         [AuthorizeODH(PermissionAction.Update)]
-        //[Authorize(Roles = "DataWriter,DataModify,WebcamManager,WebcamModify,WebcamUpdate")]
-        //[InvalidateCacheOutput(typeof(WebcamInfoController), nameof(Get))]
         [HttpPut, Route("Weather/Measuringpoint/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] MeasuringpointLinked measuringpoint)
+        public Task<IActionResult> Put(string id, [FromBody] MeasuringpointV2 measuringpoint)
         {
             measuringpoint.LicenseInfo = LicenseHelper.GetLicenseforMeasuringpoint(measuringpoint);
 
@@ -1776,12 +1786,23 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAddEndpoint("Weather/Measuringpoint")
                     .TryGetValue("Update", out var additionalfilter);
 
-                measuringpoint.Id = Helper.IdGenerator.CheckIdFromType<MeasuringpointLinked>(id);
+                measuringpoint.Id = Helper.IdGenerator.CheckIdFromType<MeasuringpointV2>(id);
 
-                return await UpsertData<MeasuringpointLinked>(
+                //POPULATE LocationInfo
+                measuringpoint.LocationInfo = await measuringpoint.UpdateLocationInfoExtension(QueryFactory);
+                //DistanceCalculation
+                await measuringpoint.UpdateDistanceCalculation(QueryFactory);
+
+                //TRIM all strings
+                measuringpoint.TrimStringProperties();
+
+                //Populate Tags (Id/Source/Type)
+                await measuringpoint.UpdateTagsExtension(QueryFactory);
+
+                return await UpsertData<MeasuringpointV2>(
                     measuringpoint,
                     new DataInfo("measuringpoints", CRUDOperation.Update, true),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -1794,8 +1815,6 @@ namespace OdhApiCore.Controllers
         /// <returns>Http Response</returns>
         [ApiExplorerSettings(IgnoreApi = true)]
         [AuthorizeODH(PermissionAction.Delete)]
-        //[Authorize(Roles = "DataWriter,DataDelete,WebcamManager,WebcamDelete")]
-        //[InvalidateCacheOutput(typeof(WebcamInfoController), nameof(Get))]
         [HttpDelete, Route("Weather/Measuringpoint/{id}")]
         public Task<IActionResult> Delete(string id)
         {
@@ -1805,9 +1824,9 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAddEndpoint("Weather/Measuringpoint")
                     .TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<MeasuringpointLinked>(id);
+                id = Helper.IdGenerator.CheckIdFromType<MeasuringpointV2>(id);
 
-                return await DeleteData<MeasuringpointLinked>(
+                return await DeleteData<MeasuringpointV2>(
                     id,
                     new DataInfo("measuringpoints", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
