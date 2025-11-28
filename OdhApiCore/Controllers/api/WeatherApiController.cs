@@ -252,7 +252,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(BezirksWeather), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Weather/District", Name = "SingleWeatherDistrict")]
+        [HttpGet, Route("Weather/District")]
         public async Task<IActionResult> GetDistrictWeather(
             uint? pagenumber = null,
             PageSize pagesize = null!,
@@ -293,7 +293,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(BezirksWeather), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Weather/District/{id}")]
+        [HttpGet, Route("Weather/District/{id}", Name = "SingleWeatherDistrict")]
         public async Task<IActionResult> GetDistrictWeatherSingle(
             string id,
             string? language = "en",
@@ -607,7 +607,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(MeasuringpointV2), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Weather/Measuringpoint/{id}", Name = "SingleMeasuringpoint")]
+        [HttpGet, Route("Weather/Measuringpoint/{id}", Name = "SingleWeatherMeasuringpoint")]
         public async Task<IActionResult> GetMeasuringPoint(
             string id,
             string? language = null,
@@ -745,7 +745,7 @@ namespace OdhApiCore.Controllers
             ServerTimeSpan = 3600,
             CacheKeyGenerator = typeof(CustomCacheKeyGenerator)
         )]
-        [HttpGet, Route("Weather/SnowReport/{id}", Name = "SingleSnowReport")]
+        [HttpGet, Route("Weather/SnowReport/{id}", Name = "SingleWeatherSnowReport")]
         public async Task<ActionResult> GetSnowReportBaseSingle(
             string id,
             string? lang = "en",

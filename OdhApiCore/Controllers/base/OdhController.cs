@@ -184,7 +184,9 @@ namespace OdhApiCore.Controllers
                     //Hack if there is another / in the route to check if it is not generating side effects
                     if (chunks[1].Split('/').Count() > 1)
                     {
-                        chunks[1] = chunks[1].Split('/')[1];
+                        var chunksadditional = chunks[1].Split('/');
+                        chunks[0] = chunks[0] + chunksadditional[0];
+                        chunks[1] = chunksadditional[1];
                     }
 
                     var (controller, id) = (chunks[0], chunks[1]);
