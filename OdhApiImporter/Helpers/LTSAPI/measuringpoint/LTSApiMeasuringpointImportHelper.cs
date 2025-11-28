@@ -456,7 +456,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 result = await QueryFactory.DeleteData<MeasuringpointV2>(
                 id.ToLower(),
-                new DataInfo("Measuringpoints", CRUDOperation.Delete),
+                new DataInfo("measuringpoints", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
                 );
