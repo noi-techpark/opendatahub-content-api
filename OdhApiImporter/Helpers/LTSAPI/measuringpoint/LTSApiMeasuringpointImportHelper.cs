@@ -324,7 +324,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await MergeMeasuringpointTags(measuringpointparsed, measuringpointindb);
 
                     //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
-                    measuringpointparsed.LocationInfo = await measuringpointindb.UpdateLocationInfoExtension(
+                    measuringpointparsed.LocationInfo = await measuringpointparsed.UpdateLocationInfoExtension(
                         QueryFactory
                     );
 
