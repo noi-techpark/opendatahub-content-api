@@ -60,14 +60,23 @@ namespace Helper.Generic
 
     public class CompareConfig
     {
-        public CompareConfig(bool comparedata, bool compareimages)
+        public CompareConfig(bool comparedata, bool compareimages, List<string>? fieldstoignore = null)
         {
             CompareData = comparedata;
             CompareImages = compareimages;
+
+            if (fieldstoignore == null)
+                FieldsToIgnore = new List<string>() { 
+                    "LastChange", "_Meta", "FirstImport",
+                    /*"GpsPoints", "GpsInfo.[].Geometry", "GpsInfo.[].Default"*/  };
+            else
+                FieldsToIgnore = fieldstoignore;
         }
 
         public bool CompareData { get; set; }
         public bool CompareImages { get; set; }
+
+        public List<string> FieldsToIgnore { get; set; }
     }
 
     public class EditInfo

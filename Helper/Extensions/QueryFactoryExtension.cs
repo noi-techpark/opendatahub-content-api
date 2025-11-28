@@ -385,10 +385,10 @@ namespace Helper
                 //Compare the data
                 if (compareConfig.CompareData && queryresult != null)
                 {
-                    equalityresult = EqualityHelper.CompareClassesTest<T>(
+                    equalityresult = EqualityHelper.CompareClassesExtended<T>(
                         queryresult,
                         data,
-                        new List<string>() { "LastChange", "_Meta", "FirstImport", "Geometry", "Default" },
+                        compareConfig.FieldsToIgnore,
                         true
                     );
                     if (equalityresult.isequal)
