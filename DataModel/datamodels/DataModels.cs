@@ -2211,8 +2211,8 @@ namespace DataModel
         }
 
         public string? Id { get; set; }
-        public string? Level { get; set; }
-        public string? LevelId { get; set; }
+        //public string? Level { get; set; }
+        //public string? LevelId { get; set; }
         public Dictionary<string, string> WeatherStatus { get; set; }
 
         //New
@@ -3467,7 +3467,8 @@ namespace DataModel
             ISource,
             IMappingAware,
             IDistanceInfoAware,
-            IPublishedOn
+            IPublishedOn, 
+            IHasTagInfo
     {
         public LicenseInfo? LicenseInfo { get; set; }
 
@@ -3516,6 +3517,10 @@ namespace DataModel
         public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
 
         public DistanceInfo? DistanceInfo { get; set; }
+
+        public ICollection<Tags>? Tags { get; set; }
+
+        public ICollection<string>? TagIds { get; set; }
     }
 
     //BaseInfos for ODHActivityPois / Activities / Pois

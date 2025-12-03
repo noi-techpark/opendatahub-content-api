@@ -66,17 +66,17 @@ namespace Helper
             {
                 Accommodation or AccommodationLinked or AccommodationV2 => IDStyle.uppercase,
                 AccoRoom or AccommodationRoomLinked => IDStyle.uppercase,
-                LTSActivityLinked => IDStyle.uppercase,
-                LTSPoiLinked => IDStyle.uppercase,
+                //LTSActivityLinked => IDStyle.uppercase,
+                //LTSPoiLinked => IDStyle.uppercase,
                 //GastronomyLinked => IDStyle.uppercase,
-                Event or EventLinked => IDStyle.uppercase,
+                Event or EventLinked or EventFlattened => IDStyle.uppercase,
                 ODHActivityPoi or ODHActivityPoiLinked => IDStyle.lowercase,
                 Package or PackageLinked => IDStyle.uppercase,
-                Measuringpoint or MeasuringpointLinked => IDStyle.uppercase,
+                Measuringpoint or MeasuringpointLinked or MeasuringpointV2 => IDStyle.uppercase,
                 WebcamInfo or WebcamInfoLinked => IDStyle.uppercase,
                 Article or ArticlesLinked => IDStyle.uppercase,
                 DDVenue => IDStyle.uppercase,
-                Venue or VenueLinked => IDStyle.uppercase,
+                Venue or VenueLinked or VenueV2 or VenueFlattened => IDStyle.uppercase,
                 EventShort or EventShortLinked => IDStyle.lowercase,
                 ExperienceArea or ExperienceAreaLinked => IDStyle.uppercase,
                 MetaRegion or MetaRegionLinked => IDStyle.uppercase,
@@ -110,8 +110,8 @@ namespace Helper
                 Type _
                     when odhtype == typeof(AccoRoom)
                         || odhtype == typeof(AccommodationRoomLinked) => IDStyle.uppercase,
-                Type _ when odhtype == typeof(LTSActivityLinked) => IDStyle.uppercase,
-                Type _ when odhtype == typeof(LTSPoiLinked) => IDStyle.uppercase,
+                //Type _ when odhtype == typeof(LTSActivityLinked) => IDStyle.uppercase,
+                //Type _ when odhtype == typeof(LTSPoiLinked) => IDStyle.uppercase,
                 //Type _ when odhtype == typeof(GastronomyLinked) => IDStyle.uppercase,
                 Type _ when odhtype == typeof(Event) || odhtype == typeof(EventLinked) =>
                     IDStyle.uppercase,
@@ -121,14 +121,14 @@ namespace Helper
                 Type _ when odhtype == typeof(Package) || odhtype == typeof(PackageLinked) =>
                     IDStyle.uppercase,
                 Type _
-                    when odhtype == typeof(Measuringpoint)
-                        || odhtype == typeof(MeasuringpointLinked) => IDStyle.uppercase,
+                    when odhtype == typeof(Measuringpoint) || odhtype == typeof(MeasuringpointLinked)
+                        || odhtype == typeof(MeasuringpointV2) => IDStyle.uppercase,
                 Type _ when odhtype == typeof(WebcamInfo) || odhtype == typeof(WebcamInfoLinked) =>
                     IDStyle.uppercase,
                 Type _ when odhtype == typeof(Article) || odhtype == typeof(ArticlesLinked) =>
                     IDStyle.uppercase,
                 Type _ when odhtype == typeof(DDVenue) => IDStyle.uppercase,
-                Type _ when odhtype == typeof(Venue) || odhtype == typeof(VenueLinked) =>
+                Type _ when odhtype == typeof(Venue) || odhtype == typeof(VenueLinked) || odhtype == typeof(VenueFlattened) || odhtype == typeof(VenueV2) =>
                     IDStyle.uppercase,
                 Type _ when odhtype == typeof(EventShort) || odhtype == typeof(EventShortLinked) =>
                     IDStyle.lowercase,

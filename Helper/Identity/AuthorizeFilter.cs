@@ -86,7 +86,8 @@ namespace Helper.Identity
                 User.Claims.Any(c =>
                     c.Type == ClaimTypes.Role
                     // Constructs the required role string, e.g., "products_Read"
-                    && c.Value.Equals(endpoint + "_" + action.ToString(), StringComparison.OrdinalIgnoreCase)
+                    // StartsWith is needed because some Claims are inserted as ex. article_create_source=noi
+                    && c.Value.StartsWith(endpoint + "_" + action.ToString(), StringComparison.OrdinalIgnoreCase)
                 )
             );
         }

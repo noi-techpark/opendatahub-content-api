@@ -627,22 +627,22 @@ namespace OdhApiImporter.Controllers
                     );
                     ;
                     break;
-                case "ltsactivity":
-                    objectscount = await customdataoperation.ResaveSourcesOnType<LTSActivityLinked>(
-                        odhtype,
-                        sourcetofilter,
-                        sourcetochange
-                    );
-                    ;
-                    break;
-                case "ltspoi":
-                    objectscount = await customdataoperation.ResaveSourcesOnType<LTSPoiLinked>(
-                        odhtype,
-                        sourcetofilter,
-                        sourcetochange
-                    );
-                    ;
-                    break;
+                //case "ltsactivity":
+                //    objectscount = await customdataoperation.ResaveSourcesOnType<LTSActivityLinked>(
+                //        odhtype,
+                //        sourcetofilter,
+                //        sourcetochange
+                //    );
+                //    ;
+                //    break;
+                //case "ltspoi":
+                //    objectscount = await customdataoperation.ResaveSourcesOnType<LTSPoiLinked>(
+                //        odhtype,
+                //        sourcetofilter,
+                //        sourcetochange
+                //    );
+                //    ;
+                //    break;
                 //case "ltsgastronomy":
                 //    objectscount = await customdataoperation.ResaveSourcesOnType<GastronomyLinked>(
                 //        odhtype,
@@ -905,6 +905,33 @@ namespace OdhApiImporter.Controllers
         }
 
         [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("VenueSeatTypesToTags")]
+        public async Task<IActionResult> VenueSeatTypesToTags(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.VenueSeatTypesToTags();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "VenueSeatTypesToTags",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+        [Authorize(Roles = "DataPush")]
         [HttpGet, Route("ArticleTypesToTags")]
         public async Task<IActionResult> ArticleTypesToTags(CancellationToken cancellationToken)
         {
@@ -1145,6 +1172,10 @@ namespace OdhApiImporter.Controllers
 
             if (table == "events")
                 throw new Exception("EventDatamodel changed, caution! use CleanEventsDataModel");
+            if (table == "measuringpoints")
+                throw new Exception("Measuringpoints Datamodel changed, caution! use CleanEventsDataModel");
+            if (table == "venues")
+                throw new Exception("Venues Datamodel changed, caution! use CleanEventsDataModel");
 
             CustomDataOperation customdataoperation = new CustomDataOperation(
                 settings,
@@ -1272,6 +1303,80 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+
+        #endregion
+
+        #region Venue
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("VenueToVenueV2")]
+        public async Task<IActionResult> VenueToVenueV2(
+            string? id,
+            bool? forceupdate,
+            int? takethefirst,
+            CancellationToken cancellationToken
+        )
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.VenueToVenueV2();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify Venue",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount.Item1,
+                    exception = objectscount.Item2,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+        #endregion
+
+        #region Measuringpoint
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("MeasuringpointToMeasuringpointV2")]
+        public async Task<IActionResult> MeasuringpointToMeasuringpointV2(
+            string? id,
+            bool? forceupdate,
+            int? takethefirst,
+            CancellationToken cancellationToken
+        )
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.MeasuringpointToMeasuringpointV2();        
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify Measuringpoint",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount.Item1,
+                    exception = objectscount.Item2,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
 
         #endregion
     }

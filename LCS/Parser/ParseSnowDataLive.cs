@@ -68,8 +68,8 @@ namespace LCS
                             )
                             {
                                 WeatherObservation myobservation = new WeatherObservation();
-                                myobservation.Level = weatherobservation.Level;
-                                myobservation.LevelId = weatherobservation.ID;
+                                //myobservation.Level = weatherobservation.Level;
+                                //myobservation.LevelId = weatherobservation.ID;
                                 myobservation.Id = weatherobservation.RID;
                                 myobservation.WeatherStatus["de"] = weatherobservation
                                     .Name.FirstOrDefault()

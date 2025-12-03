@@ -221,14 +221,14 @@ namespace Helper
                                 }
                             }
                         }
-                        else if (mydata is EventV2)
+                        else if (mydata is EventFlattened)
                         {
                             bool validranc = true;
                             bool validclassification = false;
 
                             //EVENTS LTS
                             if (
-                                (mydata as EventV2).Active
+                                (mydata as EventFlattened).Active
                                 && allowedsourcesMP[mydata._Meta.Type].Contains(mydata._Meta.Source)
                             )
                             {
@@ -239,9 +239,9 @@ namespace Helper
                                 };
 
                                 if (mydata._Meta.Source == "lts" && 
-                                    (mydata as EventV2).Mapping.ContainsKey("lts") && 
-                                    (mydata as EventV2).Mapping["lts"].ContainsKey("ClassificationRID") &&
-                                    validclassificationrids.Contains((mydata as EventV2).Mapping["lts"]["ClassificationRID"]))
+                                    (mydata as EventFlattened).Mapping.ContainsKey("lts") && 
+                                    (mydata as EventFlattened).Mapping["lts"].ContainsKey("ClassificationRID") &&
+                                    validclassificationrids.Contains((mydata as EventFlattened).Mapping["lts"]["ClassificationRID"]))
                                 {
                                     validclassification = true;                                            
                                 }
@@ -261,7 +261,7 @@ namespace Helper
 
                                 //Events DRIN CENTROTREVI
                                 if (
-                                    (mydata as EventV2).Active
+                                    (mydata as EventFlattened).Active
                                     && (
                                         mydata._Meta.Source == "trevilab"
                                         || mydata._Meta.Source == "drin"
@@ -454,9 +454,19 @@ namespace Helper
                         break;
 
                     case "measuringpoint":
-                        if ((mydata as MeasuringpointLinked).Active)
-                        {                            
-                            publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                        if (mydata is MeasuringpointLinked)
+                        {
+                            if ((mydata as MeasuringpointLinked).Active)
+                            {
+                                publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                            }
+                        }
+                        else if (mydata is MeasuringpointV2)
+                        { 
+                            if ((mydata as MeasuringpointV2).Active)
+                            {
+                                publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                            }                        
                         }
                         break;
 
@@ -471,6 +481,13 @@ namespace Helper
                         else if (mydata is VenueV2)
                         {
                             if ((mydata as VenueV2).Active == true)
+                            {
+                                publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                            }
+                        }
+                        else if (mydata is VenueFlattened)
+                        {
+                            if ((mydata as VenueFlattened).Active == true)
                             {
                                 //Venues LTS
                                 //Venues NOI
@@ -491,12 +508,12 @@ namespace Helper
                         }
                         break;
 
-                    //TO CHECK, import all and set it active on Marketplace?
                     case "webcam":
-                        if ((mydata as WebcamInfoLinked).SmgActive == true)
-                        {                            
-                            publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
-                        }
+                        //Currently no idm-marketplace needed
+                        //if ((mydata as WebcamInfoLinked).Active == true)
+                        //{                            
+                        //    publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
+                        //}
                         break;
 
                     case "wineaward":

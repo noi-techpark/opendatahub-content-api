@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DataModel;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using SqlKata.Execution;
 
 namespace Helper.Location

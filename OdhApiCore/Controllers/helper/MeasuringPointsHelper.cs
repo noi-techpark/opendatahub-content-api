@@ -20,12 +20,12 @@ namespace OdhApiCore.Controllers
         public List<string> arealist;
         public List<string> skiarealist;
         public List<string> sourcelist;
-        public bool? active;
-        public bool? smgactive;
+        public bool? active;        
         public string? lastchange;
 
         //New Publishedonlist
         public List<string> publishedonlist;
+        public IDictionary<string, List<string>> tagdict;
 
         public static async Task<MeasuringPointsHelper> Create(
             QueryFactory queryFactory,
@@ -35,7 +35,7 @@ namespace OdhApiCore.Controllers
             string? skiareafilter,
             string? sourcefilter,
             bool? activefilter,
-            bool? smgactivefilter,
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter,
             CancellationToken cancellationToken
@@ -71,7 +71,7 @@ namespace OdhApiCore.Controllers
                 areafilterlist: arealistfromarea,
                 sourcefilter: sourcefilter,
                 activefilter: activefilter,
-                smgactivefilter: smgactivefilter,
+                tagfilter : tagfilter,
                 lastchange: lastchange,
                 publishedonfilter: publishedonfilter,
                 tourismusvereinids: tourismusvereinids
@@ -85,7 +85,7 @@ namespace OdhApiCore.Controllers
             IEnumerable<string> areafilterlist,
             string? sourcefilter,
             bool? activefilter,
-            bool? smgactivefilter,
+            string? tagfilter,
             string? lastchange,
             string? publishedonfilter,
             IEnumerable<string>? tourismusvereinids
@@ -120,16 +120,15 @@ namespace OdhApiCore.Controllers
                 tourismvereinlist.AddRange(tourismusvereinids);
 
             //active
-            active = activefilter;
-
-            //smgactive
-            smgactive = smgactivefilter;
+            active = activefilter;            
 
             //skiarea filter
             skiarealist = Helper.CommonListCreator.CreateIdList(skiareafilter?.ToUpper());
 
             this.lastchange = lastchange;
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
+
+            tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
         }
     }
 }

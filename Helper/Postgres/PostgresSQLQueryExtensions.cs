@@ -1037,60 +1037,60 @@ namespace Helper
         //        )
         //    );
 
-        public static Query VenueCategoryFilter(
-            this Query query,
-            IReadOnlyCollection<string> categorylist
-        ) =>
-            query.WhereInJsonb(
-                categorylist,
-                tag => new { VenueCategory = new[] { new { Id = tag.ToUpper() } } }
-            );
+        //public static Query VenueCategoryFilter(
+        //    this Query query,
+        //    IReadOnlyCollection<string> categorylist
+        //) =>
+        //    query.WhereInJsonb(
+        //        categorylist,
+        //        tag => new { VenueCategory = new[] { new { Id = tag.ToUpper() } } }
+        //    );
 
-        public static Query VenueFeatureFilter(
-            this Query query,
-            IReadOnlyCollection<string> featurelist
-        ) =>
-            query.WhereInJsonb(
-                featurelist,
-                tag => new
-                {
-                    RoomDetails = new[]
-                    {
-                        new { VenueFeatures = new[] { new { Id = tag.ToUpper() } } },
-                    },
-                }
-            );
+        //public static Query VenueFeatureFilter(
+        //    this Query query,
+        //    IReadOnlyCollection<string> featurelist
+        //) =>
+        //    query.WhereInJsonb(
+        //        featurelist,
+        //        tag => new
+        //        {
+        //            RoomDetails = new[]
+        //            {
+        //                new { VenueFeatures = new[] { new { Id = tag.ToUpper() } } },
+        //            },
+        //        }
+        //    );
 
-        public static Query VenueSetupTypeFilter(
-            this Query query,
-            IReadOnlyCollection<string> setuptypelist
-        ) =>
-            query.WhereInJsonb(
-                setuptypelist,
-                tag => new
-                {
-                    RoomDetails = new[]
-                    {
-                        new { VenueSetup = new[] { new { Id = tag.ToUpper() } } },
-                    },
-                }
-            );
+        //public static Query VenueSetupTypeFilter(
+        //    this Query query,
+        //    IReadOnlyCollection<string> setuptypelist
+        //) =>
+        //    query.WhereInJsonb(
+        //        setuptypelist,
+        //        tag => new
+        //        {
+        //            RoomDetails = new[]
+        //            {
+        //                new { VenueSetup = new[] { new { Id = tag.ToUpper() } } },
+        //            },
+        //        }
+        //    );
 
-        public static Query VenueRoomCountFilter(
-            this Query query,
-            bool roomcount,
-            int roomcountmin,
-            int roomcountmax
-        ) =>
-            query.When(
-                roomcount,
-                query =>
-                    query.WhereRaw(
-                        "(data#>>'\\{RoomCount\\}')::numeric > ? AND (data#>>'\\{RoomCount\\}')::numeric < ?",
-                        roomcountmin,
-                        roomcountmax
-                    )
-            );
+        //public static Query VenueRoomCountFilter(
+        //    this Query query,
+        //    bool roomcount,
+        //    int roomcountmin,
+        //    int roomcountmax
+        //) =>
+        //    query.When(
+        //        roomcount,
+        //        query =>
+        //            query.WhereRaw(
+        //                "(data#>>'\\{RoomCount\\}')::numeric > ? AND (data#>>'\\{RoomCount\\}')::numeric < ?",
+        //                roomcountmin,
+        //                roomcountmax
+        //            )
+        //    );
 
         //public static Query VenueODHTagFilter(this Query query, IReadOnlyCollection<string> smgtaglist) =>
         //  query.WhereInJsonb(
@@ -1107,10 +1107,10 @@ namespace Helper
         //       )
         //   );
 
-        public static Query VenueSourceFilter(
-            this Query query,
-            IReadOnlyCollection<string> sourcelist
-        ) => query.WhereInJsonb(list: sourcelist, "SyncSourceInterface", id => id.ToUpper());
+        //public static Query VenueSourceFilter(
+        //    this Query query,
+        //    IReadOnlyCollection<string> sourcelist
+        //) => query.WhereInJsonb(list: sourcelist, "SyncSourceInterface", id => id.ToUpper());
 
         public static Query SourceTypeFilter(
             this Query query,

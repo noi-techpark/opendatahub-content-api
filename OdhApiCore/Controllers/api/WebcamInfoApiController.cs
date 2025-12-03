@@ -12,6 +12,7 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -290,7 +291,8 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("webcams")
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    //.Where("id", id.ToUpper())
+                    .Where("gen_id", id.ToUpper())
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)
@@ -340,6 +342,13 @@ namespace OdhApiCore.Controllers
 
                 webcam.Id = Helper.IdGenerator.GenerateIDFromType(webcam);
 
+                //GENERATE HasLanguage
+                webcam.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                webcam.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await webcam.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<WebcamInfoLinked>(
                     webcam,
                     new DataInfo("webcams", CRUDOperation.Create),
@@ -373,6 +382,13 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
                 webcam.Id = Helper.IdGenerator.CheckIdFromType<WebcamInfoLinked>(id);
+
+                //GENERATE HasLanguage
+                webcam.CheckMyInsertedLanguages(null);
+                //TRIM all strings
+                webcam.TrimStringProperties();
+                //Populate Tags (Id/Source/Type)
+                await webcam.UpdateTagsExtension(QueryFactory);
 
                 return await UpsertData<WebcamInfoLinked>(
                     webcam,

@@ -23,11 +23,11 @@ using System.Threading.Tasks;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
-    public class LTSApiVenueImportHelper : ImportHelper, IImportHelperLTS
+    public class LTSApiMeasuringpointImportHelper : ImportHelper, IImportHelperLTS
     {
         public bool opendata = false;
 
-        public LTSApiVenueImportHelper(
+        public LTSApiMeasuringpointImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -65,26 +65,26 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var venuelts = await GetVenuesFromLTSV2(id, null, null, null);
+            var measuringpointlts = await GetMeasuringpointsFromLTSV2(id, null, null, null);
 
             //Check if Data is accessible on LTS
-            if (venuelts != null && venuelts.FirstOrDefault().ContainsKey("success") && (Boolean)venuelts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
+            if (measuringpointlts != null && measuringpointlts.FirstOrDefault().ContainsKey("success") && (Boolean)measuringpointlts.FirstOrDefault()["success"]) //&& gastronomylts.FirstOrDefault()["Success"] == true
             {     //Import Single Data & Deactivate Data
-                var result = await SaveVenuesToPG(venuelts);
+                var result = await SaveMeasuringpointsToPG(measuringpointlts, cancellationToken);
                 return result;
             }
             //If data is not accessible on LTS Side, delete or disable it
-            else if (venuelts != null && venuelts.FirstOrDefault().ContainsKey("status") && ((int)venuelts.FirstOrDefault()["status"] == 403 || (int)venuelts.FirstOrDefault()["status"] == 404))
+            else if (measuringpointlts != null && measuringpointlts.FirstOrDefault().ContainsKey("status") && ((int)measuringpointlts.FirstOrDefault()["status"] == 403 || (int)measuringpointlts.FirstOrDefault()["status"] == 404))
             {
                 if (!opendata)
                 {
                     //Data is pushed to marketplace with disabled status
-                    return await DeleteOrDisableVenuesData(id, false, false);
+                    return await DeleteOrDisableMeasuringpointsData(id, false, false);
                 }
                 else
                 {
                     //Data is pushed to marketplace as deleted
-                    return await DeleteOrDisableVenuesData(id, true, true);
+                    return await DeleteOrDisableMeasuringpointsData(id, true, true);
                 }
             }
             else
@@ -106,7 +106,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
        )
         {
             //Import the List
-            var lastchangedlts = await GetVenuesFromLTSV2(null, lastchanged, null, null);
+            var lastchangedlts = await GetMeasuringpointsFromLTSV2(null, lastchanged, null, null);
             List<string> lastchangedlist = new List<string>();
 
             if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
@@ -120,11 +120,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "lastchanged.venues",
+                    "lastchanged.measuringpoints",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.venues",
+                        sourceinterface = "lts.measuringpoints",
                         success = false,
                         error = "Could not fetch last changed List",
                     }
@@ -141,7 +141,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
         {
             //Import the List
-            var deletedlts = await GetVenuesFromLTSV2(null, null, deletedfrom, null);
+            var deletedlts = await GetMeasuringpointsFromLTSV2(null, null, deletedfrom, null);
             List<string> lastdeletedlist = new List<string>();
 
             if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
@@ -155,11 +155,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deleted.venues",
+                    "deleted.measuringpoints",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.venues",
+                        sourceinterface = "lts.measuringpoints",
                         success = false,
                         error = "Could not fetch deleted List",
                     }
@@ -178,7 +178,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             opendata = reduced;
 
             //Import the List
-            var activelistlts = await GetVenuesFromLTSV2(null, null, null, active);
+            var activelistlts = await GetMeasuringpointsFromLTSV2(null, null, null, active);
             List<string> activeList = new List<string>();
 
             if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
@@ -192,11 +192,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "active.venues",
+                    "active.measuringpoints",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.venues",
+                        sourceinterface = "lts.measuringpoints",
                         success = false,
                         error = "Could not fetch active List",
                     }
@@ -206,59 +206,59 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return activeList;
         }
 
-        private async Task<List<JObject>> GetVenuesFromLTSV2(string venueid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
+        private async Task<List<JObject>> GetMeasuringpointsFromLTSV2(string measuringpointid, DateTime? lastchanged, DateTime? deletedfrom, bool? activelist)
         {
             try
             {
                 LtsApi ltsapi = GetLTSApi(opendata);
                 
-                if(venueid != null)
+                if(measuringpointid != null)
                 {
                     //Get Single Venue
 
                     var qs = new LTSQueryStrings() { page_size = 1 };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.VenueDetailRequest(venueid, dict);
+                    return await ltsapi.WeatherSnowDetailRequest(measuringpointid, dict);
                 }
                 else if (lastchanged != null)
                 {
-                    //Get the Last Changed Venues list
+                    //Get the Last Changed Measuringpoints list
 
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false }; //To check filter_onlyTourismOrganizationMember
+                    var qs = new LTSQueryStrings() { fields = "rid" };
 
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.VenueListRequest(dict, true);
+                    return await ltsapi.WeatherSnowListRequest(dict, true);
                 }
                 else if (deletedfrom != null)
                 {
-                    //Get the Active Venues list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+                    //Get the Active Measuringpoints list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false };
+                    var qs = new LTSQueryStrings() { fields = "rid" };
                 
                     if (deletedfrom != null)
                         qs.filter_lastUpdate = deletedfrom;
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.VenueDeletedRequest(dict, true);
+                    return await ltsapi.WeatherSnowDeletedRequest(dict, true);
                 }
                 else if (activelist != null)
                 {
-                    //Get the Active Venues list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+                    //Get the Active Measuringpoints list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_onlyTourismOrganizationMember = false, filter_representationMode = "full" };
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_onlyActive = true, filter_representationMode = "full" };
                 
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.VenueListRequest(dict, true);
+                    return await ltsapi.WeatherSnowListRequest(dict, true);
                 }
                 else
                     return null;
@@ -268,11 +268,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "list.venues",
+                    "list.measuringpoints",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "lts.venues",
+                        sourceinterface = "lts.measuringpoints",
                         success = false,
                         error = ex.Message,
                     }
@@ -281,25 +281,20 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<UpdateDetail> SaveVenuesToPG(List<JObject> ltsdata)
-        {
-            //var newimportcounter = 0;
-            //var updateimportcounter = 0;
-            //var errorimportcounter = 0;
-            //var deleteimportcounter = 0;
-
+        private async Task<UpdateDetail> SaveMeasuringpointsToPG(List<JObject> ltsdata, CancellationToken cancellationToken = default)
+        {            
             List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
             if (ltsdata != null)
             {
                 List<string> idlistlts = new List<string>();
 
-                List<LTSVenue> venuedata = new List<LTSVenue>();
+                List<LTSWeatherSnows> weathersnowdata = new List<LTSWeatherSnows>();
 
                 foreach (var ltsdatasingle in ltsdata)
                 {
-                    venuedata.Add(
-                        ltsdatasingle.ToObject<LTSVenue>()
+                    weathersnowdata.Add(
+                        ltsdatasingle.ToObject<LTSWeatherSnows>()
                     );
                 }
 
@@ -312,46 +307,37 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     settings.JsonConfig.Jsondir,
                     new List<string>()
                         {
-                           "GenericTags",
-                           "AutoPublishTags"
+                           "GenericTags"
                         }
                     );
                 }
 
-                foreach (var data in venuedata)
+                foreach (var data in weathersnowdata)
                 {
-                    string id = data.data.rid.ToLower();
+                    string id = data.data.rid.ToUpper();
 
-                    var venueparsed = VenueParser.ParseLTSVenue(data.data, false);
+                    var measuringpointparsed = MeasuringpointParser.ParseLTSMeasuringpoint(data.data, false);
 
-                    //POPULATE LocationInfo
-                    venueparsed.LocationInfo = await venueparsed.UpdateLocationInfoExtension(
+                    //GET OLD Measuringpoint TO CHECK MeasuringpointV2 vs MeasuringpointLinked
+                    var measuringpointindb = await LoadDataFromDB<MeasuringpointV2>(id, IDStyle.uppercase);
+
+                    await MergeMeasuringpointTags(measuringpointparsed, measuringpointindb);
+
+                    //POPULATE LocationInfo not working on Gastronomies because DistrictInfo is prefilled! DistrictId not available on root level...
+                    measuringpointparsed.LocationInfo = await measuringpointparsed.UpdateLocationInfoExtension(
                         QueryFactory
                     );
 
                     //DistanceCalculation
-                    await venueparsed.UpdateDistanceCalculation(QueryFactory);
-
-                    //GET OLD Venue
-                    var venueindb = await LoadDataFromDB<VenueV2>(id, IDStyle.uppercase);
-
-                    //Add manual assigned Tags to TagIds TO check if this should be activated
-                    await MergeVenueTags(venueparsed, venueindb);
-              
-                    if (!opendata)
-                    {                        
-                        //Create Tags and preserve the old TagEntries                        
-                        foreach (var hallfeature in venueparsed.RoomDetails)
-                        {
-                            await hallfeature.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(hallfeature));
-                        }
-                    }
+                    await measuringpointparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //Create Tags and preserve the old TagEntries
-                    await venueparsed.UpdateTagsExtension(QueryFactory, null);
+                    await measuringpointparsed.UpdateTagsExtension(QueryFactory);
 
-                    var result = await InsertDataToDB(venueparsed, data.data, jsondata);
+                    await AssignSkiAreaIDs(measuringpointparsed, cancellationToken);
 
+                    var result = await InsertDataToDB(measuringpointparsed, data.data, jsondata);
+          
                     updatedetails.Add(new UpdateDetail()
                     {
                         created = result.created,
@@ -371,11 +357,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     WriteLog.LogToConsole(
                         id,
                         "dataimport",
-                        "single.venues",
+                        "single.measuringpoints",
                         new ImportLog()
                         {
                             sourceid = id,
-                            sourceinterface = "lts.venues",
+                            sourceinterface = "lts.measuringpoints",
                             success = true,
                             error = "",
                         }
@@ -402,33 +388,34 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            VenueV2 objecttosave,
-            LTSVenueData venuelts,
+            MeasuringpointV2 objecttosave,
+            LTSWeatherSnowsData weathersnowlts,
             IDictionary<string, JArray>? jsonfiles
         )
         {
             try
             {
                 //Set LicenseInfo
-                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforVenue(objecttosave, opendata);
-                
+                objecttosave.LicenseInfo = LicenseHelper.GetLicenseforMeasuringpoint(objecttosave, opendata);
+
+                //TODO!
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
                 objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
                 //Add the PublishedOn Logic
                 //Exception here all Tags with autopublish has to be passed
-                var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
+                //var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
                 //Set PublishedOn with allowedtaglist
-                objecttosave.CreatePublishedOnList(autopublishtaglist);
+                objecttosave.CreatePublishedOnList();
 
-                var rawdataid = await InsertInRawDataDB(venuelts);
+                var rawdataid = await InsertInRawDataDB(weathersnowlts);
                 
-                objecttosave.Id = objecttosave.Id.ToUpper();
+                objecttosave.Id = objecttosave.Id.ToLower();
 
-                return await QueryFactory.UpsertData<VenueV2>(
+                return await QueryFactory.UpsertData<MeasuringpointV2>(
                     objecttosave,
-                    new DataInfo("venues", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                    new EditInfo("lts.venues.import", importerURL),
+                    new DataInfo("measuringpoints", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                    new EditInfo("lts.measuringpoints.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
                     rawdataid,
@@ -441,25 +428,25 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        private async Task<int> InsertInRawDataDB(LTSVenueData venuelts)
+        private async Task<int> InsertInRawDataDB(LTSWeatherSnowsData weathersnowslts)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
                     datasource = "lts",
                     importdate = DateTime.Now,
-                    raw = JsonConvert.SerializeObject(venuelts),
-                    sourceinterface = "venues",
-                    sourceid = venuelts.rid,
-                    sourceurl = "https://go.lts.it/api/v1/venues",
-                    type = "venue",
+                    raw = JsonConvert.SerializeObject(weathersnowslts),
+                    sourceinterface = "weathersnows",
+                    sourceid = weathersnowslts.rid,
+                    sourceurl = "https://go.lts.it/api/v1/weathersnows",
+                    type = "measuringpoint",
                     license = "open",
                     rawformat = "json",
                 }
             );
         }
         
-        public async Task<UpdateDetail> DeleteOrDisableVenuesData(string id, bool delete, bool reduced)
+        public async Task<UpdateDetail> DeleteOrDisableMeasuringpointsData(string id, bool delete, bool reduced)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
@@ -467,9 +454,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             if (delete)
             {
-                result = await QueryFactory.DeleteData<VenueV2>(
+                result = await QueryFactory.DeleteData<MeasuringpointV2>(
                 id.ToLower(),
-                new DataInfo("venues", CRUDOperation.Delete),
+                new DataInfo("measuringpoints", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
                 );
@@ -495,20 +482,28 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 var query = QueryFactory.Query(table).Select("data").Where("id", id.ToLower());
 
-                var data = await query.GetObjectSingleAsync<VenueV2>();
+                var data = await query.GetObjectSingleAsync<MeasuringpointV2>();
 
                 if (data != null)
                 {
                     if (
                         data.Active != false
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
                     )
                     {
                         data.Active = false;
-                       
-                        result = await QueryFactory.UpsertData<VenueV2>(
+                        if (data is ISmgActive)
+                            ((ISmgActive)data).SmgActive = false;
+
+                        //updateresult = await QueryFactory
+                        //    .Query(table)
+                        //    .Where("id", id)
+                        //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+
+                        result = await QueryFactory.UpsertData<MeasuringpointV2>(
                                data,
-                               new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
-                               new EditInfo("lts.venues.import.deactivate", importerURL),
+                               new DataInfo("measuringpoints", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new EditInfo("lts.measuringpoints.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
                         );
@@ -522,7 +517,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             objectchanged = result.objectchanged,
                             objectimagechanged = result.objectimagechanged,
                             comparedobjects =
-                                result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
                             pushchannels = result.pushchannels,
                             changes = result.changes,
                         };
@@ -534,7 +529,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
      
-        private async Task MergeVenueTags(VenueV2 vNew, VenueV2 vOld)
+        private async Task MergeMeasuringpointTags(MeasuringpointV2 vNew, MeasuringpointV2 vOld)
         {
             if (vOld != null)
             {
@@ -547,7 +542,18 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         vNew.TagIds.Add(tag.Id);
                     }
                 }
-            }            
-        }       
+            }
+        }
+        
+        private async Task AssignSkiAreaIDs(MeasuringpointV2 measuringpoint, CancellationToken cancellationToken)
+        {
+            //Measuringpoint, Fill SkiAreaIds
+            if (measuringpoint.AreaIds != null)
+            {
+                measuringpoint.SkiAreaIds = await QueryFactory
+                    .Query()
+                    .GetSkiAreaIdsfromSkiAreasAsync(measuringpoint.AreaIds, cancellationToken);
+            }
+        }
     }
 }
