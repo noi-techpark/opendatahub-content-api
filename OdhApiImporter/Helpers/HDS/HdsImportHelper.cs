@@ -146,38 +146,19 @@ namespace OdhApiImporter.Helpers
                                 }
                             }
 
-                            //Adding TypeInfo Additional
-                            odhactivitypoi.AdditionalPoiInfos =
-                                await GetAdditionalTypeInfo.GetAdditionalTypeInfoForPoi(
-                                    QueryFactory,
-                                    odhactivitypoi?.SubType,
-                                    new List<string>() { "de", "it", "en" }
-                                );
-
                             if (odhactivitypoi is { })
                             {
                                 ODHTagHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
 
-                                //Special get all Taglist and traduce it on import
+                                //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
                                 //await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                                 //    odhactivitypoi,
-                                //    settings.JsonConfig.Jsondir
+                                //    jsondata != null && jsondata["GenericTags"] != null ? jsondata["GenericTags"].ToObject<List<TagLinked>>() : null
                                 //);
-
-                                //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
-                                await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                                    odhactivitypoi,
-                                    jsondata != null && jsondata["GenericTags"] != null ? jsondata["GenericTags"].ToObject<List<TagLinked>>() : null
-                                );
 
                                 //Create Tag Object
                                 //Create Tags and preserve the old TagEntries
                                 await odhactivitypoi.UpdateTagsExtension(QueryFactory);
-
-                                //odhactivitypoi.TagIds =
-                                //    odhactivitypoi.Tags != null
-                                //        ? odhactivitypoi.Tags.Select(x => x.Id).ToList()
-                                //        : null;
 
                                 //Save to Rawdatatable
                                 var rawdataid = await InsertInRawDataDB(market);
@@ -340,29 +321,15 @@ namespace OdhApiImporter.Helpers
                                 }
                             }
 
-                            //Adding TypeInfo Additional
-                            odhactivitypoi.AdditionalPoiInfos =
-                                await GetAdditionalTypeInfo.GetAdditionalTypeInfoForPoi(
-                                    QueryFactory,
-                                    odhactivitypoi?.SubType,
-                                    new List<string>() { "de", "it", "en" }
-                                );
-
                             if (odhactivitypoi is { })
                             {
                                 ODHTagHelper.SetMainCategorizationForODHActivityPoi(odhactivitypoi);
-
-                                //Special get all Taglist and traduce it on import
+                                
+                                //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
                                 //await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
                                 //    odhactivitypoi,
-                                //    settings.JsonConfig.Jsondir
+                                //    jsondata != null && jsondata["GenericTags"] != null ? jsondata["GenericTags"].ToObject<List<TagLinked>>() : null
                                 //);
-
-                                //Traduce all Tags with Source IDM to english tags, CONSIDER TagId "poi" is added here
-                                await GenericTaggingHelper.AddTagIdsToODHActivityPoi(
-                                    odhactivitypoi,
-                                    jsondata != null && jsondata["GenericTags"] != null ? jsondata["GenericTags"].ToObject<List<TagLinked>>() : null
-                                );
 
                                 //Create Tag Object
                                 //Create Tags and preserve the old TagEntries
