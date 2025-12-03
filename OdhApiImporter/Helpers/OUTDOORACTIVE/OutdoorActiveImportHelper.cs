@@ -138,7 +138,7 @@ namespace OdhApiImporter.Helpers
                 if (ltsid.StartsWith("lts-tours"))
                     ltsid = ltsid.Replace("lts-tours.21450.", "").Trim();
                 
-                returnid = ltsid;
+                returnid = "smgpoi" + ltsid;
 
                 var outdooractiveid = oadata.Attribute("id").Value;
                 var state = oadata.Attribute("state").Value;
@@ -149,7 +149,7 @@ namespace OdhApiImporter.Helpers
                     if (lastchanged > updatefrom)
                     {
                         //GET OLD Activity
-                        var odhactivitypoiindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + ltsid, IDStyle.lowercase);
+                        var odhactivitypoiindb = await LoadDataFromDB<ODHActivityPoiLinked>(returnid, IDStyle.lowercase);
 
                         if (odhactivitypoiindb != null)
                         {
@@ -217,7 +217,7 @@ namespace OdhApiImporter.Helpers
                         else
                         {
                             WriteLog.LogToConsole(
-                                odhactivitypoiindb.Id,
+                                returnid,
                                 "dataimport",
                                 "single.outdooractive",
                                 new ImportLog()
