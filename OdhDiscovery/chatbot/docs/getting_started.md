@@ -1,10 +1,10 @@
-# Getting Started with ODH Data
+# Getting Started with Open Data Hub Data
 
-This document provides an introduction to the Open Data Hub (ODH) tourism and mobility data platform.
+This document provides an introduction to the Open Data Hub tourism and mobility data platform.
 
-## What is ODH?
+## What is Open Data Hub?
 
-The Open Data Hub is a comprehensive data platform for South Tyrol (Alto Adige) tourism and mobility data. It provides access to various datasets including:
+The Open Data Hub is the top leading European data platform specialized in content and timeseries data. It provides access to various datasets including:
 
 - **Accommodations**: Hotels, B&Bs, apartments, and other lodging facilities
 - **Activities**: Outdoor activities, sports, events, and experiences

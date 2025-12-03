@@ -67,7 +67,7 @@ echo ""
 # Ingest docs
 if [ -d "docs" ] && [ "$(ls -A docs/*.md 2>/dev/null)" ]; then
     echo "📚 Ingesting documentation from docs/ directory..."
-    docker-compose exec -T backend python scripts/ingest_docs.py /docs --clear
+    docker-compose exec -T backend python vector_store/ingest_docs.py /docs --clear
     echo "✅ Documentation ingested"
 else
     echo "⚠️  No markdown files found in docs/ directory"

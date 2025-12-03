@@ -33,6 +33,7 @@ services:
       - "${BACKEND_PORT:-8001}:${BACKEND_PORT:-8001}"
     volumes:
       - ./backend:/app
+      - ./scripts:/scripts
       - ./docs:/docs:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
