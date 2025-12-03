@@ -262,6 +262,8 @@ namespace Helper
                 licenseholder = @"";
             if (data.Source.ToLower() == "civis.geoserver")
                 licenseholder = @"https://geoservices1.civis.bz.it";
+            if (data.Source.ToLower() == "hds")
+                licenseholder = @"https://www.hds-bz.it/";
 
             List<string?> allowedsyncsourceinterfaces = new List<string?>()
             {
@@ -292,7 +294,9 @@ namespace Helper
                 "officina elettrica san vigilio di marebbe spa",
                 "geoservices1.civis.bz.it",
                 "gtfsapi",
-                "civis.geoserver."
+                "civis.geoserver.",
+                "hds.market",
+                "hds.yearmarket"
             };
 
             if (data.Active)

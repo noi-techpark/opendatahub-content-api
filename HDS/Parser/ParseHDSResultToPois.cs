@@ -114,7 +114,7 @@ namespace HDS
             mypoi.TagIds = new List<string>();
             mypoi.TagIds.Add("hds:market");
 
-            mypoi.SyncSourceInterface = "market";
+            mypoi.SyncSourceInterface = "hds.market";
             mypoi.SyncUpdateMode = "full";
             mypoi.Source = "hds";
 
@@ -194,14 +194,14 @@ namespace HDS
             mypoi.Detail.TryAddOrUpdate("de", detailde);
 
 
-            string nameit = namesplitted.Length > 0 ? namesplitted[1].Trim() + " " : namesplitted[0].Trim() + " ";
+            string nameit = namesplitted.Length > 1 ? namesplitted[1].Trim() + " " : namesplitted[0].Trim() + " ";
 
             if (market.Modality == "VIERZEHNTÄTIG - BISETTIMANALE" || market.Modality == "MONATSMARKT - MENSILE")
             {
                 nameit = "MERCATO " + namesplitted[1].Trim() + " ";
             }
 
-            var comuneit = comunesplitted.Length > 0 ? comunesplitted[1].Trim() + " " : comunesplitted[0].Trim() + " ";            
+            var comuneit = comunesplitted.Length > 1 ? comunesplitted[1].Trim() + " " : comunesplitted[0].Trim() + " ";            
             nameit = nameit + comuneit;
 
             Detail detailit = new Detail();
@@ -270,7 +270,7 @@ namespace HDS
             mypoi.TagIds = new List<string>();
             mypoi.TagIds.Add("hds:yearmarket");
 
-            mypoi.SyncSourceInterface = "yearmarket";
+            mypoi.SyncSourceInterface = "hds.yearmarket";
             mypoi.SyncUpdateMode = "full";
             mypoi.Source = "hds";
 

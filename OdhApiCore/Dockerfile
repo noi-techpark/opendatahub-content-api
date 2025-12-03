@@ -19,6 +19,7 @@ COPY SIAG/SIAG.csproj SIAG/
 COPY NINJA/NINJA.csproj NINJA/
 COPY RAVEN/RAVEN.csproj RAVEN/
 COPY STA/STA.csproj STA/
+COPY HDS/HDS.csproj HDS/
 COPY LOOPTEC/LOOPTEC.csproj LOOPTEC/
 COPY OdhNotifier/OdhNotifier.csproj OdhNotifier/
 COPY PushServer/PushServer.csproj PushServer/
