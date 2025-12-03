@@ -39,6 +39,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OdhApiImporter.Controllers
 {
@@ -3093,7 +3094,7 @@ namespace OdhApiImporter.Controllers
         [HttpGet, Route("OUTDOORACTIVE/Update/{datatype}")]
         public async Task<IActionResult> UpdateOutdoorActiveData(
             string datatype,
-            string updatefrom,
+            string date,
             bool syncelevation = false,
             CancellationToken cancellationToken = default
         )
@@ -3113,7 +3114,12 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("OUTDOORACTIVE/" + datatype)
                 );
 
+                //supported '2h', '3d', '15m', or '1w'
+                if (!DateTime.TryParse(date, out DateTime lastchangeddate))
+                    lastchangeddate = DateTimeHelper.SubtractFromNow(date);
+
                 outdooractiveimporthelper.SetType(datatype);
+                outdooractiveimporthelper.updatefrom = lastchangeddate;
 
                 updatedetail = await outdooractiveimporthelper.SaveDataToODH(
                     null,
