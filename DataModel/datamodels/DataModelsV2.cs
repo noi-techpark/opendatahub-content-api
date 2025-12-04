@@ -465,7 +465,7 @@ namespace DataModel
         {
             get
             {
-                return this.AccoProperties != null ? this.AccoProperties.IsBookable.Value : false;
+                return this.AccoProperties != null ? this.AccoProperties.IsBookable : null;
             }
         }
 
