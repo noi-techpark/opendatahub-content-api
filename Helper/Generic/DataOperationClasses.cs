@@ -67,8 +67,7 @@ namespace Helper.Generic
 
             if (fieldstoignore == null)
                 FieldsToIgnore = new List<string>() { 
-                    "LastChange", "_Meta", "FirstImport",
-                    /*"GpsPoints", "GpsInfo.[].Geometry", "GpsInfo.[].Default"*/  };
+                    "LastChange", "_Meta", "FirstImport", "RelatedContent"  };
             else
                 FieldsToIgnore = fieldstoignore;
         }
