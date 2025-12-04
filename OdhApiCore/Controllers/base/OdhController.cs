@@ -195,7 +195,8 @@ namespace OdhApiCore.Controllers
                     }
 
                     var (controller, id) = (chunks[0], chunks[1]);
-                    return Url.Link($"Single{controller}", new { id })!;
+
+                    return Uri.UnescapeDataString(Url.Link($"Single{controller}", new { id })!);
                 };
             }
         }
