@@ -445,8 +445,9 @@ namespace DataModel
         public double? Longitude { get; set; }
         public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
+
+        //public string Geometry { get; set; }
+        //public bool? Default { get; set; }
 
         public DistanceInfo? DistanceInfo { get; set; }
 
