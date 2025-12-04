@@ -2,13 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using Amazon.Util.Internal;
 using DataModel;
 using Helper;
@@ -16,9 +9,17 @@ using Helper.Generic;
 using Helper.Tagging;
 using LTSAPI;
 using LTSAPI.Parser;
+using NetTopologySuite.GeometriesGraph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
@@ -157,9 +158,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             );
 
             //Import Single Data & Deactivate Data
-            var result = await SaveAccommodationsToPG(accommodationids);
-
-            return result;
+            return await SaveAccommodationsToPG(accommodationids);
         }
 
         private async Task<UpdateDetail> SaveAccommodationsToPG(List<JObject> ltsdata)
