@@ -57,7 +57,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("Source")]
-        public async Task<IActionResult> GetSourcesAsync(
+        public async Task<IActionResult> Get(
             uint? pagenumber = 1,
             PageSize pagesize = null!,
             string? language = null,
@@ -72,7 +72,7 @@ namespace OdhApiCore.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            return await Get(
+            return await GetList(
                 pagenumber,
                 pagesize,
                 idlist,
@@ -129,7 +129,7 @@ namespace OdhApiCore.Controllers
 
         #region GETTER
 
-        private Task<IActionResult> Get(
+        private Task<IActionResult> GetList(
             uint? pagenumber,
             int? pagesize,
             string? idfilter,

@@ -88,7 +88,7 @@ namespace OdhApiCore.Controllers
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
         //[Authorize]
         [HttpGet, Route("Event")]
-        public async Task<IActionResult> GetEventList(
+        public async Task<IActionResult> Get(
             string? language = null,
             uint pagenumber = 1,
             PageSize pagesize = null!,

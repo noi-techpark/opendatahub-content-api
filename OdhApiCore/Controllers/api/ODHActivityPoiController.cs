@@ -107,7 +107,7 @@ namespace OdhApiCore.Controllers.api
         [TypeFilter(typeof(Filters.RequestInterceptorAttribute))]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
         [HttpGet, Route("ODHActivityPoi", Name = "GetODHActivityPoiList")]
-        public async Task<IActionResult> GetODHActivityPoiList(
+        public async Task<IActionResult> Get(
             string? language = null,
             uint pagenumber = 1,
             PageSize pagesize = null!,
