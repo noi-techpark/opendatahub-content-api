@@ -2769,12 +2769,23 @@ namespace OdhApiImporter.Controllers
                 return BadRequest(errorResult);
             }    
         }
-        
+
+        [HttpPost, Route("LTS/{datatype}/Update/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateDataFromLTSPost(
+            string id,
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return await UpdateDataFromLTSGet(id, datatype, cancellationToken);
+        }
+
 
         //Generic Update Single Dataset
         [HttpGet, Route("LTS/{datatype}/Update/{id}")]
         [Authorize(Roles = "DataPush")]
-        public async Task<IActionResult> UpdateDataFromLTS(
+        public async Task<IActionResult> UpdateDataFromLTSGet(
             string id,
             string datatype,
             CancellationToken cancellationToken = default
