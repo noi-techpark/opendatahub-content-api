@@ -25,7 +25,7 @@ namespace DataModel
 {
     #region District Municipality Region
 
-    public class Region : BaseInfos, IImageGalleryAware, IPublishedOn
+    public class Region : BaseInfos, IImageGalleryAware, IPublishedOn, IRelatedContentAware
     {
         public Region()
         {
@@ -46,7 +46,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class MetaRegion : BaseInfos, IImageGalleryAware
+    public class MetaRegion : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public MetaRegion()
         {
@@ -66,7 +66,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class ExperienceArea : BaseInfos, IImageGalleryAware
+    public class ExperienceArea : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public ICollection<string>? DistrictIds { get; set; }
         public ICollection<string>? TourismvereinIds { get; set; }
@@ -75,7 +75,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class Tourismverein : BaseInfos, IImageGalleryAware
+    public class Tourismverein : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public string? RegionId { get; set; }
 
@@ -89,7 +89,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class Municipality : BaseInfos, IImageGalleryAware
+    public class Municipality : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public string? Plz { get; set; }
 
@@ -109,7 +109,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class District : BaseInfos, IImageGalleryAware
+    public class District : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public Nullable<bool> IsComune { get; set; }
 
@@ -167,7 +167,7 @@ namespace DataModel
         public ICollection<string>? PublishedOn { get; set; }
     }
 
-    public class SkiArea : BaseInfos, IImageGalleryAware, IContactInfosAware
+    public class SkiArea : BaseInfos, IImageGalleryAware, IContactInfosAware, IRelatedContentAware
     {
         public SkiArea()
         {
@@ -224,7 +224,7 @@ namespace DataModel
         public new LocationInfoLinked? LocationInfo { get; set; }
     }
 
-    public class SkiRegion : BaseInfos, IImageGalleryAware, IGpsPolygonAware
+    public class SkiRegion : BaseInfos, IImageGalleryAware, IGpsPolygonAware, IRelatedContentAware
     {
         public ICollection<GpsPolygon>? GpsPolygon { get; set; }
 
@@ -242,7 +242,8 @@ namespace DataModel
         : PoiBaseInfos,
             ILicenseInfo,
             IGPSPointsAware,
-            IHasAdditionalProperties               
+            IHasAdditionalProperties,
+            IRelatedContentAware
     {
         public ODHActivityPoi()
         {
@@ -312,9 +313,7 @@ namespace DataModel
         )]
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
     }
-
-    public interface IAdditionalProperties { }
-
+    
     public class PoiProperty
     {
         public string? Name { get; set; }

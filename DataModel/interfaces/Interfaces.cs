@@ -412,9 +412,19 @@ namespace DataModel
         ICollection<Tags> Tags { get; set; }
     }
 
+    public interface IRelatedContentAware
+    {
+        ICollection<RelatedContent> RelatedContent { get; set; }
+    }
+
     public interface IHasAdditionalProperties
     {
         IDictionary<string, dynamic> AdditionalProperties { get; set; }
+    }
+
+    public interface IHasLocationInfoLinked
+    {
+        LocationInfoLinked? LocationInfo { get; set; }
     }
 
     #endregion

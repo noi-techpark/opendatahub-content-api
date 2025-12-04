@@ -2,14 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using DataModel.Annotations;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
-using DataModel.Annotations;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace DataModel
 {
@@ -297,117 +298,7 @@ namespace DataModel
     #endregion
 
     #region Linked Main Classes
-
-    //Deprecated
-    //public class GastronomyLinked : Gastronomy, IMetaData, IGPSInfoAware, IGPSPointsAware
-    //{
-    //    public Metadata? _Meta { get; set; }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public string? Self
-    //    {
-    //        get { return this.Id != null ? "Gastronomy/" + Uri.EscapeDataString(this.Id) : null; }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public bool OdhActive
-    //    {
-    //        get { return this.SmgActive; }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public ICollection<ODHTags> ODHTags
-    //    {
-    //        get
-    //        {
-    //            return this.SmgTags != null
-    //                ? this
-    //                    .SmgTags.Select(x => new ODHTags() { Id = x, Self = "ODHTag/" + x })
-    //                    .ToList()
-    //                : new List<ODHTags>();
-    //        }
-    //    }
-
-    //    //Overwriting Categorycodes etc...
-    //    public new ICollection<CategoryCodesLinked>? CategoryCodes { get; set; }
-    //    public new ICollection<DishRatesLinked>? DishRates { get; set; }
-    //    public new ICollection<CapacityCeremonyLinked>? CapacityCeremony { get; set; }
-    //    public new ICollection<FacilitiesLinked>? Facilities { get; set; }
-
-    //    //Overwrites The LocationInfo
-    //    public new LocationInfoLinked? LocationInfo { get; set; }
-
-    //    public ICollection<GpsInfo> GpsInfo { get; set; }
-
-    //    //Overwrite Latitude/Longitude/
-    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public new string? Gpstype
-    //    {
-    //        get
-    //        {
-    //            return this.GpsInfo != null && this.GpsInfo.Count > 0
-    //                ? this.GpsInfo.FirstOrDefault().Gpstype
-    //                : null;
-    //        }
-    //    }
-
-    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public new double Latitude
-    //    {
-    //        get
-    //        {
-    //            return this.GpsInfo != null && this.GpsInfo.Count > 0
-    //                ? this.GpsInfo.FirstOrDefault().Latitude
-    //                : 0;
-    //        }
-    //    }
-
-    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public new double Longitude
-    //    {
-    //        get
-    //        {
-    //            return this.GpsInfo != null && this.GpsInfo.Count > 0
-    //                ? this.GpsInfo.FirstOrDefault().Longitude
-    //                : 0;
-    //        }
-    //    }
-
-    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public new Nullable<double> Altitude
-    //    {
-    //        get
-    //        {
-    //            return this.GpsInfo != null && this.GpsInfo.Count > 0
-    //                ? this.GpsInfo.FirstOrDefault().Altitude
-    //                : null;
-    //        }
-    //    }
-
-    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public new string? AltitudeUnitofMeasure
-    //    {
-    //        get
-    //        {
-    //            return this.GpsInfo != null && this.GpsInfo.Count > 0
-    //                ? this.GpsInfo.FirstOrDefault().AltitudeUnitofMeasure
-    //                : null;
-    //        }
-    //    }
-
-    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public IDictionary<string, GpsInfo> GpsPoints
-    //    {
-    //        get { return this.GpsInfo.ToGpsPointsDictionary(); }
-    //    }
-    //}
-
+  
     public class AccommodationLinked
         : Accommodation,
             IMetaData,
@@ -651,7 +542,9 @@ namespace DataModel
             IHasLocationInfoLinked,
             IHasTagInfo,
             IHasDistrictId,
-            IHasDistrictIds
+            IHasDistrictIds,
+            IHasAdditionalProperties,
+            IRelatedContentAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -809,41 +702,13 @@ namespace DataModel
         public ICollection<Tags>? Tags { get; set; }
 
         public ICollection<string>? TagIds { get; set; }
-    }
 
-    //Temporary class to remove
-    public class EventDBLinked : EventLinked
-    {
-        public new string? ClassificationRID { get; set; }
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
 
-        public new string? Ticket { get; set; }
-
-        public new string? SignOn { get; set; }
-
-        public new string? OrgRID { get; set; }
-
-        public List<LTSTagsLinked>? LTSTags { get; set; }
-
-        public new IDictionary<string, GpsInfo> GpsPoints { get; set; }
-
-        public new IDictionary<string, EventAdditionalInfosDB>? EventAdditionalInfos { get; set; }
-    }
-
-    //TO REMOVE
-    public class EventAdditionalInfosDB : IEventAdditionalInfos, ILanguage
-    {
-        public string? Mplace { get; set; }        
-        public string? Reg { get; set; }
-
-        public string? Location { get; set; }
-
-        public string? ServiceDescription { get; set; }
-        public string? WhatToBring { get; set; }
-        public string? CancellationModality { get; set; }
-
-        public string? Language { get; set; }
-    }
-
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+    }    
 
     public class VenueLinked : Venue, IMetaData, IHasLocationInfoLinked
     {
@@ -916,7 +781,9 @@ namespace DataModel
             IHasLocationInfoLinked,
             IHasTagInfo,
             IHasDistrictId,
-            IHasTourismorganizationId
+            IHasTourismorganizationId,
+            IHasAdditionalProperties,
+            IRelatedContentAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -1028,211 +895,7 @@ namespace DataModel
         }
     }
 
-    //public class LTSPoiLinked
-    //    : PoiBaseInfos,
-    //        IMetaData,
-    //        IGPSInfoAware,
-    //        IGPSPointsAware,
-    //        IHasLocationInfoLinked
-    //{
-    //    public Metadata? _Meta { get; set; }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public string? Self
-    //    {
-    //        get { return this.Id != null ? "Poi/" + Uri.EscapeDataString(this.Id) : null; }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public bool OdhActive
-    //    {
-    //        get { return this.SmgActive; }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public ICollection<ODHTags> ODHTags
-    //    {
-    //        get
-    //        {
-    //            return this.SmgTags != null
-    //                ? this
-    //                    .SmgTags.Select(x => new ODHTags() { Id = x, Self = "PoiTypes/" + x })
-    //                    .ToList()
-    //                : new List<ODHTags>();
-    //        }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public ICollection<ODHActivityPoiTypesLink> PoiTypes
-    //    {
-    //        get
-    //        {
-    //            var returnlist = new List<ODHActivityPoiTypesLink>();
-    //            returnlist.Add(
-    //                new ODHActivityPoiTypesLink()
-    //                {
-    //                    Id = this.Type,
-    //                    Self = "PoiTypes/" + Uri.EscapeDataString(this.Type),
-    //                    Type = "Type",
-    //                }
-    //            );
-    //            if (
-    //                !String.IsNullOrEmpty(this.SubType)
-    //                && this.SubType != "no Subtype"
-    //                && this.SubType != "Essen Trinken"
-    //            )
-    //                returnlist.Add(
-    //                    new ODHActivityPoiTypesLink()
-    //                    {
-    //                        Id = this.SubType,
-    //                        Self = "PoiTypes/" + Uri.EscapeDataString(this.SubType),
-    //                        Type = "SubType",
-    //                    }
-    //                );
-    //            if (!String.IsNullOrEmpty(this.PoiType))
-    //                returnlist.Add(
-    //                    new ODHActivityPoiTypesLink()
-    //                    {
-    //                        Id = this.PoiType,
-    //                        Self = "PoiTypes/" + Uri.EscapeDataString(this.PoiType),
-    //                        Type = "PoiType",
-    //                    }
-    //                );
-
-    //            return returnlist;
-    //        }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public ICollection<AreaLink> Areas
-    //    {
-    //        get
-    //        {
-    //            return this.AreaId != null
-    //                ? this
-    //                    .AreaId.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
-    //                    .ToList()
-    //                : new List<AreaLink>();
-    //        }
-    //    }
-
-    //    //Overwrites The LocationInfo
-    //    public new LocationInfoLinked? LocationInfo { get; set; }
-
-    //    //Overwrites LTSTags
-    //    public new List<LTSTagsLinked>? LTSTags { get; set; }
-
-    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public IDictionary<string, GpsInfo> GpsPoints
-    //    {
-    //        get { return this.GpsInfo.ToGpsPointsDictionary(true); }
-    //    }
-    //}
-
-    //public class LTSActivityLinked
-    //    : PoiBaseInfos,
-    //        IMetaData,
-    //        IGPSInfoAware,
-    //        IGPSPointsAware,
-    //        IHasLocationInfoLinked
-    //{
-    //    public Metadata? _Meta { get; set; }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public string? Self
-    //    {
-    //        get { return this.Id != null ? "Activity/" + Uri.EscapeDataString(this.Id) : null; }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public bool OdhActive
-    //    {
-    //        get { return this.SmgActive; }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public ICollection<ODHTags> ODHTags
-    //    {
-    //        get
-    //        {
-    //            return this.SmgTags != null
-    //                ? this
-    //                    .SmgTags.Select(x => new ODHTags() { Id = x, Self = "ActivityTypes/" + x })
-    //                    .ToList()
-    //                : new List<ODHTags>();
-    //        }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public ICollection<ODHActivityPoiTypesLink> ActivityTypes
-    //    {
-    //        get
-    //        {
-    //            var returnlist = new List<ODHActivityPoiTypesLink>();
-    //            returnlist.Add(
-    //                new ODHActivityPoiTypesLink()
-    //                {
-    //                    Id = this.Type,
-    //                    Self = "ActivityTypes/" + Uri.EscapeDataString(this.Type),
-    //                    Type = "Type",
-    //                }
-    //            );
-    //            if (
-    //                !String.IsNullOrEmpty(this.SubType)
-    //                && this.SubType != "no Subtype"
-    //                && this.SubType != "Essen Trinken"
-    //            )
-    //                returnlist.Add(
-    //                    new ODHActivityPoiTypesLink()
-    //                    {
-    //                        Id = this.SubType,
-    //                        Self = "ActivityTypes/" + Uri.EscapeDataString(this.SubType),
-    //                        Type = "SubType",
-    //                    }
-    //                );
-    //            if (!String.IsNullOrEmpty(this.PoiType))
-    //                returnlist.Add(
-    //                    new ODHActivityPoiTypesLink()
-    //                    {
-    //                        Id = this.PoiType,
-    //                        Self = "ActivityTypes/" + Uri.EscapeDataString(this.PoiType),
-    //                        Type = "PoiType",
-    //                    }
-    //                );
-
-    //            return returnlist;
-    //        }
-    //    }
-
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public ICollection<AreaLink> Areas
-    //    {
-    //        get
-    //        {
-    //            return this.AreaId != null
-    //                ? this
-    //                    .AreaId.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
-    //                    .ToList()
-    //                : new List<AreaLink>();
-    //        }
-    //    }
-
-    //    //Overwrites The LocationInfo
-    //    public new LocationInfoLinked? LocationInfo { get; set; }
-
-    //    //Overwrites LTSTags
-    //    public new List<LTSTagsLinked>? LTSTags { get; set; }
-
-    //    [SwaggerDeprecated("Deprecated, use GpsInfo")]
-    //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-    //    public IDictionary<string, GpsInfo> GpsPoints
-    //    {
-    //        get { return this.GpsInfo.ToGpsPointsDictionary(true); }
-    //    }
-    //}
-
-    public class ArticlesLinked : Article, IMetaData, IHasTagInfo
+     public class ArticlesLinked : Article, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -1315,9 +978,15 @@ namespace DataModel
         public ICollection<Tags>? Tags { get; set; }
 
         public ICollection<string>? TagIds { get; set; }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class DistrictLinked : District, IMetaData, IGPSPointsAware, IGPSInfoAware
+    public class DistrictLinked : District, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -1461,9 +1130,12 @@ namespace DataModel
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class MunicipalityLinked : Municipality, IMetaData, IGPSPointsAware, IGPSInfoAware
+    public class MunicipalityLinked : Municipality, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -1592,9 +1264,12 @@ namespace DataModel
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class TourismvereinLinked : Tourismverein, IMetaData, IGPSPointsAware, IGPSInfoAware
+    public class TourismvereinLinked : Tourismverein, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -1726,9 +1401,12 @@ namespace DataModel
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class RegionLinked : Region, IMetaData, IGPSPointsAware, IGPSInfoAware
+    public class RegionLinked : Region, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -1840,9 +1518,12 @@ namespace DataModel
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class MetaRegionLinked : MetaRegion, IMetaData, IGPSPointsAware, IGPSInfoAware
+    public class MetaRegionLinked : MetaRegion, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -1988,9 +1669,12 @@ namespace DataModel
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class ExperienceAreaLinked : ExperienceArea, IMetaData, IGPSPointsAware, IGPSInfoAware
+    public class ExperienceAreaLinked : ExperienceArea, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -2126,6 +1810,9 @@ namespace DataModel
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
     public class AreaLinked : Area, IMetaData
@@ -2205,7 +1892,7 @@ namespace DataModel
         }
     }
 
-    public class SkiAreaLinked : SkiArea, IMetaData, IGPSPointsAware, IGPSInfoAware
+    public class SkiAreaLinked : SkiArea, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -2364,9 +2051,12 @@ namespace DataModel
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class SkiRegionLinked : SkiRegion, IMetaData, IGPSPointsAware, IGPSInfoAware
+    public class SkiRegionLinked : SkiRegion, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -2465,9 +2155,12 @@ namespace DataModel
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class WebcamInfoLinked : WebcamInfo, IMetaData, IHasTagInfo
+    public class WebcamInfoLinked : WebcamInfo, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -2512,6 +2205,13 @@ namespace DataModel
         public ICollection<Tags>? Tags { get; set; }
 
         public ICollection<string>? TagIds { get; set; }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
+
     }
 
     public class MeasuringpointLinked
@@ -2628,7 +2328,7 @@ namespace DataModel
         }
     }
 
-    public class WineLinked : Wine, IMetaData
+    public class WineLinked : Wine, IMetaData, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -2658,9 +2358,15 @@ namespace DataModel
                     };
             }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class EventShortLinked : EventShort, IMetaData, IHasTagInfo
+    public class EventShortLinked : EventShort, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -2716,6 +2422,13 @@ namespace DataModel
                     return null;
             }
         }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
+
     }
 
     public class WeatherLinked : Weather, IMetaData
@@ -2955,13 +2668,358 @@ namespace DataModel
     }
 
     #endregion
-
-    #region interfaces
-
-    public interface IHasLocationInfoLinked
-    {
-        LocationInfoLinked? LocationInfo { get; set; }
-    }
-
-    #endregion
 }
+
+
+#region obsolete toremove
+
+////Temporary class to remove
+//public class EventDBLinked : EventLinked
+//{
+//    public new string? ClassificationRID { get; set; }
+
+//    public new string? Ticket { get; set; }
+
+//    public new string? SignOn { get; set; }
+
+//    public new string? OrgRID { get; set; }
+
+//    public List<LTSTagsLinked>? LTSTags { get; set; }
+
+//    public new IDictionary<string, GpsInfo> GpsPoints { get; set; }
+
+//    public new IDictionary<string, EventAdditionalInfosDB>? EventAdditionalInfos { get; set; }
+//}
+
+////TO REMOVE
+//public class EventAdditionalInfosDB : IEventAdditionalInfos, ILanguage
+//{
+//    public string? Mplace { get; set; }
+//    public string? Reg { get; set; }
+
+//    public string? Location { get; set; }
+
+//    public string? ServiceDescription { get; set; }
+//    public string? WhatToBring { get; set; }
+//    public string? CancellationModality { get; set; }
+
+//    public string? Language { get; set; }
+//}
+
+//Deprecated
+//public class GastronomyLinked : Gastronomy, IMetaData, IGPSInfoAware, IGPSPointsAware
+//{
+//    public Metadata? _Meta { get; set; }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public string? Self
+//    {
+//        get { return this.Id != null ? "Gastronomy/" + Uri.EscapeDataString(this.Id) : null; }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public bool OdhActive
+//    {
+//        get { return this.SmgActive; }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public ICollection<ODHTags> ODHTags
+//    {
+//        get
+//        {
+//            return this.SmgTags != null
+//                ? this
+//                    .SmgTags.Select(x => new ODHTags() { Id = x, Self = "ODHTag/" + x })
+//                    .ToList()
+//                : new List<ODHTags>();
+//        }
+//    }
+
+//    //Overwriting Categorycodes etc...
+//    public new ICollection<CategoryCodesLinked>? CategoryCodes { get; set; }
+//    public new ICollection<DishRatesLinked>? DishRates { get; set; }
+//    public new ICollection<CapacityCeremonyLinked>? CapacityCeremony { get; set; }
+//    public new ICollection<FacilitiesLinked>? Facilities { get; set; }
+
+//    //Overwrites The LocationInfo
+//    public new LocationInfoLinked? LocationInfo { get; set; }
+
+//    public ICollection<GpsInfo> GpsInfo { get; set; }
+
+//    //Overwrite Latitude/Longitude/
+//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public new string? Gpstype
+//    {
+//        get
+//        {
+//            return this.GpsInfo != null && this.GpsInfo.Count > 0
+//                ? this.GpsInfo.FirstOrDefault().Gpstype
+//                : null;
+//        }
+//    }
+
+//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public new double Latitude
+//    {
+//        get
+//        {
+//            return this.GpsInfo != null && this.GpsInfo.Count > 0
+//                ? this.GpsInfo.FirstOrDefault().Latitude
+//                : 0;
+//        }
+//    }
+
+//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public new double Longitude
+//    {
+//        get
+//        {
+//            return this.GpsInfo != null && this.GpsInfo.Count > 0
+//                ? this.GpsInfo.FirstOrDefault().Longitude
+//                : 0;
+//        }
+//    }
+
+//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public new Nullable<double> Altitude
+//    {
+//        get
+//        {
+//            return this.GpsInfo != null && this.GpsInfo.Count > 0
+//                ? this.GpsInfo.FirstOrDefault().Altitude
+//                : null;
+//        }
+//    }
+
+//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public new string? AltitudeUnitofMeasure
+//    {
+//        get
+//        {
+//            return this.GpsInfo != null && this.GpsInfo.Count > 0
+//                ? this.GpsInfo.FirstOrDefault().AltitudeUnitofMeasure
+//                : null;
+//        }
+//    }
+
+//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public IDictionary<string, GpsInfo> GpsPoints
+//    {
+//        get { return this.GpsInfo.ToGpsPointsDictionary(); }
+//    }
+//}
+
+
+//public class LTSPoiLinked
+//    : PoiBaseInfos,
+//        IMetaData,
+//        IGPSInfoAware,
+//        IGPSPointsAware,
+//        IHasLocationInfoLinked
+//{
+//    public Metadata? _Meta { get; set; }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public string? Self
+//    {
+//        get { return this.Id != null ? "Poi/" + Uri.EscapeDataString(this.Id) : null; }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public bool OdhActive
+//    {
+//        get { return this.SmgActive; }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public ICollection<ODHTags> ODHTags
+//    {
+//        get
+//        {
+//            return this.SmgTags != null
+//                ? this
+//                    .SmgTags.Select(x => new ODHTags() { Id = x, Self = "PoiTypes/" + x })
+//                    .ToList()
+//                : new List<ODHTags>();
+//        }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public ICollection<ODHActivityPoiTypesLink> PoiTypes
+//    {
+//        get
+//        {
+//            var returnlist = new List<ODHActivityPoiTypesLink>();
+//            returnlist.Add(
+//                new ODHActivityPoiTypesLink()
+//                {
+//                    Id = this.Type,
+//                    Self = "PoiTypes/" + Uri.EscapeDataString(this.Type),
+//                    Type = "Type",
+//                }
+//            );
+//            if (
+//                !String.IsNullOrEmpty(this.SubType)
+//                && this.SubType != "no Subtype"
+//                && this.SubType != "Essen Trinken"
+//            )
+//                returnlist.Add(
+//                    new ODHActivityPoiTypesLink()
+//                    {
+//                        Id = this.SubType,
+//                        Self = "PoiTypes/" + Uri.EscapeDataString(this.SubType),
+//                        Type = "SubType",
+//                    }
+//                );
+//            if (!String.IsNullOrEmpty(this.PoiType))
+//                returnlist.Add(
+//                    new ODHActivityPoiTypesLink()
+//                    {
+//                        Id = this.PoiType,
+//                        Self = "PoiTypes/" + Uri.EscapeDataString(this.PoiType),
+//                        Type = "PoiType",
+//                    }
+//                );
+
+//            return returnlist;
+//        }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public ICollection<AreaLink> Areas
+//    {
+//        get
+//        {
+//            return this.AreaId != null
+//                ? this
+//                    .AreaId.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
+//                    .ToList()
+//                : new List<AreaLink>();
+//        }
+//    }
+
+//    //Overwrites The LocationInfo
+//    public new LocationInfoLinked? LocationInfo { get; set; }
+
+//    //Overwrites LTSTags
+//    public new List<LTSTagsLinked>? LTSTags { get; set; }
+
+//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public IDictionary<string, GpsInfo> GpsPoints
+//    {
+//        get { return this.GpsInfo.ToGpsPointsDictionary(true); }
+//    }
+//}
+
+//public class LTSActivityLinked
+//    : PoiBaseInfos,
+//        IMetaData,
+//        IGPSInfoAware,
+//        IGPSPointsAware,
+//        IHasLocationInfoLinked
+//{
+//    public Metadata? _Meta { get; set; }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public string? Self
+//    {
+//        get { return this.Id != null ? "Activity/" + Uri.EscapeDataString(this.Id) : null; }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public bool OdhActive
+//    {
+//        get { return this.SmgActive; }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public ICollection<ODHTags> ODHTags
+//    {
+//        get
+//        {
+//            return this.SmgTags != null
+//                ? this
+//                    .SmgTags.Select(x => new ODHTags() { Id = x, Self = "ActivityTypes/" + x })
+//                    .ToList()
+//                : new List<ODHTags>();
+//        }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public ICollection<ODHActivityPoiTypesLink> ActivityTypes
+//    {
+//        get
+//        {
+//            var returnlist = new List<ODHActivityPoiTypesLink>();
+//            returnlist.Add(
+//                new ODHActivityPoiTypesLink()
+//                {
+//                    Id = this.Type,
+//                    Self = "ActivityTypes/" + Uri.EscapeDataString(this.Type),
+//                    Type = "Type",
+//                }
+//            );
+//            if (
+//                !String.IsNullOrEmpty(this.SubType)
+//                && this.SubType != "no Subtype"
+//                && this.SubType != "Essen Trinken"
+//            )
+//                returnlist.Add(
+//                    new ODHActivityPoiTypesLink()
+//                    {
+//                        Id = this.SubType,
+//                        Self = "ActivityTypes/" + Uri.EscapeDataString(this.SubType),
+//                        Type = "SubType",
+//                    }
+//                );
+//            if (!String.IsNullOrEmpty(this.PoiType))
+//                returnlist.Add(
+//                    new ODHActivityPoiTypesLink()
+//                    {
+//                        Id = this.PoiType,
+//                        Self = "ActivityTypes/" + Uri.EscapeDataString(this.PoiType),
+//                        Type = "PoiType",
+//                    }
+//                );
+
+//            return returnlist;
+//        }
+//    }
+
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public ICollection<AreaLink> Areas
+//    {
+//        get
+//        {
+//            return this.AreaId != null
+//                ? this
+//                    .AreaId.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
+//                    .ToList()
+//                : new List<AreaLink>();
+//        }
+//    }
+
+//    //Overwrites The LocationInfo
+//    public new LocationInfoLinked? LocationInfo { get; set; }
+
+//    //Overwrites LTSTags
+//    public new List<LTSTagsLinked>? LTSTags { get; set; }
+
+//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+//    public IDictionary<string, GpsInfo> GpsPoints
+//    {
+//        get { return this.GpsInfo.ToGpsPointsDictionary(true); }
+//    }
+//}
+
+
+#endregion

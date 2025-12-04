@@ -2188,236 +2188,7 @@ namespace OdhApiImporter.Helpers
 
 
         #endregion
-
-        #region Event Datamodel change
-
-        public async Task<Tuple<int, string>> UpdateAllEventstonewDataModel(string? id)
-        {
-            //Load all data from PG and resave
-            var query = QueryFactory.Query().SelectRaw("data").From("events")
-                .When(!String.IsNullOrEmpty(id), x => x.WhereRaw("gen_id ILIKE $$", id + "%"));
-
-            var data = await query.GetObjectListAsync<EventDBLinked>();
-            int i = 0;
-
-            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
-
-            foreach (var myevent in data)
-            {
-                results.Add(await UpdateEventToNewDataModel(myevent));                 
-            }
-
-            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
-            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
-
-            return Tuple.Create(updatedcount, String.Join(",", failed));
-        }
-
-        public async Task<Tuple<int,string>> UpdateEventToNewDataModel(EventDBLinked myevent)
-        {
-            string reduced = "";
-            //If it is a reduced object
-            if (myevent._Meta.Reduced)
-                reduced = "_REDUCED";
-
-            try
-            {
-                //Save tp DB
-                //TODO Add all missing values
-                var event2 = new EventLinked();
-                //event2.Altitude = myevent.Altitude;
-                event2.Active = myevent.Active;
-                event2.TagIds = myevent.TagIds;
-
-                if (event2.TagIds == null)
-                    event2.TagIds = new List<string>();
-
-                //
-                event2.EventDate = myevent.EventDate;
-                event2.ContactInfos = myevent.ContactInfos;
-                event2.DateBegin = myevent.DateBegin;
-                event2.DateEnd = myevent.DateEnd;
-                event2.Detail = myevent.Detail;
-                event2.DistanceInfo = myevent.DistanceInfo;
-                event2.DistrictId = myevent.DistrictId;
-                event2.DistrictIds = myevent.DistrictIds;
-
-                if (myevent.EventAdditionalInfos != null)
-                {
-                    event2.EventAdditionalInfos = new Dictionary<string, EventAdditionalInfos>();
-
-                    foreach (var kvp in myevent.EventAdditionalInfos)
-                    {
-                        event2.EventAdditionalInfos.TryAddOrUpdate(kvp.Key, new EventAdditionalInfos()
-                        {
-                            Language = kvp.Value.Language,
-                            Registration = kvp.Value.Reg,
-                            CancellationModality = kvp.Value.CancellationModality,
-                            Location = kvp.Value.Location,
-                            MeetingPoint = kvp.Value.Mplace,
-                            ServiceDescription = kvp.Value.ServiceDescription,
-                            WhatToBring = kvp.Value.WhatToBring
-                        });
-                    }
-                }
-
-
-                event2.EventBooking = myevent.EventBooking;
-                event2.EventDate = myevent.EventDate;
-                //event2.EventDateCounter = myevent.EventDateCounter;
-                //event2.EventDatesBegin = myevent.EventDatesBegin;
-                //event2.EventDatesEnd = myevent.EventDatesEnd;
-                event2.EventPrice = myevent.EventPrice;
-                event2.EventProperty = new EventProperty();
-                event2.EventPublisher = myevent.EventPublisher;
-
-                if (event2.EventPublisher != null)
-                {
-                    foreach (var publisher in event2.EventPublisher)
-                    {
-                        if (publisher.Publish == 1)
-                        publisher.PublicationStatus = "suggestedForPublication";
-                        if (publisher.Publish == 2)
-                            publisher.PublicationStatus = "approved";
-                        if (publisher.Publish == 3)
-                            publisher.PublicationStatus = "rejected";
-                    }
-                }
-
-                event2.EventUrls = myevent.EventUrls;
-                event2.EventVariants = myevent.EventVariants;
-
-                if (myevent.EventVariants == null && myevent.EventPrice != null)
-                {
-                    //Transform EventPrice to Variant not needed
-                }
-
-
-                event2.FirstImport = myevent.FirstImport;
-
-                if (myevent.GpsInfo == null && myevent.GpsPoints != null)
-                {
-                    event2.GpsInfo = new List<GpsInfo>();
-                    foreach (var kvp in myevent.GpsPoints)
-                    {
-                        event2.GpsInfo.Add(new GpsInfo() { Altitude = kvp.Value.Altitude, AltitudeUnitofMeasure = kvp.Value.AltitudeUnitofMeasure, Gpstype = kvp.Value.Gpstype, Latitude = kvp.Value.Latitude, Longitude = kvp.Value.Longitude });
-                    }
-                }
-                else
-                    event2.GpsInfo = myevent.GpsInfo;
-
-
-                //event2.GpsPoints = myevent.GpsPoints;
-                //event2.Gpstype = myevent.Gpstype;
-                event2.HasLanguage = myevent.HasLanguage;
-                event2.Id = myevent.Id;
-                event2.ImageGallery = myevent.ImageGallery;
-                event2.LastChange = myevent.LastChange;
-                //event2.Latitude = myevent.Latitude;                
-                event2.LicenseInfo = myevent.LicenseInfo;
-                event2.LocationInfo = myevent.LocationInfo;
-                //event2.Longitude = myevent.Longitude;
-                event2.Mapping = myevent.Mapping;
-                //event2.OdhActive = myevent.OdhActive;
-                //event2.ODHTags = myevent.ODHTags; 
-                event2.OrganizerInfos = myevent.OrganizerInfos;
-                event2.EventProperty.EventOrganizerId = myevent.OrgRID;
-                event2.EventProperty.EventClassificationId = myevent.ClassificationRID;
-                event2.EventProperty.RegistrationRequired = myevent.SignOn != null ? myevent.SignOn == "1" ? true : false : null;
-                event2.EventProperty.TicketRequired = myevent.Ticket != null ? myevent.Ticket == "1" ? true : false : null;
-
-                event2.PublishedOn = myevent.PublishedOn;
-                event2.Shortname = myevent.Shortname;
-
-                event2.SmgActive = myevent.SmgActive;
-                event2.SmgTags = myevent.SmgTags;
-                event2.Source = myevent.Source;
-
-                event2.Tags = myevent.Tags;
-
-                event2.TopicRIDs = myevent.TopicRIDs;
-                event2.Topics = myevent.Topics;
-                event2._Meta = myevent._Meta;
-
-                //Adding EventClassification to Tags
-                if (!String.IsNullOrEmpty(myevent.ClassificationRID) && !event2.TagIds.Contains(myevent.ClassificationRID))
-                    event2.TagIds.Add(myevent.ClassificationRID);
-                //Adding EventTopics to TAgs
-                if (myevent.TopicRIDs != null)
-                {
-                    foreach (var topic in myevent.TopicRIDs)
-                        if(!event2.TagIds.Contains(topic))
-                                event2.TagIds.Add(topic);
-                }
-
-                //Adding LTSTags to Tags
-                if (myevent.LTSTags != null)
-                {
-                    foreach (var ltstag in myevent.LTSTags)
-                    {
-                        if (!String.IsNullOrEmpty(ltstag.LTSRID))
-                            if (!event2.TagIds.Contains(ltstag.LTSRID))
-                                event2.TagIds.Add(ltstag.LTSRID);
-                    }
-                }
-
-                //LicenseInfo Fix
-                if (event2.LicenseInfo != null)
-                {
-                    if (myevent.Source == "lts")
-                    {
-                        if (myevent._Meta.Reduced)
-                        {
-                            event2.LicenseInfo.License = "CC0";
-                            event2.LicenseInfo.ClosedData = false;
-                            event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
-                        }
-                        else
-                        {
-                            event2.LicenseInfo.License = "Closed";
-                            event2.LicenseInfo.ClosedData = false;
-                            event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
-                        }
-                    }
-                }
-
-                //Recalculate Tags                
-                await event2.UpdateTagsExtension(QueryFactory);
-
-                //If Reduced use the ID without reduced
-                if (myevent._Meta.Reduced)
-                {
-                    event2.Id = event2.Id.Replace("_REDUCED", "");
-                    event2._Meta.Id = event2.Id.Replace("_REDUCED", "");
-                }
-
-
-                var idtoupdate = event2.Id;
-                if(!event2.Id.Contains("_REDUCED"))
-                    idtoupdate = event2.Id + reduced;
-
-                var queryresult = await QueryFactory
-                    .Query("events")
-                    .Where("id", idtoupdate)
-                    //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
-                    .UpdateAsync(
-                        new JsonBData()
-                        {
-                            id = idtoupdate,
-                            data = new JsonRaw(event2),
-                        }
-                    );
-
-                return Tuple.Create<int, string>(queryresult, event2.Id + reduced);
-            }
-            catch(Exception ex)
-            {
-                return Tuple.Create<int, string>(0, myevent.Id + reduced);
-            }
-        }
-
-        #endregion
-
+   
         #region WineAward
 
         public async Task<int> UpdateAllWineAwardIds()
@@ -2868,6 +2639,235 @@ namespace OdhApiImporter.Helpers
     //    return i;
     //}
 
-
     #endregion
-}
+
+    #region Event Datamodel change
+
+        //public async Task<Tuple<int, string>> UpdateAllEventstonewDataModel(string? id)
+        //{
+        //    //Load all data from PG and resave
+        //    var query = QueryFactory.Query().SelectRaw("data").From("events")
+        //        .When(!String.IsNullOrEmpty(id), x => x.WhereRaw("gen_id ILIKE $$", id + "%"));
+
+        //    var data = await query.GetObjectListAsync<EventDBLinked>();
+        //    int i = 0;
+
+        //    List<Tuple<int, string>> results = new List<Tuple<int, string>>();
+
+        //    foreach (var myevent in data)
+        //    {
+        //        results.Add(await UpdateEventToNewDataModel(myevent));
+        //    }
+
+        //    var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
+        //    var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
+
+        //    return Tuple.Create(updatedcount, String.Join(",", failed));
+        //}
+
+        //public async Task<Tuple<int, string>> UpdateEventToNewDataModel(EventDBLinked myevent)
+        //{
+        //    string reduced = "";
+        //    //If it is a reduced object
+        //    if (myevent._Meta.Reduced)
+        //        reduced = "_REDUCED";
+
+        //    try
+        //    {
+        //        //Save tp DB
+        //        //TODO Add all missing values
+        //        var event2 = new EventLinked();
+        //        //event2.Altitude = myevent.Altitude;
+        //        event2.Active = myevent.Active;
+        //        event2.TagIds = myevent.TagIds;
+
+        //        if (event2.TagIds == null)
+        //            event2.TagIds = new List<string>();
+
+        //        //
+        //        event2.EventDate = myevent.EventDate;
+        //        event2.ContactInfos = myevent.ContactInfos;
+        //        event2.DateBegin = myevent.DateBegin;
+        //        event2.DateEnd = myevent.DateEnd;
+        //        event2.Detail = myevent.Detail;
+        //        event2.DistanceInfo = myevent.DistanceInfo;
+        //        event2.DistrictId = myevent.DistrictId;
+        //        event2.DistrictIds = myevent.DistrictIds;
+
+        //        if (myevent.EventAdditionalInfos != null)
+        //        {
+        //            event2.EventAdditionalInfos = new Dictionary<string, EventAdditionalInfos>();
+
+        //            foreach (var kvp in myevent.EventAdditionalInfos)
+        //            {
+        //                event2.EventAdditionalInfos.TryAddOrUpdate(kvp.Key, new EventAdditionalInfos()
+        //                {
+        //                    Language = kvp.Value.Language,
+        //                    Registration = kvp.Value.Reg,
+        //                    CancellationModality = kvp.Value.CancellationModality,
+        //                    Location = kvp.Value.Location,
+        //                    MeetingPoint = kvp.Value.Mplace,
+        //                    ServiceDescription = kvp.Value.ServiceDescription,
+        //                    WhatToBring = kvp.Value.WhatToBring
+        //                });
+        //            }
+        //        }
+
+
+        //        event2.EventBooking = myevent.EventBooking;
+        //        event2.EventDate = myevent.EventDate;
+        //        //event2.EventDateCounter = myevent.EventDateCounter;
+        //        //event2.EventDatesBegin = myevent.EventDatesBegin;
+        //        //event2.EventDatesEnd = myevent.EventDatesEnd;
+        //        event2.EventPrice = myevent.EventPrice;
+        //        event2.EventProperty = new EventProperty();
+        //        event2.EventPublisher = myevent.EventPublisher;
+
+        //        if (event2.EventPublisher != null)
+        //        {
+        //            foreach (var publisher in event2.EventPublisher)
+        //            {
+        //                if (publisher.Publish == 1)
+        //                    publisher.PublicationStatus = "suggestedForPublication";
+        //                if (publisher.Publish == 2)
+        //                    publisher.PublicationStatus = "approved";
+        //                if (publisher.Publish == 3)
+        //                    publisher.PublicationStatus = "rejected";
+        //            }
+        //        }
+
+        //        event2.EventUrls = myevent.EventUrls;
+        //        event2.EventVariants = myevent.EventVariants;
+
+        //        if (myevent.EventVariants == null && myevent.EventPrice != null)
+        //        {
+        //            //Transform EventPrice to Variant not needed
+        //        }
+
+
+        //        event2.FirstImport = myevent.FirstImport;
+
+        //        if (myevent.GpsInfo == null && myevent.GpsPoints != null)
+        //        {
+        //            event2.GpsInfo = new List<GpsInfo>();
+        //            foreach (var kvp in myevent.GpsPoints)
+        //            {
+        //                event2.GpsInfo.Add(new GpsInfo() { Altitude = kvp.Value.Altitude, AltitudeUnitofMeasure = kvp.Value.AltitudeUnitofMeasure, Gpstype = kvp.Value.Gpstype, Latitude = kvp.Value.Latitude, Longitude = kvp.Value.Longitude });
+        //            }
+        //        }
+        //        else
+        //            event2.GpsInfo = myevent.GpsInfo;
+
+
+        //        //event2.GpsPoints = myevent.GpsPoints;
+        //        //event2.Gpstype = myevent.Gpstype;
+        //        event2.HasLanguage = myevent.HasLanguage;
+        //        event2.Id = myevent.Id;
+        //        event2.ImageGallery = myevent.ImageGallery;
+        //        event2.LastChange = myevent.LastChange;
+        //        //event2.Latitude = myevent.Latitude;                
+        //        event2.LicenseInfo = myevent.LicenseInfo;
+        //        event2.LocationInfo = myevent.LocationInfo;
+        //        //event2.Longitude = myevent.Longitude;
+        //        event2.Mapping = myevent.Mapping;
+        //        //event2.OdhActive = myevent.OdhActive;
+        //        //event2.ODHTags = myevent.ODHTags; 
+        //        event2.OrganizerInfos = myevent.OrganizerInfos;
+        //        event2.EventProperty.EventOrganizerId = myevent.OrgRID;
+        //        event2.EventProperty.EventClassificationId = myevent.ClassificationRID;
+        //        event2.EventProperty.RegistrationRequired = myevent.SignOn != null ? myevent.SignOn == "1" ? true : false : null;
+        //        event2.EventProperty.TicketRequired = myevent.Ticket != null ? myevent.Ticket == "1" ? true : false : null;
+
+        //        event2.PublishedOn = myevent.PublishedOn;
+        //        event2.Shortname = myevent.Shortname;
+
+        //        event2.SmgActive = myevent.SmgActive;
+        //        event2.SmgTags = myevent.SmgTags;
+        //        event2.Source = myevent.Source;
+
+        //        event2.Tags = myevent.Tags;
+
+        //        event2.TopicRIDs = myevent.TopicRIDs;
+        //        event2.Topics = myevent.Topics;
+        //        event2._Meta = myevent._Meta;
+
+        //        //Adding EventClassification to Tags
+        //        if (!String.IsNullOrEmpty(myevent.ClassificationRID) && !event2.TagIds.Contains(myevent.ClassificationRID))
+        //            event2.TagIds.Add(myevent.ClassificationRID);
+        //        //Adding EventTopics to TAgs
+        //        if (myevent.TopicRIDs != null)
+        //        {
+        //            foreach (var topic in myevent.TopicRIDs)
+        //                if (!event2.TagIds.Contains(topic))
+        //                    event2.TagIds.Add(topic);
+        //        }
+
+        //        //Adding LTSTags to Tags
+        //        if (myevent.LTSTags != null)
+        //        {
+        //            foreach (var ltstag in myevent.LTSTags)
+        //            {
+        //                if (!String.IsNullOrEmpty(ltstag.LTSRID))
+        //                    if (!event2.TagIds.Contains(ltstag.LTSRID))
+        //                        event2.TagIds.Add(ltstag.LTSRID);
+        //            }
+        //        }
+
+        //        //LicenseInfo Fix
+        //        if (event2.LicenseInfo != null)
+        //        {
+        //            if (myevent.Source == "lts")
+        //            {
+        //                if (myevent._Meta.Reduced)
+        //                {
+        //                    event2.LicenseInfo.License = "CC0";
+        //                    event2.LicenseInfo.ClosedData = false;
+        //                    event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
+        //                }
+        //                else
+        //                {
+        //                    event2.LicenseInfo.License = "Closed";
+        //                    event2.LicenseInfo.ClosedData = false;
+        //                    event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
+        //                }
+        //            }
+        //        }
+
+        //        //Recalculate Tags                
+        //        await event2.UpdateTagsExtension(QueryFactory);
+
+        //        //If Reduced use the ID without reduced
+        //        if (myevent._Meta.Reduced)
+        //        {
+        //            event2.Id = event2.Id.Replace("_REDUCED", "");
+        //            event2._Meta.Id = event2.Id.Replace("_REDUCED", "");
+        //        }
+
+
+        //        var idtoupdate = event2.Id;
+        //        if (!event2.Id.Contains("_REDUCED"))
+        //            idtoupdate = event2.Id + reduced;
+
+        //        var queryresult = await QueryFactory
+        //            .Query("events")
+        //            .Where("id", idtoupdate)
+        //            //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+        //            .UpdateAsync(
+        //                new JsonBData()
+        //                {
+        //                    id = idtoupdate,
+        //                    data = new JsonRaw(event2),
+        //                }
+        //            );
+
+        //        return Tuple.Create<int, string>(queryresult, event2.Id + reduced);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Tuple.Create<int, string>(0, myevent.Id + reduced);
+        //    }
+        //}
+
+        #endregion
+
+    }
