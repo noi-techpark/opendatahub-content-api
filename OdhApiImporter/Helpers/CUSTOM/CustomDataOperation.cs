@@ -2504,7 +2504,7 @@ namespace OdhApiImporter.Helpers
         }
 
         public async Task<Tuple<int, string>> UpdateVenueToNewDataModel(VenueLinked venue)
-        {            
+        {
             try
             {
                 string reduced = "";
@@ -2535,8 +2535,8 @@ namespace OdhApiImporter.Helpers
                 venue2.Shortname = venue.Shortname;
                 venue2.Source = venue.Source;
                 venue2._Meta = venue._Meta;
-                
-                if(venue.RoomDetails != null)
+
+                if (venue.RoomDetails != null)
                 {
                     venue2.RoomDetails = new List<VenueRoomDetailsV2>();
 
@@ -2551,11 +2551,11 @@ namespace OdhApiImporter.Helpers
                         roomdetailv2.VenueRoomProperties = new VenueRoomProperties();
                         roomdetailv2.VenueRoomProperties.SquareMeters = roomdetail.SquareMeters;
                         roomdetailv2.Placement = roomdetail.Indoor != null && roomdetail.Indoor.Value ? "indoor" : null;
-                                                                       
+
                         //Roomdeatil VenueFeature
                         if (roomdetail.VenueFeatures != null)
                         {
-                            if(roomdetailv2.TagIds == null)
+                            if (roomdetailv2.TagIds == null)
                                 roomdetailv2.TagIds = new List<string>();
 
                             foreach (var venuefeat in roomdetail.VenueFeatures)
@@ -2576,7 +2576,7 @@ namespace OdhApiImporter.Helpers
                                 roomdetailv2.TagIds.Add(venuesetup.Id);
                                 roomdetailv2.Tags.Add(new Tags() { Id = venuesetup.Id, TagEntry = new Dictionary<string, string>() { { "maxCapacity", venuesetup.Capacity.ToString() } } });
                             }
-                        }                        
+                        }
 
                         //Create Tags
                         await roomdetailv2.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(roomdetailv2));
@@ -2584,10 +2584,10 @@ namespace OdhApiImporter.Helpers
                         venue2.RoomDetails.Add(roomdetailv2);
                     }
                 }
-                
+
 
                 //venue.VenueCategory
-                if(venue.VenueCategory != null)
+                if (venue.VenueCategory != null)
                 {
                     venue2.TagIds = new List<string>();
                     foreach (var venuecat in venue.VenueCategory)
@@ -2595,7 +2595,7 @@ namespace OdhApiImporter.Helpers
                         venue2.TagIds.Add(venuecat.Id);
                     }
                 }
-                
+
                 //Create Tags
                 await venue2.UpdateTagsExtension(QueryFactory);
 
@@ -2625,7 +2625,7 @@ namespace OdhApiImporter.Helpers
                 //Clear the table and insert
                 var queryresult = await QueryFactory
                     .Query("venues")
-                    .Where("id", idtoupdate)                    
+                    .Where("id", idtoupdate)
                     .InsertAsync(
                         new JsonBData()
                         {
@@ -2643,7 +2643,7 @@ namespace OdhApiImporter.Helpers
         }
 
 
-        #endregion
+        #endregion       
 
         #region Measuringpoint
 
@@ -2750,6 +2750,55 @@ namespace OdhApiImporter.Helpers
             {
                 return Tuple.Create<int, string>(0, measuringpoint.Id);
             }
+        }
+
+
+        #endregion
+
+        #region Municipality
+
+        public async Task<Tuple<int, string>> UpdateMunicipalityMapping()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("municipalities");
+
+            var data = await query.GetObjectListAsync<MunicipalityLinked>();
+            int i = 0;
+
+            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
+
+            foreach (var municipality in data)
+            {
+                //Add Mapping
+                if (municipality.SiagId != null)
+                    municipality.Mapping.TryAddOrUpdate("siag", new Dictionary<string, string>() { { "id", municipality.SiagId } });
+
+                //CustomId ??
+                if (municipality.CustomId != null)
+                    municipality.Mapping.TryAddOrUpdate("idm", new Dictionary<string, string>() { { "id", municipality.CustomId } });
+
+
+                if (municipality.IstatNumber != null)
+                    municipality.Mapping.TryAddOrUpdate("istat", new Dictionary<string, string>() { { "istatnumber", municipality.IstatNumber }, { "inhabitants", municipality.Inhabitants.ToString() } });
+
+                var queryresult = await QueryFactory
+                   .Query("municipalities")
+                   .Where("id", municipality.Id)
+                   .UpdateAsync(
+                       new JsonBData()
+                       {
+                           id = municipality.Id,
+                           data = new JsonRaw(municipality),
+                       }
+                   );
+
+                results.Add(Tuple.Create<int, string>(queryresult, municipality.Id));
+            }
+
+            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
+            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
+
+            return Tuple.Create(updatedcount, String.Join(",", failed));
         }
 
 

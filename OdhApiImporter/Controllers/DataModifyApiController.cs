@@ -1271,6 +1271,41 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region Municipality
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("UpdateMunicipalityMapping")]
+        public async Task<IActionResult> UpdateMunicipalityMapping(CancellationToken cancellationToken)
+        {
+            var objectscount = default(Tuple<int, string>);
+
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+
+            objectscount = await customdataoperation.UpdateMunicipalityMapping();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify Events Datamodel",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done, failed ids:" + objectscount.Item2,
+                    recordsmodified = objectscount.Item1,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+
+        #endregion
+
         #region Venue
 
         [Authorize(Roles = "DataPush")]

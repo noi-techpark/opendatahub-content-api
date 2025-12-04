@@ -3358,6 +3358,66 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region HDS
+
+        [Authorize(Roles = "DataWriter,HDSPoiImport")]
+        [HttpPost, Route("HDS/MarketCalendar/Update/{type}")]
+        public async Task<IActionResult> SaveHDSDataToPois(string type,
+            CancellationToken cancellationToken
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = $"Import HDS {type}";
+            string updatetype = GetUpdateType(null);
+            string source = "csv";
+            string otherinfo = "hds";
+
+            try
+            {
+                HdsDataImportHelper hdsimporthelper = new HdsDataImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("HDS/MarketCalendar"),
+                    type
+                );
+                
+                updatedetail = await hdsimporthelper.PostHDSMarketCalendar(
+                Request,
+                cancellationToken
+                );
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                        "",
+                        source,
+                        operation,
+                        updatetype,
+                        $"Import HDS {type} succeeded",
+                        otherinfo,
+                        updatedetail,
+                        true
+                    );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    $"Import HDS {type} failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        #endregion
 
         protected Func<string, string> UrlGeneratorStatic
         {

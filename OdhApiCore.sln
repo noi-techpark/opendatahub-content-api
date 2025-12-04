@@ -71,6 +71,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HelperTests", "HelperTests\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OUTDOORACTIVE", "OUTDOORACTIVE\OUTDOORACTIVE.csproj", "{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HDS", "HDS\HDS.csproj", "{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -197,6 +199,10 @@ Global
 		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
