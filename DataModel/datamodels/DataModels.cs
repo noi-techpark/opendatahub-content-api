@@ -428,7 +428,7 @@ namespace DataModel
         public bool? IsCamping { get; set; }
 
         public bool? IsGastronomy { get; set; }
-        public bool IsBookable { get; set; }
+        public bool? IsBookable { get; set; }
         public bool? IsAccommodation { get; set; }
 
         [SwaggerDeprecated("Obsolete, use PublishedOn")]
@@ -443,7 +443,7 @@ namespace DataModel
         public string? Gpstype { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        public Nullable<double> Altitude { get; set; }
+        public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
         public string Geometry { get; set; }
         public bool? Default { get; set; }

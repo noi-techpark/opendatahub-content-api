@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Amazon.Runtime.Internal;
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -11,7 +10,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Primitives;
 using MongoDB.Driver;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -20,9 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
-using System.Text.Json;
 using System.Threading.Tasks;
-using static RawQueryParser.Filtering;
 
 namespace OdhApiCore.Controllers
 {
