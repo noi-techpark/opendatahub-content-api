@@ -334,7 +334,7 @@ namespace MSS
                     new XElement("search",
                         new XElement("lang", lang),
                         idlist.Elements("id"),
-                        new XElement("id_ofchannel", idofchannel),
+                        new XElement("id_ofchannel", idofchannel)),
                     new XElement("options",
                         offerdetails,
                         hoteldetails
