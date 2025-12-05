@@ -1030,5 +1030,47 @@ namespace MSS
                 return null;
             }
         }
+
+
+        public static IEnumerable<MssResponseBaseSearch> ParseBaseSearchResponse(
+            XElement mssresponse
+            )
+        {
+            var myresult = mssresponse.Elements("result").Elements("hotel");
+
+            List<MssResponseBaseSearch> basesearchlist = new List<MssResponseBaseSearch>();
+
+            foreach (var result in myresult)
+            {
+                MssResponseBaseSearch basesearch = new MssResponseBaseSearch();
+                basesearch.id = result.Element("id").Value;
+                basesearch.id_lts = result.Element("id_lts").Value;
+                basesearch.bookable = result.Element("bookable").Value;
+                basesearch.currency = result.Element("currency").Value;
+                basesearch.name = result.Element("name").Value;
+                basesearch.cin = result.Element("cin").Value;
+                basesearch.type = result.Element("type").Value;
+                basesearch.stars = result.Element("stars").Value;
+                basesearch.price_engine = result.Element("price_engine").Value;
+                basesearch.price_from = result.Element("price_from").Value;
+                basesearch.available_from = result.Element("available_from").Value;
+                basesearch.board = result.Element("board").Value;
+                basesearch.board_tq = result.Element("board_tq").Value;
+                basesearch.bookable_until = result.Element("bookable_until").Value;
+                basesearch.prices_changed_at = result.Element("prices_changed_at").Value;
+                basesearch.availability_changed_at = result.Element("availability_changed_at").Value;
+                basesearch.pers_age_min = result.Element("pers_age_min").Value;
+                basesearch.child_age_min = result.Element("child_age_min").Value;
+                basesearch.child_age_max = result.Element("child_age_max").Value;
+                basesearch.adult_age_min = result.Element("adult_age_min").Value;
+                basesearch.adult_cnt_max = result.Element("adult_cnt_max").Value;
+                basesearch.child_cnt_max = result.Element("child_cnt_max").Value;
+                basesearch.informal_mail = result.Element("informal_mail").Value;
+
+                basesearchlist.Add(basesearch);
+            }
+
+            return basesearchlist;
+        }
     }
 }
