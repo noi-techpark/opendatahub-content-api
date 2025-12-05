@@ -109,7 +109,7 @@ namespace OdhApiCore.Controllers
                 QueryFactory
             );
 
-            return await GetFilteredAsync(
+            return await GetList(
                 fields: fields ?? Array.Empty<string>(),
                 language,
                 pagenumber,
@@ -145,7 +145,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet, Route("WebcamInfo/{id}", Name = "SingleWebcamInfo")]
-        public Task<IActionResult> Get(
+        public Task<IActionResult> GetWebcamSingle(
             string id,
             string? language = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
@@ -166,7 +166,7 @@ namespace OdhApiCore.Controllers
 
         #region GETTER
 
-        private Task<IActionResult> GetFilteredAsync(
+        private Task<IActionResult> GetList(
             string[] fields,
             string? language,
             uint pagenumber,

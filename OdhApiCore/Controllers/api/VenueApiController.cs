@@ -81,7 +81,7 @@ namespace OdhApiCore.Controllers
         //[Authorize(Roles = "DataReader,VenueReader")]
         //[Authorize]
         [HttpGet, Route("Venue")]
-        public async Task<IActionResult> GetVenueList(
+        public async Task<IActionResult> Get(
             string? language = null,
             uint pagenumber = 1,
             PageSize pagesize = null!,

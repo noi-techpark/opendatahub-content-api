@@ -93,6 +93,22 @@ namespace OdhApiImporter
                 Log.Logger = loggerConfiguration;
             });
 
+            //Cors Config
+            services.AddCors(o =>
+            {
+                o.AddPolicy(
+                    "CorsPolicy",
+                    builder =>
+                    {
+                        builder
+                            .AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials()
+                            .SetIsOriginAllowed(hostName => true);
+                    }
+                );
+            });
+
             //Initialize JWT Authentication
             services
                 .AddAuthentication(options =>

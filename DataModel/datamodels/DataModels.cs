@@ -25,7 +25,7 @@ namespace DataModel
 {
     #region District Municipality Region
 
-    public class Region : BaseInfos, IImageGalleryAware, IPublishedOn
+    public class Region : BaseInfos, IImageGalleryAware, IPublishedOn, IRelatedContentAware
     {
         public Region()
         {
@@ -46,7 +46,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class MetaRegion : BaseInfos, IImageGalleryAware
+    public class MetaRegion : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public MetaRegion()
         {
@@ -66,7 +66,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class ExperienceArea : BaseInfos, IImageGalleryAware
+    public class ExperienceArea : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public ICollection<string>? DistrictIds { get; set; }
         public ICollection<string>? TourismvereinIds { get; set; }
@@ -75,7 +75,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class Tourismverein : BaseInfos, IImageGalleryAware
+    public class Tourismverein : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public string? RegionId { get; set; }
 
@@ -89,7 +89,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class Municipality : BaseInfos, IImageGalleryAware
+    public class Municipality : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public string? Plz { get; set; }
 
@@ -109,7 +109,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class District : BaseInfos, IImageGalleryAware
+    public class District : BaseInfos, IImageGalleryAware, IRelatedContentAware
     {
         public Nullable<bool> IsComune { get; set; }
 
@@ -167,7 +167,7 @@ namespace DataModel
         public ICollection<string>? PublishedOn { get; set; }
     }
 
-    public class SkiArea : BaseInfos, IImageGalleryAware, IContactInfosAware
+    public class SkiArea : BaseInfos, IImageGalleryAware, IContactInfosAware, IRelatedContentAware
     {
         public SkiArea()
         {
@@ -224,7 +224,7 @@ namespace DataModel
         public new LocationInfoLinked? LocationInfo { get; set; }
     }
 
-    public class SkiRegion : BaseInfos, IImageGalleryAware, IGpsPolygonAware
+    public class SkiRegion : BaseInfos, IImageGalleryAware, IGpsPolygonAware, IRelatedContentAware
     {
         public ICollection<GpsPolygon>? GpsPolygon { get; set; }
 
@@ -242,7 +242,8 @@ namespace DataModel
         : PoiBaseInfos,
             ILicenseInfo,
             IGPSPointsAware,
-            IHasAdditionalProperties               
+            IHasAdditionalProperties,
+            IRelatedContentAware
     {
         public ODHActivityPoi()
         {
@@ -312,9 +313,7 @@ namespace DataModel
         )]
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }        
     }
-
-    public interface IAdditionalProperties { }
-
+    
     public class PoiProperty
     {
         public string? Name { get; set; }
@@ -388,8 +387,7 @@ namespace DataModel
     public class Accommodation
         : IIdentifiable,
             IShortName,
-            IActivateable,
-            IGpsInfo,
+            IActivateable,            
             IImageGalleryAware,
             ISmgActive,
             IHasLanguage,
@@ -429,7 +427,7 @@ namespace DataModel
         public bool? IsCamping { get; set; }
 
         public bool? IsGastronomy { get; set; }
-        public bool IsBookable { get; set; }
+        public bool? IsBookable { get; set; }
         public bool? IsAccommodation { get; set; }
 
         [SwaggerDeprecated("Obsolete, use PublishedOn")]
@@ -444,10 +442,8 @@ namespace DataModel
         public string? Gpstype { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        public Nullable<double> Altitude { get; set; }
+        public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
 
         public DistanceInfo? DistanceInfo { get; set; }
 
@@ -828,8 +824,7 @@ namespace DataModel
         : IIdentifiable,
             IShortName,
             IActivateable,
-            IImageGalleryAware,
-            IGpsInfo,
+            IImageGalleryAware,            
             IContactInfosAware,
             ISmgTags,
             ISmgActive,
@@ -891,10 +886,6 @@ namespace DataModel
         public double? Longitude { get; set; }
         public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
-        
-        
         public string? DistrictId { get; set; }
         public ICollection<string>? DistrictIds { get; set; }
 
@@ -2138,8 +2129,7 @@ namespace DataModel
         : IIdentifiable,
             IShortName,
             IActivateable,
-            ISmgActive,
-            IGpsInfo,
+            ISmgActive,            
             ILicenseInfo,
             IImportDateassigneable,
             ISource,
@@ -2172,8 +2162,6 @@ namespace DataModel
         public double? Longitude { get; set; }
         public Nullable<double> Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
         public DistanceInfo? DistanceInfo { get; set; }
 
         //Observation
@@ -3456,7 +3444,6 @@ namespace DataModel
     public abstract class BaseInfos
         : IIdentifiable,
             IActivateable,
-            IGpsInfo,
             ISmgTags,
             ISmgActive,
             IHasLanguage,
@@ -3490,8 +3477,6 @@ namespace DataModel
         public double? Longitude { get; set; }
         public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
 
         public IDictionary<string, Detail> Detail { get; set; }
         public IDictionary<string, ContactInfos> ContactInfos { get; set; }

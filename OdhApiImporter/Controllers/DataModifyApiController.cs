@@ -1205,38 +1205,38 @@ namespace OdhApiImporter.Controllers
 
         #region Event
 
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("CleanEventsDataModel/{id}")]
-        public async Task<IActionResult> CleanEventsDataModel(string? id, CancellationToken cancellationToken)
-        {
-            var objectscount = default(Tuple<int,string>);
+        //[Authorize(Roles = "DataPush")]
+        //[HttpGet, Route("CleanEventsDataModel/{id}")]
+        //public async Task<IActionResult> CleanEventsDataModel(string? id, CancellationToken cancellationToken)
+        //{
+        //    var objectscount = default(Tuple<int,string>);
 
-            CustomDataOperation customdataoperation = new CustomDataOperation(
-                settings,
-                QueryFactory
-            );
+        //    CustomDataOperation customdataoperation = new CustomDataOperation(
+        //        settings,
+        //        QueryFactory
+        //    );
 
-            if(id == "all")
-                objectscount = await customdataoperation.UpdateAllEventstonewDataModel(null);
-            else
-                objectscount = await customdataoperation.UpdateAllEventstonewDataModel(id);
+        //    if(id == "all")
+        //        objectscount = await customdataoperation.UpdateAllEventstonewDataModel(null);
+        //    else
+        //        objectscount = await customdataoperation.UpdateAllEventstonewDataModel(id);
 
-            return Ok(
-                new UpdateResult
-                {
-                    operation = "Modify Events Datamodel",
-                    updatetype = "custom",
-                    otherinfo = "",
-                    message = "Done, failed ids:" + objectscount.Item2,
-                    recordsmodified = objectscount.Item1,
-                    created = 0,
-                    deleted = 0,
-                    id = "",
-                    updated = 0,
-                    success = true,
-                }
-            );
-        }
+        //    return Ok(
+        //        new UpdateResult
+        //        {
+        //            operation = "Modify Events Datamodel",
+        //            updatetype = "custom",
+        //            otherinfo = "",
+        //            message = "Done, failed ids:" + objectscount.Item2,
+        //            recordsmodified = objectscount.Item1,
+        //            created = 0,
+        //            deleted = 0,
+        //            id = "",
+        //            updated = 0,
+        //            success = true,
+        //        }
+        //    );
+        //}
 
         #endregion
 
@@ -1268,6 +1268,41 @@ namespace OdhApiImporter.Controllers
                 }
             );
         }
+
+        #endregion
+
+        #region Municipality
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("UpdateMunicipalityMapping")]
+        public async Task<IActionResult> UpdateMunicipalityMapping(CancellationToken cancellationToken)
+        {
+            var objectscount = default(Tuple<int, string>);
+
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+
+            objectscount = await customdataoperation.UpdateMunicipalityMapping();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify Events Datamodel",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done, failed ids:" + objectscount.Item2,
+                    recordsmodified = objectscount.Item1,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
 
         #endregion
 

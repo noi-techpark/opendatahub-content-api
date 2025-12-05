@@ -2,10 +2,11 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel.Annotations;
+using Microsoft.Extensions.Hosting;
+using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
-using DataModel.Annotations;
-using Swashbuckle.AspNetCore.Annotations;
 using System.Linq;
 
 namespace DataModel
@@ -28,7 +29,8 @@ namespace DataModel
         ISource,
         IShortName,
         IHasLanguage,
-        IImportDateassigneable
+        IImportDateassigneable,
+        IHasAdditionalProperties
     {
         public string? Id { get; set; }
         public Metadata? _Meta { get; set; }
@@ -356,7 +358,11 @@ namespace DataModel
 
     #region AccommodationV2 Datamodel
 
-    public class AccommodationV2 : AccommodationLinked, IHasTagInfo
+    public class AccommodationV2 : 
+        AccommodationLinked, 
+        IHasTagInfo,
+        IHasAdditionalProperties,
+        IRelatedContentAware
     {
         //New, holds all Infos of Trust You
         public IDictionary<string, Review>? Review { get; set; }
@@ -455,11 +461,11 @@ namespace DataModel
         }
 
         [SwaggerDeprecated("Deprecated, use AccoProperties.IsBookable")]
-        public new bool IsBookable
+        public new bool? IsBookable
         {
             get
             {
-                return this.AccoProperties != null ? this.AccoProperties.IsBookable.Value : false;
+                return this.AccoProperties != null ? this.AccoProperties.IsBookable : null;
             }
         }
 
@@ -479,9 +485,18 @@ namespace DataModel
         //All Categorization is done via Tags
         public ICollection<Tags>? Tags { get; set; }
         public ICollection<string>? TagIds { get; set; }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class AccommodationRoomV2 : AccommodationRoomLinked
+    public class AccommodationRoomV2 : AccommodationRoomLinked, 
+        IHasTagInfo,
+        IHasAdditionalProperties,
+        IRelatedContentAware
     {
         //Overwrites The Features
         public new ICollection<AccoFeatureLinked>? Features { get; set; }
@@ -491,6 +506,18 @@ namespace DataModel
 
         //New Accommodation Room Properties
         public AccommodationRoomProperties? Properties { get; set; }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        //Tags
+        //All Categorization is done via Tags
+        public ICollection<Tags>? Tags { get; set; }
+        public ICollection<string>? TagIds { get; set; }
+
     }
 
     //New Room Properties
@@ -579,6 +606,7 @@ namespace DataModel
 
     #region ODHActivityPoiV2
 
+    //NOT USED at the moment
     public class ODHActivityPoiV2: ODHActivityPoiLinked
     {
         //Fits into Mapping
@@ -654,7 +682,9 @@ namespace DataModel
             IGPSPointsAware,
             IGPSInfoAware,
             IHasLocationInfoLinked,
-            IHasTagInfo
+            IHasTagInfo,
+            IHasAdditionalProperties,
+            IRelatedContentAware
     {
         public MeasuringpointV2()
         {
@@ -730,6 +760,9 @@ namespace DataModel
         }
 
         public ICollection<Tags>? Tags { get; set; }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
     #endregion
@@ -755,7 +788,9 @@ namespace DataModel
         IMetaData,
         IHasLocationInfoLinked,
         IHasTagInfo,
-        IHasDistrictId
+        IHasDistrictId,
+        IHasAdditionalProperties,
+        IRelatedContentAware
     {
         public VenueV2()
         {
@@ -807,6 +842,9 @@ namespace DataModel
                 return this.LocationInfo != null && this.LocationInfo.DistrictInfo != null && this.LocationInfo.DistrictInfo.Id != null ? this.LocationInfo.DistrictInfo.Id : null;
             }
         }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
     public class VenueRoomDetailsV2 : IHasTagInfo
@@ -1105,7 +1143,7 @@ namespace DataModel
 
     #region Announcements
 
-    public class Announcement : Generic, IActivateable, IGeoAware
+    public class Announcement : Generic, IActivateable, IGeoAware, IRelatedContentAware
     {        
         public bool Active { get; set; }
 
@@ -1117,7 +1155,6 @@ namespace DataModel
 
         public IDictionary<string, GpsInfo> Geo { get; set; }
     }
-
 
     public class RoadIncidentProperties
     {

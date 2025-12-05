@@ -224,7 +224,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 
                 if(poiid != null)
                 {
-                    //Get Single Poi
+                    //Get Single Activity
 
                     var qs = new LTSQueryStrings() { page_size = 1 };
                     var dict = ltsapi.GetLTSQSDictionary(qs);
@@ -232,8 +232,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     return await ltsapi.ActivityDetailRequest(poiid, dict);
                 }
                 else if (lastchanged != null)
-                {                    
-                    //Get the Last Changed Pois list
+                {
+                    //Get the Last Changed Activities list
 
                     var qs = new LTSQueryStrings() { fields = "rid", filter_onlyTourismOrganizationMember = false }; //To check filter_onlyTourismOrganizationMember
 
@@ -292,12 +292,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         private async Task<UpdateDetail> SaveActivitiesToPG(List<JObject> ltsdata)
-        {
-            //var newimportcounter = 0;
-            //var updateimportcounter = 0;
-            //var errorimportcounter = 0;
-            //var deleteimportcounter = 0;
-
+        {            
             List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
             if (ltsdata != null)

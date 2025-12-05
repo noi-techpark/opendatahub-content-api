@@ -5,41 +5,28 @@
 #nullable disable
 
 using DataModel;
-using DIGIWAY;
-using EBMS;
 using Helper;
 using Helper.Generic;
 using LTSAPI;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using NINJA;
-using NINJA.Parser;
 using OdhApiImporter.Helpers;
 using OdhApiImporter.Helpers.DSS;
 using OdhApiImporter.Helpers.LOOPTEC;
 using OdhApiImporter.Helpers.LTSAPI;
 using OdhApiImporter.Helpers.SuedtirolWein;
 using OdhNotifier;
-using RAVEN;
-using SqlKata;
 using SqlKata.Execution;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OdhApiImporter.Controllers
 {
@@ -2597,83 +2584,7 @@ namespace OdhApiImporter.Controllers
                 );
                 return BadRequest(updateResult);
             }
-        }
-
-        //Imports Accommodations
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("LTS/Accommodation/Update")]
-        public async Task<IActionResult> ImportLTSAccommodation(
-            string id = null,
-            string lastchange = null,
-            string updatemode = null,
-            CancellationToken cancellationToken = default
-        )
-        {
-            List<string>? idlist = null;
-            if (id != null)
-            {
-                idlist = id.Split(',').Select(x => x.ToUpper()).ToList();
-            }
-
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Import LTS Accommodation";
-            string updatetype = GetUpdateType(idlist);
-            string source = "lts";
-            string otherinfo = "accommodation";
-
-            try
-            {
-                LTSApiAccommodationImportHelper importhelper = new LTSApiAccommodationImportHelper(
-                    settings,
-                    QueryFactory,
-                    "accommodations",
-                    UrlGeneratorStatic("LTS/Accommodations")
-                );
-
-                DateTime? lastchangeddt = null;
-                if (lastchange != null)
-                    lastchangeddt = DateTime.Parse(lastchange);
-
-                importhelper.requestType = LTSApiAccommodationImportHelper.RequestType.listdetail;
-                if (updatemode != null && updatemode == "detail")
-                    importhelper.requestType = LTSApiAccommodationImportHelper.RequestType.detail;
-                if (updatemode != null && updatemode == "list")
-                    importhelper.requestType = LTSApiAccommodationImportHelper.RequestType.list;
-
-                updatedetail = await importhelper.SaveDataToODH(
-                    lastchangeddt,
-                    idlist,
-                    cancellationToken
-                );
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "Import Import LTS Accommodation succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
-
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "Import Import LTS Accommodation data failed",
-                    otherinfo,
-                    updatedetail,
-                    ex,
-                    true
-                );
-                return BadRequest(updateResult);
-            }
-        }
+        }       
 
         #endregion
 
@@ -2696,7 +2607,9 @@ namespace OdhApiImporter.Controllers
 
             try
             {
+                string idtopass = id;
                 string datatypecalculated = datatype;
+
                 if (datatype.ToLower() == "odhactivitypoi")
                 {
                     var data = await QueryFactory
@@ -2704,7 +2617,9 @@ namespace OdhApiImporter.Controllers
                    .Select("data")
                    .Where("id", id.ToLower())                   
                    .FilterDataByAccessRoles(new List<string>() { "IDM" })
-                   .FirstOrDefaultAsync<ODHActivityPoiLinked>();
+                   .GetObjectSingleAsync<ODHActivityPoiLinked>();
+
+                    idtopass = id.ToLower().Replace("smgpoi", "");
 
                     if (data == null)
                         throw new Exception("Data not found");
@@ -2726,18 +2641,41 @@ namespace OdhApiImporter.Controllers
                     }
                 }
 
-                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
-                    settings,
-                    QueryFactory,
-                    UrlGeneratorStatic("LTS/" + datatypecalculated),
-                    OdhPushnotifier
-                );
-                var resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
-                    id,
-                    datatypecalculated,
-                    cancellationToken
-                );
-                updatedetail = resulttuple.Item2;
+               
+
+                Tuple<string,UpdateDetail> resulttuple = default(Tuple<string,UpdateDetail>);
+
+                if (datatype == "accommodation")
+                {
+                    RavenImportHelper ravenimporthelper = new RavenImportHelper(
+                        settings,
+                        QueryFactory,
+                        UrlGeneratorStatic("Raven/" + datatype),
+                        OdhPushnotifier
+                    );
+                    resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
+                        id,
+                        datatype,
+                        cancellationToken
+                    );
+                    updatedetail = resulttuple.Item2;
+                }
+                else
+                {
+                    LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                       settings,
+                       QueryFactory,
+                       UrlGeneratorStatic("LTS/" + datatypecalculated),
+                       OdhPushnotifier
+                   );
+
+                    resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
+                        idtopass,
+                        datatypecalculated,
+                        cancellationToken
+                    );
+                    updatedetail = resulttuple.Item2;
+                }
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     resulttuple.Item1,
@@ -2769,7 +2707,18 @@ namespace OdhApiImporter.Controllers
                 return BadRequest(errorResult);
             }    
         }
-        
+
+        [HttpPost, Route("SyncDataFromLTS/{datatype}/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> SyncDataFromLTSDispatcherPost(
+            string id,
+            string datatype,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return await SyncDataFromLTSDispatcher(id, datatype, cancellationToken);
+        }
+
 
         //Generic Update Single Dataset
         [HttpGet, Route("LTS/{datatype}/Update/{id}")]
@@ -3333,6 +3282,66 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region HDS
+
+        [Authorize(Roles = "DataWriter,HDSPoiImport")]
+        [HttpPost, Route("HDS/MarketCalendar/Update/{type}")]
+        public async Task<IActionResult> SaveHDSDataToPois(string type,
+            CancellationToken cancellationToken
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = $"Import HDS {type}";
+            string updatetype = GetUpdateType(null);
+            string source = "csv";
+            string otherinfo = "hds";
+
+            try
+            {
+                HdsDataImportHelper hdsimporthelper = new HdsDataImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("HDS/MarketCalendar"),
+                    type
+                );
+                
+                updatedetail = await hdsimporthelper.PostHDSMarketCalendar(
+                Request,
+                cancellationToken
+                );
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                        "",
+                        source,
+                        operation,
+                        updatetype,
+                        $"Import HDS {type} succeeded",
+                        otherinfo,
+                        updatedetail,
+                        true
+                    );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    $"Import HDS {type} failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        #endregion
 
         protected Func<string, string> UrlGeneratorStatic
         {
