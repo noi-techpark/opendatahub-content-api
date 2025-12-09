@@ -21,11 +21,11 @@ using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers.HGV
 {
-    public class MSSApiAccommodationImportHelper : ImportHelper, IImportHelper
+    public class MSSApiAccommodationRoomImportHelper : ImportHelper, IImportHelper
     {
         public bool opendata = false;
         
-        public MSSApiAccommodationImportHelper(
+        public MSSApiAccommodationRoomImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -50,76 +50,73 @@ namespace OdhApiImporter.Helpers.HGV
             CancellationToken cancellationToken = default
         )
         {
-            //Import the List
-            var accommodationhgv = await GetAccommodationsFromHGVMSS(idlist);
+            List<UpdateDetail> updatedetailist = new List<UpdateDetail>();
 
-            //Check if Data is accessible on LTS            
-            var updateresult =  await SaveAccommodationsToPG(accommodationhgv, idlist != null ? false : true);
+            var xmlfiles = ImportUtils.LoadXmlFiles(
+                    Path.Combine(".\\xml\\"),
+                    new List<string>() { "RoomAmenities" });
 
-            //Import Single Data & Deactivate Data
-            var deleteresult = await SetHGVInfoForDataNotInListToNull(accommodationhgv, cancellationToken);
 
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+            foreach (var id in idlist)
+            {
+                //Import the List
+                var accommodationroomshgv = await GetAccommodationRoomsFromHGVMSS(id, xmlfiles);
+
+                //Save Accommodationrooms to DB  
+                var updateresult = await SaveAccommodationRoomsToPG(accommodationroomshgv, xmlfiles);
+
+                //Deactivate all AccommodationRooms from HGV
+                var deleteresult = await DisableRoomsNotMorepresent(id, accommodationroomshgv, cancellationToken);
+
+                updatedetailist.Add(GenericResultsHelper.MergeUpdateDetail(
+                    new List<UpdateDetail>() { updateresult, deleteresult }
+                ));
+            }
+
+            return GenericResultsHelper.MergeUpdateDetail(updatedetailist);
         }
-
-   
-
-        private async Task<IEnumerable<MssResponseBaseSearch>> GetAccommodationsFromHGVMSS(
-            List<string> accoids
+        
+        private async Task<Dictionary<string, XElement>> GetAccommodationRoomsFromHGVMSS(
+            string accoid,
+            IDictionary<string, XDocument> xmlfiles
         )
         {
             try
             {
                 var client = new HttpClient();
-                var result = default(IEnumerable<MssResponseBaseSearch>);
+                var result = default(IEnumerable<AccommodationRoomLinked>);
 
-                if (accoids != null)
-                {
-                    //Get Single Accommodation
-                    result = await GetMssData.GetMssBaseDataResponse(
-                        client,
-                        accoids, 
-                        "lts",                        
-                        "de", 
-                        null, 
-                        new XElement("hotel_details", 1), 
-                        "sinfo", 
-                        "2",
-                        settings.MssConfig.ServiceUrl,
-                        settings.MssConfig.Username,
-                        settings.MssConfig.Password);
-                }
-                else 
-                {
-                    //Get the whole Accommodations list
-                    result = await GetMssData.GetMssBaseDataResponse(
-                        client,
-                        null,
-                        "hgv",
-                        "de",
-                        null,
-                        new XElement("hotel_details", 1),
-                        "sinfo",
-                        "2",
-                        settings.MssConfig.ServiceUrl,
-                        settings.MssConfig.Username,
-                        settings.MssConfig.Password);
-                }
+                if (!String.IsNullOrEmpty(accoid))
+                {                 
+                    XElement roomdetail = new XElement("room_details", 69932);
 
-                return result;
+                    //Parallel					
+                    var myroomlistdetask = GetMssRoomlist.GetMssRoomlistAsync(client, "de", accoid, "lts", roomdetail, xmlfiles["RoomAmenities"], "sinfo", "2", settings.MssConfig.ServiceUrl, settings.MssConfig.Username, settings.MssConfig.Password);
+                    var myroomlistittask = GetMssRoomlist.GetMssRoomlistAsync(client, "it", accoid, "lts", roomdetail, xmlfiles["RoomAmenities"], "sinfo", "2", settings.MssConfig.ServiceUrl, settings.MssConfig.Username, settings.MssConfig.Password);
+                    var myroomlistentask = GetMssRoomlist.GetMssRoomlistAsync(client, "en", accoid, "lts", roomdetail, xmlfiles["RoomAmenities"], "sinfo", "2", settings.MssConfig.ServiceUrl, settings.MssConfig.Username, settings.MssConfig.Password);
+
+                    await Task.WhenAll(myroomlistdetask, myroomlistittask, myroomlistentask);
+
+                    return new Dictionary<string, XElement>()
+                    {
+                        { "de", await myroomlistdetask },
+                        { "it", await myroomlistittask },
+                        { "en", await myroomlistentask },
+                    };
+                }
+                else
+                    return null;
             }
             catch (Exception ex)
             {
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "list.accommodations",
+                    "list.accommodations.rooms",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "hgv.accommodations",
+                        sourceinterface = "hgv.accommodations.rooms",
                         success = false,
                         error = ex.Message,
                     }
@@ -130,19 +127,24 @@ namespace OdhApiImporter.Helpers.HGV
         }
 
 
-        private async Task<UpdateDetail> SaveAccommodationsToPG(IEnumerable<MssResponseBaseSearch> hgvdata, bool updateaccosnomoreonlist)
+        private async Task<UpdateDetail> SaveAccommodationRoomsToPG(Dictionary<string, XElement> hgvdata, IDictionary<string, XDocument> xmlfiles)
         {
             List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
             if (hgvdata != null)
             {
                 List<string> idlistlts = new List<string>();
-             
-                foreach (var data in hgvdata)
-                {
-                    //TODO Load Accommodation and fill out HGV Info
 
-                    var result = default(PGCRUDResult); //await InsertDataToDB(accommodationparsed, data.data);
+                //TODO Parse Rooms
+                var roomlistde = GetMssRoomlist.ParseMssResponseToAccommodationRoom("de", hgvdata["de"], xmlfiles["RoomAmenities"]);
+                var roomlistit = GetMssRoomlist.ParseMssResponseToAccommodationRoom("it", hgvdata["it"], xmlfiles["RoomAmenities"]);
+                var roomlisten = GetMssRoomlist.ParseMssResponseToAccommodationRoom("en", hgvdata["en"], xmlfiles["RoomAmenities"]);
+
+                var rooms = MergeRooms(roomlistde, roomlistit, roomlisten);
+
+                foreach (var data in rooms)
+                {
+                    var result = await InsertDataToDB(data, hgvdata["de"]);
 
                     updatedetails.Add(new UpdateDetail()
                     {
@@ -160,12 +162,12 @@ namespace OdhApiImporter.Helpers.HGV
                     
 
                     WriteLog.LogToConsole(
-                        data.id_lts,
+                        data.Id,
                         "dataimport",
                         "single.accommodations",
                         new ImportLog()
                         {
-                            sourceid = data.id_lts,
+                            sourceid = data.Id,
                             sourceinterface = "hgv.accommodations",
                             success = true,
                             error = "",
@@ -195,8 +197,8 @@ namespace OdhApiImporter.Helpers.HGV
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            AccommodationV2 objecttosave,
-            MssResponseBaseSearch data
+            AccommodationRoomLinked objecttosave,
+            XElement hgvdata
         )
         {
             try
@@ -215,14 +217,14 @@ namespace OdhApiImporter.Helpers.HGV
                 //objecttosave.CreatePublishedOnList();
 
                 //Populate Tags (Id/Source/Type)
-                await objecttosave.UpdateTagsExtension(QueryFactory);
+                //await objecttosave.UpdateTagsExtension(QueryFactory);
 
-                var rawdataid = await InsertInRawDataDB(data);
+                var rawdataid = await InsertInRawDataDB(hgvdata);
 
-                return await QueryFactory.UpsertData<AccommodationV2>(
+                return await QueryFactory.UpsertData<AccommodationRoomLinked>(
                     objecttosave,
                     new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate),
-                    new EditInfo("hgv.accommodations.import", importerURL),
+                    new EditInfo("hgv.accommodations.rooms.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
                     rawdataid
@@ -234,7 +236,7 @@ namespace OdhApiImporter.Helpers.HGV
             }
         }
 
-        private async Task<int> InsertInRawDataDB(MssResponseBaseSearch data)
+        private async Task<int> InsertInRawDataDB(XElement data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
@@ -242,18 +244,19 @@ namespace OdhApiImporter.Helpers.HGV
                     datasource = "hgv",
                     importdate = DateTime.Now,
                     raw = JsonConvert.SerializeObject(data),
-                    sourceinterface = "accommodations",
-                    sourceid = data.id_lts,
+                    sourceinterface = "accommodations.rooms",
+                    sourceid = data.Element("room_id").Value,
                     sourceurl = "http://www.easymailing.eu/mss/mss_service_test.php",
-                    type = "accommodations",
+                    type = "accommodations.rooms",
                     license = "closed",
-                    rawformat = "json",
+                    rawformat = "xml",
                 }
             );
         }
 
-        private async Task<UpdateDetail> SetHGVInfoForDataNotInListToNull(
-           IEnumerable<MssResponseBaseSearch> hgvdata,
+        private async Task<UpdateDetail> DisableRoomsNotMorepresent(
+           string accommodationid,
+           Dictionary<string, XElement> hgvdata,
            CancellationToken cancellationToken
        )
         {
@@ -263,11 +266,10 @@ namespace OdhApiImporter.Helpers.HGV
 
             try
             {
-                //TODO CHECK IF EVERY Accommodation was requested
+                //TODO Check all Rooms with this ID, disable/delete all rooms that are no more present
+                
 
-                //TODOUpdateAccommodationHGVFieldsWhichAreNotMoreonHGVList
-
-                var hotellisthgvltsrids = hgvdata.Where(x => !String.IsNullOrEmpty(x.id_lts)).Select(x => x.id_lts).ToList();
+                //var hotellisthgvltsrids = hgvdata.Where(x => !String.IsNullOrEmpty(x.id_lts)).Select(x => x.id_lts).ToList();
 
                 //List<string?> mymuseumroot =
                 //    mymuseumlist
@@ -297,11 +299,11 @@ namespace OdhApiImporter.Helpers.HGV
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deactivate.accommodations",
+                    "deactivate.accommodations.rooms",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "hgv.accommodations",
+                        sourceinterface = "hgv.accommodations.rooms",
                         success = false,
                         error = ex.Message,
                     }
@@ -317,6 +319,48 @@ namespace OdhApiImporter.Helpers.HGV
                 deleted = deleteresult,
                 error = errorresult,
             };
+        }
+
+        private IEnumerable<AccommodationRoomLinked> MergeRooms(IEnumerable<AccommodationRoomLinked> roomlistde, IEnumerable<AccommodationRoomLinked> roomlistit, IEnumerable<AccommodationRoomLinked> roomlisten)
+        {
+            List<AccommodationRoomLinked> roomlisttoreturn = new List<AccommodationRoomLinked>();
+
+            foreach (var room in roomlistde)
+            {
+                room.HasLanguage = new List<string>() { "de" };
+
+                //Englisch + IT suachn
+                var roomit = roomlistit.Where(x => x.HGVId == room.HGVId).FirstOrDefault();
+                if (roomit != null)
+                {
+                    var accoroomdetailit = roomit.AccoRoomDetail.Where(x => x.Key == "it").FirstOrDefault().Value;
+                    if (accoroomdetailit != null)
+                    {
+                        room.AccoRoomDetail.TryAddOrUpdate("it", accoroomdetailit);
+                        room.HasLanguage.Add("it");
+                    }
+
+                }
+                var roomen = roomlisten.Where(x => x.HGVId == room.HGVId).FirstOrDefault();
+                if (roomen != null)
+                {
+                    var accoroomdetailen = roomen.AccoRoomDetail.Where(x => x.Key == "en").FirstOrDefault().Value;
+
+                    if (accoroomdetailen != null)
+                    {
+                        room.AccoRoomDetail.TryAddOrUpdate("en", accoroomdetailen);
+                        room.HasLanguage.Add("en");
+                    }
+
+                }
+                //Features auf henglishc??
+                if (roomen.Features != null)
+                    room.Features = roomen.Features;
+
+                roomlisttoreturn.Add(room);
+            }
+
+            return roomlisttoreturn;
         }
     }
 
