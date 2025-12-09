@@ -215,29 +215,29 @@ namespace OdhApiImporter.Helpers
 
                     break;
 
-                //case "accommodation":
-                //    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
-                //        settings,
-                //        QueryFactory,
-                //        "accommodations",
-                //        importerURL
-                //        );
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL
+                        );
 
-                //    //Get full data
-                //    updateresult = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
+                    //Get full data
+                    updateresult = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
-                //    //Get reduced data
-                //    updateresultreduced = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
+                    //Get reduced data
+                    updateresultreduced = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
-                //    //TODO When update rooms, hgv rooms, hgv data
+                    //TODO When update rooms, hgv rooms, hgv data
 
-                //    updateresult.pushed = await CheckIfObjectChangedAndPush(
-                //                updateresult,
-                //                id,
-                //                datatype
-                //            );
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
 
-                //    break;
+                    break;
 
                 default:
                     throw new Exception("no match found");
@@ -418,7 +418,30 @@ namespace OdhApiImporter.Helpers
                                 datatype
                             );
                     break;
-                
+
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL
+                        );
+
+                    //Deactivate Full
+                    updateresult = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, false, false);
+
+                    //Delete Reduced                    
+                    updateresultreduced = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, true, true);
+
+                    //TODO WHAT ABOUT ROOMS
+
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+                    break;
+
                 default:
                     throw new Exception("no match found");
             }
@@ -686,6 +709,42 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "webcam", cancellationToken);
+
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            resulttuple.Item1,
+                            "api",
+                            "Update LTS",
+                            "single.lastchanged",
+                            "Update LTS succeeded",
+                            datatype.ToLower(),
+                            resulttuple.Item2,
+                            true
+                        );
+
+                        createcounter = resulttuple.Item2.created + createcounter;
+                        updatecounter = resulttuple.Item2.updated + updatecounter;
+                        deletecounter = resulttuple.Item2.deleted + deletecounter;
+                        errorcounter = resulttuple.Item2.error + errorcounter;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL
+                        );
+
+                    lastchangedlist = await ltsapiaccommodationimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
+
+                    //Call Single Update and write LOG
+                    foreach (var id in lastchangedlist)
+                    {
+                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "accommodation", cancellationToken);
 
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
@@ -1136,6 +1195,68 @@ namespace OdhApiImporter.Helpers
 
                         //Get Reduced                    
                         updateresultreduced = await ltsapiwebcamimporthelper.DeleteOrDisableWebcamsData(id, true, true);
+
+                        updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                    updateresult,
+                                    id,
+                                    datatype
+                                );
+
+                        //Create Delete/Disable Log
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            id,
+                            "api",
+                            "Update LTS",
+                            "single.deleted",
+                            "Update LTS succeeded",
+                            datatype.ToLower(),
+                            updateresult,
+                            true
+                        );
+
+                        createcounter = updateresult.created + createcounter;
+                        updatecounter = updateresult.updated + updatecounter;
+                        deletecounter = updateresult.deleted + deletecounter;
+                        errorcounter = updateresult.error + errorcounter;
+
+                        //Add also Reduced info
+                        if (updateresultreduced.created != null)
+                            createcounter = createcounter + updateresultreduced.created;
+                        if (updateresultreduced.updated != null)
+                            updatecounter = updatecounter + updateresultreduced.updated;
+                        if (updateresultreduced.deleted != null)
+                            deletecounter = deletecounter + updateresultreduced.deleted;
+                        if (updateresultreduced.error != null)
+                            errorcounter = errorcounter + updateresultreduced.error;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL
+                        );
+
+                    lastchangedlist = await ltsapiaccommodationimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
+
+
+                    foreach (var id in lastchangedlist)
+                    {
+                        var updateresult = default(UpdateDetail);
+                        var updateresultreduced = default(UpdateDetail);
+
+                        //Use the DeleteOrDisable method
+                        updateresult = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, false, false);
+
+                        //Use the DeleteOrDisable method
+                        updateresultreduced = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, true, true);
+
+                        //TODO WHAT AVOUT ROOMS
 
                         updateresult.pushed = await CheckIfObjectChangedAndPush(
                                     updateresult,
@@ -1971,6 +2092,113 @@ namespace OdhApiImporter.Helpers
 
                     break;
 
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL
+                        );
+
+                    foreach (var datatoprocess in datatoprocesslist)
+                    {
+                        int? updatecounter = 0;
+                        int? createcounter = 0;
+                        int? deletecounter = 0;
+                        int? errorcounter = 0;
+
+                        if (datatoprocess == "reduced")
+                            reduced = true;
+
+                        activelist = await ltsapiaccommodationimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        activelistinDB = await GetAllDataBySource("accommodation", new List<string>() { "lts" }, null, true);
+
+                        //Compare with DB and deactivate all inactive items
+                        idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p.Replace("_REDUCED", "").ToUpper())).ToList();
+
+                        //Ids only present on LTS Interface ?
+                        idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2 == p.Replace("_REDUCED", "").ToUpper())).ToList();
+
+                        //Delete Disable all Inactive Data from DB
+                        foreach (var id in idstodelete)
+                        {
+                            var updateresult = default(UpdateDetail);
+                            var updateresultreduced = default(UpdateDetail);
+
+                            if (!reduced)
+                            {
+                                updateresult = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, false, false);
+
+                                //TODO ACCOMMODATION ROOMS
+
+                                updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                            updateresult,
+                                            id,
+                                            datatype
+                                        );
+                            }
+
+                            if (reduced)
+                                //Get Reduced                    
+                                updateresultreduced = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, true, true);
+
+
+                            //Create Delete/Disable Log
+                            GenericResultsHelper.GetSuccessUpdateResult(
+                                id,
+                                "api",
+                                "Update LTS",
+                                "single.inactivesync",
+                                "Update LTS succeeded",
+                                datatype.ToLower(),
+                                updateresult,
+                                true
+                            );
+
+                            createcounter = updateresult.created + createcounter;
+                            updatecounter = updateresult.updated + updatecounter;
+                            deletecounter = updateresult.deleted + deletecounter;
+                            errorcounter = updateresult.error + errorcounter;
+
+                            //Add also Reduced info
+                            if (updateresultreduced.created != null)
+                                createcounter = createcounter + updateresultreduced.created;
+                            if (updateresultreduced.updated != null)
+                                updatecounter = updatecounter + updateresultreduced.updated;
+                            if (updateresultreduced.deleted != null)
+                                deletecounter = deletecounter + updateresultreduced.deleted;
+                            if (updateresultreduced.error != null)
+                                errorcounter = errorcounter + updateresultreduced.error;
+                        }
+
+                        //Call Single Update for all active Items not present in DB
+                        foreach (var id in idstoimport)
+                        {
+                            var resulttuple = await UpdateSingleDataFromLTSApi(id, "accommodation", cancellationToken);
+
+                            GenericResultsHelper.GetSuccessUpdateResult(
+                                resulttuple.Item1,
+                                "api",
+                                "Update LTS",
+                                "single.activesync",
+                                "Update LTS succeeded",
+                                datatype.ToLower(),
+                                resulttuple.Item2,
+                                true
+                            );
+
+                            createcounter = resulttuple.Item2.created + createcounter;
+                            updatecounter = resulttuple.Item2.updated + updatecounter;
+                            deletecounter = resulttuple.Item2.deleted + deletecounter;
+                            errorcounter = resulttuple.Item2.error + errorcounter;
+                        }
+
+                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                        updatedidlist.AddRange(idstodelete);
+                        updatedidlist.AddRange(idstoimport);
+                    }
+                    break;
 
                 default:
                     throw new Exception("no match found");
