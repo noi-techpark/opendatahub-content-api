@@ -65,12 +65,8 @@ namespace OdhApiImporter.Helpers.HGV
                 //Save Accommodationrooms to DB  
                 var updateresult = await SaveAccommodationRoomsToPG(accommodationroomshgv, xmlfiles);
 
-                //Deactivate all AccommodationRooms from HGV
-                var deleteresult = await DisableRoomsNotMorepresent(id, accommodationroomshgv, cancellationToken);
-
-                updatedetailist.Add(GenericResultsHelper.MergeUpdateDetail(
-                    new List<UpdateDetail>() { updateresult, deleteresult }
-                ));
+               
+                updatedetailist.Add(updateresult);
             }
 
             return GenericResultsHelper.MergeUpdateDetail(updatedetailist);
@@ -174,6 +170,10 @@ namespace OdhApiImporter.Helpers.HGV
                         }
                     );
                 }
+
+                //Deactivate all AccommodationRooms from HGV
+                var deleteresult = await DisableRoomsNotMorepresent(rooms.FirstOrDefault().A0RID, rooms);
+                updatedetails.Add(deleteresult);
             }
             else
             {
@@ -189,7 +189,7 @@ namespace OdhApiImporter.Helpers.HGV
                     pushchannels = null,
                     changes = null
                 });
-            }
+            }           
 
             return GenericResultsHelper.MergeUpdateDetail(
                 updatedetails
@@ -256,8 +256,7 @@ namespace OdhApiImporter.Helpers.HGV
 
         private async Task<UpdateDetail> DisableRoomsNotMorepresent(
            string accommodationid,
-           Dictionary<string, XElement> hgvdata,
-           CancellationToken cancellationToken
+           IEnumerable<AccommodationRoomLinked> hgvdata
        )
         {
             int updateresult = 0;
@@ -266,33 +265,24 @@ namespace OdhApiImporter.Helpers.HGV
 
             try
             {
+                var accoroomhgvquery = QueryFactory
+                    .Query("accommodationrooms")
+                    .Select("Id")
+                    .Where("gen_source", "hgv")
+                    .Where("gen_a0rid", accommodationid);
+
+                var accommodationroomids = await accoroomhgvquery.GetAsync<string>();
+
+                var accommodationroomidstodeactivate = accommodationroomids.Except(hgvdata.Select(x => x.Id).ToList());
+
                 //TODO Check all Rooms with this ID, disable/delete all rooms that are no more present
-                
+                foreach(var accoroom in accommodationroomidstodeactivate)
+                {
+                    var result = await DeleteOrDisableData<AccommodationRoomLinked>(accoroom, false);
 
-                //var hotellisthgvltsrids = hgvdata.Where(x => !String.IsNullOrEmpty(x.id_lts)).Select(x => x.id_lts).ToList();
-
-                //List<string?> mymuseumroot =
-                //    mymuseumlist
-                //        .Root?.Elements("Museum")
-                //        .Select(x => x.Attribute("ID")?.Value)
-                //        .ToList() ?? new();
-
-                //var mymuseumquery = QueryFactory
-                //    .Query("smgpois")
-                //    .SelectRaw("data->'Mapping'->'siag'->>'museId'")
-                //    .Where("gen_syncsourceinterface", "museumdata");
-
-                //var mymuseumsondb = await mymuseumquery.GetAsync<string>();
-
-                //var idstodelete = mymuseumsondb.Where(p => !mymuseumroot.Any(p2 => p2 == p));
-
-                //foreach (var idtodelete in idstodelete)
-                //{
-                //    var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
-
-                //    updateresult = updateresult + result.Item1;
-                //    deleteresult = deleteresult + result.Item2;
-                //}
+                    updateresult = updateresult + result.Item1;
+                    deleteresult = deleteresult + result.Item2;
+                }
             }
             catch (Exception ex)
             {
