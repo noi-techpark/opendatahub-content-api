@@ -131,10 +131,10 @@ namespace OdhApiImporter.Helpers.HGV
             {
                 List<string> idlistlts = new List<string>();
 
-                //TODO Parse Rooms
-                var roomlistde = GetMssRoomlist.ParseMssResponseToAccommodationRoom("de", hgvdata["de"], xmlfiles["RoomAmenities"]);
-                var roomlistit = GetMssRoomlist.ParseMssResponseToAccommodationRoom("it", hgvdata["it"], xmlfiles["RoomAmenities"]);
-                var roomlisten = GetMssRoomlist.ParseMssResponseToAccommodationRoom("en", hgvdata["en"], xmlfiles["RoomAmenities"]);
+                //Parse Rooms
+                var roomlistde = ParseMssRoomResponse.ParseMyRoomResponse("de", hgvdata["de"], xmlfiles["RoomAmenities"]);
+                var roomlistit = ParseMssRoomResponse.ParseMyRoomResponse("it", hgvdata["it"], xmlfiles["RoomAmenities"]);
+                var roomlisten = ParseMssRoomResponse.ParseMyRoomResponse("en", hgvdata["en"], xmlfiles["RoomAmenities"]);
 
                 var rooms = MergeRooms(roomlistde, roomlistit, roomlisten);
 

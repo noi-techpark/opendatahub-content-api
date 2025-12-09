@@ -56,24 +56,6 @@ namespace MSS
             {
                 return null;
             }
-        }
-
-        public static List<AccommodationRoomLinked> ParseMssResponseToAccommodationRoom(string lang, XElement fullresponse, XDocument roomamenities)
-        {
-            try
-            {                
-                var myparsedresponse = ParseMssRoomResponse.ParseMyRoomResponse(
-                    lang,
-                    fullresponse,
-                    roomamenities
-                );
-
-                return myparsedresponse;
-            }
-            catch(Exception ex)
-            {
-                return null;
-            }
-        }
+        }       
     }
 }

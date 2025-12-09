@@ -215,6 +215,30 @@ namespace OdhApiImporter.Helpers
 
                     break;
 
+                //case "accommodation":
+                //    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                //        settings,
+                //        QueryFactory,
+                //        "accommodations",
+                //        importerURL
+                //        );
+
+                //    //Get full data
+                //    updateresult = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
+
+                //    //Get reduced data
+                //    updateresultreduced = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
+
+                //    //TODO When update rooms, hgv rooms, hgv data
+
+                //    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                //                updateresult,
+                //                id,
+                //                datatype
+                //            );
+
+                //    break;
+
                 default:
                     throw new Exception("no match found");
             }

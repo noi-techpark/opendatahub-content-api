@@ -63,9 +63,7 @@ namespace OdhApiImporter.Helpers.HGV
                 new List<UpdateDetail>() { updateresult, deleteresult }
             );
         }
-
    
-
         private async Task<IEnumerable<MssResponseBaseSearch>> GetAccommodationsFromHGVMSS(
             List<string> accoids
         )
@@ -140,9 +138,18 @@ namespace OdhApiImporter.Helpers.HGV
              
                 foreach (var data in hgvdata)
                 {
-                    //TODO Load Accommodation and fill out HGV Info
+                    //Load Accommodation and fill out HGV Info                    
+                    var accommodation = await LoadDataFromDB<AccommodationV2>(data.id_lts, IDStyle.uppercase);
 
-                    var result = default(PGCRUDResult); //await InsertDataToDB(accommodationparsed, data.data);
+                    //Fill HGV Infos
+                    AccoHGVInfo accohgvinfo = new AccoHGVInfo();
+                    accohgvinfo.PriceFrom = Convert.ToInt32(data.price_from);
+                    accohgvinfo.AvailableFrom = data.available_from;
+                    accohgvinfo.Bookable = Convert.ToBoolean(Convert.ToInt16(data.bookable));
+
+                    accommodation.AccoHGVInfo = accohgvinfo;
+
+                    var result = await InsertDataToDB(accommodation, data);
 
                     updatedetails.Add(new UpdateDetail()
                     {
@@ -158,7 +165,6 @@ namespace OdhApiImporter.Helpers.HGV
                         changes = result.changes,
                     });
                     
-
                     WriteLog.LogToConsole(
                         data.id_lts,
                         "dataimport",
