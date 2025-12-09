@@ -78,7 +78,7 @@ namespace OdhApiCore.Controllers
         {
             try
             {
-                return await Get(
+                return await GetWeatherLive(
                     pagenumber,
                     pagesize,
                     language ?? "en",
@@ -119,7 +119,7 @@ namespace OdhApiCore.Controllers
         {
             try
             {
-                return await Get(
+                return await GetWeatherLive(
                     null,
                     null,
                     language ?? "en",
@@ -776,7 +776,7 @@ namespace OdhApiCore.Controllers
         #region Weather
 
         /// GET Current Suedtirol Weather LIVE Request
-        private async Task<IActionResult> Get(
+        private async Task<IActionResult> GetWeatherLive(
             uint? pagenumber,
             int? pagesize,
             string language,

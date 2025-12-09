@@ -2,16 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Amazon.Util.Internal;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Tagging;
+using Helper.Location;
 using LTSAPI;
 using LTSAPI.Parser;
-using NetTopologySuite.GeometriesGraph;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OdhApiImporter.Helpers.RAVEN;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -25,15 +25,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 {
     public class LTSApiAccommodationImportHelper : ImportHelper, IImportHelper
     {
-        public enum RequestType
-        {
-            detail,
-            list,
-            listdetail,
-        }
-
-        public RequestType requestType = RequestType.listdetail;
-
+        public bool opendata = false;
+        
         public LTSApiAccommodationImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
@@ -42,85 +35,241 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        private async Task<List<JObject>> GetAccommodationListFromLTSV2(
+        //Not implemented here
+        public async Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged = null,
+            List<string>? idlist = null,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged = null,
+            List<string>? idlist = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<UpdateDetail> SaveSingleDataToODH(
+            string id,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            opendata = reduced;
+
+            //Import the List
+            var accommodationlts = await GetAccommodationsFromLTSV2(id, null, null, null);
+
+            //Check if Data is accessible on LTS
+            if (accommodationlts != null && accommodationlts.FirstOrDefault().ContainsKey("success") && (Boolean)accommodationlts.FirstOrDefault()["success"])
+            {
+                //Import Single Data & Deactivate Data
+                return await SaveAccommodationsToPG(accommodationlts);
+            }
+            //If data is not accessible on LTS Side, delete or disable it
+            else if (accommodationlts != null && accommodationlts.FirstOrDefault().ContainsKey("status") && ((int)accommodationlts.FirstOrDefault()["status"] == 403 || (int)accommodationlts.FirstOrDefault()["status"] == 404))
+            {
+                var resulttoreturn = default(UpdateDetail);
+
+                if (!opendata)
+                {
+                    //Data is pushed to marketplace with disabled status
+                    resulttoreturn = await DeleteOrDisableAccommodationsData(id, false, false);
+                    if (accommodationlts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(accommodationlts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + accommodationlts.FirstOrDefault()["message"].ToString() + "|";
+                }
+                else
+                {
+                    //Data is pushed to marketplace as deleted
+                    resulttoreturn = await DeleteOrDisableAccommodationsData(id, true, true);
+                    if (accommodationlts.FirstOrDefault().ContainsKey("message") && !String.IsNullOrEmpty(accommodationlts.FirstOrDefault()["message"].ToString()))
+                        resulttoreturn.exception = resulttoreturn.exception + "opendata:" + accommodationlts.FirstOrDefault()["message"].ToString() + "|";
+                }
+
+                return resulttoreturn;
+            }
+            else
+            {
+                return new UpdateDetail()
+                {
+                    updated = 0,
+                    created = 0,
+                    deleted = 0,
+                    error = 1,
+                };
+            }
+        }
+
+        public async Task<List<string>> GetLastChangedData(
+           DateTime lastchanged,
+           bool reduced = false,
+           CancellationToken cancellationToken = default
+       )
+        {
+            //Import the List
+            var lastchangedlts = await GetAccommodationsFromLTSV2(null, lastchanged, null, null);
+            List<string> lastchangedlist = new List<string>();
+
+            if (lastchangedlts != null && lastchangedlts.FirstOrDefault().ContainsKey("success") && (Boolean)lastchangedlts.FirstOrDefault()["success"])
+            {
+                var lastchangedrids = lastchangedlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                lastchangedlist = lastchangedrids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "lastchanged.accommodations",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.accommodations",
+                        success = false,
+                        error = "Could not fetch last changed List",
+                    }
+                );
+            }
+
+            return lastchangedlist;
+        }
+
+        public async Task<List<string>> GetLastDeletedData(
+            DateTime deletedfrom,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            //Import the List
+            var deletedlts = await GetAccommodationsFromLTSV2(null, null, deletedfrom, null);
+            List<string> lastdeletedlist = new List<string>();
+
+            if (deletedlts != null && deletedlts.FirstOrDefault().ContainsKey("success") && (Boolean)deletedlts.FirstOrDefault()["success"])
+            {
+                var lastchangedrids = deletedlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                lastdeletedlist = lastchangedrids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "deleted.accommodations",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.accommodations",
+                        success = false,
+                        error = "Could not fetch deleted List",
+                    }
+                );
+            }
+
+            return lastdeletedlist;
+        }
+
+        public async Task<List<string>> GetActiveList(
+            bool active,
+            bool reduced = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            opendata = reduced;
+
+            //Import the List
+            var activelistlts = await GetAccommodationsFromLTSV2(null, null, null, active);
+            List<string> activeList = new List<string>();
+
+            if (activelistlts != null && activelistlts.FirstOrDefault().ContainsKey("success") && (Boolean)activelistlts.FirstOrDefault()["success"])
+            {
+                var activerids = activelistlts.FirstOrDefault()["data"].ToObject<List<LtsRidList>>();
+
+                activeList = activerids.Select(x => x.rid).ToList();
+            }
+            else
+            {
+                WriteLog.LogToConsole(
+                    "",
+                    "dataimport",
+                    "active.accommodations",
+                    new ImportLog()
+                    {
+                        sourceid = "",
+                        sourceinterface = "lts.accommodations",
+                        success = false,
+                        error = "Could not fetch active List",
+                    }
+                );
+            }
+
+            return activeList;
+        }
+
+
+        private async Task<List<JObject>> GetAccommodationsFromLTSV2(
+            string accoid,
             DateTime? lastchanged,
-            List<string>? idlist,
-            RequestType requestTypeToUse
+            DateTime? deletedfrom, 
+            bool? activelist
         )
         {
             try
             {
-                if (requestTypeToUse == RequestType.listdetail)
+                LtsApi ltsapi = GetLTSApi(opendata);
+                if (accoid != null)
                 {
-                    LtsApi ltsapi = new LtsApi(
-                        settings.LtsCredentials.serviceurl,
-                        settings.LtsCredentials.username,
-                        settings.LtsCredentials.password,
-                        settings.LtsCredentials.ltsclientid,
-                        false
-                    );
-                    var qs = new LTSQueryStrings()
-                    {
-                        page_size = 20,
-                        filter_marketingGroupRids = "9E72B78AC5B14A9DB6BED6C2592483BF",
-                    };
+                    //Get Single Accommodation
 
-                    if (lastchanged != null)
-                        qs.filter_lastUpdate = lastchanged;
-
-                    if (idlist != null && idlist.Count > 0)
-                        qs.filter_rids = String.Join(",", idlist);
-
-                    var dict = ltsapi.GetLTSQSDictionary(qs);
-                    var ltsdata = await ltsapi.AccommodationListRequest(dict, true);
-
-                    return ltsdata;
-                }
-                else if (requestTypeToUse == RequestType.list)
-                {
-                    LtsApi ltsapi = new LtsApi(
-                        settings.LtsCredentials.serviceurl,
-                        settings.LtsCredentials.username,
-                        settings.LtsCredentials.password,
-                        settings.LtsCredentials.ltsclientid,
-                        false
-                    );
-                    var qs = new LTSQueryStrings()
-                    {
-                        page_size = 100,
-                        filter_marketingGroupRids = "9E72B78AC5B14A9DB6BED6C2592483BF",
-                        fields = "rid",
-                    };
-
-                    if (lastchanged != null)
-                        qs.filter_lastUpdate = lastchanged;
-
-                    if (idlist != null && idlist.Count > 0)
-                        qs.filter_rids = String.Join(",", idlist);
-
-                    var dict = ltsapi.GetLTSQSDictionary(qs);
-                    var ltsdata = await ltsapi.AccommodationListRequest(dict, true);
-
-                    return ltsdata;
-                }
-                else if (requestTypeToUse == RequestType.detail)
-                {
-                    LtsApi ltsapi = new LtsApi(
-                        settings.LtsCredentials.serviceurl,
-                        settings.LtsCredentials.username,
-                        settings.LtsCredentials.password,
-                        settings.LtsCredentials.ltsclientid,
-                        false
-                    );
                     var qs = new LTSQueryStrings() { page_size = 1 };
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    return await ltsapi.AccommodationDetailRequest(accoid, dict);
+                }
+                else if (lastchanged != null)
+                {
+                    //Get the Last Changed Accommodations list
+
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_marketingGroupRids = "9E72B78AC5B14A9DB6BED6C2592483BF" }; //To check filter_onlyTourismOrganizationMember
+                    if (lastchanged != null)
+                        qs.filter_lastUpdate = lastchanged;
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
-                    var ltsdata = await ltsapi.AccommodationDetailRequest(
-                        idlist.FirstOrDefault(),
-                        dict
-                    );
 
-                    return ltsdata;
+                    return await ltsapi.AccommodationListRequest(dict, true);
+                }
+                else if (deletedfrom != null)
+                {
+                    //Get the Active Accommodations list with 
+
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_marketingGroupRids = "9E72B78AC5B14A9DB6BED6C2592483BF" };
+
+                    if (deletedfrom != null)
+                        qs.filter_lastUpdate = deletedfrom;
+
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    return await ltsapi.AccommodationDeleteRequest(dict, true);
+                }
+                else if (activelist != null)
+                {
+                    //Get the Active Accommodations list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
+
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_marketingGroupRids = "9E72B78AC5B14A9DB6BED6C2592483BF", filter_representationMode = "full" };
+
+                    if (lastchanged != null)
+                        qs.filter_lastUpdate = lastchanged;
+
+                    var dict = ltsapi.GetLTSQSDictionary(qs);
+
+                    return await ltsapi.ActivityListRequest(dict, true);
                 }
                 else
                     return null;
@@ -130,7 +279,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    requestType.ToString() + ".accommodations",
+                    "list.accommodations",
                     new ImportLog()
                     {
                         sourceid = "",
@@ -144,34 +293,18 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        public async Task<UpdateDetail> SaveDataToODH(
-            DateTime? lastchanged = null,
-            List<string>? idlist = null,
-            CancellationToken cancellationToken = default
-        )
-        {
-            //Import the List & Data
-            var accommodationids = await GetAccommodationListFromLTSV2(
-                lastchanged,
-                idlist,
-                requestType
-            );
-
-            //Import Single Data & Deactivate Data
-            return await SaveAccommodationsToPG(accommodationids);
-        }
 
         private async Task<UpdateDetail> SaveAccommodationsToPG(List<JObject> ltsdata)
         {
-            var newimportcounter = 0;
-            var updateimportcounter = 0;
-            var errorimportcounter = 0;
-            var deleteimportcounter = 0;
+            List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
             if (ltsdata != null)
             {
                 List<string> idlistlts = new List<string>();
-                List<LTSAccoData> ltsaccos = new List<LTSAccoData>();
+                List<LTSAcco> accosdata = new List<LTSAcco>();
+
+
+                //Load the json and xml Data
 
                 var xmlfiles = ImportUtils.LoadXmlFiles(
                     Path.Combine(".\\xml\\"),
@@ -196,58 +329,29 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     new List<string>() { "Features" }
                 );
 
-                foreach (var ltsdatapage in ltsdata)
+                foreach (var ltsdatasingle in ltsdata)
                 {
-                    //If we have a single detail request add directly
-                    if (requestType == RequestType.detail)
-                    {
-                        ltsaccos.Add(ltsdatapage["data"].ToObject<LTSAccoData>());
-                    }
-                    else
-                    {
-                        //Else add it sequentially
-                        foreach (var ltsdatasingle in ltsdatapage["data"].ToArray())
-                        {
-                            //To check if this works also for the paginated
-                            ltsaccos.Add(ltsdatasingle.ToObject<LTSAccoData>());
-                        }
-                    }
+                    accosdata.Add(
+                        ltsdatasingle.ToObject<LTSAcco>()
+                    );
                 }
 
-                foreach (var data in ltsaccos)
+                foreach (var data in accosdata)
                 {
-                    string id = data.rid;
-                    var accodetail = data;
+                    string id = data.data.rid.ToUpper();
+                    
+                    var accommodationparsed = AccommodationParser.ParseLTSAccommodation(data.data, false, xmlfiles, jsonfiles);
 
-                    //If requesttype detail get the data first
-                    if (requestType == RequestType.list)
-                    {
-                        var accodetailresult = await GetAccommodationListFromLTSV2(
-                            null,
-                            new List<string>() { id },
-                            RequestType.detail
-                        );
-
-                        accodetail = accodetailresult
-                            .FirstOrDefault()["data"]
-                            .ToObject<LTSAccoData>();
-                    }
-
-                    //See if data exists
-                    var query = QueryFactory.Query("accommodations").Select("data").Where("id", id);
-
-                    var objecttosave = await query.GetObjectSingleAsync<AccommodationV2>();
-
-                    //Parse Accommodation TOCHECK!
-                    AccommodationV2 accommodationV2 = AccommodationParser.ParseLTSAccommodation(
-                        accodetail,
-                        false,
-                        xmlfiles,
-                        jsonfiles
+                    //POPULATE LocationInfo TO CHECK if this works for new activities...
+                    accommodationparsed.LocationInfo = await accommodationparsed.UpdateLocationInfoExtension(
+                        QueryFactory
                     );
 
-                    //TODO Take everything from Loaded Accommodation that should remain as it is
-                    if (objecttosave != null) { }
+                    //DistanceCalculation
+                    await accommodationparsed.UpdateDistanceCalculation(QueryFactory);
+
+                    //GET OLD Activity
+                    var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
                     //TODO Update All ROOMS
 
@@ -257,11 +361,25 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     //FINALLY UPDATE ACCOMMODATION ROOT OBJECT
 
-                    var result = await InsertDataToDB(accommodationV2, accodetail);
+                    //Create Tags and preserve the old TagEntries
+                    await accommodationparsed.UpdateTagsExtension(QueryFactory);
 
-                    newimportcounter = newimportcounter + result.created ?? 0;
-                    updateimportcounter = updateimportcounter + result.updated ?? 0;
-                    errorimportcounter = errorimportcounter + result.error ?? 0;
+
+                    var result = await InsertDataToDB(accommodationparsed, data.data, jsonfiles);
+
+                    updatedetails.Add(new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    });
 
                     idlistlts.Add(id);
 
@@ -280,20 +398,28 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
             }
             else
-                errorimportcounter = 1;
-
-            return new UpdateDetail()
             {
-                updated = updateimportcounter,
-                created = newimportcounter,
-                deleted = deleteimportcounter,
-                error = errorimportcounter,
-            };
+                updatedetails.Add(new UpdateDetail()
+                {
+                    created = 0,
+                    updated = 0,
+                    deleted = 0,
+                    error = 1,
+                    objectchanged = 0,
+                    objectimagechanged = 0,
+                    comparedobjects = 0,
+                    pushchannels = null,
+                    changes = null
+                });
+            }
+
+            return updatedetails.FirstOrDefault();
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
             AccommodationV2 objecttosave,
-            LTSAccoData data
+            LTSAccoData data,
+            IDictionary<string, JArray>? jsonfiles
         )
         {
             try
@@ -347,10 +473,83 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
             );
         }
+
+        public async Task<UpdateDetail> DeleteOrDisableAccommodationsData(string id, bool delete, bool reduced)
+        {
+            UpdateDetail deletedisableresult = default(UpdateDetail);
+
+            PGCRUDResult result = default(PGCRUDResult);
+
+            if (delete)
+            {
+                result = await QueryFactory.DeleteData<AccommodationV2>(
+                id.ToUpper(),
+                new DataInfo("accommodations", CRUDOperation.Delete),
+                new CRUDConstraints(),
+                reduced
+                );
+
+                if (result.errorreason != "Data Not Found")
+                {
+                    deletedisableresult = new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    };
+                }
+            }
+            else
+            {
+                var query = QueryFactory.Query(table).Select("data").Where("id", id.ToUpper());
+
+                var data = await query.GetObjectSingleAsync<AccommodationV2>();
+
+                if (data != null)
+                {
+                    if (
+                        data.Active != false
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                    )
+                    {
+                        data.Active = false;
+                        if (data is ISmgActive)
+                            ((ISmgActive)data).SmgActive = false;
+
+                        result = await QueryFactory.UpsertData<AccommodationV2>(
+                               data,
+                               new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new EditInfo("lts.accommodations.import.deactivate", importerURL),
+                               new CRUDConstraints(),
+                               new CompareConfig(true, false)
+                        );
+
+                        deletedisableresult = new UpdateDetail()
+                        {
+                            created = result.created,
+                            updated = result.updated,
+                            deleted = result.deleted,
+                            error = result.error,
+                            objectchanged = result.objectchanged,
+                            objectimagechanged = result.objectimagechanged,
+                            comparedobjects = result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            pushchannels = result.pushchannels,
+                            changes = result.changes,
+                        };
+                    }
+                }
+            }
+
+            return deletedisableresult;
+        }
+
     }
 
-    public class GenericRidList
-    {
-        public string rid { get; set; }
-    }
 }

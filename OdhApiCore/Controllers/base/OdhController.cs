@@ -2,11 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -18,6 +13,12 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using OdhNotifier;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers
 {
@@ -190,7 +191,8 @@ namespace OdhApiCore.Controllers
                     }
 
                     var (controller, id) = (chunks[0], chunks[1]);
-                    return Url.Link($"Single{controller}", new { id })!;
+
+                    return Uri.UnescapeDataString(Url.Link($"Single{controller}", new { id })!);
                 };
             }
         }
@@ -531,13 +533,120 @@ namespace OdhApiCore.Controllers
                     return BadRequest(result);
             }
         }
+
+
+    }   
+
+    public abstract class OdhControllerWithSearch : OdhController
+    {
+        public OdhControllerWithSearch(
+            IWebHostEnvironment env,
+            ISettings settings,
+            ILogger<OdhControllerWithSearch> logger,
+            QueryFactory queryFactory,
+            IOdhPushNotifier odhpushnotifier
+        )
+            : base(env, settings, logger, queryFactory, odhpushnotifier) { }
+
+        // Generic POST search method
+        [HttpPost("[controller]Search")]
+        public virtual async Task<IActionResult> Search([FromBody] Dictionary<string, object> searchParams)
+        {
+            // Build query string from posted JSON
+            var queryString = string.Join("&",
+                searchParams.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value?.ToString() ?? string.Empty)}"));
+
+            // Get the current request path and modify it for GET
+            var getUrl = $"{Request.Path.Value.Replace("Search", string.Empty)}?{queryString}";
+
+            // Option 2: Internal forwarding (better approach)
+            Request.QueryString = new QueryString($"?{queryString}");
+            Request.Method = "GET";
+
+            // Call the GET method through reflection or direct invocation
+            var getMethod = GetType().GetMethod("Get",
+                BindingFlags.Public | BindingFlags.Instance);
+
+            if (getMethod != null)
+            {
+                // Build parameters for the GET method
+                var parameters = getMethod.GetParameters();
+                var args = new object[parameters.Length];
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var paramName = parameters[i].Name;
+                    if (searchParams.ContainsKey(paramName))
+                    {
+                        try
+                        {
+                            // Convert to appropriate type
+                            if (parameters[i].ParameterType == typeof(LegacyBool))
+                            {
+                                {
+                                    var boolresult = Convert.ToBoolean(searchParams[paramName]);
+                                    args[i] = new LegacyBool(boolresult);
+                                }
+                            }
+                            else if (parameters[i].ParameterType == typeof(PageSize))
+                            {
+                                {
+                                    var intresult = Convert.ToInt32(searchParams[paramName]);
+                                    args[i] = new PageSize(intresult);
+                                }
+                            }
+                            else
+                            {
+                                var value = Convert.ChangeType(searchParams[paramName], parameters[i].ParameterType);
+                                args[i] = value;
+                            }                             
+                        }
+                        catch (Exception)
+                        {                            
+                                // If conversion fails, use default value
+                                args[i] = parameters[i].HasDefaultValue ? parameters[i].DefaultValue : null;                            
+                        }
+                    }
+                    else
+                    {
+                        if (parameters[i].ParameterType == typeof(PageSize))
+                        {
+                            args[i] = new PageSize(null);
+                        }
+                        else if (parameters[i].ParameterType == typeof(LegacyBool))
+                        {
+                            args[i] = new LegacyBool(null);
+                        }
+                        else
+                        {
+                            args[i] = parameters[i].HasDefaultValue ? parameters[i].DefaultValue : null;
+                        }
+                    }
+                }
+
+                var result = getMethod.Invoke(this, args);
+
+                // Handle async methods
+                if (result is Task<IActionResult> taskResult)
+                {
+                    return await taskResult;
+                }
+                else if (result is Task task)
+                {
+                    await task;
+                    // Get the Result property for Task<T>
+                    var resultProperty = task.GetType().GetProperty("Result");
+                    return (IActionResult)resultProperty?.GetValue(task);
+                }
+                else
+                {
+                    // Synchronous method
+                    return (IActionResult)result;
+                }
+            }
+
+            return BadRequest("GET method not found");
+        }
+
     }
-
-    //[ApiController]
-    //[Route("v2")]
-    //[FormatFilter]
-    //public abstract class OdhControllerV2 : OdhController
-    //{
-
-    //}
 }

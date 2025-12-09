@@ -104,7 +104,8 @@ namespace OdhApiImporter.Helpers
                 //Import Each HDS data to ODH
                 foreach (var market in dataparsed.records)
                 {
-                    if (market != null)
+                    //Avoid importing markets without name
+                    if (market != null && !String.IsNullOrEmpty(market.Municipality))
                     {
                         //Parse to ODHActivityPoi
                         var odhactivitypoi = HDS.ParseHDSPois.ParseHDSMarketToODHActivityPoi(
@@ -277,7 +278,7 @@ namespace OdhApiImporter.Helpers
                 //Import Each STA Vendingpoi to ODH
                 foreach (var yearmarket in dataparsed.records)
                 {
-                    if (yearmarket != null)
+                    if (yearmarket != null && !String.IsNullOrEmpty(yearmarket.Municipality))
                     {
                         //Parse to ODHActivityPoi
                         var odhactivitypoi = HDS.ParseHDSPois.ParseHDSYearMarketToODHActivityPoi(

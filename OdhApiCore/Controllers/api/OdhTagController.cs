@@ -65,7 +65,7 @@ namespace OdhApiCore.Controllers
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator))]
         [HttpGet, Route("ODHTag")]
         //[Authorize(Roles = "DataReader,CommonReader,AccoReader,ActivityReader,PoiReader,ODHPoiReader,PackageReader,GastroReader,EventReader,ArticleReader")]
-        public async Task<IActionResult> GetODHTagsAsync(
+        public async Task<IActionResult> Get(
             uint? pagenumber = null,
             PageSize pagesize = null!,
             string? language = null,
@@ -88,7 +88,7 @@ namespace OdhApiCore.Controllers
             if (String.IsNullOrEmpty(language) && !String.IsNullOrEmpty(localizationlanguage))
                 language = localizationlanguage;
 
-            return await Get(
+            return await GetList(
                 pagenumber,
                 pagesize,
                 language,
@@ -149,7 +149,7 @@ namespace OdhApiCore.Controllers
 
         #region GETTER
 
-        private Task<IActionResult> Get(
+        private Task<IActionResult> GetList(
             uint? pagenumber,
             int? pagesize,
             string? language,
@@ -314,7 +314,7 @@ namespace OdhApiCore.Controllers
         /// <param name="odhtag">ODHTag Object</param>
         /// <returns>Http Response</returns>
         [ApiExplorerSettings(IgnoreApi = true)]
-        [InvalidateCacheOutput(nameof(GetODHTagsAsync))]
+        [InvalidateCacheOutput(nameof(Get))]
         //[Authorize(Roles = "DataWriter,DataCreate,ODHTagManager,ODHTagCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("ODHTag")]
@@ -343,7 +343,7 @@ namespace OdhApiCore.Controllers
         /// <param name="odhtag">ODHTag Object</param>
         /// <returns>Http Response</returns>
         [ApiExplorerSettings(IgnoreApi = true)]
-        [InvalidateCacheOutput(nameof(GetODHTagsAsync))]
+        [InvalidateCacheOutput(nameof(Get))]
         //[Authorize(Roles = "DataWriter,DataModify,ODHTagManager,ODHTagModify,ODHTagUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("ODHTag/{id}")]
@@ -371,7 +371,7 @@ namespace OdhApiCore.Controllers
         /// <param name="id">ODHTag Id</param>
         /// <returns>Http Response</returns>
         [ApiExplorerSettings(IgnoreApi = true)]
-        [InvalidateCacheOutput(nameof(GetODHTagsAsync))]
+        [InvalidateCacheOutput(nameof(Get))]
         //[Authorize(Roles = "DataWriter,DataDelete,ODHTagManager,ODHTagDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("ODHTag/{id}")]

@@ -44,37 +44,37 @@ namespace Helper
                 //        ? true
                 //        : false
                 //    : false,
-                Event or EventLinked => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
-                ODHActivityPoi or ODHActivityPoiLinked => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
-                Measuringpoint or MeasuringpointLinked => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
-                WebcamInfo or WebcamInfoLinked => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
-                VenueLinked => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
-                DDVenue => myobject.Source != null
-                    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
-                        ? true
-                        : false
-                    : false,
-                _ => false,
+                //Event or EventLinked => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
+                //ODHActivityPoi or ODHActivityPoiLinked => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
+                //Measuringpoint or MeasuringpointLinked => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
+                //WebcamInfo or WebcamInfoLinked => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
+                //VenueLinked => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
+                //DDVenue => myobject.Source != null
+                //    ? myobject.Source.ToLower() == "lts" && !myobject.LicenseInfo.ClosedData
+                //        ? true
+                //        : false
+                //    : false,
+                //_ => false,
             };
         }
 
@@ -267,102 +267,102 @@ namespace Helper
         //}
 
         //LTS PoiData ActivityData
-        public static LTSODHActivityPoiReduced CopyLTSODHActivtyPoiToReducedObject(
-            ODHActivityPoiLinked mypoi
-        )
-        {
-            var reduced = new LTSODHActivityPoiReduced();
+        //public static LTSODHActivityPoiReduced CopyLTSODHActivtyPoiToReducedObject(
+        //    ODHActivityPoiLinked mypoi
+        //)
+        //{
+        //    var reduced = new LTSODHActivityPoiReduced();
 
-            reduced.Id = mypoi.Id + "_reduced";
+        //    reduced.Id = mypoi.Id + "_reduced";
 
-            //If Activity
-            if (mypoi.SyncSourceInterface == "activitydata")
-            {
-                //Activity/Number
-                reduced.WayNumber = mypoi.WayNumber;
-                //Features/IsWithLight
-                reduced.IsWithLigth = mypoi.IsWithLigth;
-                //Features/HasRentals
-                reduced.HasRentals = mypoi.HasRentals;
-                //Features/LiftAvailable
-                reduced.LiftAvailable = mypoi.LiftAvailable;
-                //Features/FeetClimb
-                reduced.FeetClimb = mypoi.FeetClimb;
-                //Features/BikeTransport
-                reduced.BikeTransport = mypoi.BikeTransport;
-                //Features/isOpen
-                reduced.IsOpen = mypoi.IsOpen;
-            }
+        //    //If Activity
+        //    if (mypoi.SyncSourceInterface == "activitydata")
+        //    {
+        //        //Activity/Number
+        //        reduced.WayNumber = mypoi.WayNumber;
+        //        //Features/IsWithLight
+        //        reduced.IsWithLigth = mypoi.IsWithLigth;
+        //        //Features/HasRentals
+        //        reduced.HasRentals = mypoi.HasRentals;
+        //        //Features/LiftAvailable
+        //        reduced.LiftAvailable = mypoi.LiftAvailable;
+        //        //Features/FeetClimb
+        //        reduced.FeetClimb = mypoi.FeetClimb;
+        //        //Features/BikeTransport
+        //        reduced.BikeTransport = mypoi.BikeTransport;
+        //        //Features/isOpen
+        //        reduced.IsOpen = mypoi.IsOpen;
+        //    }
 
-            //If Poi
-            if (mypoi.SyncSourceInterface == "poidata")
-            {
-                reduced.HasFreeEntrance = mypoi.HasFreeEntrance; //Features/HasFreeEntrance
-            }
+        //    //If Poi
+        //    if (mypoi.SyncSourceInterface == "poidata")
+        //    {
+        //        reduced.HasFreeEntrance = mypoi.HasFreeEntrance; //Features/HasFreeEntrance
+        //    }
 
-            //If Gastronomy
-            if (mypoi.SyncSourceInterface == "gastronomicdata")
-            {
-                reduced.CategoryCodes = mypoi.CategoryCodes;
-            }
+        //    //If Gastronomy
+        //    if (mypoi.SyncSourceInterface == "gastronomicdata")
+        //    {
+        //        reduced.CategoryCodes = mypoi.CategoryCodes;
+        //    }
 
-            //Tag
-            reduced.SmgTags = mypoi.SmgTags;
-            reduced.LTSTags =
-                mypoi.LTSTags != null
-                    ? ReducedDataHelper.ReduceLtsTags(mypoi.LTSTags).ToList()
-                    : null;
+        //    //Tag
+        //    reduced.SmgTags = mypoi.SmgTags;
+        //    reduced.LTSTags =
+        //        mypoi.LTSTags != null
+        //            ? ReducedDataHelper.ReduceLtsTags(mypoi.LTSTags).ToList()
+        //            : null;
 
-            //Tagging
-            reduced.Tags = mypoi.Tags;
-            reduced.TagIds = mypoi.TagIds;
+        //    //Tagging
+        //    reduced.Tags = mypoi.Tags;
+        //    reduced.TagIds = mypoi.TagIds;
 
-            reduced.Detail = ReducedDataHelper.ReduceDetailInfo(mypoi.Detail);
-            reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForODHActivityPoi(
-                mypoi.ContactInfos,
-                mypoi.SyncSourceInterface
-            );
+        //    reduced.Detail = ReducedDataHelper.ReduceDetailInfo(mypoi.Detail);
+        //    reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForODHActivityPoi(
+        //        mypoi.ContactInfos,
+        //        mypoi.SyncSourceInterface
+        //    );
 
-            //Position/Longitude,Latitude,Altitude
-            //reduced.GpsPoints = mypoi.GpsPoints;
-            reduced.GpsInfo = mypoi.GpsInfo;
+        //    //Position/Longitude,Latitude,Altitude
+        //    //reduced.GpsPoints = mypoi.GpsPoints;
+        //    reduced.GpsInfo = mypoi.GpsInfo;
 
-            //ODH Fields
-            reduced.Shortname = mypoi.Shortname;
-            reduced.Type = mypoi.Type;
-            reduced.SubType = mypoi.SubType;
-            reduced.PoiType = mypoi.PoiType;
-            reduced.AdditionalPoiInfos = mypoi.AdditionalPoiInfos;
+        //    //ODH Fields
+        //    reduced.Shortname = mypoi.Shortname;
+        //    reduced.Type = mypoi.Type;
+        //    reduced.SubType = mypoi.SubType;
+        //    reduced.PoiType = mypoi.PoiType;
+        //    reduced.AdditionalPoiInfos = mypoi.AdditionalPoiInfos;
 
-            //ODH Fields
-            reduced.Active = mypoi.Active;
-            reduced.SmgActive = mypoi.SmgActive;
-            reduced.LastChange = mypoi.LastChange;
-            reduced.FirstImport = mypoi.FirstImport;
-            reduced.HasLanguage = mypoi.HasLanguage;
-            reduced.Source = mypoi.Source;
-            reduced.SyncSourceInterface = mypoi.SyncSourceInterface;
-            reduced.SyncUpdateMode = mypoi.SyncUpdateMode;
+        //    //ODH Fields
+        //    reduced.Active = mypoi.Active;
+        //    reduced.SmgActive = mypoi.SmgActive;
+        //    reduced.LastChange = mypoi.LastChange;
+        //    reduced.FirstImport = mypoi.FirstImport;
+        //    reduced.HasLanguage = mypoi.HasLanguage;
+        //    reduced.Source = mypoi.Source;
+        //    reduced.SyncSourceInterface = mypoi.SyncSourceInterface;
+        //    reduced.SyncUpdateMode = mypoi.SyncUpdateMode;
 
-            ///LocationInfo, ODH Object calculated with
-            reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(mypoi.LocationInfo);
+        //    ///LocationInfo, ODH Object calculated with
+        //    reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(mypoi.LocationInfo);
 
-            //License + Meta
-            reduced.LicenseInfo = mypoi.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "odhactivitypoi",
-                reduced.Source?.ToLower(),
-                reduced.LastChange,
-                true
-            );
-            reduced.PublishedOn = mypoi.PublishedOn;
+        //    //License + Meta
+        //    reduced.LicenseInfo = mypoi.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "odhactivitypoi",
+        //        reduced.Source?.ToLower(),
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    reduced.PublishedOn = mypoi.PublishedOn;
 
-            //ImageGallery
-            reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(mypoi.ImageGallery);
+        //    //ImageGallery
+        //    reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(mypoi.ImageGallery);
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
 
         //LTS Accommodation OK ACTIVE (IDMActive=1)
         public static AccommodationLinkedReduced CopyLTSAccommodationToReducedObject(
@@ -432,306 +432,306 @@ namespace Helper
         }
 
         //LTS Event
-        public static EventLinkedReduced CopyLTSEventToReducedObject(EventLinked myevent)
-        {
-            var reduced = new EventLinkedReduced();
+        //public static EventLinkedReduced CopyLTSEventToReducedObject(EventLinked myevent)
+        //{
+        //    var reduced = new EventLinkedReduced();
 
-            //LTS ID(RID) (EvRID)
-            reduced.Id = myevent.Id + "_REDUCED";
+        //    //LTS ID(RID) (EvRID)
+        //    reduced.Id = myevent.Id + "_REDUCED";
 
-            //Definition/GEP, GNP
-            //reduced.Gpstype = myevent.Gpstype;
-            //reduced.Latitude = myevent.Latitude;
-            //reduced.Longitude = myevent.Longitude;
-            //reduced.Altitude = myevent.Altitude;
-            //reduced.AltitudeUnitofMeasure = myevent.AltitudeUnitofMeasure;
-            reduced.GpsInfo = myevent.GpsInfo;
+        //    //Definition/GEP, GNP
+        //    //reduced.Gpstype = myevent.Gpstype;
+        //    //reduced.Latitude = myevent.Latitude;
+        //    //reduced.Longitude = myevent.Longitude;
+        //    //reduced.Altitude = myevent.Altitude;
+        //    //reduced.AltitudeUnitofMeasure = myevent.AltitudeUnitofMeasure;
+        //    reduced.GpsInfo = myevent.GpsInfo;
 
-            //DefinitionLng/Title
-            reduced.Detail = ReducedDataHelper.ReduceDetailInfo(myevent.Detail);
+        //    //DefinitionLng/Title
+        //    reduced.Detail = ReducedDataHelper.ReduceDetailInfo(myevent.Detail);
 
-            reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForEvent(
-                myevent.ContactInfos
-            );
+        //    reduced.ContactInfos = ReducedDataHelper.ReduceContactInfoForEvent(
+        //        myevent.ContactInfos
+        //    );
 
-            //Day/Date, DateTo, SingleDays, Begin, End
-            reduced.DateBegin = myevent.DateBegin;
-            reduced.DateEnd = myevent.DateEnd;
-            //reduced.NextBeginDate = myevent.NextBeginDate;
+        //    //Day/Date, DateTo, SingleDays, Begin, End
+        //    reduced.DateBegin = myevent.DateBegin;
+        //    reduced.DateEnd = myevent.DateEnd;
+        //    //reduced.NextBeginDate = myevent.NextBeginDate;
 
-            reduced.EventProperty = myevent.EventProperty;
+        //    reduced.EventProperty = myevent.EventProperty;
 
-            //Definition/Ticket
-            reduced.EventProperty.RegistrationRequired = null;
-            reduced.EventProperty.IncludedInSuedtirolGuestPass = null;
-            reduced.EventProperty.EventClassificationId = null;
-            reduced.EventProperty.EventOrganizerId = null;            
+        //    //Definition/Ticket
+        //    reduced.EventProperty.RegistrationRequired = null;
+        //    reduced.EventProperty.IncludedInSuedtirolGuestPass = null;
+        //    reduced.EventProperty.EventClassificationId = null;
+        //    reduced.EventProperty.EventOrganizerId = null;            
 
-            //BookingData/BookingUrl
-            reduced.EventBooking =
-                myevent.EventBooking != null
-                    ? ReducedDataHelper.ReduceEventBooking(myevent.EventBooking)
-                    : null;
+        //    //BookingData/BookingUrl
+        //    reduced.EventBooking =
+        //        myevent.EventBooking != null
+        //            ? ReducedDataHelper.ReduceEventBooking(myevent.EventBooking)
+        //            : null;
 
-            //Evendate
-            reduced.EventDate = ReducedDataHelper.ReduceEventDateCollection(
-                myevent.EventDate ?? new List<EventDate>()
-            );
+        //    //Evendate
+        //    reduced.EventDate = ReducedDataHelper.ReduceEventDateCollection(
+        //        myevent.EventDate ?? new List<EventDate>()
+        //    );
 
-            //ODH Fields
-            reduced.Active = myevent.Active;
-            reduced.SmgActive = myevent.SmgActive;
-            reduced.LastChange = myevent.LastChange;
-            reduced.FirstImport = myevent.FirstImport;
-            reduced.HasLanguage = myevent.HasLanguage;
-            reduced.Shortname = myevent.Shortname;
-            reduced.Source = myevent.Source;
+        //    //ODH Fields
+        //    reduced.Active = myevent.Active;
+        //    reduced.SmgActive = myevent.SmgActive;
+        //    reduced.LastChange = myevent.LastChange;
+        //    reduced.FirstImport = myevent.FirstImport;
+        //    reduced.HasLanguage = myevent.HasLanguage;
+        //    reduced.Shortname = myevent.Shortname;
+        //    reduced.Source = myevent.Source;
 
-            ///LocationInfo, ODH Object calculated with
-            reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(
-                myevent.LocationInfo
-            );
+        //    ///LocationInfo, ODH Object calculated with
+        //    reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(
+        //        myevent.LocationInfo
+        //    );
 
-            //License + Meta
-            reduced.LicenseInfo = myevent.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "event",
-                "lts",
-                reduced.LastChange,
-                true
-            );
-            reduced.PublishedOn = myevent.PublishedOn;
+        //    //License + Meta
+        //    reduced.LicenseInfo = myevent.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "event",
+        //        "lts",
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    reduced.PublishedOn = myevent.PublishedOn;
 
-            //ImageGallery
-            reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(myevent.ImageGallery);
+        //    //ImageGallery
+        //    reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(myevent.ImageGallery);
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
 
-        //LTS Measuringpoint (Status/IsEnabled=1)
-        public static MeasuringpointLinkedReduced CopyLTSMeasuringpointToReducedObject(
-            MeasuringpointLinked measuringpoint
-        )
-        {
-            var reduced = new MeasuringpointLinkedReduced();
+        ////LTS Measuringpoint (Status/IsEnabled=1)
+        //public static MeasuringpointLinkedReduced CopyLTSMeasuringpointToReducedObject(
+        //    MeasuringpointLinked measuringpoint
+        //)
+        //{
+        //    var reduced = new MeasuringpointLinkedReduced();
 
-            //LTS ID(RID) (EvRID)
-            reduced.Id = measuringpoint.Id + "_REDUCED";
+        //    //LTS ID(RID) (EvRID)
+        //    reduced.Id = measuringpoint.Id + "_REDUCED";
 
-            //Name
-            reduced.Shortname = measuringpoint.Shortname;
-            //GeoData/Position/Longitude,Latitude,Altitude
-            //reduced.Gpstype = measuringpoint.Gpstype;
-            //reduced.Latitude = measuringpoint.Latitude;
-            //reduced.Longitude = measuringpoint.Longitude;
-            //reduced.Altitude = measuringpoint.Altitude;
-            //reduced.AltitudeUnitofMeasure = measuringpoint.AltitudeUnitofMeasure;
-            reduced.GpsInfo = measuringpoint.GpsInfo;
+        //    //Name
+        //    reduced.Shortname = measuringpoint.Shortname;
+        //    //GeoData/Position/Longitude,Latitude,Altitude
+        //    //reduced.Gpstype = measuringpoint.Gpstype;
+        //    //reduced.Latitude = measuringpoint.Latitude;
+        //    //reduced.Longitude = measuringpoint.Longitude;
+        //    //reduced.Altitude = measuringpoint.Altitude;
+        //    //reduced.AltitudeUnitofMeasure = measuringpoint.AltitudeUnitofMeasure;
+        //    reduced.GpsInfo = measuringpoint.GpsInfo;
 
-            //Observation / Temperature
-            reduced.Temperature = measuringpoint.Temperature;
+        //    //Observation / Temperature
+        //    reduced.Temperature = measuringpoint.Temperature;
 
-            //Snow / Height
-            reduced.SnowHeight = measuringpoint.SnowHeight;
+        //    //Snow / Height
+        //    reduced.SnowHeight = measuringpoint.SnowHeight;
 
-            //Snow / NewHeight
-            reduced.newSnowHeight = measuringpoint.newSnowHeight;
+        //    //Snow / NewHeight
+        //    reduced.newSnowHeight = measuringpoint.newSnowHeight;
 
-            //Snow / DateLastSnow
-            reduced.LastSnowDate = measuringpoint.LastSnowDate;
+        //    //Snow / DateLastSnow
+        //    reduced.LastSnowDate = measuringpoint.LastSnowDate;
 
-            //ODH Fields
-            reduced.Active = measuringpoint.Active;
-            reduced.SmgActive = measuringpoint.SmgActive;
-            reduced.LastChange = measuringpoint.LastChange;
-            reduced.LastUpdate = measuringpoint.LastUpdate;
-            reduced.FirstImport = measuringpoint.FirstImport;
-            reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(
-                measuringpoint.LocationInfo
-            );
-            reduced.Source = measuringpoint.Source;
+        //    //ODH Fields
+        //    reduced.Active = measuringpoint.Active;
+        //    reduced.SmgActive = measuringpoint.SmgActive;
+        //    reduced.LastChange = measuringpoint.LastChange;
+        //    reduced.LastUpdate = measuringpoint.LastUpdate;
+        //    reduced.FirstImport = measuringpoint.FirstImport;
+        //    reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(
+        //        measuringpoint.LocationInfo
+        //    );
+        //    reduced.Source = measuringpoint.Source;
 
-            //License + Meta
-            reduced.LicenseInfo = measuringpoint.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "measuringpoint",
-                "lts",
-                reduced.LastChange,
-                true
-            );
-            reduced.PublishedOn = measuringpoint.PublishedOn;
+        //    //License + Meta
+        //    reduced.LicenseInfo = measuringpoint.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "measuringpoint",
+        //        "lts",
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    reduced.PublishedOn = measuringpoint.PublishedOn;
 
-            reduced.SkiAreaIds = measuringpoint.SkiAreaIds;
+        //    reduced.SkiAreaIds = measuringpoint.SkiAreaIds;
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
 
-        //LTS Venue
-        public static DDVenueReduced CopyLTSVenueToReducedObject(DDVenue venue)
-        {
-            var reduced = new DDVenueReduced();
+        ////LTS Venue
+        //public static DDVenueReduced CopyLTSVenueToReducedObject(DDVenue venue)
+        //{
+        //    var reduced = new DDVenueReduced();
 
-            //LTS ID(RID) (EvRID)
-            reduced.Id = venue.Id + "_REDUCED";
-            reduced.attributes = ReducedDataHelper.ReduceVenueAttributes(venue.attributes);
-            reduced.meta = venue.meta;
-            reduced.LastChange = venue.LastChange;
-            reduced.Source = venue.Source;
-            reduced.LicenseInfo = venue.odhdata?.LicenseInfo;
-            reduced.links = venue.links;
+        //    //LTS ID(RID) (EvRID)
+        //    reduced.Id = venue.Id + "_REDUCED";
+        //    reduced.attributes = ReducedDataHelper.ReduceVenueAttributes(venue.attributes);
+        //    reduced.meta = venue.meta;
+        //    reduced.LastChange = venue.LastChange;
+        //    reduced.Source = venue.Source;
+        //    reduced.LicenseInfo = venue.odhdata?.LicenseInfo;
+        //    reduced.links = venue.links;
 
-            if (reduced.relationships != null)
-            {
-                reduced.relationships.multimediaDescriptions = null;
-                reduced.relationships.subVenues =
-                    venue.relationships?.subVenues != null
-                        ? ReducedDataHelper.ReduceSubVenues(venue.relationships.subVenues)
-                        : null;
-            }
+        //    if (reduced.relationships != null)
+        //    {
+        //        reduced.relationships.multimediaDescriptions = null;
+        //        reduced.relationships.subVenues =
+        //            venue.relationships?.subVenues != null
+        //                ? ReducedDataHelper.ReduceSubVenues(venue.relationships.subVenues)
+        //                : null;
+        //    }
 
-            reduced.odhdata = new ODHData();
+        //    reduced.odhdata = new ODHData();
 
-            if (venue.odhdata is { })
-            {
-                //ODH Fields TODO
-                reduced.odhdata.Active = venue.odhdata.Active;
-                reduced.odhdata.ODHActive = venue.odhdata.ODHActive;
-                reduced.odhdata.Shortname = venue.odhdata.Shortname;
-                reduced.odhdata.SmgTags = venue.odhdata.SmgTags;
-                reduced.odhdata.HasLanguage = venue.odhdata.HasLanguage;
-                reduced.odhdata.Source = venue.odhdata.Source;
-                reduced.odhdata.GpsInfo = ReducedDataHelper.ReduceGpsInfo(venue.odhdata.GpsInfo);
-                //reduced.odhdata.GpsPoints = venue.odhdata.GpsPoints;
-                reduced.odhdata.RoomCount = venue.odhdata.RoomCount;
-                reduced.odhdata.SyncSourceInterface = venue.odhdata.SyncSourceInterface;
-                reduced.odhdata.VenueCategory = venue.odhdata.VenueCategory;
-                reduced.odhdata.RoomDetails = ReducedDataHelper.ReduceVenueRoomDetails(
-                    venue.odhdata.RoomDetails
-                );
-            }
+        //    if (venue.odhdata is { })
+        //    {
+        //        //ODH Fields TODO
+        //        reduced.odhdata.Active = venue.odhdata.Active;
+        //        reduced.odhdata.ODHActive = venue.odhdata.ODHActive;
+        //        reduced.odhdata.Shortname = venue.odhdata.Shortname;
+        //        reduced.odhdata.SmgTags = venue.odhdata.SmgTags;
+        //        reduced.odhdata.HasLanguage = venue.odhdata.HasLanguage;
+        //        reduced.odhdata.Source = venue.odhdata.Source;
+        //        reduced.odhdata.GpsInfo = ReducedDataHelper.ReduceGpsInfo(venue.odhdata.GpsInfo);
+        //        //reduced.odhdata.GpsPoints = venue.odhdata.GpsPoints;
+        //        reduced.odhdata.RoomCount = venue.odhdata.RoomCount;
+        //        reduced.odhdata.SyncSourceInterface = venue.odhdata.SyncSourceInterface;
+        //        reduced.odhdata.VenueCategory = venue.odhdata.VenueCategory;
+        //        reduced.odhdata.RoomDetails = ReducedDataHelper.ReduceVenueRoomDetails(
+        //            venue.odhdata.RoomDetails
+        //        );
+        //    }
 
-            ///LocationInfo, ODH Object calculated with
-            reduced.odhdata.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(
-                reduced.odhdata.LocationInfo
-            );
+        //    ///LocationInfo, ODH Object calculated with
+        //    reduced.odhdata.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(
+        //        reduced.odhdata.LocationInfo
+        //    );
 
-            //License + Meta
-            reduced.odhdata.LicenseInfo = venue.odhdata?.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "venue",
-                "lts",
-                reduced.LastChange,
-                true
-            );
-            reduced.odhdata.PublishedOn = venue.odhdata?.PublishedOn;
+        //    //License + Meta
+        //    reduced.odhdata.LicenseInfo = venue.odhdata?.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "venue",
+        //        "lts",
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    reduced.odhdata.PublishedOn = venue.odhdata?.PublishedOn;
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
 
-        public static VenueReduced CopyLTSVenueToReducedObject(VenueLinked venue)
-        {
-            var reduced = new VenueReduced();
+        //public static VenueReduced CopyLTSVenueToReducedObject(VenueLinked venue)
+        //{
+        //    var reduced = new VenueReduced();
 
-            //LTS ID(RID) (EvRID)
-            reduced.Id = venue.Id + "_REDUCED";
-            reduced.LastChange = venue.LastChange;
-            reduced.Source = venue.Source;
+        //    //LTS ID(RID) (EvRID)
+        //    reduced.Id = venue.Id + "_REDUCED";
+        //    reduced.LastChange = venue.LastChange;
+        //    reduced.Source = venue.Source;
 
-            //TODO
-            //REDUCE DETAIL
-            reduced.Detail =
-                venue.Detail != null ? ReducedDataHelper.ReduceDetailInfo(venue.Detail) : null;
-            //REDUCE CONTACTINFO
-            reduced.ContactInfos =
-                venue.ContactInfos != null
-                    ? ReducedDataHelper.ReduceContactInfoForVenue(venue.ContactInfos)
-                    : null;
+        //    //TODO
+        //    //REDUCE DETAIL
+        //    reduced.Detail =
+        //        venue.Detail != null ? ReducedDataHelper.ReduceDetailInfo(venue.Detail) : null;
+        //    //REDUCE CONTACTINFO
+        //    reduced.ContactInfos =
+        //        venue.ContactInfos != null
+        //            ? ReducedDataHelper.ReduceContactInfoForVenue(venue.ContactInfos)
+        //            : null;
 
-            //if (reduced.relationships != null)
-            //{
-            //    reduced.relationships.multimediaDescriptions = null;
-            //    reduced.relationships.subVenues = venue.relationships.subVenues != null ? ReduceSubVenues(venue.relationships.subVenues) : null;
-            //}
+        //    //if (reduced.relationships != null)
+        //    //{
+        //    //    reduced.relationships.multimediaDescriptions = null;
+        //    //    reduced.relationships.subVenues = venue.relationships.subVenues != null ? ReduceSubVenues(venue.relationships.subVenues) : null;
+        //    //}
 
-            //ODH Fields TODO
-            reduced.Active = venue.Active;
-            reduced.SmgActive = venue.SmgActive;
-            //reduced.ODHActive = venue.ODHActive;
-            reduced.Shortname = venue.Shortname;
-            reduced.SmgTags = venue.SmgTags;
-            reduced.HasLanguage = venue.HasLanguage;
-            reduced.Source = venue.Source;
-            reduced.GpsInfo = ReducedDataHelper.ReduceGpsInfo(venue.GpsInfo);
-            //reduced.GpsPoints = venue.odhdata.GpsPoints;
-            reduced.RoomCount = venue.RoomCount;
-            reduced.SyncSourceInterface = venue.SyncSourceInterface;
-            reduced.VenueCategory = venue.VenueCategory;
-            //REDUCE SUBVENUES
-            reduced.RoomDetails = ReducedDataHelper.ReduceVenueRoomDetails(venue.RoomDetails);
+        //    //ODH Fields TODO
+        //    reduced.Active = venue.Active;
+        //    reduced.SmgActive = venue.SmgActive;
+        //    //reduced.ODHActive = venue.ODHActive;
+        //    reduced.Shortname = venue.Shortname;
+        //    reduced.SmgTags = venue.SmgTags;
+        //    reduced.HasLanguage = venue.HasLanguage;
+        //    reduced.Source = venue.Source;
+        //    reduced.GpsInfo = ReducedDataHelper.ReduceGpsInfo(venue.GpsInfo);
+        //    //reduced.GpsPoints = venue.odhdata.GpsPoints;
+        //    reduced.RoomCount = venue.RoomCount;
+        //    reduced.SyncSourceInterface = venue.SyncSourceInterface;
+        //    reduced.VenueCategory = venue.VenueCategory;
+        //    //REDUCE SUBVENUES
+        //    reduced.RoomDetails = ReducedDataHelper.ReduceVenueRoomDetails(venue.RoomDetails);
 
-            ///LocationInfo, ODH Object calculated with
-            reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(venue.LocationInfo);
+        //    ///LocationInfo, ODH Object calculated with
+        //    reduced.LocationInfo = ReducedDataHelper.RemoveAreafromLocationInfo(venue.LocationInfo);
 
-            //License + Meta
-            reduced.LicenseInfo = venue.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "venue",
-                "lts",
-                reduced.LastChange,
-                true
-            );
-            reduced.PublishedOn = venue.PublishedOn;
+        //    //License + Meta
+        //    reduced.LicenseInfo = venue.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "venue",
+        //        "lts",
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    reduced.PublishedOn = venue.PublishedOn;
 
-            //ImageGallery
-            reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(venue.ImageGallery);
+        //    //ImageGallery
+        //    reduced.ImageGallery = ReducedDataHelper.ReduceImagesToCC0Only(venue.ImageGallery);
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
 
-        //LTS WebcamInfo
-        public static WebcamInfoLinkedReduced CopyLTSWebcamInfoToReducedObject(
-            WebcamInfoLinked webcam
-        )
-        {
-            var reduced = new WebcamInfoLinkedReduced();
+        ////LTS WebcamInfo
+        //public static WebcamInfoLinkedReduced CopyLTSWebcamInfoToReducedObject(
+        //    WebcamInfoLinked webcam
+        //)
+        //{
+        //    var reduced = new WebcamInfoLinkedReduced();
 
-            //LTS ID(RID) (EvRID)
-            reduced.Id = webcam.Id + "_REDUCED";
+        //    //LTS ID(RID) (EvRID)
+        //    reduced.Id = webcam.Id + "_REDUCED";
 
-            //URL, StreamURL
-            reduced.WebCamProperties = new WebcamProperties();
-            reduced.WebCamProperties.WebcamUrl = webcam.WebCamProperties.WebcamUrl;
-            reduced.WebCamProperties.StreamUrl = webcam.WebCamProperties.StreamUrl;
+        //    //URL, StreamURL
+        //    reduced.WebCamProperties = new WebcamProperties();
+        //    reduced.WebCamProperties.WebcamUrl = webcam.WebCamProperties.WebcamUrl;
+        //    reduced.WebCamProperties.StreamUrl = webcam.WebCamProperties.StreamUrl;
 
-            //ODH Fields
-            reduced.Active = webcam.Active;
-            reduced.SmgActive = webcam.SmgActive;
-            reduced.LastChange = webcam.LastChange;
-            reduced.FirstImport = webcam.FirstImport;
-            reduced.Source = webcam.Source;
-            //TO ASK? Webcamname?
+        //    //ODH Fields
+        //    reduced.Active = webcam.Active;
+        //    reduced.SmgActive = webcam.SmgActive;
+        //    reduced.LastChange = webcam.LastChange;
+        //    reduced.FirstImport = webcam.FirstImport;
+        //    reduced.Source = webcam.Source;
+        //    //TO ASK? Webcamname?
 
-            reduced.Detail = webcam.Detail;
-            reduced.ImageGallery = webcam.ImageGallery;
-            reduced.ContactInfos = webcam.ContactInfos;
+        //    reduced.Detail = webcam.Detail;
+        //    reduced.ImageGallery = webcam.ImageGallery;
+        //    reduced.ContactInfos = webcam.ContactInfos;
 
-            //License + Meta
-            reduced.LicenseInfo = webcam.LicenseInfo;
-            reduced._Meta = MetadataHelper.GetMetadata(
-                reduced.Id,
-                "webcam",
-                "lts",
-                reduced.LastChange,
-                true
-            );
-            reduced.PublishedOn = webcam.PublishedOn;
+        //    //License + Meta
+        //    reduced.LicenseInfo = webcam.LicenseInfo;
+        //    reduced._Meta = MetadataHelper.GetMetadata(
+        //        reduced.Id,
+        //        "webcam",
+        //        "lts",
+        //        reduced.LastChange,
+        //        true
+        //    );
+        //    reduced.PublishedOn = webcam.PublishedOn;
 
-            return reduced;
-        }
+        //    return reduced;
+        //}
     }
 
     public class ReducedDataHelper

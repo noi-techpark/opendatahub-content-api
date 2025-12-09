@@ -461,11 +461,11 @@ namespace DataModel
         }
 
         [SwaggerDeprecated("Deprecated, use AccoProperties.IsBookable")]
-        public new bool IsBookable
+        public new bool? IsBookable
         {
             get
             {
-                return this.AccoProperties != null ? this.AccoProperties.IsBookable.Value : false;
+                return this.AccoProperties != null ? this.AccoProperties.IsBookable : null;
             }
         }
 

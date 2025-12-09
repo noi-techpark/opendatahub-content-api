@@ -387,8 +387,7 @@ namespace DataModel
     public class Accommodation
         : IIdentifiable,
             IShortName,
-            IActivateable,
-            IGpsInfo,
+            IActivateable,            
             IImageGalleryAware,
             ISmgActive,
             IHasLanguage,
@@ -428,7 +427,7 @@ namespace DataModel
         public bool? IsCamping { get; set; }
 
         public bool? IsGastronomy { get; set; }
-        public bool IsBookable { get; set; }
+        public bool? IsBookable { get; set; }
         public bool? IsAccommodation { get; set; }
 
         [SwaggerDeprecated("Obsolete, use PublishedOn")]
@@ -443,10 +442,8 @@ namespace DataModel
         public string? Gpstype { get; set; }
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
-        public Nullable<double> Altitude { get; set; }
+        public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
 
         public DistanceInfo? DistanceInfo { get; set; }
 
@@ -827,8 +824,7 @@ namespace DataModel
         : IIdentifiable,
             IShortName,
             IActivateable,
-            IImageGalleryAware,
-            IGpsInfo,
+            IImageGalleryAware,            
             IContactInfosAware,
             ISmgTags,
             ISmgActive,
@@ -890,10 +886,6 @@ namespace DataModel
         public double? Longitude { get; set; }
         public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
-        
-        
         public string? DistrictId { get; set; }
         public ICollection<string>? DistrictIds { get; set; }
 
@@ -2137,8 +2129,7 @@ namespace DataModel
         : IIdentifiable,
             IShortName,
             IActivateable,
-            ISmgActive,
-            IGpsInfo,
+            ISmgActive,            
             ILicenseInfo,
             IImportDateassigneable,
             ISource,
@@ -2171,8 +2162,6 @@ namespace DataModel
         public double? Longitude { get; set; }
         public Nullable<double> Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
         public DistanceInfo? DistanceInfo { get; set; }
 
         //Observation
@@ -3455,7 +3444,6 @@ namespace DataModel
     public abstract class BaseInfos
         : IIdentifiable,
             IActivateable,
-            IGpsInfo,
             ISmgTags,
             ISmgActive,
             IHasLanguage,
@@ -3489,8 +3477,6 @@ namespace DataModel
         public double? Longitude { get; set; }
         public double? Altitude { get; set; }
         public string? AltitudeUnitofMeasure { get; set; }
-        public string Geometry { get; set; }
-        public bool? Default { get; set; }
 
         public IDictionary<string, Detail> Detail { get; set; }
         public IDictionary<string, ContactInfos> ContactInfos { get; set; }

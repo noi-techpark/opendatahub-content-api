@@ -79,7 +79,7 @@ namespace OdhApiCore.Controllers.api
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
         [HttpGet, Route("Article")]
-        public async Task<IActionResult> GetArticleList(
+        public async Task<IActionResult> Get(
             string? language = null,
             uint pagenumber = 1,
             PageSize pagesize = null!,
@@ -579,7 +579,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,ArticleManager,ArticleModify,ArticleUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
-        [InvalidateCacheOutput(nameof(GetArticleList))]
+        [InvalidateCacheOutput(nameof(Get))]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -626,7 +626,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,ArticleManager,ArticleDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
-        [InvalidateCacheOutput(nameof(GetArticleList))]
+        [InvalidateCacheOutput(nameof(Get))]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
