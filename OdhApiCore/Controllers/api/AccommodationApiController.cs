@@ -123,7 +123,7 @@ namespace OdhApiCore.Controllers
         [TypeFilter(typeof(Filters.AvailabilitySearchInterceptorAttribute))]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
         [HttpGet, Route("Accommodation", Name = "AccommodationList")]
-        public async Task<IActionResult> Get(
+        public async Task<IActionResult> GetAccommodations(
             uint pagenumber = 1,
             PageSize pagesize = null!,
             string? seed = null,
