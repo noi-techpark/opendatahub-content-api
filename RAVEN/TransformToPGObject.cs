@@ -154,17 +154,17 @@ namespace RAVEN
 
             //acco.GpsInfo = data.ConvertGpsInfoOnRootToGpsInfoArray();
 
-            if (acco.Latitude != 0 && acco.Longitude != 0)
-            {
+            if (data.Latitude != 0 && data.Longitude != 0)
+            {                
                 acco.GpsInfo = new List<GpsInfo>
                 {
                     new GpsInfo()
                     {
                         Gpstype = "position",
-                        Altitude = acco.Altitude,
-                        AltitudeUnitofMeasure = acco.AltitudeUnitofMeasure,
-                        Latitude = acco.Latitude,
-                        Longitude = acco.Longitude,
+                        Altitude = data.Altitude,
+                        AltitudeUnitofMeasure = data.AltitudeUnitofMeasure,
+                        Latitude = data.Latitude,
+                        Longitude = data.Longitude,
                     },
                 };
             }             

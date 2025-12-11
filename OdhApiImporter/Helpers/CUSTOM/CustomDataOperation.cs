@@ -2205,6 +2205,7 @@ namespace OdhApiImporter.Helpers
             {
                 var oldwineid = wine.Id.ToUpper();
                 wine.Id = wine.Id.ToLower();
+                wine._Meta.Id = wine.Id.ToLower();
                 //Save to DB
                 var queryresult = await QueryFactory
                     .Query("wines")
