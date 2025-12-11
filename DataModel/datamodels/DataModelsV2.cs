@@ -1202,7 +1202,11 @@ namespace DataModel
         public Route Route { get; set;}
 
         //Agency
-        public Agency Agency { get; set; }
+        public class Agency
+        {
+            public string Shortname { get; set; }
+            public IDictionary<string, ContactInfos> ContactInfos { get; set; }
+        }
 
         //Stops
         public IEnumerable<StopTime> StopTimes { get; set; }
@@ -1220,17 +1224,21 @@ namespace DataModel
         public IDictionary<string, DetailGeneric> Detail { get; set; } //route_long_name route_desc
 
         public ICollection<string>? TagIds { get; set; } //route_type
-        
+
         //calendar.txt
-        public Calendar Calendar { get; set; }
-    }
+        public class Calendar
+        {
+            //calendar.txt
 
-    public class Agency
-    {
-        public string Shortname { get; set; }
-        public IDictionary<string, ContactInfos> ContactInfos { get; set; }
-    }
+            public OperationSchedule OperationSchedule { get; set; }
 
+            //calendar_dates.txt
+
+            public IEnumerable<DateTime> AdditionalDates { get; set; }
+            public IEnumerable<DateTime> ExcludedDates { get; set; }
+        }
+
+    }
     public class StopTime
     {
         //stops.txt
@@ -1247,17 +1255,6 @@ namespace DataModel
         public DateTime DepartureTime { get; set; }
     }
 
-    public class Calendar
-    {
-        //calendar.txt
-
-        public OperationSchedule OperationSchedule { get; set; }
-
-        //calendar_dates.txt
-
-        public IEnumerable<DateTime> AdditionalDates { get; set; }
-        public IEnumerable<DateTime> ExcludedDates { get; set; }        
-    }
     
     #endregion
 }

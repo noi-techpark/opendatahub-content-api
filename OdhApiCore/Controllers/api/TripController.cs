@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Controllers.api;
-using OdhApiCore.Repositories;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -27,12 +26,12 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    public class AnnouncementController : OdhController
+    public class TripController : OdhController
     {
-        public AnnouncementController(
+        public TripController(
             IWebHostEnvironment env,
             ISettings settings,
-            ILogger<AnnouncementController> logger,
+            ILogger<TripController> logger,
             QueryFactory queryFactory,
             IOdhPushNotifier odhpushnotifier
         )
@@ -41,7 +40,7 @@ namespace OdhApiCore.Controllers
         #region SWAGGER Exposed API
 
         /// <summary>
-        /// GET Announcement List
+        /// GET Trip List
         /// </summary>
         /// <param name="pagenumber">Pagenumber</param>
         /// <param name="pagesize">Elements per Page, (default:10)</param>
@@ -60,14 +59,14 @@ namespace OdhApiCore.Controllers
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <returns>Collection of Announcement Objects</returns>
+        /// <returns>Collection of Trip Objects</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(JsonResult<Announcement>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(JsonResult<Trip>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Announcement")]
+        [HttpGet, Route("Trip")]
         public async Task<IActionResult> Get(
             uint? pagenumber = 1,
             PageSize pagesize = null!,
@@ -117,21 +116,21 @@ namespace OdhApiCore.Controllers
         }
 
         /// <summary>
-        /// GET Announcement Single
+        /// GET Trip Single
         /// </summary>
-        /// <param name="id">ID of the Announcement</param>
+        /// <param name="id">ID of the Trip</param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <returns>Announcement Object</returns>
+        /// <returns>Trip Object</returns>
         /// <response code="200">Object created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(Announcement), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Trip), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Announcement/{id}", Name = "SingleAnnouncement")]
-        public async Task<IActionResult> GetAnnouncementSingle(
+        [HttpGet, Route("Trip/{id}", Name = "SingleTrip")]
+        public async Task<IActionResult> GetTripSingle(
             string id,
             string? language = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,            
@@ -178,8 +177,8 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
-                AnnouncementHelper helper =
-                            await AnnouncementHelper.CreateAsync(
+                TripHelper helper =
+                            await TripHelper.CreateAsync(
                                 queryFactory: QueryFactory,
                                 idfilter: idfilter,
                                 languagefilter: languagefilter,
@@ -194,8 +193,8 @@ namespace OdhApiCore.Controllers
                     .Query()
                     .When(getasidarray, x => x.Select("id"))
                     .When(!getasidarray, x => x.SelectRaw("data"))
-                    .From("announcements")
-                    .AnnouncementWhereExpression(
+                    .From("trips")
+                    .TripWhereExpression(
                         languagelist: helper.languagelist,
                         idlist: helper.idlist,
                         sourcelist: helper.sourcelist,
@@ -274,7 +273,7 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
                 var data = await QueryFactory
-                    .Query("announcements")
+                    .Query("trips")
                     .Select("data")
                     .Where("id", id.ToLower())
                     .When(
@@ -299,157 +298,161 @@ namespace OdhApiCore.Controllers
         #region POST PUT DELETE
         
         /// <summary>
-        /// POST Insert new Announcement
+        /// POST Insert new Trip
         /// </summary>
-        /// <param name="announcement">Announcement Object</param>
+        /// <param name="announcement">Trip Object</param>
         /// <returns>Http Response</returns>
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
-        [HttpPost, Route("Announcement")]
-        public Task<IActionResult> Post([FromBody] Announcement announcement)
+        [HttpPost, Route("Trip")]
+        public Task<IActionResult> Post([FromBody] Trip trip)
         {
             return DoAsyncReturn(async () =>
             {
-                if (!announcement.Geo.GeoInfoIsValid())
-                {
-                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
-                }
-                foreach (var kvp in announcement.Geo)
-                {
-                    if (!kvp.Value.IsValidGeometry)
-                    {
-                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
-                    }
-                }
+                //To check
+
+                //if (!trip.Geo.GeoInfoIsValid())
+                //{
+                //    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                //}
+                //foreach (var kvp in trip.Geo)
+                //{
+                //    if (!kvp.Value.IsValidGeometry)
+                //    {
+                //        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                //    }
+                //}
 
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
 
-                announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
+                trip.Id = Helper.IdGenerator.GenerateIDFromType(trip);
 
-                if (announcement.LicenseInfo == null)
-                    announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
+                if (trip.LicenseInfo == null)
+                    trip.LicenseInfo = new LicenseInfo() { ClosedData = false };
 
                 //TRIM all strings
-                announcement.TrimStringProperties();
+                trip.TrimStringProperties();
 
-                return await UpsertData<Announcement>(
-                    new UpsertableAnnouncement(announcement),
-                    new DataInfo("announcements", CRUDOperation.Create),
+                return await UpsertData<Trip>(
+                    //new UpsertableTrip(trip), //TO CHECK
+                    trip,
+                    new DataInfo("trips", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(createFilter, UserRolesToFilter)
                 );
             });
         }
 
-        /// <summary>
-        /// PUT Upsert array of Announcements with well known ids
-        /// </summary>
-        /// <param name="announcements">List of Announcement Objects</param>
-        /// <returns>Http Response with batch results</returns>
-        [ProducesResponseType(typeof(BatchCRUDResult), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [AuthorizeODH(new[] { PermissionAction.Create, PermissionAction.Update })]
-        [HttpPut, Route("Announcement")]
-        public Task<IActionResult> Put(List<Announcement> announcements)
-        {
-            return DoAsync(async () =>
-            {
-                if (announcements == null || announcements.Count == 0)
-                {
-                    ModelState.AddModelError("announcements", "No announcements provided");
-                    return ValidationProblem(ModelState);
-                }
+        ///// <summary>
+        ///// PUT Upsert array of Trips with well known ids
+        ///// </summary>
+        ///// <param name="announcements">List of Trip Objects</param>
+        ///// <returns>Http Response with batch results</returns>
+        //[ProducesResponseType(typeof(BatchCRUDResult), StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status403Forbidden)]
+        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        //[AuthorizeODH(new[] { PermissionAction.Create, PermissionAction.Update })]
+        //[HttpPut, Route("Trip")]
+        //public Task<IActionResult> Put(List<Trip> announcements)
+        //{
+        //    return DoAsync(async () =>
+        //    {
+        //        if (announcements == null || announcements.Count == 0)
+        //        {
+        //            ModelState.AddModelError("trips", "No trips provided");
+        //            return ValidationProblem(ModelState);
+        //        }
 
-                // Get both Create and Update filters for batch operation
-                AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
-                AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
+        //        // Get both Create and Update filters for batch operation
+        //        AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
+        //        AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
-                // Validate all announcements and collect errors
-                for (int i = 0; i < announcements.Count; i++)
-                {
-                    var announcement = announcements[i];
-                    if (!announcement.Geo.GeoInfoIsValid())
-                    {
-                        ModelState.AddModelError($"[{i}].Geo", "Exactly one default GeoInfo must be present");
-                    }
+        //        // Validate all announcements and collect errors
+        //        for (int i = 0; i < announcements.Count; i++)
+        //        {
+        //            var announcement = announcements[i];
+        //            //if (!announcement.Geo.GeoInfoIsValid())
+        //            //{
+        //            //    ModelState.AddModelError($"[{i}].Geo", "Exactly one default GeoInfo must be present");
+        //            //}
                     
-                    foreach (var kv in announcement.Geo)
-                    {
-                        if (!kv.Value.IsValidGeometry)
-                        {
-                            ModelState.AddModelError($"[{i}].Geo[{kv.Key}].Geometry", "Invalid WKT geometry");
-                        }
-                    }
+        //            //foreach (var kv in announcement.Geo)
+        //            //{
+        //            //    if (!kv.Value.IsValidGeometry)
+        //            //    {
+        //            //        ModelState.AddModelError($"[{i}].Geo[{kv.Key}].Geometry", "Invalid WKT geometry");
+        //            //    }
+        //            //}
 
-                    if (announcement.Id == null)
-                        ModelState.AddModelError($"[{i}].Id", "Id is required");
+        //            if (announcement.Id == null)
+        //                ModelState.AddModelError($"[{i}].Id", "Id is required");
 
-                    if (announcement.LicenseInfo == null)
-                        announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
-                }
+        //            if (announcement.LicenseInfo == null)
+        //                announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
+        //        }
 
-                // If there are validation errors, return them in standard format
-                if (!ModelState.IsValid)
-                    return ValidationProblem(ModelState);
+        //        // If there are validation errors, return them in standard format
+        //        if (!ModelState.IsValid)
+        //            return ValidationProblem(ModelState);
 
-                // Trim all strings for all announcements
-                foreach (var announcement in announcements)
-                {
-                    announcement.TrimStringProperties();
-                }
+        //        // Trim all strings for all announcements
+        //        foreach (var announcement in announcements)
+        //        {
+        //            announcement.TrimStringProperties();
+        //        }
 
-                return await UpsertDataArray<Announcement>(
-                    announcements.Select(a => new UpsertableAnnouncement(a)),
-                    new DataInfo("announcements", CRUDOperation.CreateAndUpdate, true),
-                    new CompareConfig(true, false), // Enable comparison to detect unchanged
-                    new CRUDConstraints(createFilter, UserRolesToFilter),
-                    new CRUDConstraints(updateFilter, UserRolesToFilter)
-                );
-            });
-        }
+        //        return await UpsertDataArray<Trip>(
+        //            announcements.Select(a => new UpsertableTrip(a)),
+        //            new DataInfo("announcements", CRUDOperation.CreateAndUpdate, true),
+        //            new CompareConfig(true, false), // Enable comparison to detect unchanged
+        //            new CRUDConstraints(createFilter, UserRolesToFilter),
+        //            new CRUDConstraints(updateFilter, UserRolesToFilter)
+        //        );
+        //    });
+        //}
         
         /// <summary>
-        /// PUT Modify existing Announcement
+        /// PUT Modify existing Trip
         /// </summary>
-        /// <param name="id">Announcement Id</param>
-        /// <param name="announcement">Announcement Object</param>
+        /// <param name="id">Trip Id</param>
+        /// <param name="announcement">Trip Object</param>
         /// <returns>Http Response</returns>
         [AuthorizeODH(PermissionAction.Update)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpPut, Route("Announcement/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] Announcement announcement)
+        [HttpPut, Route("Trip/{id}")]
+        public Task<IActionResult> Put(string id, [FromBody] Trip trip)
         {
             return DoAsyncReturn(async () =>
             {
-                if (!announcement.Geo.GeoInfoIsValid())
-                {
-                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
-                }
-                foreach (var kvp in announcement.Geo)
-                {
-                    if (!kvp.Value.IsValidGeometry)
-                    {
-                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
-                    }
-                }
+                //if (!trip.Geo.GeoInfoIsValid())
+                //{
+                //    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                //}
+                //foreach (var kvp in trip.Geo)
+                //{
+                //    if (!kvp.Value.IsValidGeometry)
+                //    {
+                //        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                //    }
+                //}
 
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
-                announcement.Id = Helper.IdGenerator.CheckIdFromType<Announcement>(id);
+                trip.Id = Helper.IdGenerator.CheckIdFromType<Trip>(id);
 
                 //TRIM all strings
-                announcement.TrimStringProperties();
+                trip.TrimStringProperties();
 
-                return await UpsertData<Announcement>(
-                    new UpsertableAnnouncement(announcement),
+                return await UpsertData<Trip>(
+                    //new UpsertableTrip(announcement),
+                    trip,
                     new DataInfo("announcements", CRUDOperation.Update, true),
                     new CompareConfig(true, false),
                     new CRUDConstraints(updateFilter, UserRolesToFilter)
@@ -458,16 +461,16 @@ namespace OdhApiCore.Controllers
         }
 
         /// <summary>
-        /// DELETE Announcement by Id
+        /// DELETE Trip by Id
         /// </summary>
-        /// <param name="id">Announcement Id</param>
+        /// <param name="id">Trip Id</param>
         /// <returns>Http Response</returns>
-        //[Authorize(Roles = "DataWriter,DataDelete,AnnouncementManager,AnnouncementDelete")]
+        //[Authorize(Roles = "DataWriter,DataDelete,TripManager,TripDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpDelete, Route("Announcement/{id}")]
+        [HttpDelete, Route("Trip/{id}")]
         public Task<IActionResult> Delete(string id)
         {
             return DoAsyncReturn(async () =>
@@ -475,11 +478,11 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<Announcement>(id);
+                id = Helper.IdGenerator.CheckIdFromType<Trip>(id);
                 
-                return await DeleteData<Announcement>(
+                return await DeleteData<Trip>(
                     id,
-                    new DataInfo("announcements", CRUDOperation.Delete),
+                    new DataInfo("trips", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
