@@ -2196,50 +2196,29 @@ namespace OdhApiImporter.Helpers
             //Load all data from PG and resave
             var query = QueryFactory.Query()
                 .SelectRaw("data")
-                .From("wines")
-                .WhereRaw("id != data->>'Id'");
+                .From("wines");                
 
             var data = await query.GetObjectListAsync<WineLinked>();
             int i = 0;
 
             foreach (var wine in data)
             {
-                var queryifpresent = QueryFactory
-                    .Query()
-                    .Select("id")
-                    .From("wines")
-                    .Where("id", wine.Id);
-                var present = await queryifpresent.GetAsync<string>();
+                var oldwineid = wine.Id.ToUpper();
+                wine.Id = wine.Id.ToLower();
+                //Save to DB
+                var queryresult = await QueryFactory
+                    .Query("wines")
+                    .Where("id", wine.Id)
+                    .InsertAsync(
+                        new JsonBData() { id = wine.Id, data = new JsonRaw(wine) }
+                    );
+                i++;
 
-
-                if (!String.IsNullOrEmpty(present.FirstOrDefault()))
-                {
-                    //Save to DB
-                    var queryresult = await QueryFactory
-                        .Query("wines")
-                        .Where("id", wine.Id)
-                        .UpdateAsync(
-                            new JsonBData() { id = wine.Id, data = new JsonRaw(wine) }
-                        );
-                    i++;
-                }
-                else
-                {
-                    //Save to DB
-                    var queryresult = await QueryFactory
-                        .Query("wines")
-                        .Where("id", wine.Id)
-                        .InsertAsync(
-                            new JsonBData() { id = wine.Id, data = new JsonRaw(wine) }
-                        );
-                    i++;             
-                }
-
-                //Delete the lowercase id if present
+                //Delete the uppercase id if present
 
                 var querydeleteresult = await QueryFactory
                     .Query("wines")
-                    .Where("id", wine.Id.ToLower())
+                    .Where("id", oldwineid)
                     .DeleteAsync();
             }
             
