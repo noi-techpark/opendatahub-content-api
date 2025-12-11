@@ -14,7 +14,7 @@ namespace MSS
 {
     public class GetMssRoomlist
     {
-        public static async Task<List<AccoRoom>> GetMssRoomlistAsync(
+        public static async Task<XElement> GetMssRoomlistAsync(
             HttpClient httpClient,
             string lang,
             string hotelid,
@@ -50,66 +50,12 @@ namespace MSS
 
                 XElement fullresponse = XElement.Parse(roomresponsecontent.Result);
 
-                //do muassmen iatz nuie method schreiben
-                var myparsedresponse = ParseMssRoomResponse.ParseMyRoomResponse(
-                    lang,
-                    fullresponse,
-                    roomamenities
-                );
-
-                return myparsedresponse;
+                return fullresponse;                
             }
             catch (Exception)
             {
                 return null;
             }
-        }
-
-        public static List<AccoRoom> GetMssRoomlistSync(
-            HttpClient httpClient,
-            string lang,
-            string hotelid,
-            string hotelidofchannel,
-            XElement roomdetails,
-            XDocument roomamenities,
-            string source,
-            string version,
-            string serviceurl,
-            string mssuser,
-            string msspswd
-        )
-        {
-            try
-            {
-                XDocument myrequest = MssRequest.BuildRoomlistPostData(
-                    roomdetails,
-                    hotelid,
-                    hotelidofchannel,
-                    lang,
-                    source,
-                    version,
-                    mssuser,
-                    msspswd
-                );
-                var myresponses = MssRequest.RequestRoom(serviceurl, httpClient, myrequest);
-
-                string roomresponsecontent = myresponses.Content.ReadAsStringAsync().Result;
-
-                XElement fullresponse = XElement.Parse(roomresponsecontent);
-
-                //do muassmen iatz nuie method schreiben
-                var myparsedresponse = ParseMssRoomResponse.ParseMyRoomResponse(
-                    lang,
-                    fullresponse,
-                    roomamenities
-                );
-
-                return myparsedresponse;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        }       
     }
 }

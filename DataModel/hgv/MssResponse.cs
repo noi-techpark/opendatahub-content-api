@@ -172,4 +172,32 @@ namespace DataModel
 
     //TODO
     public class MssResponseComplete { }
+
+
+    public class MssResponseBaseSearch
+    {
+        public string id { get; set; }
+        public string id_lts { get; set; }
+        public string bookable { get; set; }
+        public string currency { get; set; }
+        public string name { get; set; }
+        public string cin { get; set; }
+        public string type { get; set; }
+        public string stars { get; set; }
+        public string price_engine { get; set; }
+        public string price_from { get; set; }
+        public string available_from { get; set; }
+        public string board { get; set; }
+        public string board_tq { get; set; }
+        public string bookable_until { get; set; }
+        public string prices_changed_at { get; set; }
+        public string availability_changed_at { get; set; }
+        public string pers_age_min { get; set; }
+        public string child_age_min { get; set; }
+        public string child_age_max { get; set; }
+        public string adult_age_min { get; set; }
+        public string adult_cnt_max { get; set; }
+        public string child_cnt_max { get; set; }
+        public string informal_mail { get; set; }
+    }
 }
