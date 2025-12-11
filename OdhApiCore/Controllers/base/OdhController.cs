@@ -269,6 +269,7 @@ namespace OdhApiCore.Controllers
 
         //CREATE and UPDATE data
         #region LEGACY UpsertData
+
         protected async Task<IActionResult> UpsertData<T>(
             T data,
             DataInfo datainfo,
@@ -315,6 +316,7 @@ namespace OdhApiCore.Controllers
         }
         
         #endregion
+
         protected async Task<IActionResult> UpsertData<T>(
             QueryFactoryExtension.Upsertable<T> data,
             DataInfo datainfo,

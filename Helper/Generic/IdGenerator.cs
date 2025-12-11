@@ -2,12 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using NetTopologySuite.Triangulate.Tri;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DataModel;
 
 namespace Helper
 {
@@ -95,6 +96,7 @@ namespace Helper
                 TagLinked => IDStyle.mixed,
                 WeatherHistoryLinked => IDStyle.mixed,
                 Announcement => IDStyle.lowercase,
+                Trip => IDStyle.lowercase,
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -164,6 +166,7 @@ namespace Helper
                 Type _ when odhtype == typeof(TourismMetaData) => IDStyle.lowercase,
                 Type _ when odhtype == typeof(WeatherHistoryLinked) => IDStyle.mixed,
                 Type _ when odhtype == typeof(Announcement) => IDStyle.lowercase,
+                Type _ when odhtype == typeof(Trip) => IDStyle.lowercase,
                 _ => throw new Exception("not known odh type"),
             };
         }
