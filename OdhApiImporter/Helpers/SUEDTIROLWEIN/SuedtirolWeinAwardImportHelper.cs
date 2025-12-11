@@ -124,7 +124,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     haslanguage.Add("en");
 
                 //Get Wein Award                
-                var weinaward = await LoadDataFromDB<WineLinked>(dataid.ToUpper(), IDStyle.uppercase);
+                var weinaward = await LoadDataFromDB<WineLinked>(dataid.ToUpper(), IDStyle.lowercase);
                 
                 if (weinaward == null)
                 {
@@ -144,7 +144,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 if (winedata.Element("active") != null)
                 {
                     weinaward.Active = Convert.ToBoolean(winedata.Element("active").Value);
-                    //weinaward.SmgActive = Convert.ToBoolean(winedata.Element("active").Value);
+                    weinaward.SmgActive = Convert.ToBoolean(winedata.Element("active").Value);
                 }
 
                 weinaward.HasLanguage = haslanguage;
@@ -219,7 +219,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 List<string?> wineidlistonsource =
                     wineawarddatalist["de"]
                         .Root?.Elements("item")
-                        .Select(x => x.Attribute("id")?.Value.ToUpper())
+                        .Select(x => x.Element("id")?.Value)
                         .ToList() ?? new();
 
                 var myquery = QueryFactory.Query("wines").Select("id");
@@ -240,11 +240,11 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deactivate.suedtirolweincompany",
+                    "deactivate.suedtirolweinaward",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "suedtirolwein.company",
+                        sourceinterface = "suedtirolwein.award",
                         success = false,
                         error = ex.Message,
                     }

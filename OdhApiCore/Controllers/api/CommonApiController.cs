@@ -1568,8 +1568,9 @@ namespace OdhApiCore.Controllers.api
             {
                 return await WineGetPagedListHelper(
                     pagenumber.Value,
-                    pagesize,
+                    pagesize,                    
                     tablename: "wines",
+                    idlist: idlist,
                     seed: seed,
                     searchfilter: searchfilter,
                     fields: fields ?? Array.Empty<string>(),
@@ -1587,6 +1588,7 @@ namespace OdhApiCore.Controllers.api
             {
                 return await WineGetListHelper(
                     tablename: "wines",
+                    idlist: idlist,
                     seed: seed,
                     searchfilter: searchfilter,
                     fields: fields ?? Array.Empty<string>(),
@@ -1822,6 +1824,7 @@ namespace OdhApiCore.Controllers.api
 
         private Task<IActionResult> WineGetListHelper(
             string tablename,
+            string? idlist, 
             string? seed,
             string? searchfilter,
             string[] fields,
@@ -1847,6 +1850,7 @@ namespace OdhApiCore.Controllers.api
                     .When(!getasidarray, x => x.SelectRaw("data"))
                     .From(tablename)
                     .WineWhereExpression(
+                        idlist: winehelper.idlist,
                         languagelist: new List<string>(),
                         lastchange: winehelper.lastchange,
                         wineid: winehelper.wineidlist,
@@ -1888,6 +1892,7 @@ namespace OdhApiCore.Controllers.api
             uint pagenumber,
             int? pagesize,
             string tablename,
+            string? idlist,
             string? seed,
             string? searchfilter,
             string[] fields,
@@ -1912,6 +1917,7 @@ namespace OdhApiCore.Controllers.api
                     .When(!getasidarray, x => x.SelectRaw("data"))
                     .From(tablename)
                     .WineWhereExpression(
+                        idlist: winehelper.idlist,
                         languagelist: new List<string>(),
                         lastchange: winehelper.lastchange,
                         wineid: winehelper.wineidlist,
@@ -1980,10 +1986,14 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint(endpoint)
                     .TryGetValue("Read", out var additionalfilter);
 
+                string idtocheck = id.ToUpper();
+                if (endpoint == "WineAward")
+                    idtocheck = id.ToLower();
+
                 var query = QueryFactory
                     .Query(tablename)
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    .Where("id", idtocheck)
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)

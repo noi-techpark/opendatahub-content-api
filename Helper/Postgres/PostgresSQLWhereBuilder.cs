@@ -756,6 +756,7 @@ namespace Helper
         //Return Where and Parameters for Wine
         public static Query WineWhereExpression(
             this Query query,
+            IReadOnlyCollection<string> idlist,
             IReadOnlyCollection<string> languagelist,
             IReadOnlyCollection<string> companyid,
             IReadOnlyCollection<string> wineid,
@@ -783,6 +784,7 @@ namespace Helper
                     languagelist.Count > 0,
                     q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
                 ) //.HasLanguageFilter(languagelist)
+                .IdLowerFilter(idlist)
                 .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
                 .LastChangedFilter_GeneratedColumn(lastchange)
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
