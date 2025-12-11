@@ -201,10 +201,10 @@ namespace Helper
 
                 if (compareConfig.CompareData)
                 {
-                    equalityresult = EqualityHelper.CompareClassesTest<T>(
+                    equalityresult = EqualityHelper.CompareClassesExtended<T>(
                         existingData,
                         data.Data,
-                        new List<string>() { "LastChange", "_Meta", "FirstImport" },
+                        compareConfig.FieldsToIgnore,
                         true
                     );
                     if (equalityresult.isequal)
