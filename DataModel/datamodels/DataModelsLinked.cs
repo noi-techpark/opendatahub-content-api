@@ -2665,6 +2665,16 @@ namespace DataModel
 
         [SwaggerSchema("Technical Domain of the api, content/timeseries")]
         public string? ApiType { get; set; }
+
+        [SwaggerSchema("Array containing all Licenses used in the dataset")]
+        public ICollection<string>? DatasetLicenses { get; set; }
+
+        [SwaggerSchema("Meta Title for SEO")]
+        public IDictionary<string, string>? MetaTitle { get; set; }
+
+        [SwaggerSchema("Meta Description for SEO")]
+        public IDictionary<string, string>? MetaDescription { get; set; }
+
     }
 
     #endregion
