@@ -2557,7 +2557,8 @@ namespace DataModel
             IImportDateassigneable,
             IIdentifiable,
             IPublishedOn,
-            ILicenseInfo
+            ILicenseInfo,
+            IHasTagInfo
     {
         //openapi
         //Procudes non nullable string not required
@@ -2639,20 +2640,6 @@ namespace DataModel
 
         public ICollection<ImageGallery>? ImageGallery { get; set; }
 
-        public ICollection<string>? OdhTagIds { get; set; }
-
-        public ICollection<ODHTags> ODHTags
-        {
-            get
-            {
-                return this.OdhTagIds != null
-                    ? this
-                        .OdhTagIds.Select(x => new ODHTags() { Id = x, Self = "ODHTag/" + x })
-                        .ToList()
-                    : new List<ODHTags>();
-            }
-        }
-
         [SwaggerSchema("Dataspace, semantic description of the domain the dataset belongs to")]
         public string? Dataspace { get; set; }
 
@@ -2675,6 +2662,10 @@ namespace DataModel
         [SwaggerSchema("Meta Description for SEO")]
         public IDictionary<string, string>? MetaDescription { get; set; }
 
+        public ICollection<Tags>? Tags { get; set; }
+
+        [SwaggerSchema("Tag Ids")]
+        public ICollection<string>? TagIds { get; set; }
     }
 
     #endregion
