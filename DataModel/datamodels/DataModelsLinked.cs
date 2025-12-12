@@ -895,7 +895,7 @@ namespace DataModel
         }
     }
 
-     public class ArticlesLinked : Article, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties
+    public class ArticlesLinked : Article, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -2557,7 +2557,8 @@ namespace DataModel
             IImportDateassigneable,
             IIdentifiable,
             IPublishedOn,
-            ILicenseInfo
+            ILicenseInfo,
+            IHasTagInfo
     {
         //openapi
         //Procudes non nullable string not required
@@ -2639,20 +2640,6 @@ namespace DataModel
 
         public ICollection<ImageGallery>? ImageGallery { get; set; }
 
-        public ICollection<string>? OdhTagIds { get; set; }
-
-        public ICollection<ODHTags> ODHTags
-        {
-            get
-            {
-                return this.OdhTagIds != null
-                    ? this
-                        .OdhTagIds.Select(x => new ODHTags() { Id = x, Self = "ODHTag/" + x })
-                        .ToList()
-                    : new List<ODHTags>();
-            }
-        }
-
         [SwaggerSchema("Dataspace, semantic description of the domain the dataset belongs to")]
         public string? Dataspace { get; set; }
 
@@ -2665,6 +2652,20 @@ namespace DataModel
 
         [SwaggerSchema("Technical Domain of the api, content/timeseries")]
         public string? ApiType { get; set; }
+
+        [SwaggerSchema("Array containing all Licenses used in the dataset")]
+        public ICollection<string>? DatasetLicenses { get; set; }
+
+        [SwaggerSchema("Meta Title for SEO")]
+        public IDictionary<string, string>? MetaTitle { get; set; }
+
+        [SwaggerSchema("Meta Description for SEO")]
+        public IDictionary<string, string>? MetaDescription { get; set; }
+
+        public ICollection<Tags>? Tags { get; set; }
+
+        [SwaggerSchema("Tag Ids")]
+        public ICollection<string>? TagIds { get; set; }
     }
 
     #endregion
