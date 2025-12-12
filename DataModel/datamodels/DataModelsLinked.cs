@@ -895,7 +895,7 @@ namespace DataModel
         }
     }
 
-     public class ArticlesLinked : Article, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties
+    public class ArticlesLinked : Article, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
