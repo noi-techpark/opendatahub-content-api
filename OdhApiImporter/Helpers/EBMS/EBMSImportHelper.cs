@@ -2,19 +2,20 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using EBMS;
+using Helper;
+using Helper.Extensions;
+using Helper.Generic;
+using Helper.Tagging;
+using Newtonsoft.Json;
+using OdhNotifier;
+using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DataModel;
-using EBMS;
-using Helper;
-using Helper.Extensions;
-using Helper.Tagging;
-using Helper.Generic;
-using Newtonsoft.Json;
-using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers
 {
@@ -26,9 +27,10 @@ namespace OdhApiImporter.Helpers
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         #region EBMS Helpers
 

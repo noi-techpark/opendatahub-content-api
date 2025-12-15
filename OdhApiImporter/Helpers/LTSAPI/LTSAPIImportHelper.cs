@@ -64,7 +64,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory, 
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -86,7 +87,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -109,7 +111,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -132,7 +135,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -154,7 +158,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -176,7 +181,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -198,7 +204,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -220,7 +227,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "accommodations",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -277,7 +285,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -298,7 +307,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -319,7 +329,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -340,7 +351,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -361,7 +373,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -382,7 +395,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -403,7 +417,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -424,7 +439,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "accommodations",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -484,7 +500,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapieventimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -520,7 +537,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapigastroimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -556,7 +574,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapipoiimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -592,7 +611,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiactivityimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -628,7 +648,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapivenueimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -664,7 +685,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapimeasuringpointimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -700,7 +722,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiwebcamimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -736,7 +759,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "accommodations",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiaccommodationimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -795,7 +819,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapieventimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -855,7 +880,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapigastroimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -919,7 +945,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapipoiimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -983,7 +1010,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiactivityimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -1047,7 +1075,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapivenueimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -1111,7 +1140,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapimeasuringpointimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -1175,7 +1205,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiwebcamimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -1239,7 +1270,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "accommodations",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiaccommodationimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -1330,7 +1362,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1436,7 +1469,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach(var datatoprocess in datatoprocesslist)
@@ -1547,7 +1581,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1657,7 +1692,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1767,7 +1803,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1877,7 +1914,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1987,7 +2025,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -2097,7 +2136,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "accommodations",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)

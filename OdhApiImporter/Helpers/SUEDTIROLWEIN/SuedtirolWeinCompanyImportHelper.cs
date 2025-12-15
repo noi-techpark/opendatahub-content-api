@@ -12,6 +12,7 @@ using Helper.Location;
 using Helper.Tagging;
 using LTSAPI.Parser;
 using Newtonsoft.Json.Linq;
+using OdhNotifier;
 using SqlKata.Execution;
 using SuedtirolWein;
 using SuedtirolWein.Parser;
@@ -32,9 +33,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,

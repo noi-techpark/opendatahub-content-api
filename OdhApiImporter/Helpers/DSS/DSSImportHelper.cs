@@ -11,6 +11,7 @@ using Helper.Location;
 using Helper.Tagging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OdhNotifier;
 using SqlKata.Execution;
 using System;
 using System.Collections;
@@ -29,9 +30,10 @@ namespace OdhApiImporter.Helpers.DSS
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             requesttypelist = new();
             rawonly = true;

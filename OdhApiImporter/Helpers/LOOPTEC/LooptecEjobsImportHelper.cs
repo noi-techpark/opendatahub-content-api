@@ -2,15 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using LOOPTEC;
 using Newtonsoft.Json;
+using OdhNotifier;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiImporter.Helpers.LOOPTEC
 {
@@ -20,9 +21,10 @@ namespace OdhApiImporter.Helpers.LOOPTEC
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         public async Task<Tuple<int, int>> DeleteOrDisableData(string id, bool delete)
         {

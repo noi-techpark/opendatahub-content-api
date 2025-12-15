@@ -2,19 +2,20 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using LTSAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OdhNotifier;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
@@ -24,9 +25,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         private async Task<List<JObject>> GetAccommodationAmenitiesFromLTSV2()
         {

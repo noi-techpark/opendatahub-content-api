@@ -18,9 +18,7 @@ using SqlKata.Execution;
 namespace OdhApiImporter.Helpers.LTSAPI
 {
     public class LTSApiEventTagsToODHTagImportHelper : ImportHelper, IImportHelper
-    {
-        private IOdhPushNotifier OdhPushnotifier;
-
+    {        
         public LTSApiEventTagsToODHTagImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
@@ -28,7 +26,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             string importerURL,
             IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             this.OdhPushnotifier = odhpushnotifier;
         }

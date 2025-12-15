@@ -43,6 +43,14 @@ namespace OdhApiImporter.Helpers
         Task<Tuple<int, int>> DeleteOrDisableData<T>(string id, bool delete)
             where T : IActivateable;
 
+        Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
+            UpdateDetail myupdateresult,
+            string id,
+            string datatype,
+            string pushorigin,
+            IDictionary<string, bool>? additionalpushinfo = null
+        );
+
         //Task<T> LoadDataFromDB<T>(string id, bool reduced);
 
         //Task<UpdateDetail> ImportData(ImportObject importobject, CancellationToken cancellationToken);
@@ -66,18 +74,21 @@ namespace OdhApiImporter.Helpers
         protected readonly ISettings settings;
         protected readonly string table;
         protected readonly string importerURL;
+        protected IOdhPushNotifier OdhPushnotifier;
 
         public ImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
         {
             this.QueryFactory = queryfactory;
             this.settings = settings;
             this.table = table;
             this.importerURL = importerURL;
+            this.OdhPushnotifier = odhpushnotifier;
         }
 
         public LtsApi GetLTSApi(bool opendata)
@@ -103,7 +114,6 @@ namespace OdhApiImporter.Helpers
             );
             }
         }
-
 
         /// <summary>
         /// Deletes or disables the data by the selected option
@@ -223,6 +233,53 @@ namespace OdhApiImporter.Helpers
 
 
             return await query.GetObjectSingleAsync<T>();
+        }
+
+        public async Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
+            UpdateDetail myupdateresult,
+            string id,
+            string datatype,
+            string pushorigin,
+            IDictionary<string, bool>? additionalpushinfo = null     
+        )
+        {
+            IDictionary<string, NotifierResponse>? pushresults = default(IDictionary<
+                string,
+                NotifierResponse
+            >);
+
+            //Check if data has changed and Push To all channels
+            if (
+                myupdateresult.objectchanged != null
+                && myupdateresult.objectchanged > 0
+                && myupdateresult.pushchannels != null
+                && myupdateresult.pushchannels.Count > 0
+            )
+            {
+                if (additionalpushinfo == null)
+                    additionalpushinfo = new Dictionary<string, bool>();
+
+                //Check if image has changed and add it to the dictionary
+                if (
+                    myupdateresult.objectimagechanged != null
+                    && myupdateresult.objectimagechanged.Value > 0
+                )
+                    additionalpushinfo.TryAdd("imageschanged", true);
+                else
+                    additionalpushinfo.TryAdd("imageschanged", false);
+
+                pushresults = await OdhPushnotifier.PushToPublishedOnServices(
+                    id,
+                    datatype.ToLower(),
+                    pushorigin,
+                    additionalpushinfo,
+                    false,
+                    "api",
+                    myupdateresult.pushchannels.ToList()
+                );
+            }
+
+            return pushresults;
         }
     }
 
