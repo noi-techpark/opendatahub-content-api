@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using OdhApiImporter.Helpers;
 using OdhApiImporter.Helpers.DSS;
+using OdhApiImporter.Helpers.HGV;
 using OdhApiImporter.Helpers.LOOPTEC;
 using OdhApiImporter.Helpers.LTSAPI;
 using OdhApiImporter.Helpers.SuedtirolWein;
@@ -1103,6 +1104,131 @@ namespace OdhApiImporter.Controllers
         #endregion
 
         #region HGV ACCOMMODATION DATA SYNC
+
+        //Generic Update Single Accommodation MSS
+        [HttpGet, Route("HGV/Accommodation/Update/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateAccommodationDataFromHGV(
+            string id,            
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update HGV";
+            string updatetype = "single";
+            string source = "api";
+            string otherinfo = "accommodation";
+
+            try
+            {
+                MSSApiAccommodationImportHelper hgvapiimporthelper = new MSSApiAccommodationImportHelper(
+                    settings,
+                    QueryFactory,
+                    "accommodations",
+                    UrlGeneratorStatic("HGV/accommodation")
+                );
+                var resulttuple = await hgvapiimporthelper.SaveDataToODH(
+                    null,
+                    new List<string>() { id },
+                    cancellationToken
+                );
+                updatedetail = resulttuple;
+
+                //Add Push logic here
+
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        //Generic Update Single Accommodation MSS
+        [HttpGet, Route("HGV/AccommodationRoom/Update/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateAccommodationRoomsDataFromHGV(
+            string id,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update HGV";
+            string updatetype = "single";
+            string source = "api";
+            string otherinfo = "accommodation.room";
+
+            try
+            {
+                MSSApiAccommodationRoomImportHelper hgvapiimporthelper = new MSSApiAccommodationRoomImportHelper(
+                    settings,
+                    QueryFactory,
+                    "accommodationrooms",
+                    UrlGeneratorStatic("HGV/accommodationroom")
+                );
+                var resulttuple = await hgvapiimporthelper.SaveDataToODH(
+                    null,
+                    new List<string>() { id },
+                    cancellationToken
+                );
+                updatedetail = resulttuple;
+
+                //Add Push logic here
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
 
         #endregion
 
@@ -3366,7 +3492,54 @@ namespace OdhApiImporter.Controllers
             else
                 return "passed_ids";
         }
-  
+
+        private async Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
+            UpdateDetail myupdateresult,
+            string id,
+            string datatype,
+            IDictionary<string, bool>? additionalpushinfo = null,
+            string pushorigin = null
+        )
+        {
+            IDictionary<string, NotifierResponse>? pushresults = default(IDictionary<
+                string,
+                NotifierResponse
+            >);
+
+            //Check if data has changed and Push To all channels
+            if (
+                myupdateresult.objectchanged != null
+                && myupdateresult.objectchanged > 0
+                && myupdateresult.pushchannels != null
+                && myupdateresult.pushchannels.Count > 0
+            )
+            {
+                if (additionalpushinfo == null)
+                    additionalpushinfo = new Dictionary<string, bool>();
+
+                //Check if image has changed and add it to the dictionary
+                if (
+                    myupdateresult.objectimagechanged != null
+                    && myupdateresult.objectimagechanged.Value > 0
+                )
+                    additionalpushinfo.TryAdd("imageschanged", true);
+                else
+                    additionalpushinfo.TryAdd("imageschanged", false);
+
+                pushresults = await OdhPushnotifier.PushToPublishedOnServices(
+                    id,
+                    datatype.ToLower(),
+                    pushorigin,
+                    additionalpushinfo,
+                    false,
+                    "api",
+                    myupdateresult.pushchannels.ToList()
+                );
+            }
+
+            return pushresults;
+        }
+
     }
 
     public static class DateTimeHelper

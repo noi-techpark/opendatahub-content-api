@@ -127,7 +127,6 @@ namespace OdhApiImporter.Helpers.HGV
             }
         }
 
-
         private async Task<UpdateDetail> SaveAccommodationsToPG(IEnumerable<MssResponseBaseSearch> hgvdata, bool updateaccosnomoreonlist)
         {
             List<UpdateDetail> updatedetails = new List<UpdateDetail>();
@@ -220,8 +219,9 @@ namespace OdhApiImporter.Helpers.HGV
                 //Set PublishedOn
                 //objecttosave.CreatePublishedOnList();
 
+                //Tags also not touched
                 //Populate Tags (Id/Source/Type)
-                await objecttosave.UpdateTagsExtension(QueryFactory);
+                //await objecttosave.UpdateTagsExtension(QueryFactory);
 
                 var rawdataid = await InsertInRawDataDB(data);
 
