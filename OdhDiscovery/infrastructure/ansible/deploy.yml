@@ -15,5 +15,5 @@
         docker_deployment_release_files:
           - local: ../docker-compose.run.yml
             remote: docker-compose.yml
-          - local: ../../.env
+          - local: ../../../.env
             remote: .env
