@@ -8,6 +8,7 @@ services:
       - "${WEBAPP_PORT:-1030}:80"
     environment:
       - CHATBOT_BACKEND_URL=${CHATBOT_BACKEND_URL:-http://backend:8001}
+      - CHATBOT_BACKEND_HOST=${CHATBOT_BACKEND_HOST:-backend}
     depends_on:
       - backend
 

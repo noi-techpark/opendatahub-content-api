@@ -59,6 +59,7 @@ jobs:
           # Webapp configuration
           X_WEBAPP_PORT: 1060
           X_CHATBOT_BACKEND_URL: https://alpha-api-discovery.opendatahub.testingmachine.eu
+          X_CHATBOT_BACKEND_HOST: alpha-api-discovery.opendatahub.testingmachine.eu
 
           # Backend configuration
           X_BACKEND_PORT: 1061

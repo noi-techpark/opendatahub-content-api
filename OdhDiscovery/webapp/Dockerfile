@@ -32,8 +32,9 @@ RUN chmod +x /docker-entrypoint.sh
 # Copy built files from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Default value for backend URL (can be overridden at runtime)
+# Default values for backend (can be overridden at runtime)
 ENV CHATBOT_BACKEND_URL=http://backend:8001
+ENV CHATBOT_BACKEND_HOST=backend
 
 # Expose port
 EXPOSE 80
