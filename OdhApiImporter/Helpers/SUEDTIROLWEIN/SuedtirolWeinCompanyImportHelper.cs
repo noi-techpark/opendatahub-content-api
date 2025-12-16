@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Amazon.Runtime.Internal.Transform;
 using DataModel;
 using DataModel.helpers;
 using Helper;
@@ -10,9 +9,6 @@ using Helper.Generic;
 using Helper.IDM;
 using Helper.Location;
 using Helper.Tagging;
-using LTSAPI.Parser;
-using MongoDB.Driver;
-using NetTopologySuite.GeometriesGraph;
 using Newtonsoft.Json.Linq;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -21,7 +17,6 @@ using SuedtirolWein.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
