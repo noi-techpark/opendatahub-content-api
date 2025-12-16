@@ -18,7 +18,7 @@ env:
   WORKING_DIRECTORY: OdhDiscovery
 
 jobs:
-  # Build and test job
+  # Validation job - lint and type check only (builds done in Docker)
   test:
     runs-on: ubuntu-22.04
     steps:
@@ -32,26 +32,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/webapp/package-lock.json
 
-      - name: Install webapp dependencies
+      - name: Install and lint webapp
         working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
-        run: npm ci
-
-      - name: Lint webapp
-        working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
-        run: npm run lint || true
-
-      - name: Build webapp
-        working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
-        run: npm run build
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install backend dependencies
-        working-directory: ${{ env.WORKING_DIRECTORY }}/chatbot/backend
-        run: pip install -r requirements.txt
+        run: |
+          npm ci
+          npm run lint
 
   # Deploy to test environment
   deploy-test:
