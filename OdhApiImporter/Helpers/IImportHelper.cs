@@ -4,6 +4,7 @@
 
 using DataModel;
 using Helper;
+using Helper.Generic;
 using LTSAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -160,6 +161,97 @@ namespace OdhApiImporter.Helpers
 
             return Tuple.Create(updateresult, deleteresult);
         }
+
+        /// <summary>
+        /// Deletes or disables the data by the selected option
+        /// </summary>
+        /// <typeparam name="T">ODH Entity to deactivate (to identify the right table)</typeparam>
+        /// <param name="id">Id of the data to delete/disable</param>
+        /// <param name="delete">Delete the data true/false, if false the data is set to Active = false</param>
+        /// <returns>Tuple of ints (updated/deleted)</returns>
+        public async Task<UpdateDetail> DeleteOrDisableDataWithUpdateDetail<T>(string id, EditInfo editinfo, bool delete)
+            where T : IActivateable, IIdentifiable, IImportDateassigneable, IMetaData, new()
+        {
+            UpdateDetail deletedisableresult = default(UpdateDetail);
+            PGCRUDResult result = default(PGCRUDResult);
+
+            if (delete)
+            {
+                //deleteresult = await QueryFactory.Query(table).Where("id", id).DeleteAsync();
+
+                result = await QueryFactory.DeleteData<T>(
+                    id,
+                    new DataInfo(table, CRUDOperation.Delete),
+                    new CRUDConstraints()
+                    );
+
+                if (result.errorreason != "Data Not Found")
+                {
+                    deletedisableresult = new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    };
+                }
+            }
+            else
+            {
+                var query = QueryFactory.Query(table).Select("data").Where("id", id);
+
+                var data = await query.GetObjectSingleAsync<T>();
+
+                if (data != null)
+                {
+                    if (
+                        data.Active != false
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                    )
+                    {
+                        data.Active = false;
+                        if (data is ISmgActive)
+                            ((ISmgActive)data).SmgActive = false;
+
+                        var updateresult = await QueryFactory
+                            .Query(table)
+                            .Where("id", id)
+                            .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+
+                        result = await QueryFactory.UpsertData(
+                               data,
+                               new DataInfo(table, Helper.Generic.CRUDOperation.CreateAndUpdate, true),
+                               editinfo,
+                               new CRUDConstraints(),
+                               new CompareConfig(true, false)
+                        );
+
+                        deletedisableresult = new UpdateDetail()
+                        {
+                            created = result.created,
+                            updated = result.updated,
+                            deleted = result.deleted,
+                            error = result.error,
+                            objectchanged = result.objectchanged,
+                            objectimagechanged = result.objectimagechanged,
+                            comparedobjects =
+                                    result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            pushchannels = result.pushchannels,
+                            changes = result.changes,
+                        };
+                    }
+                }
+            }
+
+            return deletedisableresult;
+        }
+
 
         /// <summary>
         /// Get All Data by passed Source
