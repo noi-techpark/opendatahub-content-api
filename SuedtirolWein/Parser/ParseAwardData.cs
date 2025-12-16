@@ -24,7 +24,7 @@ namespace SuedtirolWein.Parser
         {
             mywine.LastChange = DateTime.Now;
 
-            mywine.Id = myawardde.Element("id").Value.ToUpper();
+            mywine.Id = myawardde.Element("id").Value;
 
             string titlede = myawardde.Element("title").Value;
             string winenamede = myawardde.Element("wine").Value;

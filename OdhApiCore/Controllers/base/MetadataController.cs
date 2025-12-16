@@ -11,12 +11,12 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
+using Helper.Tagging;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using OdhApiCore.Controllers.api;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -265,6 +265,9 @@ namespace OdhApiCore.Controllers
                 //GENERATE ID
                 metadata.Id = Helper.IdGenerator.GenerateIDFromType(metadata);
 
+                //Populate Tags (Id/Source/Type)
+                await metadata.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<TourismMetaData>(
                     metadata,
                     new DataInfo("metadata", CRUDOperation.Create),
@@ -296,6 +299,9 @@ namespace OdhApiCore.Controllers
 
                 //Check ID uppercase lowercase
                 metadata.Id = Helper.IdGenerator.CheckIdFromType<TourismMetaData>(id);
+
+                //Populate Tags (Id/Source/Type)
+                await metadata.UpdateTagsExtension(QueryFactory);
 
                 return await UpsertData<TourismMetaData>(
                     metadata,
