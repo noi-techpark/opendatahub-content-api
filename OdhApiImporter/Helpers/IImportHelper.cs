@@ -178,7 +178,7 @@ namespace OdhApiImporter.Helpers
         /// <param name="delete">Delete the data true/false, if false the data is set to Active = false</param>
         /// <returns>Tuple of ints (updated/deleted)</returns>
         public async Task<UpdateDetail> DeleteOrDisableDataWithUpdateDetail<T>(string id, EditInfo editinfo, bool delete)
-            where T : IActivateable, IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IActivateable, IIdentifiable, IImportDateassigneable, IMetaData, ISource, IPublishedOn, new()
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
             PGCRUDResult result = default(PGCRUDResult);
@@ -215,22 +215,27 @@ namespace OdhApiImporter.Helpers
                 var query = QueryFactory.Query(table).Select("data").Where("id", id);
 
                 var data = await query.GetObjectSingleAsync<T>();
+                
+                //How to deal with the Publishedon
 
                 if (data != null)
                 {
                     if (
                         data.Active != false
-                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false) 
+                        || (data.PublishedOn != null && data.PublishedOn.Count > 0)
                     )
                     {
                         data.Active = false;
                         if (data is ISmgActive)
                             ((ISmgActive)data).SmgActive = false;
 
-                        var updateresult = await QueryFactory
-                            .Query(table)
-                            .Where("id", id)
-                            .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+                        data.CreatePublishedOnList();
+
+                        //var updateresult = await QueryFactory
+                        //    .Query(table)
+                        //    .Where("id", id)
+                        //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
 
                         result = await QueryFactory.UpsertData(
                                data,

@@ -213,7 +213,7 @@ namespace DataModel
                 if (updatedetail.pushed != null)
                 {
                     foreach (var updatedetailpushed in updatedetail.pushed)
-                        pushed.TryAdd(updatedetailpushed.Key, updatedetailpushed.Value);
+                        pushed.TryAdd(updatedetailpushed.Key, updatedetailpushed.Value);                    
                 }
 
                 if(!String.IsNullOrEmpty(updatedetail.exception))
@@ -221,6 +221,8 @@ namespace DataModel
                     exception = updatedetail.exception + exception;
                 }
             }
+
+            
 
             return new UpdateDetail()
             {
@@ -232,10 +234,39 @@ namespace DataModel
                 objectchanged = objectchanged,
                 objectimagechanged = objectimagechanged,
                 pushchannels = channelstopush,
-                pushed = pushed,
+                pushed = MergeNotifierResponse(updatedetails),
                 changes = changes,
                 exception = exception
             };
+        }
+
+        public static IDictionary<string, NotifierResponse>? MergeNotifierResponse(IEnumerable<UpdateDetail> updatedetails)
+        {
+            IDictionary<string, NotifierResponse> response = new Dictionary<string, NotifierResponse>();
+
+            foreach (var updatedetail in updatedetails)
+            {
+                if (updatedetail.pushed != null)
+                {
+                    foreach (var pushed in updatedetail.pushed)
+                    {
+                        if (response.Keys.Contains(pushed.Key))
+                        {
+                            response[pushed.Key].ObjectId = response[pushed.Key].ObjectId + "," + pushed.Value.ObjectId;
+                            response[pushed.Key].Service = response[pushed.Key].Service + "," + pushed.Value.Service;
+                            //response[pushed.Key].Response
+                        }
+                        else
+                        {
+                            response.Add(pushed.Key, pushed.Value);
+                        }
+                    }
+                }
+                else
+                    return null;
+            }
+
+            return response;
         }
 
         public static UpdateResult GetSuccessUpdateResult(

@@ -225,6 +225,11 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                         .ToList() ?? new();
 
                 var myquery = QueryFactory.Query("wines").Select("id");
+
+                //Check if this ids are all null then return
+                if (wineidlistonsource == null || wineidlistonsource.Contains(null))
+                    throw new Exception("idlist could not be created");
+
                 var winesondb = await myquery.GetAsync<string>();
 
                 var idstodelete = winesondb.Where(p => !wineidlistonsource.Any(p2 => p2 == p));

@@ -43,7 +43,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
         {
             var winegastrolist = await ImportList(cancellationToken);
 
-            var updateresult = await ImportData(winegastrolist, cancellationToken);
+            var updateresult = default(UpdateDetail);  //await ImportData(winegastrolist, cancellationToken);
 
             var deleteresult = await SetDataNotinListToInactive(winegastrolist, cancellationToken);
 
@@ -317,13 +317,18 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 List<string?> winecompaniesonsource =
                     mywinecompanylist["de"]
                         .Root?.Elements("item")
-                        .Select(x => x.Attribute("id")?.Value)
+                        .Select(x => x.Element("id")?.Value)
                         .ToList() ?? new();
+
+                //Check if this ids are all null then return
+                if (winecompaniesonsource == null || winecompaniesonsource.Contains(null))
+                    throw new Exception("idlist could not be created");
 
                 var myquery = QueryFactory
                     .Query("smgpois")
-                    .SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")
-                    .Where("gen_syncsourceinterface", "suedtirolwein");
+                    .Select("id")
+                    //.SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")
+                    .Where("gen_source", "suedtirolwein");
 
                 var winecompaniesondb = await myquery.GetAsync<string>();
 
