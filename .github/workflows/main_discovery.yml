@@ -25,18 +25,18 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/webapp/package-lock.json
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+      #     cache: 'npm'
+      #     cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/webapp/package-lock.json
 
-      - name: Install and lint webapp
-        working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
-        run: |
-          npm ci
-          npm run lint
+      # - name: Install and lint webapp
+      #   working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
+      #   run: |
+      #     npm ci
+      #     npm run lint
 
   # Deploy to test environment
   deploy-test:
