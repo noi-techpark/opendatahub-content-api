@@ -1,0 +1,6 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${DOCKER_IMAGE}:${DOCKER_TAG}

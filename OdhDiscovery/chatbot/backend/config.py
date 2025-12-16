@@ -109,6 +109,29 @@ class Settings(BaseSettings):
         description="Maximum allowed page size"
     )
 
+    # Authentication Configuration
+    auth_username: str = Field(
+        default="admin",
+        description="Username for authentication"
+    )
+    auth_password: str = Field(
+        default="changeme",
+        description="Password for authentication"
+    )
+    jwt_secret_key: str = Field(
+        default="your-secret-key-change-in-production",
+        description="Secret key for JWT token signing"
+    )
+    jwt_algorithm: str = Field(
+        default="HS256",
+        description="Algorithm for JWT signing"
+    )
+    jwt_expire_minutes: int = Field(
+        default=1440,
+        gt=0,
+        description="JWT token expiration time in minutes (default: 24 hours)"
+    )
+
     class Config:
         # Look for .env in parent directory (chatbot/.env) and also in current directory
         env_file = "../.env"

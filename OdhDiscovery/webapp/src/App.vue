@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <nav class="navbar">
+    <nav class="navbar" v-if="authStore.isAuthenticated">
       <div class="container">
         <div class="navbar-content">
           <router-link to="/" class="logo">
@@ -9,6 +9,9 @@
           <div class="nav-links">
             <router-link to="/datasets" class="nav-link">Datasets</router-link>
             <router-link to="/timeseries" class="nav-link">Timeseries</router-link>
+            <span class="nav-divider">|</span>
+            <span class="user-info">{{ authStore.user?.username }}</span>
+            <button @click="handleLogout" class="nav-link logout-btn">Logout</button>
           </div>
         </div>
       </div>
@@ -21,13 +24,23 @@
       </router-view>
     </main>
 
-    <!-- Chatbot Component -->
-    <ChatBot />
+    <!-- Chatbot Component (only show when authenticated) -->
+    <ChatBot v-if="authStore.isAuthenticated" />
   </div>
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 import ChatBot from './components/ChatBot.vue'
+import { useAuthStore } from './stores/authStore'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 
 // Get route key - use fullPath only when bot is navigating
 function getRouteKey(route) {
@@ -102,7 +115,8 @@ function getRouteKey(route) {
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  align-items: center;
+  gap: 1.5rem;
 }
 
 .nav-link {
@@ -129,6 +143,24 @@ function getRouteKey(route) {
   right: 0;
   height: 2px;
   background: var(--primary-color);
+}
+
+.nav-divider {
+  color: var(--border-color);
+}
+
+.user-info {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
 }
 
 .main-content {

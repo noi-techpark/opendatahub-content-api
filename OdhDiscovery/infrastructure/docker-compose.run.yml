@@ -1,0 +1,68 @@
+services:
+  # Vue webapp served by nginx
+  webapp:
+    image: ${DOCKER_IMAGE_WEBAPP}:${DOCKER_TAG}
+    container_name: odh-discovery-webapp
+    restart: unless-stopped
+    ports:
+      - "${WEBAPP_PORT:-1030}:80"
+    environment:
+      - CHATBOT_BACKEND_URL=${CHATBOT_BACKEND_URL:-http://backend:8001}
+    depends_on:
+      - backend
+
+  # Chatbot backend service
+  backend:
+    image: ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}
+    container_name: odh-discovery-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8001}:8001"
+    environment:
+      # Authentication Configuration
+      - AUTH_USERNAME=${AUTH_USERNAME:-admin}
+      - AUTH_PASSWORD=${AUTH_PASSWORD:-changeme}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-secret-key-change-in-production}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - JWT_EXPIRE_MINUTES=${JWT_EXPIRE_MINUTES:-1440}
+      # LLM Configuration
+      - LLM_PROVIDER=${LLM_PROVIDER:-togetherai}
+      - LLM_MODEL=${LLM_MODEL:-meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_TEMPERATURE=${LLM_TEMPERATURE:-0.1}
+      - LLM_MAX_TOKENS=${LLM_MAX_TOKENS:-8000}
+      # API Configuration
+      - CONTENT_API_BASE_URL=${CONTENT_API_BASE_URL:-https://tourism.opendatahub.com/v1}
+      - TIMESERIES_API_BASE_URL=${TIMESERIES_API_BASE_URL:-http://host.docker.internal:5000/api/v1/timeseries}
+      - API_TIMEOUT=${API_TIMEOUT:-30}
+      # ChromaDB Configuration
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - CHROMA_COLLECTION=${CHROMA_COLLECTION:-odh_docs}
+      # Backend Configuration
+      - BACKEND_HOST=0.0.0.0
+      - BACKEND_PORT=8001
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENABLE_CORS=${ENABLE_CORS:-true}
+      # Preprocessing Configuration
+      - MAX_TOKENS_PER_TOOL=${MAX_TOKENS_PER_TOOL:-8000}
+      - ENABLE_AUTO_AGGREGATION=${ENABLE_AUTO_AGGREGATION:-true}
+      - DEFAULT_PAGE_SIZE=${DEFAULT_PAGE_SIZE:-50}
+      - MAX_PAGE_SIZE=${MAX_PAGE_SIZE:-200}
+    depends_on:
+      - chromadb
+
+  # ChromaDB vector database for document storage
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: odh-discovery-chromadb
+    restart: unless-stopped
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+
+volumes:
+  chromadb_data:
+    driver: local

@@ -6,8 +6,10 @@ import logging
 import json
 import uvicorn
 import asyncio
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from datetime import timedelta
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 from typing import Optional
@@ -18,6 +20,10 @@ from config import settings
 from agent import get_agent, AgentState
 from vector_store import ingest_markdown_files_async
 from conversation_memory import get_memory_store
+from auth import (
+    Token, User, authenticate_user, create_access_token,
+    get_current_user, verify_token
+)
 
 # Configure logging
 logging.basicConfig(
@@ -105,11 +111,52 @@ async def health_check():
     }
 
 
+# Authentication endpoints
+@app.post("/auth/login", response_model=Token)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    """
+    Login endpoint - returns JWT token
+
+    Accepts form data with username and password (OAuth2 standard format)
+    """
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token_expires = timedelta(minutes=settings.jwt_expire_minutes)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=settings.jwt_expire_minutes * 60
+    )
+
+
+@app.get("/auth/me", response_model=User)
+async def get_me(current_user: User = Depends(get_current_user)):
+    """Get current authenticated user info"""
+    return current_user
+
+
+@app.post("/auth/verify")
+async def verify_auth(current_user: User = Depends(get_current_user)):
+    """Verify if token is valid"""
+    return {"valid": True, "username": current_user.username}
+
+
 # Documentation ingestion endpoint
 @app.post("/ingest-docs")
 async def ingest_docs(
     docs_dir: str = "/docs",
-    clear_existing: bool = False
+    clear_existing: bool = False,
+    current_user: User = Depends(get_current_user)
 ):
     """
     Ingest markdown documentation into vector store
@@ -132,7 +179,10 @@ async def ingest_docs(
 
 # Direct query endpoint (for testing)
 @app.post("/query", response_model=QueryResponse)
-async def query_endpoint(request: QueryRequest):
+async def query_endpoint(
+    request: QueryRequest,
+    current_user: User = Depends(get_current_user)
+):
     """
     Direct query endpoint for testing
 
@@ -214,9 +264,14 @@ async def query_endpoint(request: QueryRequest):
 
 # WebSocket endpoint for chat with streaming
 @app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(
+    websocket: WebSocket,
+    token: Optional[str] = Query(None)
+):
     """
     WebSocket endpoint for chatbot interaction with streaming responses
+
+    Authentication: Pass JWT token as query parameter: /ws?token=<jwt_token>
 
     Message format (from client):
     {
@@ -246,8 +301,18 @@ async def websocket_endpoint(websocket: WebSocket):
         "done": false
     }
     """
+    # Validate token before accepting connection
+    if not token:
+        await websocket.close(code=4001, reason="Authentication required")
+        return
+
+    token_data = verify_token(token)
+    if not token_data:
+        await websocket.close(code=4001, reason="Invalid or expired token")
+        return
+
     await websocket.accept()
-    logger.info("WebSocket connection established")
+    logger.info(f"WebSocket connection established for user: {token_data.username}")
 
     # Track session for this WebSocket connection
     current_session_id: Optional[str] = None
@@ -433,7 +498,10 @@ async def websocket_endpoint(websocket: WebSocket):
 
 # Session management endpoints
 @app.get("/sessions/{session_id}")
-async def get_session_info(session_id: str):
+async def get_session_info(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
     """Get information about a specific session"""
     memory_store = get_memory_store()
     session_info = memory_store.get_session_info(session_id)
@@ -445,7 +513,10 @@ async def get_session_info(session_id: str):
 
 
 @app.delete("/sessions/{session_id}")
-async def delete_session(session_id: str):
+async def delete_session(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
     """Delete a session and its conversation history"""
     memory_store = get_memory_store()
     success = memory_store.delete_session(session_id)
@@ -457,7 +528,10 @@ async def delete_session(session_id: str):
 
 
 @app.post("/sessions/{session_id}/clear")
-async def clear_session_history(session_id: str):
+async def clear_session_history(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
     """Clear conversation history for a session (keeps session alive)"""
     memory_store = get_memory_store()
     success = memory_store.clear_session(session_id)
@@ -469,7 +543,7 @@ async def clear_session_history(session_id: str):
 
 
 @app.get("/sessions")
-async def list_sessions():
+async def list_sessions(current_user: User = Depends(get_current_user)):
     """Get statistics about active sessions"""
     memory_store = get_memory_store()
     memory_store.cleanup_expired_sessions()
@@ -481,7 +555,10 @@ async def list_sessions():
 
 
 @app.get("/sessions/{session_id}/messages")
-async def get_session_messages(session_id: str):
+async def get_session_messages(
+    session_id: str,
+    current_user: User = Depends(get_current_user)
+):
     """
     Get conversation history for a session
 

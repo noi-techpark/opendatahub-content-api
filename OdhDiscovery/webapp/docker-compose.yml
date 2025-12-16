@@ -1,0 +1,9 @@
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+        - VITE_CHATBOT_WS_URL=${VITE_CHATBOT_WS_URL}
+    image: ${DOCKER_IMAGE}:${DOCKER_TAG}

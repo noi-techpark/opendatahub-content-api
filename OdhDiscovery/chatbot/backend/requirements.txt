@@ -43,3 +43,6 @@ python-json-logger>=2.0.0
 
 # Embeddings
 sentence-transformers>=2.2.0
+
+# Authentication
+python-jose[cryptography]>=3.3.0

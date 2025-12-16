@@ -3,11 +3,17 @@
  * Handles WebSocket connection, session management, and message streaming
  */
 import { ref, computed, onUnmounted } from 'vue'
-import axios from 'axios'
+import { chatbotClient } from '../api/client'
 
-const CHATBOT_WS_URL = 'ws://localhost:8001/ws'
-const CHATBOT_API_URL = 'http://localhost:8001'
 const SESSION_STORAGE_KEY = 'odh_chatbot_session_id'
+
+// Get WebSocket URL with token
+const getWsUrl = () => {
+  const token = localStorage.getItem('odh_auth_token')
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const baseUrl = `${protocol}//${window.location.host}/api/chatbot/ws`
+  return token ? `${baseUrl}?token=${encodeURIComponent(token)}` : baseUrl
+}
 
 export function useChatbot() {
   const ws = ref(null)
@@ -44,7 +50,7 @@ export function useChatbot() {
   // Retrieve old messages from backend
   const retrieveMessages = async (sessionId) => {
     try {
-      const response = await axios.get(`${CHATBOT_API_URL}/sessions/${sessionId}/messages`)
+      const response = await chatbotClient.get(`/sessions/${sessionId}/messages`)
 
       // Transform backend format to UI format
       // Navigation commands ARE included but won't trigger auto-navigation
@@ -56,12 +62,12 @@ export function useChatbot() {
       }))
 
       messages.value = retrievedMessages
-      console.log(`📥 Retrieved ${retrievedMessages.length} messages from session ${sessionId}`)
+      console.log(`Retrieved ${retrievedMessages.length} messages from session ${sessionId}`)
       return retrievedMessages
     } catch (err) {
       console.error('Failed to retrieve messages:', err)
-      // If session not found (404), clear it
-      if (err.response?.status === 404) {
+      // If session not found (404) or unauthorized (401), clear it
+      if (err.response?.status === 404 || err.response?.status === 401) {
         clearSession()
       }
       return []
@@ -76,17 +82,18 @@ export function useChatbot() {
 
     return new Promise((resolve, reject) => {
       try {
-        ws.value = new WebSocket(CHATBOT_WS_URL)
+        const wsUrl = getWsUrl()
+        ws.value = new WebSocket(wsUrl)
 
         ws.value.onopen = async () => {
-          console.log('✅ WebSocket connected')
+          console.log('WebSocket connected')
           isConnected.value = true
           error.value = null
 
           // Load session and retrieve old messages if exists
           const storedSessionId = loadSession()
           if (storedSessionId) {
-            console.log('📥 Loading session:', storedSessionId)
+            console.log('Loading session:', storedSessionId)
             await retrieveMessages(storedSessionId)
           }
 
@@ -103,15 +110,24 @@ export function useChatbot() {
         }
 
         ws.value.onerror = (event) => {
-          console.error('❌ WebSocket error:', event)
+          console.error('WebSocket error:', event)
           error.value = 'Connection error'
           isConnected.value = false
           reject(event)
         }
 
-        ws.value.onclose = () => {
-          console.log('🔌 WebSocket disconnected')
+        ws.value.onclose = (event) => {
+          console.log('WebSocket disconnected', event.code, event.reason)
           isConnected.value = false
+
+          // Handle authentication errors
+          if (event.code === 4001) {
+            error.value = 'Authentication failed'
+            // Clear token and redirect to login
+            localStorage.removeItem('odh_auth_token')
+            localStorage.removeItem('odh_auth_user')
+            window.location.href = '/login'
+          }
         }
       } catch (err) {
         console.error('Failed to create WebSocket:', err)
@@ -128,7 +144,7 @@ export function useChatbot() {
       case 'session':
         // Session ID received
         saveSession(data.session_id)
-        console.log('📝 Session ID:', data.session_id)
+        console.log('Session ID:', data.session_id)
         break
 
       case 'status':
@@ -180,7 +196,7 @@ export function useChatbot() {
         isLoading.value = false
         messages.value.push({
           role: 'assistant',
-          content: `❌ Error: ${data.content}`,
+          content: `Error: ${data.content}`,
           timestamp: new Date().toISOString(),
           isError: true
         })
@@ -233,7 +249,7 @@ export function useChatbot() {
     // Clear backend session if exists
     if (sessionId.value) {
       try {
-        await axios.post(`${CHATBOT_API_URL}/sessions/${sessionId.value}/clear`)
+        await chatbotClient.post(`/sessions/${sessionId.value}/clear`)
       } catch (err) {
         console.error('Failed to clear session:', err)
       }

@@ -1,0 +1,225 @@
+name: CI/CD ODH Discovery
+
+on:
+  push:
+    paths:
+      - 'OdhDiscovery/**'
+      - '.github/workflows/main_discovery.yml'
+  pull_request:
+    paths:
+      - 'OdhDiscovery/**'
+      - '.github/workflows/main_discovery.yml'
+
+env:
+  PROJECT_NAME: odh-discovery
+  DOCKER_IMAGE_WEBAPP: ghcr.io/${{ github.repository }}/odh-discovery-webapp
+  DOCKER_IMAGE_BACKEND: ghcr.io/${{ github.repository }}/odh-discovery-backend
+  DOCKER_TAG: ${{ github.sha }}
+  WORKING_DIRECTORY: OdhDiscovery
+
+jobs:
+  # Build and test job
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/webapp/package-lock.json
+
+      - name: Install webapp dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
+        run: npm ci
+
+      - name: Lint webapp
+        working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
+        run: npm run lint || true
+
+      - name: Build webapp
+        working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
+        run: npm run build
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}/chatbot/backend
+        run: pip install -r requirements.txt
+
+  # Deploy to test environment
+  deploy-test:
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/exp/ts'
+    needs: test
+    concurrency: deploy-test-discovery
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        uses: noi-techpark/github-actions/env-file@v2
+        env:
+          X_COMPOSE_PROJECT_NAME: ${{ env.PROJECT_NAME }}
+          X_DOCKER_IMAGE_WEBAPP: ${{ env.DOCKER_IMAGE_WEBAPP }}
+          X_DOCKER_IMAGE_BACKEND: ${{ env.DOCKER_IMAGE_BACKEND }}
+          X_DOCKER_TAG: ${{ env.DOCKER_TAG }}
+
+          # Webapp configuration
+          X_WEBAPP_PORT: 1060
+          X_CHATBOT_BACKEND_URL: https://alpha-api-discovery.opendatahub.testingmachine.eu
+
+          # Backend configuration
+          X_BACKEND_PORT: 1061
+
+          # Authentication Configuration
+          X_AUTH_USERNAME: ${{ secrets.DISCOVERY_TEST_AUTH_USERNAME }}
+          X_AUTH_PASSWORD: ${{ secrets.DISCOVERY_TEST_AUTH_PASSWORD }}
+          X_JWT_SECRET_KEY: ${{ secrets.DISCOVERY_TEST_JWT_SECRET_KEY }}
+          X_JWT_EXPIRE_MINUTES: "1440"
+
+          # LLM Configuration
+          # X_LLM_PROVIDER: ${{ secrets.DISCOVERY_LLM_PROVIDER_TEST }}
+          # X_LLM_MODEL: ${{ secrets.DISCOVERY_LLM_MODEL_TEST }}
+          X_LLM_API_KEY: ${{ secrets.DISCOVERY_TEST_LLM_API_KEY }}
+          X_LLM_TEMPERATURE: "0.1"
+          X_LLM_MAX_TOKENS: "8000"
+
+          # API Configuration
+          X_CONTENT_API_BASE_URL: "https://tourism.opendatahub.com/v1"
+          # X_TIMESERIES_API_BASE_URL: ${{ secrets.DISCOVERY_TIMESERIES_API_URL_TEST }}
+          X_API_TIMEOUT: "30"
+
+          # ChromaDB Configuration
+          X_CHROMA_COLLECTION: "odh_docs"
+
+          # Backend settings
+          X_LOG_LEVEL: "INFO"
+          X_ENABLE_CORS: "true"
+          X_MAX_TOKENS_PER_TOOL: "8000"
+          X_ENABLE_AUTO_AGGREGATION: "true"
+          X_DEFAULT_PAGE_SIZE: "50"
+          X_MAX_PAGE_SIZE: "200"
+
+      # Build and push webapp image
+      - name: Build and push webapp
+        uses: noi-techpark/github-actions/docker-build-and-push@v2
+        with:
+          docker-username: ${{ github.actor }}
+          docker-password: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
+          docker-compose-file: docker-compose.yml
+        env:
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE_WEBAPP }}
+
+      # Build and push backend image
+      - name: Build and push backend
+        uses: noi-techpark/github-actions/docker-build-and-push@v2
+        with:
+          docker-username: ${{ github.actor }}
+          docker-password: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: ${{ env.WORKING_DIRECTORY }}/chatbot/backend
+          docker-compose-file: docker-compose.yml
+        env:
+          DOCKER_IMAGE: ${{ env.DOCKER_IMAGE_BACKEND }}
+
+      - name: Deploy application
+        uses: noi-techpark/github-actions/docker-deploy@v2
+        with:
+          hosts: 'test'
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          docker-username: 'noi-techpark-bot'
+          docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+          project-name: ${{ env.PROJECT_NAME }}
+          working-directory: ${{ env.WORKING_DIRECTORY }}/infrastructure/ansible
+
+  # # Deploy to production environment
+  # deploy-prod:
+  #   runs-on: ubuntu-22.04
+  #   if: github.ref == 'refs/heads/prod'
+  #   needs: test
+  #   concurrency: deploy-prod-discovery
+  #   steps:
+  #     - name: Checkout source code
+  #       uses: actions/checkout@v4
+
+  #     - name: Create .env file
+  #       uses: noi-techpark/github-actions/env-file@v2
+  #       env:
+  #         X_COMPOSE_PROJECT_NAME: ${{ env.PROJECT_NAME }}
+  #         X_DOCKER_IMAGE_WEBAPP: ${{ env.DOCKER_IMAGE_WEBAPP }}
+  #         X_DOCKER_IMAGE_BACKEND: ${{ env.DOCKER_IMAGE_BACKEND }}
+  #         X_DOCKER_TAG: ${{ env.DOCKER_TAG }}
+
+  #         # Webapp configuration
+  #         X_WEBAPP_PORT: 1030
+
+  #         # Backend configuration
+  #         X_BACKEND_PORT: 1031
+
+  #         # Authentication Configuration
+  #         X_AUTH_USERNAME: ${{ secrets.DISCOVERY_AUTH_USERNAME_PROD }}
+  #         X_AUTH_PASSWORD: ${{ secrets.DISCOVERY_AUTH_PASSWORD_PROD }}
+  #         X_JWT_SECRET_KEY: ${{ secrets.DISCOVERY_JWT_SECRET_KEY_PROD }}
+  #         X_JWT_EXPIRE_MINUTES: "1440"
+
+  #         # LLM Configuration
+  #         X_LLM_PROVIDER: ${{ secrets.DISCOVERY_LLM_PROVIDER_PROD }}
+  #         X_LLM_MODEL: ${{ secrets.DISCOVERY_LLM_MODEL_PROD }}
+  #         X_LLM_API_KEY: ${{ secrets.DISCOVERY_LLM_API_KEY_PROD }}
+  #         X_LLM_TEMPERATURE: "0.1"
+  #         X_LLM_MAX_TOKENS: "8000"
+
+  #         # API Configuration
+  #         X_CONTENT_API_BASE_URL: "https://tourism.api.opendatahub.com/v1"
+  #         X_TIMESERIES_API_BASE_URL: ${{ secrets.DISCOVERY_TIMESERIES_API_URL_PROD }}
+  #         X_API_TIMEOUT: "30"
+
+  #         # ChromaDB Configuration
+  #         X_CHROMA_COLLECTION: "odh_docs"
+
+  #         # Backend settings
+  #         X_LOG_LEVEL: "INFO"
+  #         X_ENABLE_CORS: "true"
+  #         X_MAX_TOKENS_PER_TOOL: "8000"
+  #         X_ENABLE_AUTO_AGGREGATION: "true"
+  #         X_DEFAULT_PAGE_SIZE: "50"
+  #         X_MAX_PAGE_SIZE: "200"
+
+  #     # Build and push webapp image
+  #     - name: Build and push webapp
+  #       uses: noi-techpark/github-actions/docker-build-and-push@v2
+  #       with:
+  #         docker-username: ${{ github.actor }}
+  #         docker-password: ${{ secrets.GITHUB_TOKEN }}
+  #         working-directory: ${{ env.WORKING_DIRECTORY }}/webapp
+  #         docker-compose-file: docker-compose.yml
+  #       env:
+  #         DOCKER_IMAGE: ${{ env.DOCKER_IMAGE_WEBAPP }}
+
+  #     # Build and push backend image
+  #     - name: Build and push backend
+  #       uses: noi-techpark/github-actions/docker-build-and-push@v2
+  #       with:
+  #         docker-username: ${{ github.actor }}
+  #         docker-password: ${{ secrets.GITHUB_TOKEN }}
+  #         working-directory: ${{ env.WORKING_DIRECTORY }}/chatbot/backend
+  #         docker-compose-file: docker-compose.yml
+  #       env:
+  #         DOCKER_IMAGE: ${{ env.DOCKER_IMAGE_BACKEND }}
+
+  #     - name: Deploy application
+  #       uses: noi-techpark/github-actions/docker-deploy@v2
+  #       with:
+  #         hosts: 'prod'
+  #         ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         docker-username: 'noi-techpark-bot'
+  #         docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+  #         project-name: ${{ env.PROJECT_NAME }}
+  #         working-directory: ${{ env.WORKING_DIRECTORY }}/infrastructure/ansible

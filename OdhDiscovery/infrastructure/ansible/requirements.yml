@@ -1,0 +1,6 @@
+roles:
+  - src: git+https://github.com/noi-techpark/ansible-docker-deployment.git
+    version: "2.0"
+collections:
+  - name: community.docker
+    version: 3.10.4
