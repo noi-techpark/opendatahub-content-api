@@ -42,6 +42,8 @@ python-dotenv>=1.0.0
 python-json-logger>=2.0.0
 
 # Embeddings
+# NOTE: torch is installed separately in Dockerfile with CPU-only build to reduce image size
+# Do not add torch here - it will be pulled as dependency but already satisfied
 sentence-transformers>=2.2.0
 
 # Authentication
