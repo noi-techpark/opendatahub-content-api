@@ -37,7 +37,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
         {
             var winegastrolist = await ImportList(cancellationToken);
 
-            var updateresult = await ImportData(winegastrolist, cancellationToken);
+            var updateresult = default(UpdateDetail);  //await ImportData(winegastrolist, cancellationToken);
 
             var deleteresult = await SetDataNotinListToInactive(winegastrolist, cancellationToken);
 
@@ -229,7 +229,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
                 foreach (var idtodelete in idstodelete)
                 {
-                    var result = await DeleteOrDisableData<WineLinked>(idtodelete, false);
+                    var result = await DeleteOrDisableData<WineLinked>(idtodelete, false, true);
 
                     updateresult = updateresult + result.Item1;
                     deleteresult = deleteresult + result.Item2;
