@@ -352,14 +352,21 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //DistanceCalculation
                     await accommodationparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    //GET OLD Activity
+                    //GET OLD Accommodation
                     var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
                     //TODO Update All ROOMS
 
-                    //TODO Update HGV INFO
+                    var accommodationsroomparsed = AccommodationParser.ParseLTSAccommodationRoom(data.data, false, xmlfiles, jsonfiles);
 
-                    //TODO Update HGV ROOMS
+                    foreach (var accommodationroom in accommodationsroomparsed)
+                    {
+
+                    }
+
+                    //TODO Disable Deleted ROOMS
+
+
 
                     //FINALLY UPDATE ACCOMMODATION ROOT OBJECT
 
@@ -529,6 +536,82 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                data,
                                new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                                new EditInfo("lts.accommodations.import.deactivate", importerURL),
+                               new CRUDConstraints(),
+                               new CompareConfig(true, false)
+                        );
+
+                        deletedisableresult = new UpdateDetail()
+                        {
+                            created = result.created,
+                            updated = result.updated,
+                            deleted = result.deleted,
+                            error = result.error,
+                            objectchanged = result.objectchanged,
+                            objectimagechanged = result.objectimagechanged,
+                            comparedobjects = result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            pushchannels = result.pushchannels,
+                            changes = result.changes,
+                        };
+                    }
+                }
+            }
+
+            return deletedisableresult;
+        }
+
+        public async Task<UpdateDetail> DeleteOrDisableAccommodationRoomsData(string id, bool delete, bool reduced)
+        {
+            UpdateDetail deletedisableresult = default(UpdateDetail);
+
+            PGCRUDResult result = default(PGCRUDResult);
+
+            if (delete)
+            {
+                result = await QueryFactory.DeleteData<AccommodationRoomV2>(
+                id.ToUpper(),
+                new DataInfo("accommodationrooms", CRUDOperation.Delete),
+                new CRUDConstraints(),
+                reduced
+                );
+
+                if (result.errorreason != "Data Not Found")
+                {
+                    deletedisableresult = new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    };
+                }
+            }
+            else
+            {
+                var query = QueryFactory.Query("accommodationrooms").Select("data").Where("id", id.ToUpper());
+
+                var data = await query.GetObjectSingleAsync<AccommodationRoomV2>();
+
+                if (data != null)
+                {
+                    if (
+                        data.Active != false
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                    )
+                    {
+                        data.Active = false;
+                        if (data is ISmgActive)
+                            ((ISmgActive)data).SmgActive = false;
+
+                        result = await QueryFactory.UpsertData<AccommodationRoomV2>(
+                               data,
+                               new DataInfo("accommodationrooms", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new EditInfo("lts.accommodations.roows.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
                         );
