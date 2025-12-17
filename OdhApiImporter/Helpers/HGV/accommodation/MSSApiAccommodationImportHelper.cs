@@ -46,24 +46,39 @@ namespace OdhApiImporter.Helpers.HGV
             throw new NotImplementedException();
         }
 
-        public async Task<UpdateDetail> SaveDataToODH(
-            DateTime? lastchanged = null,
+        public Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged = null, 
+            List<string>? idlist = null, 
+            CancellationToken cancellationToken = default
+            )
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<UpdateDetail> SaveDataToODH(            
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
         )
         {
+            //If single Id is imported, deactivate only if HGVInfo is not present
+
             //Import the List
             var accommodationhgv = await GetAccommodationsFromHGVMSS(idlist);
 
             //Check if Data is accessible on LTS            
-            var updateresult =  await SaveAccommodationsToPG(accommodationhgv, idlist != null ? false : true);
+            var updateresult =  await SaveAccommodationsToPG(idlist, accommodationhgv);
 
             //Import Single Data & Deactivate Data
-            var deleteresult = await SetHGVInfoForDataNotInListToNull(accommodationhgv, cancellationToken);
+            if (idlist == null)
+            {
+                var deleteresult = await SetHGVInfoForDataNotInListToNull(accommodationhgv, cancellationToken);
 
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+                return GenericResultsHelper.MergeUpdateDetail(
+                    new List<UpdateDetail>() { updateresult, deleteresult }
+                );
+            }
+
+            return updateresult;
         }
    
         private async Task<IEnumerable<MssResponseBaseSearch>> GetAccommodationsFromHGVMSS(
@@ -129,14 +144,14 @@ namespace OdhApiImporter.Helpers.HGV
             }
         }
 
-        private async Task<UpdateDetail> SaveAccommodationsToPG(IEnumerable<MssResponseBaseSearch> hgvdata, bool updateaccosnomoreonlist)
+        private async Task<UpdateDetail> SaveAccommodationsToPG(List<string> idlist, IEnumerable<MssResponseBaseSearch> hgvdata)
         {
             List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
+            //TODO if data is not updateable on HGV clear the AccoHGVInfo!
+
             if (hgvdata != null)
-            {
-                List<string> idlistlts = new List<string>();
-             
+            {                             
                 foreach (var data in hgvdata)
                 {
                     //Load Accommodation and fill out HGV Info                    
@@ -173,6 +188,38 @@ namespace OdhApiImporter.Helpers.HGV
                         new ImportLog()
                         {
                             sourceid = data.id_lts,
+                            sourceinterface = "hgv.accommodations",
+                            success = true,
+                            error = "",
+                        }
+                    );
+                }
+
+                foreach(var idtoclear in idlist.Except(hgvdata.Select(x => x.id_lts)))
+                {
+                    var deactivateresult = await ClearHgvInfoForDataNotInList(idtoclear);
+
+                    updatedetails.Add(new UpdateDetail()
+                    {
+                        created = deactivateresult.created,
+                        updated = deactivateresult.updated,
+                        deleted = deactivateresult.deleted,
+                        error = deactivateresult.error,
+                        objectchanged = deactivateresult.objectchanged,
+                        objectimagechanged = deactivateresult.objectimagechanged,
+                        comparedobjects =
+                        deactivateresult.compareobject != null && deactivateresult.compareobject.Value ? 1 : 0,
+                        pushchannels = deactivateresult.pushchannels,
+                        changes = deactivateresult.changes,
+                    });
+
+                    WriteLog.LogToConsole(
+                        idtoclear,
+                        "dataimport",
+                        "single.accommodations",
+                        new ImportLog()
+                        {
+                            sourceid = idtoclear,
                             sourceinterface = "hgv.accommodations",
                             success = true,
                             error = "",
@@ -265,40 +312,55 @@ namespace OdhApiImporter.Helpers.HGV
            CancellationToken cancellationToken
        )
         {
-            int updateresult = 0;
-            int deleteresult = 0;
-            int errorresult = 0;
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
 
             try
             {
-                //TODO CHECK IF EVERY Accommodation was requested
-
                 //TODOUpdateAccommodationHGVFieldsWhichAreNotMoreonHGVList
 
                 var hotellisthgvltsrids = hgvdata.Where(x => !String.IsNullOrEmpty(x.id_lts)).Select(x => x.id_lts).ToList();
+                               
+                var hotellistquery = QueryFactory
+                    .Query("accommodations")
+                    .Select("id")
+                    .WhereRaw("data->>'AccoHGVInfo' is not null");
 
-                //List<string?> mymuseumroot =
-                //    mymuseumlist
-                //        .Root?.Elements("Museum")
-                //        .Select(x => x.Attribute("ID")?.Value)
-                //        .ToList() ?? new();
+                var hotelswithhgvinfoondb = await hotellistquery.GetAsync<string>();
 
-                //var mymuseumquery = QueryFactory
-                //    .Query("smgpois")
-                //    .SelectRaw("data->'Mapping'->'siag'->>'museId'")
-                //    .Where("gen_syncsourceinterface", "museumdata");
+                var idstocheck = hotelswithhgvinfoondb.Except(hotellisthgvltsrids);
 
-                //var mymuseumsondb = await mymuseumquery.GetAsync<string>();
+                foreach (var idtoclear in idstocheck)
+                {
+                    var deactivateresult = await ClearHgvInfoForDataNotInList(idtoclear);
 
-                //var idstodelete = mymuseumsondb.Where(p => !mymuseumroot.Any(p2 => p2 == p));
+                    updatedetaillist.Add(new UpdateDetail()
+                    {
+                        created = deactivateresult.created,
+                        updated = deactivateresult.updated,
+                        deleted = deactivateresult.deleted,
+                        error = deactivateresult.error,
+                        objectchanged = deactivateresult.objectchanged,
+                        objectimagechanged = deactivateresult.objectimagechanged,
+                        comparedobjects =
+                        deactivateresult.compareobject != null && deactivateresult.compareobject.Value ? 1 : 0,
+                        pushchannels = deactivateresult.pushchannels,
+                        changes = deactivateresult.changes,
+                    });
 
-                //foreach (var idtodelete in idstodelete)
-                //{
-                //    var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
+                    WriteLog.LogToConsole(
+                       idtoclear,
+                       "dataimport",
+                       "single.accommodations",
+                       new ImportLog()
+                       {
+                           sourceid = idtoclear,
+                           sourceinterface = "hgv.accommodations",
+                           success = true,
+                           error = "",
+                       }
+                   );
 
-                //    updateresult = updateresult + result.Item1;
-                //    deleteresult = deleteresult + result.Item2;
-                //}
+                }
             }
             catch (Exception ex)
             {
@@ -315,17 +377,29 @@ namespace OdhApiImporter.Helpers.HGV
                     }
                 );
 
-                errorresult = errorresult + 1;
+                updatedetaillist.Add(new UpdateDetail() { error = 1, exception = ex.Message });
             }
 
-            return new UpdateDetail()
-            {
-                created = 0,
-                updated = updateresult,
-                deleted = deleteresult,
-                error = errorresult,
-            };
+            return GenericResultsHelper.MergeUpdateDetail(updatedetaillist);
         }
+
+        private async Task<PGCRUDResult> ClearHgvInfoForDataNotInList(string id)
+        {
+            //Load Accommodation and clear HGV Info                    
+            var accommodation = await LoadDataFromDB<AccommodationV2>(id, IDStyle.uppercase);
+
+            //Clear HGV Infos
+            accommodation.AccoHGVInfo = null;
+
+            return await QueryFactory.UpsertData<AccommodationV2>(
+                    accommodation,
+                    new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                    new EditInfo("hgv.accommodations.import", importerURL),
+                    new CRUDConstraints(),
+                    new CompareConfig(true, false)                    
+                );
+        }
+        
     }
 
 }
