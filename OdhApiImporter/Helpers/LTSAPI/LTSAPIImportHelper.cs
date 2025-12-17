@@ -11,6 +11,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Core.Operations;
 using NetTopologySuite.GeometriesGraph;
 using Newtonsoft.Json.Linq;
+using OdhApiImporter.Helpers.HGV;
 using OdhApiImporter.Helpers.LTSAPI;
 using OdhApiImporter.Helpers.RAVEN;
 using OdhNotifier;
@@ -237,8 +238,29 @@ namespace OdhApiImporter.Helpers
                     //Get reduced data
                     updateresultreduced = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
-                    //TODO When update rooms, hgv rooms, hgv data
+                    //Get HGV data
+                    MSSApiAccommodationImportHelper hgvapiimporthelper = new MSSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL,
+                        OdhPushnotifier
+                    );
+                    //Disable the datapush because it is done one push after all updates
+                    hgvapiimporthelper.pushdata = false;
+                    var hgvupdateresult = await hgvapiimporthelper.SaveDataToODH(new List<string>() { id }, cancellationToken);
 
+                    //Get HGV Room data
+                    MSSApiAccommodationRoomImportHelper hgvroomapiimporthelper = new MSSApiAccommodationRoomImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodationrooms",
+                        importerURL,
+                        OdhPushnotifier
+                    );                    
+                    var hgvupdateroomresult = await hgvroomapiimporthelper.SaveDataToODH(null, new List<string>() { id }, cancellationToken);
+
+                    //TO Test if every special Case is present in the objectchanged
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
                                 id,

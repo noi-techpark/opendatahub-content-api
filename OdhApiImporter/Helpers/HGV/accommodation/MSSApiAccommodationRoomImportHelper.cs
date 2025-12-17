@@ -24,7 +24,7 @@ namespace OdhApiImporter.Helpers.HGV
 {
     public class MSSApiAccommodationRoomImportHelper : ImportHelper, IImportHelper
     {
-        public bool opendata = false;
+        public bool opendata = false;        
         
         public MSSApiAccommodationRoomImportHelper(
             ISettings settings,
@@ -48,6 +48,14 @@ namespace OdhApiImporter.Helpers.HGV
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
+            List<string>? idlist = null,            
+            CancellationToken cancellationToken = default
+        )
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<UpdateDetail> SaveDataToODH(            
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
         )
@@ -269,7 +277,7 @@ namespace OdhApiImporter.Helpers.HGV
             {
                 var accoroomhgvquery = QueryFactory
                     .Query("accommodationrooms")
-                    .Select("Id")
+                    .Select("id")
                     .Where("gen_source", "hgv")
                     .Where("gen_a0rid", accommodationid);
 
@@ -280,7 +288,7 @@ namespace OdhApiImporter.Helpers.HGV
                 //TODO Check all Rooms with this ID, disable/delete all rooms that are no more present
                 foreach(var accoroom in accommodationroomidstodeactivate)
                 {
-                    var result = await DeleteOrDisableData<AccommodationRoomLinked>(accoroom, false);
+                    var result = await DeleteOrDisableData<AccommodationRoomLinked>(accoroom, true);
 
                     updateresult = updateresult + result.Item1;
                     deleteresult = deleteresult + result.Item2;

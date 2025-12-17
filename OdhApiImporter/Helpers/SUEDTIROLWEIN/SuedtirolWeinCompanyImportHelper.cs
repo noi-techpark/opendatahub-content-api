@@ -43,7 +43,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
         {
             var winegastrolist = await ImportList(cancellationToken);
 
-            var updateresult = default(UpdateDetail);  //await ImportData(winegastrolist, cancellationToken);
+            var updateresult = await ImportData(winegastrolist, cancellationToken);
 
             var deleteresult = await SetDataNotinListToInactive(winegastrolist, cancellationToken);
 

@@ -13,6 +13,7 @@ using OdhNotifier;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -25,6 +26,7 @@ namespace OdhApiImporter.Helpers.HGV
     public class MSSApiAccommodationImportHelper : ImportHelper, IImportHelper
     {
         public bool opendata = false;
+        public bool pushdata = true;
         
         public MSSApiAccommodationImportHelper(
             ISettings settings,
@@ -61,6 +63,7 @@ namespace OdhApiImporter.Helpers.HGV
         )
         {
             //If single Id is imported, deactivate only if HGVInfo is not present
+            //If Full update is done use push logic
 
             //Import the List
             var accommodationhgv = await GetAccommodationsFromHGVMSS(idlist);
@@ -167,6 +170,14 @@ namespace OdhApiImporter.Helpers.HGV
 
                     var result = await InsertDataToDB(accommodation, data);
 
+                    if(pushdata)
+                        result.pushed = await CheckIfObjectChangedAndPush(
+                            result,
+                            accommodation.Id,
+                            "accommodation",
+                            "accommodations.hgvinfo"
+                        );
+
                     updatedetails.Add(new UpdateDetail()
                     {
                         created = result.created,
@@ -198,6 +209,14 @@ namespace OdhApiImporter.Helpers.HGV
                 foreach(var idtoclear in idlist.Except(hgvdata.Select(x => x.id_lts)))
                 {
                     var deactivateresult = await ClearHgvInfoForDataNotInList(idtoclear);
+
+                    if (pushdata)
+                        deactivateresult.pushed = await CheckIfObjectChangedAndPush(
+                            deactivateresult,
+                            idtoclear,
+                            "accommodation",
+                            "accommodations.hgvinfo"
+                        );
 
                     updatedetails.Add(new UpdateDetail()
                     {
@@ -332,6 +351,14 @@ namespace OdhApiImporter.Helpers.HGV
                 foreach (var idtoclear in idstocheck)
                 {
                     var deactivateresult = await ClearHgvInfoForDataNotInList(idtoclear);
+
+                    if (pushdata)
+                        deactivateresult.pushed = await CheckIfObjectChangedAndPush(
+                            deactivateresult,
+                            idtoclear,
+                            "accommodation",
+                            "accommodations.hgvinfo"
+                        );
 
                     updatedetaillist.Add(new UpdateDetail()
                     {

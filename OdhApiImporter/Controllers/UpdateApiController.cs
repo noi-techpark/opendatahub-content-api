@@ -1140,15 +1140,11 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("HGV/accommodation"),
                     OdhPushnotifier
                 );
-                var resulttuple = await hgvapiimporthelper.SaveDataToODH(
-                    null,
+                var resulttuple = await hgvapiimporthelper.SaveDataToODH(                    
                     new List<string>() { id },
                     cancellationToken
                 );
                 updatedetail = resulttuple;
-
-                //Add Push logic here
-
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     id,
@@ -1167,6 +1163,65 @@ namespace OdhApiImporter.Controllers
             {
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        //Generic Update Single Accommodation MSS
+        [HttpGet, Route("HGV/Accommodation/Update/All")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateAccommodationDataFromHGV(            
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update HGV";
+            string updatetype = "list";
+            string source = "api";
+            string otherinfo = "accommodation";
+
+            try
+            {
+                MSSApiAccommodationImportHelper hgvapiimporthelper = new MSSApiAccommodationImportHelper(
+                    settings,
+                    QueryFactory,
+                    "accommodations",
+                    UrlGeneratorStatic("HGV/accommodation"),
+                    OdhPushnotifier
+                );
+                var resulttuple = await hgvapiimporthelper.SaveDataToODH(
+                    null,
+                    cancellationToken
+                );
+                updatedetail = resulttuple;                
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
                     source,
                     operation,
                     updatetype,
