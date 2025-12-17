@@ -1158,38 +1158,38 @@ namespace DataModel
 
     public class RoadIncidentProperties
     {
-        // The top-level array of roads involved in the incident.
-        public List<RoadInvolved>? RoadsInvolved { get; set; }
+        // // The top-level array of roads involved in the incident.
+        // public List<RoadInvolved>? RoadsInvolved { get; set; }
 
-        // The delay as a numeric value.
-        public int? ExpectedDelayMinutes { get; set; }
+        // // The delay as a numeric value.
+        // public int? ExpectedDelayMinutes { get; set; }
 
-        // The delay as a human-readable string.
-        public string? ExpectedDelayString { get; set; }
+        // // The delay as a human-readable string.
+        // public string? ExpectedDelayString { get; set; }
 
-        public class RoadInvolved
-        {
-            // The name of the road (e.g., "Highway A1").
-            public string? Name { get; set; }
+        // public class RoadInvolved
+        // {
+        //     // The name of the road (e.g., "Highway A1").
+        //     public string? Name { get; set; }
 
-            // The code of the road (e.g., "A1").
-            public string? Code { get; set; }
+        //     // The code of the road (e.g., "A1").
+        //     public string? Code { get; set; }
 
-            // The array of lanes affected on this road.
-            public List<LaneInfo>? Lanes { get; set; }
+        //     // The array of lanes affected on this road.
+        //     public List<LaneInfo>? Lanes { get; set; }
             
-            public class LaneInfo
-            {
-                // The lane number (e.g., 1, 2, 3).
-                public int? Lane { get; set; }
+        //     public class LaneInfo
+        //     {
+        //         // The lane number (e.g., 1, 2, 3).
+        //         public int? Lane { get; set; }
 
-                // The specific name or description of the lane (e.g., "Left Lane").
-                public string? LaneName { get; set; }
+        //         // The specific name or description of the lane (e.g., "Left Lane").
+        //         public string? LaneName { get; set; }
 
-                // The direction of travel (e.g., "North", "Southbound").
-                public string? Direction { get; set; }
-            }
-        }
+        //         // The direction of travel (e.g., "North", "Southbound").
+        //         public string? Direction { get; set; }
+        //     }
+        // }
     }
 
     #endregion        
