@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Helper.Accommodation
+namespace Helper.AccommodationRoomsExtension
 {
     public static class FillAccoRoomInfosObject
     {

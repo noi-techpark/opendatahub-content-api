@@ -645,7 +645,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         public async Task<UpdateDetail> ReGeneratedAccommodationRoomsList(string id)
         {
-
+            return new UpdateDetail();
         }
 
         #endregion
