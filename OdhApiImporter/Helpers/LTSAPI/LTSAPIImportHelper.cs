@@ -2,21 +2,15 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Amazon.Auth.AccessControlPolicy;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Tagging;
 using MongoDB.Driver;
-using MongoDB.Driver.Core.Operations;
-using NetTopologySuite.GeometriesGraph;
 using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.HGV;
 using OdhApiImporter.Helpers.LTSAPI;
-using OdhApiImporter.Helpers.RAVEN;
 using OdhNotifier;
-using RAVEN;
-using SqlKata;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -259,6 +253,10 @@ namespace OdhApiImporter.Helpers
                         OdhPushnotifier
                     );                    
                     var hgvupdateroomresult = await hgvroomapiimporthelper.SaveDataToODH(null, new List<string>() { id }, cancellationToken);
+
+                    //ReGenerate AccoRooms List
+
+
 
                     //TO Test if every special Case is present in the objectchanged
                     updateresult.pushed = await CheckIfObjectChangedAndPush(

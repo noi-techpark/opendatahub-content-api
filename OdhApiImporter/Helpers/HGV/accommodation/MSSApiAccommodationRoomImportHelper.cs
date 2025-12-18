@@ -75,6 +75,7 @@ namespace OdhApiImporter.Helpers.HGV
                 //Save Accommodationrooms to DB  
                 var updateresult = await SaveAccommodationRoomsToPG(accommodationroomshgv, xmlfiles);
 
+                //TODO Update the Accommodation Object (AccoRooms List)
                
                 updatedetailist.Add(updateresult);
             }

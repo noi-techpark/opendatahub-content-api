@@ -341,7 +341,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 foreach (var data in accosdata)
                 {
                     string id = data.data.rid.ToUpper();
-                    
+
                     var accommodationparsed = AccommodationParser.ParseLTSAccommodation(data.data, false, xmlfiles, jsonfiles);
 
                     //POPULATE LocationInfo TO CHECK if this works for new activities...
@@ -355,16 +355,22 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //GET OLD Accommodation
                     var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
 
-                    //TODO Update All ROOMS
-
-                    var accommodationsroomparsed = AccommodationParser.ParseLTSAccommodationRoom(data.data, false, xmlfiles, jsonfiles);
-
-                    foreach (var accommodationroom in accommodationsroomparsed)
+                   
+                    if (!opendata)
                     {
+                        //TODO Update All ROOMS
 
+                        var accommodationsroomparsed = AccommodationParser.ParseLTSAccommodationRoom(data.data, false, xmlfiles, jsonfiles);
+
+                        foreach (var accommodationroom in accommodationsroomparsed)
+                        {
+
+                        }
+
+                        //TODO Delete Deleted ROOMS
+
+                        //TODO Regenerated AccoRooms List on Accommodation object (make sure, HGV rooms are updated first)
                     }
-
-                    //TODO Disable Deleted ROOMS
 
 
 
@@ -634,6 +640,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             return deletedisableresult;
         }
+
+        #region Helpers
+
+        public async Task<UpdateDetail> ReGeneratedAccommodationRoomsList(string id)
+        {
+
+        }
+
+        #endregion
 
     }
 
