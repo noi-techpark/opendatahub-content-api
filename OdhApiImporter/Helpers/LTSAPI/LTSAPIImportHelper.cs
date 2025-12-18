@@ -232,7 +232,18 @@ namespace OdhApiImporter.Helpers
                     //Get reduced data
                     updateresultreduced = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
-                    //Get HGV data
+                    
+                    //Get HGV Room data);
+                    MSSApiAccommodationRoomImportHelper hgvroomapiimporthelper = new MSSApiAccommodationRoomImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodationrooms",
+                        importerURL,
+                        OdhPushnotifier
+                    );                    
+                    var hgvupdateroomresult = await hgvroomapiimporthelper.SaveDataToODH(null, new List<string>() { id }, cancellationToken);
+
+                    //Get HGV data (Make sure the Rooms are imported first because of the AccoRoomInfo Object
                     MSSApiAccommodationImportHelper hgvapiimporthelper = new MSSApiAccommodationImportHelper(
                         settings,
                         QueryFactory,
@@ -243,20 +254,6 @@ namespace OdhApiImporter.Helpers
                     //Disable the datapush because it is done one push after all updates
                     hgvapiimporthelper.pushdata = false;
                     var hgvupdateresult = await hgvapiimporthelper.SaveDataToODH(new List<string>() { id }, cancellationToken);
-
-                    //Get HGV Room data
-                    MSSApiAccommodationRoomImportHelper hgvroomapiimporthelper = new MSSApiAccommodationRoomImportHelper(
-                        settings,
-                        QueryFactory,
-                        "accommodationrooms",
-                        importerURL,
-                        OdhPushnotifier
-                    );                    
-                    var hgvupdateroomresult = await hgvroomapiimporthelper.SaveDataToODH(null, new List<string>() { id }, cancellationToken);
-
-                    //ReGenerate AccoRooms List
-
-
 
                     //TO Test if every special Case is present in the objectchanged
                     updateresult.pushed = await CheckIfObjectChangedAndPush(

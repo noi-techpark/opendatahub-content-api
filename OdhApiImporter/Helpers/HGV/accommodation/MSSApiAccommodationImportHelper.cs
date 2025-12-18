@@ -7,13 +7,13 @@ using Helper;
 using Helper.Generic;
 using Helper.Location;
 using Helper.Tagging;
+using Helper.AccommodationRoomsExtension;
 using MSS;
 using Newtonsoft.Json;
 using OdhNotifier;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -168,6 +168,8 @@ namespace OdhApiImporter.Helpers.HGV
 
                     accommodation.AccoHGVInfo = accohgvinfo;
 
+                    await accommodation.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "hgv" }, null);
+
                     var result = await InsertDataToDB(accommodation, data);
 
                     if(pushdata)
@@ -206,6 +208,7 @@ namespace OdhApiImporter.Helpers.HGV
                     );
                 }
 
+                //this is to check should only clear the hgv data + hgv rooms
                 foreach(var idtoclear in idlist.Except(hgvdata.Select(x => x.id_lts)))
                 {
                     var deactivateresult = await ClearHgvInfoForDataNotInList(idtoclear);
@@ -336,6 +339,7 @@ namespace OdhApiImporter.Helpers.HGV
             try
             {
                 //TODOUpdateAccommodationHGVFieldsWhichAreNotMoreonHGVList
+                //TODO What about MSS Rooms, delete?
 
                 var hotellisthgvltsrids = hgvdata.Where(x => !String.IsNullOrEmpty(x.id_lts)).Select(x => x.id_lts).ToList();
                                
