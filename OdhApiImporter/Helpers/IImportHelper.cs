@@ -41,7 +41,7 @@ namespace OdhApiImporter.Helpers
         //    CancellationToken cancellationToken = default
         //);
 
-        Task<Tuple<int, int>> DeleteOrDisableData<T>(string id, bool delete)
+        Task<Tuple<int, int>> DeleteOrDisableData<T>(string id, bool delete, bool clearpublishedon = false)
             where T : IActivateable;
 
         Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
@@ -131,7 +131,7 @@ namespace OdhApiImporter.Helpers
         /// <param name="id">Id of the data to delete/disable</param>
         /// <param name="delete">Delete the data true/false, if false the data is set to Active = false</param>
         /// <returns>Tuple of ints (updated/deleted)</returns>
-        public async Task<Tuple<int, int>> DeleteOrDisableData<T>(string id, bool delete)
+        public async Task<Tuple<int, int>> DeleteOrDisableData<T>(string id, bool delete, bool clearpublishedon = false)
             where T : IActivateable
         {
             var deleteresult = 0;
@@ -152,11 +152,21 @@ namespace OdhApiImporter.Helpers
                     if (
                         data.Active != false
                         || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                        || (clearpublishedon && data is IPublishedOn && (data as IPublishedOn).PublishedOn != null && (data as IPublishedOn).PublishedOn.Count > 0)
                     )
                     {
                         data.Active = false;
                         if (data is ISmgActive)
                             ((ISmgActive)data).SmgActive = false;
+
+                        if(clearpublishedon)
+                        {
+                            if(data is IPublishedOn)
+                            {                                
+                                (data as IPublishedOn).PublishedOn = new List<string>();
+                            }                                
+                        }
+
 
                         updateresult = await QueryFactory
                             .Query(table)

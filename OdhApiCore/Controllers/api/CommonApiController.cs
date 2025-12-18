@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
-using ServiceReferenceLCS;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -1556,11 +1555,12 @@ namespace OdhApiCore.Controllers.api
                 wineid,
                 languagefilter: langfilter,
                 null,
-                source,
+                source,                
                 active?.Value,
                 odhactive?.Value,
                 smgtags: odhtagfilter,
                 lastchange: updatefrom,
+                publishedon,
                 cancellationToken
             );
 
@@ -1858,6 +1858,7 @@ namespace OdhApiCore.Controllers.api
                         activefilter: winehelper.active,
                         odhactivefilter: winehelper.smgactive,
                         sourcelist: winehelper.sourcelist,
+                        publishedonlist: winehelper.publishedonlist,
                         searchfilter: searchfilter,
                         language: language,
                         additionalfilter: additionalfilter,
@@ -1925,6 +1926,7 @@ namespace OdhApiCore.Controllers.api
                         activefilter: winehelper.active,
                         odhactivefilter: winehelper.smgactive,
                         sourcelist: winehelper.sourcelist,
+                        publishedonlist: winehelper.publishedonlist,
                         searchfilter: searchfilter,
                         language: language,
                         additionalfilter: additionalfilter,

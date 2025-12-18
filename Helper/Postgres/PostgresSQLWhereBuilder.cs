@@ -763,6 +763,7 @@ namespace Helper
             bool? activefilter,
             bool? odhactivefilter,
             IReadOnlyCollection<string> sourcelist,
+            IReadOnlyCollection<string> publishedonlist,
             string? searchfilter,
             string? language,
             string? lastchange,
@@ -790,6 +791,7 @@ namespace Helper
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
                 .OdhActiveFilter_GeneratedColumn(odhactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
                 .SourceFilter_GeneratedColumn(sourcelist)
+                .PublishedOnFilter_GeneratedColumn(publishedonlist) //.PublishedOnFilter(publishedonlist)
                 .CompanyIdFilter(companyid)
                 .WineIdFilter(wineid)
                 .When(

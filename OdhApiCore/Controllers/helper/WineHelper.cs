@@ -22,6 +22,7 @@ namespace OdhApiCore.Controllers
         public string? lastchange;
         public bool? active;
         public bool? smgactive;
+        public List<string> publishedonlist;
 
         public static Task<WineHelper> CreateAsync(
             QueryFactory queryFactory,
@@ -35,6 +36,7 @@ namespace OdhApiCore.Controllers
             bool? smgactivefilter,
             string? smgtags,
             string? lastchange,
+            string? publishedonfilter,
             CancellationToken cancellationToken
         )
         {
@@ -49,7 +51,8 @@ namespace OdhApiCore.Controllers
                     visibleinsearch: visibleinsearch,
                     sourcefilter: sourcefilter,
                     smgtags: smgtags,
-                    lastchange: lastchange
+                    lastchange: lastchange,
+                    publishedonfilter: publishedonfilter
                 )
             );
         }
@@ -64,7 +67,8 @@ namespace OdhApiCore.Controllers
             bool? visibleinsearch,
             string? sourcefilter,
             string? smgtags,
-            string? lastchange
+            string? lastchange,
+            string? publishedonfilter
         )
         {
             idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToUpper());
@@ -85,6 +89,8 @@ namespace OdhApiCore.Controllers
             this.visibleinsearch = visibleinsearch;
 
             this.lastchange = lastchange;
+
+            publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
         }
     }
 }
