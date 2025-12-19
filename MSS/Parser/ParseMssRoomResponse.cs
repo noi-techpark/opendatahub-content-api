@@ -15,7 +15,7 @@ namespace MSS
 {
     public class ParseMssRoomResponse
     {
-        public static List<AccoRoom> ParseMyRoomResponse(
+        public static List<AccommodationRoomLinked> ParseMyRoomResponse(
             string lang,
             XElement mssresponse,
             XDocument roomamenities
@@ -25,7 +25,7 @@ namespace MSS
             {
                 var myresult = mssresponse.Elements("result").Elements("hotel");
 
-                List<AccoRoom> myroomlist = new List<AccoRoom>();
+                List<AccommodationRoomLinked> myroomlist = new List<AccommodationRoomLinked>();
 
                 foreach (var myhotelresult in myresult)
                 {
@@ -40,7 +40,7 @@ namespace MSS
             }
         }
 
-        public static List<AccoRoom> ResponseRoomParser(
+        public static List<AccommodationRoomLinked> ResponseRoomParser(
             XElement myresult,
             XDocument roomamenities,
             string language
@@ -50,7 +50,7 @@ namespace MSS
             {
                 CultureInfo culturede = CultureInfo.CreateSpecificCulture("de");
 
-                List<AccoRoom> myaccorooms = new List<AccoRoom>();
+                List<AccommodationRoomLinked> myaccorooms = new List<AccommodationRoomLinked>();
 
                 string A0RID = myresult.Element("id_lts").Value;
                 string HgvId = myresult.Element("id").Value;
@@ -70,7 +70,7 @@ namespace MSS
 
                             foreach (var myroom in myroomlist)
                             {
-                                AccoRoom myroomtosave = new AccoRoom();
+                                AccommodationRoomLinked myroomtosave = new AccommodationRoomLinked();
 
                                 string roomid = myroom.Element("room_id").Value;
                                 string roomidlts =
@@ -169,10 +169,10 @@ namespace MSS
                                         .Element("features_view")
                                         .Elements("feature");
 
-                                    List<AccoFeature> myroomfeatureslist = new List<AccoFeature>();
+                                    List<AccoFeatureLinked> myroomfeatureslist = new List<AccoFeatureLinked>();
                                     foreach (var feature in myfeatures)
                                     {
-                                        AccoFeature myroomfeature = new AccoFeature();
+                                        AccoFeatureLinked myroomfeature = new AccoFeatureLinked();
 
                                         string amenityid = feature.Element("id").Value;
 
