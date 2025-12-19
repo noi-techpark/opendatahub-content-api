@@ -22,6 +22,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using ThirdParty.Json.LitJson;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
@@ -309,8 +310,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 //Load the json and xml Data
 
-                var xmlfiles = ImportUtils.LoadXmlFiles(
-                    Path.Combine(".\\xml\\"),
+                var xmlfiles = LTSAPIImportHelper.LoadXmlFiles(
+                    settings.XmlConfig.Xmldir,
                     new List<string>()
                     {
                         "AccoCategories",
@@ -323,14 +324,22 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         "NearSkiArea",
                         "RoomAmenities",
                         "Vinum",
-                        "Wine",
+                        "Wine"                        
                     }
                 );
 
-                var jsonfiles = await ImportUtils.LoadJsonFiles(
-                    Path.Combine(".\\json\\"),
-                    new List<string>() { "Features" }
+                //Load the json Data
+                IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
+
+                jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                settings.JsonConfig.Jsondir,
+                new List<string>()
+                    {
+                        "Features"
+                    }
                 );
+
+                //IDictionary<string, JArray> jsondata = new Dictionary<string, JArray>() { { "Features", new JArray() } };
 
                 foreach (var ltsdatasingle in ltsdata)
                 {
@@ -343,7 +352,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     string id = data.data.rid.ToUpper();
 
-                    var accommodationparsed = AccommodationParser.ParseLTSAccommodation(data.data, false, xmlfiles, jsonfiles);
+                    var accommodationparsed = AccommodationParser.ParseLTSAccommodation(data.data, false, xmlfiles, jsondata);
 
                     //POPULATE LocationInfo TO CHECK if this works for new activities...
                     accommodationparsed.LocationInfo = await accommodationparsed.UpdateLocationInfoExtension(
@@ -361,11 +370,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     {
                         //TODO Update All ROOMS
 
-                        var accommodationsroomparsed = AccommodationParser.ParseLTSAccommodationRoom(data.data, false, xmlfiles, jsonfiles);
+                        var accommodationsroomparsed = AccommodationParser.ParseLTSAccommodationRoom(data.data, false, xmlfiles, jsondata);
 
                         foreach (var accommodationroom in accommodationsroomparsed)
                         {
-                            var accommodationroominsertresult = await InsertAccommodationRoomDataToDB(accommodationroom, jsonfiles);
+                            var accommodationroominsertresult = await InsertAccommodationRoomDataToDB(accommodationroom, jsondata);
                             updatedetails.Add(new UpdateDetail()
                             {
                                 created = accommodationroominsertresult.created,
@@ -407,7 +416,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Create Tags and preserve the old TagEntries
                     await accommodationparsed.UpdateTagsExtension(QueryFactory);
 
-                    var result = await InsertDataToDB(accommodationparsed, data.data, jsonfiles);
+                    var result = await InsertDataToDB(accommodationparsed, data.data, jsondata);
 
                     updatedetails.Add(new UpdateDetail()
                     {

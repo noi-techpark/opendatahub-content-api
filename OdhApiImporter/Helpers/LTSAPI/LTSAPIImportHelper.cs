@@ -2378,6 +2378,19 @@ namespace OdhApiImporter.Helpers
 
             return myxmlfiles;
         }
+
+        public static IDictionary<string, XDocument> LoadXmlFiles(string directory, List<string> filenames)
+        {
+            //TODO move this files to Database
+
+            IDictionary<string, XDocument> myxmlfiles = new Dictionary<string, XDocument>();
+            foreach(var filename in filenames)
+            {
+                myxmlfiles.Add(filename, XDocument.Load(directory + filename + ".xml"));
+            }
+
+            return myxmlfiles;
+        }
     }
 }
 
