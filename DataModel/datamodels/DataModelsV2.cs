@@ -1192,5 +1192,28 @@ namespace DataModel
         // }
     }
 
+    public class UrbanGreen : Generic, IActivateable, IGeoAware, IHasAdditionalProperties
+    {        
+        public bool Active { get; set; }
+
+        public DateTime? PutOnSite { get; set; }
+        public DateTime? RemovedFromSite { get; set; }
+
+        public IDictionary<string, DetailGeneric> Detail { get; set; }    
+
+        public IDictionary<string, GpsInfo> Geo { get; set; }
+
+        public string GreenCode { get; set; }
+        public string GreenCodeType { get; set; }
+        public string GreenCodeSubtype { get; set; }
+
+        public string GreenCodeVersion { get; set; }
+    }
+
+    public class UrbanGreenProperties
+    {
+        public IDictionary<string, string> Taxonomy { get; set; }
+    }
+
     #endregion        
 }
