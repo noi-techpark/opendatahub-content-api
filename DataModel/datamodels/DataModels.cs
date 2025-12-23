@@ -18,6 +18,7 @@ using System.Linq;
 using System.Net;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using NetTopologySuite.Geometries.Utilities;
 // using System.Text.Json.Serialization; // this is not the package used to serialize
 using Newtonsoft.Json;
 
@@ -3738,7 +3739,9 @@ namespace DataModel
                 {
                     // Use NTS to parse the WKT string
                     var reader = new WKTReader();
-                    var geo = reader.Read(Geometry);
+                    var rawGeo = reader.Read(Geometry);
+                    // Attempt to repair the geometry automatically
+                    var geo = GeometryFixer.Fix(rawGeo);
                     geo.SRID = 4326;
                     return geo;
                 }
