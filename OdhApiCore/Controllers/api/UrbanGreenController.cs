@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace OdhApiCore.Controllers
 {
@@ -187,6 +188,9 @@ namespace OdhApiCore.Controllers
         {
             return DoAsyncReturn(async () =>
             {
+
+                var sw = Stopwatch.StartNew();
+                long lastCheckpoint = 0;
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
@@ -204,6 +208,9 @@ namespace OdhApiCore.Controllers
                                 tagfilter: tagfilter,
                                 cancellationToken
                             );
+
+                Console.WriteLine($"Query helper tool: {sw.ElapsedMilliseconds}ms");
+                lastCheckpoint = sw.ElapsedMilliseconds;
 
                 var query = QueryFactory
                     .Query()
@@ -242,6 +249,9 @@ namespace OdhApiCore.Controllers
                     .ApplyRawFilter(rawfilter)
                     .ApplyOrdering_GeneratedColumns(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort);
 
+                long step2Time = sw.ElapsedMilliseconds - lastCheckpoint;
+                Console.WriteLine($"Query build took: {step2Time}ms");
+                lastCheckpoint = sw.ElapsedMilliseconds;
                 //IF getasidarray set simply return array of ids
                 if (getasidarray)
                 {
@@ -254,6 +264,10 @@ namespace OdhApiCore.Controllers
                     perPage: pagesize ?? 25
                 );
 
+                long step3Time = sw.ElapsedMilliseconds - lastCheckpoint;
+                Console.WriteLine($"Query took: {step3Time}ms");
+                lastCheckpoint = sw.ElapsedMilliseconds;
+
                 var dataTransformed = data.List.Select(raw =>
                     raw.TransformRawData(
                         language,
@@ -263,6 +277,11 @@ namespace OdhApiCore.Controllers
                         fieldstohide: null
                     )
                 );
+
+                long step4Time = sw.ElapsedMilliseconds - lastCheckpoint;
+                Console.WriteLine($"Transform took: {step4Time}ms");
+                lastCheckpoint = sw.ElapsedMilliseconds;
+                sw.Stop();
 
                 uint totalpages = (uint)data.TotalPages;
                 uint totalcount = (uint)data.Count;
