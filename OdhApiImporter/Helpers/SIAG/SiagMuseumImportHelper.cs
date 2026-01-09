@@ -2,22 +2,23 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using DataModel.helpers;
+using Helper;
+using Helper.Generic;
+using Helper.IDM;
+using Helper.Location;
+using Helper.Tagging;
+using Newtonsoft.Json.Linq;
+using OdhNotifier;
+using SIAG;
+using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DataModel;
-using Helper;
-using Helper.Generic;
-using Helper.Location;
-using Newtonsoft.Json.Linq;
-using SIAG;
-using SqlKata.Execution;
-using Helper.Tagging;
-using Helper.IDM;
-using DataModel.helpers;
 
 namespace OdhApiImporter.Helpers
 {
@@ -27,9 +28,10 @@ namespace OdhApiImporter.Helpers
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,

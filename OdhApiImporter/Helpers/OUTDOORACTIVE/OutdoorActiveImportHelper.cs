@@ -6,6 +6,7 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using LTSAPI;
+using OdhNotifier;
 using OUTDOORACTIVE;
 using OUTDOORACTIVE.Parser;
 using SqlKata.Execution;
@@ -31,9 +32,10 @@ namespace OdhApiImporter.Helpers
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             updatefrom = DateTime.Now.AddDays(-1);
             syncelevation = false;

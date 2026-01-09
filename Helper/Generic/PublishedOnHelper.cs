@@ -284,7 +284,7 @@ namespace Helper
                     case "odhactivitypoi":
 
                         if (
-                            (mydata as ODHActivityPoiLinked).SmgActive
+                            (mydata as ODHActivityPoiLinked).Active
                             && mydata._Meta.Source == "suedtirolwein"
                         )
                             publishedonlist.TryAddOrUpdateOnList("suedtirolwein.com");

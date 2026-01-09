@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Amazon.Runtime.Internal.Transform;
 using DataModel;
 using DataModel.helpers;
 using Helper;
@@ -10,15 +9,14 @@ using Helper.Generic;
 using Helper.IDM;
 using Helper.Location;
 using Helper.Tagging;
-using LTSAPI.Parser;
 using Newtonsoft.Json.Linq;
+using OdhNotifier;
 using SqlKata.Execution;
 using SuedtirolWein;
 using SuedtirolWein.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,9 +30,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
@@ -75,9 +74,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             CancellationToken cancellationToken = default
         )
         {
-            int updatecounter = 0;
-            int newcounter = 0;
-            int errorcounter = 0;
+            List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
             //Load the json Data
             IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
@@ -114,18 +111,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     jsondata
                 );
 
-                newcounter = newcounter + importresult.created ?? newcounter;
-                updatecounter = updatecounter + importresult.updated ?? updatecounter;
-                errorcounter = errorcounter + importresult.error ?? errorcounter;
+                updatedetails.Add(importresult);
             }
 
-            return new UpdateDetail()
-            {
-                created = newcounter,
-                updated = updatecounter,
-                deleted = 0,
-                error = errorcounter,
-            };
+            return GenericResultsHelper.MergeUpdateDetail(updatedetails);
         }
 
         public async Task<UpdateDetail> ImportDataSingle(
@@ -135,12 +124,9 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             MetaInfosOdhActivityPoi metainfosidm,
             IDictionary<string, JArray> jsondata
         )
-        {
-            int updatecounter = 0;
-            int newcounter = 0;
-            int errorcounter = 0;
-
+        {          
             string dataid = winedata.Element("id").Value;
+            UpdateDetail updatedetail = new UpdateDetail();
 
             try
             {
@@ -247,8 +233,29 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     suedtirolweinpoi,
                     new KeyValuePair<string, XElement>(dataid, winedata)
                 );
-                newcounter = newcounter + result.created ?? 0;
-                updatecounter = updatecounter + result.updated ?? 0;
+
+                //Create UpdateDetail
+                updatedetail = new UpdateDetail()
+                {
+                    created = result.created,
+                    updated = result.updated,
+                    deleted = result.deleted,
+                    error = result.error,
+                    objectchanged = result.objectchanged,
+                    objectimagechanged = result.objectimagechanged,
+                    comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                    pushchannels = result.pushchannels,
+                    changes = result.changes,
+                };
+
+                //Push Data
+                updatedetail.pushed = await CheckIfObjectChangedAndPush(
+                    updatedetail,
+                    dataid.ToLower(),
+                    "odhactivitypoi",
+                    "suedtirolwein.companies"
+                );
 
                 if (suedtirolweinpoi.Id is { })
                     WriteLog.LogToConsole(
@@ -266,6 +273,20 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             }
             catch (Exception ex)
             {
+                updatedetail = new UpdateDetail()
+                {
+                    created = 0,
+                    updated = 0,
+                    deleted = 0,
+                    error = 1,
+                    objectchanged = 0,
+                    objectimagechanged = 0,
+                    comparedobjects = 0,
+                    pushchannels = null,
+                    changes = null,
+                    exception = ex.Message
+                };
+
                 WriteLog.LogToConsole(
                     dataid,
                     "dataimport",
@@ -277,18 +298,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                         success = false,
                         error = ex.Message,
                     }
-                );
-
-                errorcounter = errorcounter + 1;
+                );                
             }
 
-            return new UpdateDetail()
-            {
-                created = newcounter,
-                updated = updatecounter,
-                deleted = 0,
-                error = errorcounter,
-            };
+            return updatedetail;
         }
 
         private async Task<UpdateDetail> SetDataNotinListToInactive(
@@ -296,9 +309,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             CancellationToken cancellationToken
         )
         {
-            int updateresult = 0;
-            int deleteresult = 0;
-            int errorresult = 0;
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
 
             try
             {
@@ -306,13 +317,18 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 List<string?> winecompaniesonsource =
                     mywinecompanylist["de"]
                         .Root?.Elements("item")
-                        .Select(x => x.Attribute("id")?.Value)
+                        .Select(x => x.Element("id")?.Value)
                         .ToList() ?? new();
+
+                //Check if this ids are all null then return
+                if (winecompaniesonsource == null || winecompaniesonsource.Contains(null))
+                    throw new Exception("idlist could not be created");
 
                 var myquery = QueryFactory
                     .Query("smgpois")
-                    .SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")
-                    .Where("gen_syncsourceinterface", "suedtirolwein");
+                    .Select("id")
+                    //.SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")
+                    .Where("gen_source", "suedtirolwein");
 
                 var winecompaniesondb = await myquery.GetAsync<string>();
 
@@ -322,10 +338,18 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
                 foreach (var idtodelete in idstodelete)
                 {
-                    var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
+                    UpdateDetail updatedetail = new UpdateDetail();
 
-                    updateresult = updateresult + result.Item1;
-                    deleteresult = deleteresult + result.Item2;
+                    var result = await DeleteOrDisableDataWithUpdateDetail<ODHActivityPoiLinked>(idtodelete, new EditInfo("suedtirolwein.companies.deactivate", importerURL), false);
+
+                    //Push Data
+                    result.pushed = await CheckIfObjectChangedAndPush(
+                        updatedetail,
+                        idtodelete,
+                        "odhactivitypoi",
+                        "suedtirolwein.companies"
+                    );
+                    updatedetaillist.Add(updatedetail);
                 }
             }
             catch (Exception ex)
@@ -343,16 +367,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     }
                 );
 
-                errorresult = errorresult + 1;
+                updatedetaillist.Add(new UpdateDetail() { error = 1, exception = ex.Message});
             }
 
-            return new UpdateDetail()
-            {
-                created = 0,
-                updated = updateresult,
-                deleted = deleteresult,
-                error = errorresult,
-            };
+            return GenericResultsHelper.MergeUpdateDetail(updatedetaillist);
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
