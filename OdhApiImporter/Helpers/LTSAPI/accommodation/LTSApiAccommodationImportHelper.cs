@@ -376,7 +376,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         foreach (var accommodationroom in accommodationsroomparsed)
                         {
                             var accommodationroominsertresult = await InsertAccommodationRoomDataToDB(accommodationroom, jsondata);
-                            updatedetails.Add("accommodationroom", new UpdateDetail()
+                            updatedetails.Add("accommodationroom_lts", new UpdateDetail()
                             {
                                 created = accommodationroominsertresult.created,
                                 updated = accommodationroominsertresult.updated,
@@ -400,7 +400,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         foreach(var deletedroom in ltsroomstodelete)
                         {
                             var accommodationroomdeleteresult = await DeleteOrDisableAccommodationRoomsData(deletedroom, true, false);
-                            updatedetails.Add("accommodationroom", accommodationroomdeleteresult);
+                            updatedetails.Add("accommodationroom_lts", accommodationroomdeleteresult);
                         }                        
 
                         //Regenerated AccoRooms List LTS on Accommodation object (make sure, HGV rooms are updated first)
@@ -419,7 +419,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var result = await InsertDataToDB(accommodationparsed, data.data, jsondata);
 
-                    updatedetails.Add("accommodation", new UpdateDetail()
+                    updatedetails.Add("accommodation_lts", new UpdateDetail()
                     {
                         created = result.created,
                         updated = result.updated,
@@ -451,7 +451,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                updatedetails.Add("accommodation", new UpdateDetail()
+                updatedetails.Add("accommodation_lts", new UpdateDetail()
                 {
                     created = 0,
                     updated = 0,
