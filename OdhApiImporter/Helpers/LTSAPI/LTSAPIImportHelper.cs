@@ -226,14 +226,18 @@ namespace OdhApiImporter.Helpers
                         OdhPushnotifier
                         );
 
+                    IDictionary<string, UpdateDetail> updateresultdict = new Dictionary<string, UpdateDetail>();
+                    IDictionary<string, UpdateDetail> updateresultdictreduced = new Dictionary<string, UpdateDetail>();
+
                     //Get full data
-                    updateresult = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
+                    updateresultdict = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
 
-                    //Get reduced data
-                    updateresultreduced = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
+                    //Get reduced data (do not update rooms)
+                    updateresultdictreduced = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
 
-                    
-                    //Get HGV Room data);
+                    //TODO Handle the roomschanged for the push message
+
+                    //Get HGV Room data;
                     MSSApiAccommodationRoomImportHelper hgvroomapiimporthelper = new MSSApiAccommodationRoomImportHelper(
                         settings,
                         QueryFactory,
@@ -242,8 +246,9 @@ namespace OdhApiImporter.Helpers
                         OdhPushnotifier
                     );                    
                     var hgvupdateroomresult = await hgvroomapiimporthelper.SaveDataToODH(null, new List<string>() { id }, cancellationToken);
+                    updateresultdict.Add("accommodationroom_hgv", hgvupdateroomresult);
 
-                    //Get HGV data (Make sure the Rooms are imported first because of the AccoRoomInfo Object
+                    //Get HGV data (Make sure the Rooms are imported first because of the AccoRoomInfo Object)
                     MSSApiAccommodationImportHelper hgvapiimporthelper = new MSSApiAccommodationImportHelper(
                         settings,
                         QueryFactory,
@@ -254,6 +259,9 @@ namespace OdhApiImporter.Helpers
                     //Disable the datapush because it is done one push after all updates
                     hgvapiimporthelper.pushdata = false;
                     var hgvupdateresult = await hgvapiimporthelper.SaveDataToODH(new List<string>() { id }, cancellationToken);
+                    updateresultdict.Add("accommodation_hgv", hgvupdateresult);
+
+                    //TODO MERGE the UpdateResults updateresultdict
 
                     //TO Test if every special Case is present in the objectchanged
                     updateresult.pushed = await CheckIfObjectChangedAndPush(

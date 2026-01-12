@@ -15,10 +15,12 @@ using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.RAVEN;
 using OdhNotifier;
 using SqlKata.Execution;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -59,7 +61,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             throw new NotImplementedException();
         }
 
-        public async Task<UpdateDetail> SaveSingleDataToODH(
+        public async Task<IDictionary<string, UpdateDetail>> SaveSingleDataToODH(
             string id,
             bool reduced = false,
             CancellationToken cancellationToken = default
@@ -96,16 +98,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         resulttoreturn.exception = resulttoreturn.exception + "opendata:" + accommodationlts.FirstOrDefault()["message"].ToString() + "|";
                 }
 
-                return resulttoreturn;
+                return new Dictionary<string, UpdateDetail>()
+                {
+                    { "accommodation", resulttoreturn }
+                };
             }
             else
             {
-                return new UpdateDetail()
+                return new Dictionary<string, UpdateDetail>()
                 {
-                    updated = 0,
-                    created = 0,
-                    deleted = 0,
-                    error = 1,
+                    { "accommodation", new UpdateDetail() { updated = 0, created = 0, deleted = 0, error = 1, } }
                 };
             }
         }
@@ -298,15 +300,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
 
-        private async Task<UpdateDetail> SaveAccommodationsToPG(List<JObject> ltsdata)
+        private async Task<IDictionary<string, UpdateDetail>> SaveAccommodationsToPG(List<JObject> ltsdata)
         {
-            List<UpdateDetail> updatedetails = new List<UpdateDetail>();
+            Dictionary<string, UpdateDetail> updatedetails = new Dictionary<string, UpdateDetail>();
 
             if (ltsdata != null)
             {
                 List<string> idlistlts = new List<string>();
                 List<LTSAcco> accosdata = new List<LTSAcco>();
-
 
                 //Load the json and xml Data
 
@@ -375,7 +376,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         foreach (var accommodationroom in accommodationsroomparsed)
                         {
                             var accommodationroominsertresult = await InsertAccommodationRoomDataToDB(accommodationroom, jsondata);
-                            updatedetails.Add(new UpdateDetail()
+                            updatedetails.Add("accommodationroom", new UpdateDetail()
                             {
                                 created = accommodationroominsertresult.created,
                                 updated = accommodationroominsertresult.updated,
@@ -399,7 +400,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         foreach(var deletedroom in ltsroomstodelete)
                         {
                             var accommodationroomdeleteresult = await DeleteOrDisableAccommodationRoomsData(deletedroom, true, false);
-                            updatedetails.Add(accommodationroomdeleteresult);
+                            updatedetails.Add("accommodationroom", accommodationroomdeleteresult);
                         }                        
 
                         //Regenerated AccoRooms List LTS on Accommodation object (make sure, HGV rooms are updated first)
@@ -418,7 +419,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var result = await InsertDataToDB(accommodationparsed, data.data, jsondata);
 
-                    updatedetails.Add(new UpdateDetail()
+                    updatedetails.Add("accommodation", new UpdateDetail()
                     {
                         created = result.created,
                         updated = result.updated,
@@ -450,7 +451,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                updatedetails.Add(new UpdateDetail()
+                updatedetails.Add("accommodation", new UpdateDetail()
                 {
                     created = 0,
                     updated = 0,
@@ -463,8 +464,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     changes = null
                 });
             }
-
-            return updatedetails.FirstOrDefault();
+            
+            return updatedetails;
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(

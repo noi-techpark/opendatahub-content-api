@@ -73,7 +73,7 @@ namespace DataModel
 
         public IDictionary<string, NotifierResponse>? pushed { get; set; }
 
-        public string? exception { get; set; }
+        public string? exception { get; set; }        
     }
 
     //TO CHECK if this could be unified
