@@ -304,19 +304,19 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
 
                 //Load the json Data
-                IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
+                //IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
 
-                if (!opendata)
-                {
-                    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
-                    settings.JsonConfig.Jsondir,
-                    new List<string>()
-                        {
-                           "GenericTags",
-                           "AutoPublishTags"
-                        }
-                    );
-                }
+                //if (!opendata)
+                //{
+                //    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                //    settings.JsonConfig.Jsondir,
+                //    new List<string>()
+                //        {
+                //           "GenericTags",
+                //           "AutoPublishTags"
+                //        }
+                //    );
+                //}
 
                 foreach (var data in webcamdata)
                 {
@@ -338,7 +338,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Create Tags and preserve the old TagEntries
                     await webcamparsed.UpdateTagsExtension(QueryFactory, null);
 
-                    var result = await InsertDataToDB(webcamparsed, data.data, jsondata);
+                    var result = await InsertDataToDB(webcamparsed, data.data);
 
                     updatedetails.Add(new UpdateDetail()
                     {
@@ -391,8 +391,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         private async Task<PGCRUDResult> InsertDataToDB(
             WebcamInfoLinked objecttosave,
-            LTSWebcamData webcamlts,
-            IDictionary<string, JArray>? jsonfiles
+            LTSWebcamData webcamlts
+            //IDictionary<string, JArray>? jsonfiles
         )
         {
             try
@@ -487,16 +487,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     if (
                         data.Active != false
                         || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                        || (data.PublishedOn != null && data.PublishedOn.Count > 0)
                     )
                     {
                         data.Active = false;
                         if (data is ISmgActive)
                             ((ISmgActive)data).SmgActive = false;
 
-                        //updateresult = await QueryFactory
-                        //    .Query(table)
-                        //    .Where("id", id)
-                        //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+                        //Recreate PublishedOn Helper for not active Items
+                        data.CreatePublishedOnList();
 
                         result = await QueryFactory.UpsertData<WebcamInfoLinked>(
                                data,

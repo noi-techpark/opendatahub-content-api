@@ -304,19 +304,19 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
 
                 //Load the json Data
-                IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
+                //IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
 
-                if (!opendata)
-                {
-                    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
-                    settings.JsonConfig.Jsondir,
-                    new List<string>()
-                        {
-                           "GenericTags",
-                           "AutoPublishTags"
-                        }
-                    );
-                }
+                //if (!opendata)
+                //{
+                //    jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                //    settings.JsonConfig.Jsondir,
+                //    new List<string>()
+                //        {
+                //           "GenericTags",
+                //           "AutoPublishTags"
+                //        }
+                //    );
+                //}
 
                 foreach (var data in venuedata)
                 {
@@ -350,7 +350,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Create Tags and preserve the old TagEntries
                     await venueparsed.UpdateTagsExtension(QueryFactory, null);
 
-                    var result = await InsertDataToDB(venueparsed, data.data, jsondata);
+                    var result = await InsertDataToDB(venueparsed, data.data);
 
                     updatedetails.Add(new UpdateDetail()
                     {
@@ -403,8 +403,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         private async Task<PGCRUDResult> InsertDataToDB(
             VenueV2 objecttosave,
-            LTSVenueData venuelts,
-            IDictionary<string, JArray>? jsonfiles
+            LTSVenueData venuelts
+            //IDictionary<string, JArray>? jsonfiles
         )
         {
             try
@@ -417,9 +417,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 //Add the PublishedOn Logic
                 //Exception here all Tags with autopublish has to be passed
-                var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
+                //var autopublishtaglist = jsonfiles != null && jsonfiles["AutoPublishTags"] != null ? jsonfiles["AutoPublishTags"].ToObject<List<AllowedTags>>() : null;
                 //Set PublishedOn with allowedtaglist
-                objecttosave.CreatePublishedOnList(autopublishtaglist);
+                objecttosave.CreatePublishedOnList();
 
                 var rawdataid = await InsertInRawDataDB(venuelts);
                 
@@ -501,10 +501,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     if (
                         data.Active != false
+                        || (data.PublishedOn != null && data.PublishedOn.Count > 0)
                     )
                     {
                         data.Active = false;
-                       
+
+                        //Recreate PublishedOn Helper for not active Items
+                        data.CreatePublishedOnList();
+
                         result = await QueryFactory.UpsertData<VenueV2>(
                                data,
                                new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
