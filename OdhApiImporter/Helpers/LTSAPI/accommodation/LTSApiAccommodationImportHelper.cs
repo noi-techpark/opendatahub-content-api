@@ -15,16 +15,11 @@ using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.RAVEN;
 using OdhNotifier;
 using SqlKata.Execution;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using ThirdParty.Json.LitJson;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
