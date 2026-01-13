@@ -15,6 +15,8 @@ namespace Helper
 {
     public static class PublishedOnHelper
     {
+        /// TO CHECK: Create a Generic PublishedOnCreator that is executed in Upsert Method. Means that manual assignment is no more possible on not imported data?
+        
         /// <summary>
         /// Create the publishedon List
         /// </summary>
