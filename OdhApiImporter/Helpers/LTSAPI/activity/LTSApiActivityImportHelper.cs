@@ -5,6 +5,7 @@
 using DataModel;
 using DataModel.helpers;
 using Helper;
+using Helper.Extensions;
 using Helper.Generic;
 using Helper.IDM;
 using Helper.Location;
@@ -680,6 +681,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 activityNew.SmgTags.Add(tagtopreserve);
             }
+
+            activityNew.SmgTags.RemoveEmptyStrings();
         }
 
         //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";

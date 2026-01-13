@@ -192,7 +192,10 @@ namespace OdhApiCore.Controllers
 
                     var (controller, id) = (chunks[0], chunks[1]);
 
-                    return Uri.UnescapeDataString(Url.Link($"Single{controller}", new { id })!);
+                    if (!String.IsNullOrEmpty(controller) && !String.IsNullOrEmpty(id))
+                        return Uri.UnescapeDataString(Url.Link($"Single{controller}", new { id })!);
+                    else
+                        return self;
                 };
             }
         }

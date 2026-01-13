@@ -681,6 +681,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (eventOld != null)
             {
                 eventNew.SmgTags = eventOld.SmgTags;
+                eventNew.SmgTags.RemoveEmptyStrings();
+
                 //Remove all assigned EventTags first (we copied EventTags to ODHTags)
                 if (eventNew.SmgTags != null && eventNew.SmgTags.Count > 0)
                 {
