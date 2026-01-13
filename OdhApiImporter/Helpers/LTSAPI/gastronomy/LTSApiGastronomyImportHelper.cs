@@ -5,6 +5,7 @@
 using DataModel;
 using DataModel.helpers;
 using Helper;
+using Helper.Extensions;
 using Helper.Generic;
 using Helper.Location;
 using Helper.Tagging;
@@ -645,6 +646,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
             
             gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
+
+            gastroNew.SmgTags.RemoveEmptyStrings();
         }
 
         //Switched to import logic

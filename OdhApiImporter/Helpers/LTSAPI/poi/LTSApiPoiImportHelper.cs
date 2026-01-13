@@ -5,6 +5,7 @@
 using DataModel;
 using DataModel.helpers;
 using Helper;
+using Helper.Extensions;
 using Helper.Generic;
 using Helper.IDM;
 using Helper.Location;
@@ -684,6 +685,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 poiNew.SmgTags.Add(tagtopreserve);
             }
+
+            poiNew.SmgTags.RemoveEmptyStrings();
         }
 
 
