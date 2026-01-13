@@ -3222,6 +3222,68 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region ZOHO_DIGIWAY
+
+        [Authorize(Roles = "DataWriter")]
+        [HttpGet, Route("Zoho/TrailClosures/Update")]
+        public async Task<IActionResult> SaveZohoTrailClosuresDataToAnnouncements(
+            CancellationToken cancellationToken
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = $"Import Zoho TrailClosures";
+            string updatetype = GetUpdateType(null);
+            string source = "json";
+            string otherinfo = "digiway.zoho";
+
+            try
+            {
+                DigiWayTrailClosuresImportHelper digiwaytrailclosuresimporthelper = new DigiWayTrailClosuresImportHelper(
+                    settings,
+                    QueryFactory,
+                    "announcements",
+                    UrlGeneratorStatic("ZOHO/TrailClosures")
+                    );
+
+                updatedetail = await digiwaytrailclosuresimporthelper.SaveDataToODH(
+                    null,
+                    null,
+                    cancellationToken
+                );
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                        "",
+                        source,
+                        operation,
+                        updatetype,
+                        $"Import Zoho TrailClosures succeeded",
+                        otherinfo,
+                        updatedetail,
+                        true
+                    );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    $"Import Zoho TrailClosures failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        #endregion
+
         #region GTFSAPI
 
         [Authorize(Roles = "DataPush")]

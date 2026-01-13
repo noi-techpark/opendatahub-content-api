@@ -39,6 +39,7 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OdhApiImporter", "OdhApiImporter\OdhApiImporter.csproj", "{3AB01F9C-524C-46EA-A43D-5E9AAA47F331}"
 	ProjectSection(ProjectDependencies) = postProject
 		{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E} = {3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}
+		{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6} = {A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonLDTransformer", "JsonLDTransformer\JsonLDTransformer.csproj", "{86048A5A-5F85-4E40-861F-974D2DA2E1D0}"
@@ -72,6 +73,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OUTDOORACTIVE", "OUTDOORACTIVE\OUTDOORACTIVE.csproj", "{3C364BBF-D4B0-415F-82CD-AB7ED4DBEC5E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HDS", "HDS\HDS.csproj", "{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZOHO", "ZOHO\ZOHO.csproj", "{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -203,6 +206,10 @@ Global
 		{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5D83D6A6-E64B-4D1C-AFA1-4F83A36B2A0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
