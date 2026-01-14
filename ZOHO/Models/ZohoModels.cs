@@ -2,10 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ZOHO
@@ -25,7 +27,9 @@ namespace ZOHO
         public string Note { get; set; }
         public string Denominazione_sentiero { get; set; }
         public string ID { get; set; }
-        public string Stato_StatoStato { get; set; }
+
+        [JsonPropertyName("Stato_Stato.Stato")]
+        public string Stato { get; set; }
     }
 
     public class ZohoPosition

@@ -53,8 +53,8 @@ namespace ZOHO
                 zohomapping.Add("country", zohoobject.Posizione.country);
             if (String.IsNullOrEmpty(zohoobject.Posizione.district_city))
                 zohomapping.Add("district_city", zohoobject.Posizione.district_city);
-            if (String.IsNullOrEmpty(zohoobject.Stato_StatoStato))
-                zohomapping.Add("stato_stato.stato", zohoobject.Stato_StatoStato);
+            if (String.IsNullOrEmpty(zohoobject.Stato))
+                zohomapping.Add("stato_stato.stato", zohoobject.Stato);
 
             announcement.Mapping.TryAddOrUpdate("zoho", zohomapping);
 
@@ -66,7 +66,7 @@ namespace ZOHO
             announcement.Active = true;
             announcement.Detail = new Dictionary<string, DetailGeneric>();
 
-            DetailGeneric detail = new DetailGeneric() { Language = "it", Title = zohoobject.Codice_sentiero, BaseText = $"Stato: {zohoobject.Stato_StatoStato}"};
+            DetailGeneric detail = new DetailGeneric() { Language = "it", Title = zohoobject.Codice_sentiero, BaseText = $"Stato: {zohoobject.Stato}"};
 
             announcement.Detail.TryAddOrUpdate("it", detail);
 
