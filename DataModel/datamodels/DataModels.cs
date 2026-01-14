@@ -656,6 +656,8 @@ namespace DataModel
 
         public string? Description { get; set; }
         public string? BacklinkUrl { get; set; }
+
+        public string? CommitmentToAccessibilityUrl { get; set; }
     }
 
     public class AccoHGVInfo
