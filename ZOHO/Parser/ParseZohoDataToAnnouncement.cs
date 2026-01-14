@@ -79,6 +79,8 @@ namespace ZOHO
 
             announcement.HasLanguage = new List<string>() { "it" };
 
+            announcement._Meta = new Metadata() { Id = announcement.Id, Source = announcement.Source, Reduced = false, Type = "announcement" };
+
             return announcement;
         }
     }

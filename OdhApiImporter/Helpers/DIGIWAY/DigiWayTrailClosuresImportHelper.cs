@@ -181,7 +181,7 @@ namespace OdhApiImporter.Helpers
 
                 return await QueryFactory.UpsertData<Announcement>(
                     new UpsertableAnnouncement(announcement),
-                    new DataInfo("announcement", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
+                    new DataInfo("announcements", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
                     new EditInfo("zoho.announcement.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false)                    
