@@ -3657,14 +3657,11 @@ namespace DataModel
     {
         public string? Header { get; set; }
 
-        //public string SiteHeader { get; set; }
         public string? SubHeader { get; set; }
         public string? IntroText { get; set; }
         public string? BaseText { get; set; }
         public string? Title { get; set; }
 
-        //OLT
-        //public string Alttext { get; set; }
         public string? AdditionalText { get; set; }
 
         //NEW

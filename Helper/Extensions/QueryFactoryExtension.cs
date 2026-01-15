@@ -16,11 +16,9 @@ using Helper.Extensions;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.JsonHelpers;
-using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json;
 using SqlKata;
 using SqlKata.Execution;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helper
 {
