@@ -54,6 +54,7 @@ namespace Helper
                 "snowreport",
                 "geoshape",
                 "announcement",
+                "urbangreen"                
                 "trip"
             };
         }
@@ -110,6 +111,7 @@ namespace Helper
                 SnowReportBaseData => "snowreport",                                
                 GeoShapeJson => "geoshape",
                 Announcement => "announcement",
+                UrbanGreen => "urbangreen",
                 Trip => "trip",
                 _ => throw new Exception("not known odh type"),
             };
@@ -159,6 +161,7 @@ namespace Helper
                 VenueFlattened => "venuesv2",
                 GeoShapeJson => "geoshapes",
                 Announcement => "announcements",
+                UrbanGreen => "urbangreens",
                 Trip => "trips",
                 _ => throw new Exception("not known odh type"),
             };
@@ -208,6 +211,7 @@ namespace Helper
                 "tag" => "tags",
                 "geoshape" => "geoshapes",
                 "announcement" => "announcements",
+                "urbangreen" => "urbangreens",
                 "trip" => "trips",
                 _ => throw new Exception("not known odh type"),
             };
@@ -258,6 +262,7 @@ namespace Helper
                 "tag" => typeof(TagLinked),
                 "geoshape" => typeof(GeoShapeJson),
                 "announcement" => typeof(Announcement),
+                "urbangreen" => typeof(UrbanGreen),
                 "trip" => typeof(Trip),
                 _ => throw new Exception("not known odh type"),
             };
@@ -309,6 +314,7 @@ namespace Helper
                 "eventsv2" => "event",
                 "geoshapes" => "geoshape",
                 "announcements" => "announcement",
+                "urbangreens" => "urbangreen",
                 "trips" => "trip",
                 _ => throw new Exception("not known odh type"),
             };
@@ -357,6 +363,7 @@ namespace Helper
                 "venuesv2" => typeof(VenueFlattened),
                 "geoshapes" => typeof(GeoShapeJson),
                 "announcements" => typeof(Announcement),
+                "urbangreens" => typeof(UrbanGreen),
                 "trips" => typeof(Trip),
                 _ => throw new Exception("not known table name"),
             };
@@ -408,6 +415,7 @@ namespace Helper
                 "source" => id.ToLower(),
                 "geoshape" => id.ToLower(),
                 "announcement" => id.ToLower(),
+                "urbangreen" => id.ToLower(),
                 "trip" => id.ToLower(),
                 _ => throw new Exception("not known odh type"),
             };
@@ -456,6 +464,7 @@ namespace Helper
                 "tag" => JsonConvert.DeserializeObject<TagLinked>(raw.Value)!,
                 "announcement" => JsonConvert.DeserializeObject<Announcement>(raw.Value)!,
                 "trip" => JsonConvert.DeserializeObject<Trip>(raw.Value)!,
+                "urbangreen" => JsonConvert.DeserializeObject<UrbanGreen>(raw.Value)!,
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -501,6 +510,7 @@ namespace Helper
                 odhtypes.Add("wineaward");
                 odhtypes.Add("announcement");
                 odhtypes.Add("trip");
+                odhtypes.Add("urbangreen");
             }
 
             return odhtypes.ToArray();
@@ -529,6 +539,7 @@ namespace Helper
                 or "webcam"
                 or "announcement"
                 or "trip" // to check
+                or "urbangreen"
                 or "venue" => PostgresSQLWhereBuilder.TitleFieldsToSearchFor,
                 //"measuringpoint" => PostgresSQLWhereBuilder.,
                 //                "webcam" => PostgresSQLWhereBuilder.WebcamnameFieldsToSearchFor,
@@ -580,6 +591,8 @@ namespace Helper
                 "weather" => "Weather",
                 "announcement" => "Announcement",
                 "trip" => "Trip",
+                "urbangreen" => "UrbanGreen",
+
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -627,6 +640,7 @@ namespace Helper
                 or "experiencearea"
                 or "announcement"
                 or "trip"
+                or "urbangreen"
                 or "venue" => $"Detail.{language}.Title",
                 "measuringpoint" => $"Shortname",
                 "webcam" => $"Webcamname.{language}",
@@ -658,6 +672,7 @@ namespace Helper
                 or "article"
                 or "announcement"
                 or "trip"
+                or "urbangreen"
                 or "experiencearea" => $"Detail.{language}.BaseText",
                 "measuringpoint" => "notextfield",
                 "webcam" => "notextfield",

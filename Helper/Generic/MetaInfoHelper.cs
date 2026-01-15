@@ -109,6 +109,7 @@ namespace Helper
                 MeasuringpointV2 mv => GetMetadataforMeasuringpoint(mv, reduced),
                 GeoShapeJson gj => GetMetadataForGeoShapeJson(gj),
                 Announcement ri => GetMetadataforAnnouncement(ri),
+                UrbanGreen ug => GetMetadataforUrbanGreen(ug),
                 Trip ri => GetMetadataforTrip(ri),
                 _ => throw new Exception("not known odh type"),
             };
@@ -514,8 +515,8 @@ namespace Helper
         }
 
         public static Metadata GetMetadataforAnnouncement(Announcement data)
-        {            
-            //TODO Add special cases here
+        {
+            //TODO Add special case of Roadincident
             return GetMetadata(data, data.Source ?? "noi");
         }
 
@@ -524,6 +525,11 @@ namespace Helper
             //TODO Add special cases here
             return GetMetadata(data, data.Source ?? "noi");
         }
+        public static Metadata GetMetadataforUrbanGreen(UrbanGreen data)
+        {
+            return GetMetadata(data, data.Source ?? "noi");
+        }
+
 
         public static void SetUpdateHistory(Metadata? oldmetadata, Metadata newmetadata)
         {

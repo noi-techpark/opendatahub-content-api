@@ -88,7 +88,7 @@ namespace Helper
                 SkiArea or SkiAreaLinked => IDStyle.uppercase,
                 SkiRegion or SkiRegionLinked => IDStyle.uppercase,
                 Area or AreaLinked => IDStyle.uppercase,
-                Wine or WineLinked => IDStyle.uppercase,
+                Wine or WineLinked => IDStyle.lowercase,
                 ODHTagLinked => IDStyle.lowercase,
                 Publisher or PublisherLinked => IDStyle.lowercase,
                 Source or SourceLinked => IDStyle.lowercase,
@@ -96,6 +96,7 @@ namespace Helper
                 TagLinked => IDStyle.mixed,
                 WeatherHistoryLinked => IDStyle.mixed,
                 Announcement => IDStyle.lowercase,
+                UrbanGreen => IDStyle.lowercase,
                 Trip => IDStyle.lowercase,
                 _ => throw new Exception("not known odh type"),
             };
@@ -156,7 +157,7 @@ namespace Helper
                 Type _ when odhtype == typeof(Area) || odhtype == typeof(AreaLinked) =>
                     IDStyle.uppercase,
                 Type _ when odhtype == typeof(Wine) || odhtype == typeof(WineLinked) =>
-                    IDStyle.uppercase,
+                    IDStyle.lowercase,
                 Type _ when odhtype == typeof(ODHTagLinked) => IDStyle.lowercase,
                 Type _ when odhtype == typeof(TagLinked) => IDStyle.mixed,
                 Type _ when odhtype == typeof(Publisher) || odhtype == typeof(PublisherLinked) =>
@@ -166,6 +167,7 @@ namespace Helper
                 Type _ when odhtype == typeof(TourismMetaData) => IDStyle.lowercase,
                 Type _ when odhtype == typeof(WeatherHistoryLinked) => IDStyle.mixed,
                 Type _ when odhtype == typeof(Announcement) => IDStyle.lowercase,
+                Type _ when odhtype == typeof(UrbanGreen) => IDStyle.lowercase,
                 Type _ when odhtype == typeof(Trip) => IDStyle.lowercase,
                 _ => throw new Exception("not known odh type"),
             };

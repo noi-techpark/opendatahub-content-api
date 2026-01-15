@@ -55,6 +55,27 @@ namespace Helper.Extensions
                 smgtags.Add(tagToAdd);
         }
 
+        public static void RemoveEmptyStrings(this ICollection<string>? smgtags)
+        {
+            if (smgtags != null && smgtags.Count > 0)
+            {
+                // If it's a List, use RemoveAll for better performance
+                if (smgtags is List<string> list)
+                {
+                    list.RemoveAll(string.IsNullOrEmpty);
+                }
+                else
+                {
+                    // For other ICollection types, remove items individually
+                    var emptyStrings = smgtags.Where(string.IsNullOrEmpty).ToList();
+                    foreach (var empty in emptyStrings)
+                    {
+                        smgtags.Remove(empty);
+                    }
+                }
+            }
+        }
+
         public static IEnumerable<string> UnionIfNotNull(
             this ICollection<string>? sourceunion,
             ICollection<string>? listtounion

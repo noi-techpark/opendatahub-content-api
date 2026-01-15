@@ -5,6 +5,7 @@
 using DataModel;
 using DataModel.helpers;
 using Helper;
+using Helper.Extensions;
 using Helper.Generic;
 using Helper.IDM;
 using Helper.Location;
@@ -564,6 +565,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     if (
                         data.Active != false
                         || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                        || (data.PublishedOn != null && data.PublishedOn.Count > 0)
                     )
                     {
                         data.Active = false;
@@ -684,6 +686,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             {
                 poiNew.SmgTags.Add(tagtopreserve);
             }
+
+            poiNew.SmgTags.RemoveEmptyStrings();
         }
 
 

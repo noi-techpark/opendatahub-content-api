@@ -91,6 +91,7 @@ namespace OdhApiImporter.Helpers
                         settings,
                         true,
                         true,
+                        true,
                         true
                     );
 

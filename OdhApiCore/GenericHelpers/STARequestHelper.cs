@@ -137,7 +137,7 @@ namespace OdhApiCore.GenericHelpers
                         activefilter: true,
                         smgactivefilter: null,
                         publishedonlist: new List<string>(),
-                        sourcelist: new List<string>(),
+                        sourcelist: new List<string>() { "lts" },
                         searchfilter: null,
                         language: language,
                         lastchange: null,

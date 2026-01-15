@@ -756,12 +756,14 @@ namespace Helper
         //Return Where and Parameters for Wine
         public static Query WineWhereExpression(
             this Query query,
+            IReadOnlyCollection<string> idlist,
             IReadOnlyCollection<string> languagelist,
             IReadOnlyCollection<string> companyid,
             IReadOnlyCollection<string> wineid,
             bool? activefilter,
             bool? odhactivefilter,
             IReadOnlyCollection<string> sourcelist,
+            IReadOnlyCollection<string> publishedonlist,
             string? searchfilter,
             string? language,
             string? lastchange,
@@ -783,11 +785,13 @@ namespace Helper
                     languagelist.Count > 0,
                     q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
                 ) //.HasLanguageFilter(languagelist)
+                .IdLowerFilter(idlist)
                 .SearchFilter(TitleFieldsToSearchFor(language, languagelist), searchfilter)
                 .LastChangedFilter_GeneratedColumn(lastchange)
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.ActiveFilter(activefilter)
                 .OdhActiveFilter_GeneratedColumn(odhactivefilter) //OK GENERATED COLUMNS //.SmgActiveFilter(smgactivefilter)
                 .SourceFilter_GeneratedColumn(sourcelist)
+                .PublishedOnFilter_GeneratedColumn(publishedonlist) //.PublishedOnFilter(publishedonlist)
                 .CompanyIdFilter(companyid)
                 .WineIdFilter(wineid)
                 .When(
@@ -1406,6 +1410,67 @@ namespace Helper
                     q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
                 )
                 .DateWithTimezoneFilter_GeneratedColumn(start, end, true, true)
+                .When(
+                    tagdict != null && tagdict.Count > 0,
+                    q => q.TaggingFilter_GeneratedColumn(tagdict)
+                )
+                .When(
+                    !String.IsNullOrEmpty(additionalfilter),
+                    q => q.FilterAdditionalDataByCondition(additionalfilter)
+                )
+                .FilterDataByAccessRoles(userroles);
+        }
+
+        public static Query UrbanGreenWhereExpression(
+            this Query query,
+            IReadOnlyCollection<string> languagelist,
+            IReadOnlyCollection<string> idlist,
+            IReadOnlyCollection<string> sourcelist,
+            IReadOnlyCollection<string> greencodelist,
+            IReadOnlyCollection<string> greencodeversionlist,
+            IReadOnlyCollection<string> greencodetypelist,
+            IReadOnlyCollection<string> greencodesubtypelist,
+            bool? activefilter,
+            string? searchfilter,
+            string? language,
+            IDictionary<string, List<string>>? tagdict,
+            string? additionalfilter,
+            IEnumerable<string> userroles
+        )
+        {
+            LogMethodInfo(
+                System.Reflection.MethodBase.GetCurrentMethod()!,
+                "<query>", // not interested in query
+                searchfilter,
+                language,
+                sourcelist
+            );
+
+            return query
+                .SearchFilter(TitleFieldsToSearchFor(language), searchfilter)
+                .SourceFilter_GeneratedColumn(sourcelist)
+                .When(idlist != null && idlist.Count > 0, q => query.WhereIn("id", idlist))
+                .When(
+                    languagelist.Count > 0,
+                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+                )
+                .When(activefilter != null, q => q.ActiveFilter_GeneratedColumn(activefilter))
+                .When(
+                    greencodelist != null && greencodelist.Count > 0,
+                    q => q.WhereIn("gen_greencode", greencodelist)
+                )
+                .When(
+                    greencodeversionlist != null && greencodeversionlist.Count > 0,
+                    q => q.WhereIn("gen_greencodeversion", greencodeversionlist)
+                )
+                .When(
+                    greencodetypelist != null && greencodetypelist.Count > 0,
+                    q => q.WhereIn("gen_greencodetype", greencodetypelist)
+                )
+                .When(
+                    greencodesubtypelist != null && greencodesubtypelist.Count > 0,
+                    q => q.WhereIn("gen_greencodesubtype", greencodesubtypelist)
+                )
                 .When(
                     tagdict != null && tagdict.Count > 0,
                     q => q.TaggingFilter_GeneratedColumn(tagdict)

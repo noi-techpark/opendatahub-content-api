@@ -5,6 +5,7 @@
 using DataModel;
 using DataModel.helpers;
 using Helper;
+using Helper.Extensions;
 using Helper.Generic;
 using Helper.Location;
 using Helper.Tagging;
@@ -578,16 +579,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     if (
                         data.Active != false
                         || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                        || (data.PublishedOn != null && data.PublishedOn.Count > 0)
                     )
                     {
                         data.Active = false;
                         if (data is ISmgActive)
                             ((ISmgActive)data).SmgActive = false;
 
-                        //updateresult = await QueryFactory
-                        //    .Query(table)
-                        //    .Where("id", id)
-                        //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+                        //Recreate PublishedOn Helper for not active Items
+                        data.CreatePublishedOnList();
 
                         result = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
                                data,
@@ -645,6 +645,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 tagstopreserve = gastroOld.SmgTags.Except(GetOdhTagListAssigned()).ToList();
             
             gastroNew.SmgTags = GetODHTagListGastroCategory(gastroNew.CategoryCodes, gastroNew.Facilities, tagstopreserve);
+
+            gastroNew.SmgTags.RemoveEmptyStrings();
         }
 
         //Switched to import logic

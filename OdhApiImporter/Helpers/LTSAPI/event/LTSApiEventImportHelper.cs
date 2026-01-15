@@ -603,16 +603,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     if (
                         data.Active != false
                         || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                        || (data.PublishedOn != null && data.PublishedOn.Count > 0)
                     )
                     {
                         data.Active = false;
                         if (data is ISmgActive)
                             ((ISmgActive)data).SmgActive = false;
 
-                        //updateresult = await QueryFactory
-                        //    .Query(table)
-                        //    .Where("id", id)
-                        //    .UpdateAsync(new JsonBData() { id = id, data = new JsonRaw(data) });
+                        //Recreate PublishedOn Helper for not active Items
+                        data.CreatePublishedOnList();
 
                         result = await QueryFactory.UpsertData<EventLinked>(
                                data,
@@ -681,6 +680,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
             if (eventOld != null)
             {
                 eventNew.SmgTags = eventOld.SmgTags;
+                eventNew.SmgTags.RemoveEmptyStrings();
+
                 //Remove all assigned EventTags first (we copied EventTags to ODHTags)
                 if (eventNew.SmgTags != null && eventNew.SmgTags.Count > 0)
                 {

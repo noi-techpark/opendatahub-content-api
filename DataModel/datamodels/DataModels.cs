@@ -18,6 +18,7 @@ using System.Linq;
 using System.Net;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using NetTopologySuite.Geometries.Utilities;
 // using System.Text.Json.Serialization; // this is not the package used to serialize
 using Newtonsoft.Json;
 
@@ -655,6 +656,8 @@ namespace DataModel
 
         public string? Description { get; set; }
         public string? BacklinkUrl { get; set; }
+
+        public string? CommitmentToAccessibilityUrl { get; set; }
     }
 
     public class AccoHGVInfo
@@ -1109,7 +1112,7 @@ namespace DataModel
 
     public class EventDateCalculatedDayVariant
     {
-        public string VariantId { get; set; }
+        public string? VariantId { get; set; }
         public bool? AvailabilityLow { get; set; }
         public int? AvailabilityCalculatedValue { get; set; }
     }
@@ -1160,13 +1163,13 @@ namespace DataModel
 
     public class EventDateAdditionalTime
     {
-        public string Days { get; set; }
-        public TimeSpan Entrance1 { get; set; }
-        public TimeSpan Begin1 { get; set; }
-        public TimeSpan End1 { get; set; }
-        public TimeSpan Entrance2 { get; set; }
-        public TimeSpan Begin2 { get; set; }
-        public TimeSpan End2 { get; set; }
+        public string? Days { get; set; }
+        public TimeSpan? Entrance1 { get; set; }
+        public TimeSpan? Begin1 { get; set; }
+        public TimeSpan? End1 { get; set; }
+        public TimeSpan? Entrance2 { get; set; }
+        public TimeSpan? Begin2 { get; set; }
+        public TimeSpan? End2 { get; set; }
     }
 
     public class EventBooking
@@ -1178,14 +1181,14 @@ namespace DataModel
 
         public DateTime? BookableFrom { get; set; }
         public DateTime? BookableTo { get; set; }
-        public Dictionary<string, EventBookingDetail> BookingUrl { get; set; }
+        public Dictionary<string, EventBookingDetail>? BookingUrl { get; set; }
 
         public bool? BookingActive { get; set; }
     }
 
     public class EventBookingDetail
     {
-        public string Url { get; set; }
+        public string? Url { get; set; }
     }
 
     public class EventPrice : IEventPrice, ILanguage
@@ -1198,19 +1201,19 @@ namespace DataModel
         public string? Description { get; set; }
 
         public string? Language { get; set; }
-        public string PriceRID { get; set; }
-        public string VarRID { get; set; }
+        public string? PriceRID { get; set; }
+        public string? VarRID { get; set; }
     }
 
     public class EventOperationScheduleOverview
     {
-        public bool Monday { get; set; }
-        public bool Tuesday { get; set; }
-        public bool Wednesday { get; set; }
-        public bool Thursday { get; set; }
-        public bool Friday { get; set; }
-        public bool Saturday { get; set; }
-        public bool Sunday { get; set; }
+        public bool? Monday { get; set; }
+        public bool? Tuesday { get; set; }
+        public bool? Wednesday { get; set; }
+        public bool? Thursday { get; set; }
+        public bool? Friday { get; set; }
+        public bool? Saturday { get; set; }
+        public bool? Sunday { get; set; }
     }
 
     #endregion
@@ -3735,7 +3738,9 @@ namespace DataModel
                 {
                     // Use NTS to parse the WKT string
                     var reader = new WKTReader();
-                    var geo = reader.Read(Geometry);
+                    var rawGeo = reader.Read(Geometry);
+                    // Attempt to repair the geometry automatically
+                    var geo = GeometryFixer.Fix(rawGeo);
                     geo.SRID = 4326;
                     return geo;
                 }
