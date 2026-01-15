@@ -54,7 +54,7 @@ namespace Helper
                 "snowreport",
                 "geoshape",
                 "announcement",
-                "urbangreen"                
+                "urbangreen",                
                 "trip"
             };
         }
