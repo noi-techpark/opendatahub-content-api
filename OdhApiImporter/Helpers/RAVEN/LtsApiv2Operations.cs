@@ -439,8 +439,8 @@ namespace OdhApiImporter.Helpers.RAVEN
                         ? ltsdata["data"]["accessibility"].ToObject<LtsAccessibilityAcco>() : null
                        : null;
 
-                
-                //If lts info is null
+
+                //If lts accessibility info is not null and we have already independentdata
                 if (accessibility != null && accommodation.IndependentData != null && accommodation.IndependentData.IndependentDescription != null)
                 {
                     foreach(var commitmenttoAccessibilityurl in accessibility.commitmentToAccessibilityUrl)
@@ -453,10 +453,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                             accommodation.IndependentData.IndependentDescription.TryAddOrUpdate(commitmenttoAccessibilityurl.Key, independentdesc);
                         }                        
                     }                    
-                }
-
-                
-                
+                }                                
 
                 GenericResultsHelper.GetSuccessUpdateResult(
                     accommodation.Id,
