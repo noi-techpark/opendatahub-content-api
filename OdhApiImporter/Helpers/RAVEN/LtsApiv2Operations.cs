@@ -440,8 +440,10 @@ namespace OdhApiImporter.Helpers.RAVEN
                        : null;
 
 
+                int updateddata = 0;
+
                 //If lts accessibility info is not null and we have already independentdata
-                if (accessibility != null && accommodation.IndependentData != null && accommodation.IndependentData.IndependentDescription != null)
+                if (accessibility != null && accessibility.commitmentToAccessibilityUrl != null && accommodation.IndependentData != null && accommodation.IndependentData.IndependentDescription != null)
                 {
                     foreach(var commitmenttoAccessibilityurl in accessibility.commitmentToAccessibilityUrl)
                     {
@@ -451,7 +453,8 @@ namespace OdhApiImporter.Helpers.RAVEN
                             independentdesc.CommitmentToAccessibilityUrl = commitmenttoAccessibilityurl.Value;
 
                             accommodation.IndependentData.IndependentDescription.TryAddOrUpdate(commitmenttoAccessibilityurl.Key, independentdesc);
-                        }                        
+                        }
+                        updateddata = 1;
                     }                    
                 }                                
 
@@ -464,7 +467,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     "accommodation",
                     new UpdateDetail()
                     {
-                        updated = 1,
+                        updated = updateddata,
                         changes = null,
                         comparedobjects = null,
                         created = 0,
