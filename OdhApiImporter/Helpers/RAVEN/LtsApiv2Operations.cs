@@ -23,7 +23,8 @@ namespace OdhApiImporter.Helpers.RAVEN
             Helper.ISettings settings,
             bool updatecincode,
             bool updateguestcards,
-            bool updateaccoltsinfo
+            bool updateaccoltsinfo, 
+            bool updateaccessibilityinfo
         )
         {
             var ltsdata = await GetAccommodationFromLTSV2(accommodation, settings);
@@ -43,6 +44,10 @@ namespace OdhApiImporter.Helpers.RAVEN
                 //Guestcard Tag
                 if (updateguestcards)
                     await AssignGuestcardDataFromNewLtsApi(accommodation, ltsdata, queryFactory);
+
+                //Guestcard Tag
+                if (updateaccessibilityinfo)
+                    await AssignAccessibilityDataFromNewLtsApi(accommodation, ltsdata);
             }
         }
 
@@ -63,7 +68,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                 var qs = new LTSQueryStrings()
                 {
                     page_size = 1,
-                    fields = "cinCode,amenities,suedtirolGuestPass,roomGroups,type,category",   //amenities,mealPlans
+                    fields = "cinCode,amenities,suedtirolGuestPass,roomGroups,type,category,accessibility",   //amenities,mealPlans
                 };
                 var dict = ltsapi.GetLTSQSDictionary(qs);
 
@@ -418,7 +423,91 @@ namespace OdhApiImporter.Helpers.RAVEN
                     true
                 );
             }
-        }       
+        }
+
+        private static async Task AssignAccessibilityDataFromNewLtsApi(
+           AccommodationV2 accommodation,
+           JObject ltsdata
+       )
+        {
+            try
+            {
+                //Todo parse response
+                var accessibility =
+                    ltsdata["data"] != null
+                    ? ltsdata["data"]["accessibility"] != null
+                        ? ltsdata["data"]["accessibility"].ToObject<LtsAccessibilityAcco>() : null
+                       : null;
+
+
+                int updateddata = 0;
+
+                //If lts accessibility info is not null and we have already independentdata
+                if (accessibility != null && accessibility.commitmentToAccessibilityUrl != null && accommodation.IndependentData != null && accommodation.IndependentData.IndependentDescription != null)
+                {
+                    foreach(var commitmenttoAccessibilityurl in accessibility.commitmentToAccessibilityUrl)
+                    {
+                        if (accommodation.IndependentData.IndependentDescription.ContainsKey(commitmenttoAccessibilityurl.Key))
+                        {
+                            var independentdesc = accommodation.IndependentData.IndependentDescription[commitmenttoAccessibilityurl.Key];
+                            independentdesc.CommitmentToAccessibilityUrl = commitmenttoAccessibilityurl.Value;
+
+                            accommodation.IndependentData.IndependentDescription.TryAddOrUpdate(commitmenttoAccessibilityurl.Key, independentdesc);
+                        }
+                        updateddata = 1;
+                    }                    
+                }                                
+
+                GenericResultsHelper.GetSuccessUpdateResult(
+                    accommodation.Id,
+                    "api",
+                    "Update AccoIndependentData",
+                    "single",
+                    "Update AccoIndependentData success",
+                    "accommodation",
+                    new UpdateDetail()
+                    {
+                        updated = updateddata,
+                        changes = null,
+                        comparedobjects = null,
+                        created = 0,
+                        deleted = 0,
+                        error = 0,
+                        objectchanged = 0,
+                        objectimagechanged = 0,
+                        pushed = null,
+                        pushchannels = null,
+                    },
+                    true
+                );
+            }
+            catch (Exception ex)
+            {
+                GenericResultsHelper.GetErrorUpdateResult(
+                    accommodation.Id,
+                    "api",
+                    "Update AccoIndependentData",
+                    "single",
+                    "Update AccoIndependentData failed",
+                    "accommodation",
+                    new UpdateDetail()
+                    {
+                        updated = 0,
+                        changes = null,
+                        comparedobjects = null,
+                        created = 0,
+                        deleted = 0,
+                        error = 1,
+                        objectchanged = 0,
+                        objectimagechanged = 0,
+                        pushed = null,
+                        pushchannels = null,
+                    },
+                    ex,
+                    true
+                );
+            }
+        }
 
         private static IDictionary<string, string> GuestCardIdMapping()
         {
@@ -477,5 +566,14 @@ namespace OdhApiImporter.Helpers.RAVEN
         public float? minAmountPerPersonPerDay { get; set; }
         public float? minAmountPerUnitPerDay { get; set; }
         public float? squareMeters { get; set; }
+    }
+
+    public class LtsAccessibilityAcco
+    {
+        public IDictionary<string, string>? website { get; set; }
+
+        public IDictionary<string, string>? description { get; set; }
+
+        public IDictionary<string, string>? commitmentToAccessibilityUrl { get; set; }
     }
 }
