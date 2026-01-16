@@ -746,7 +746,36 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //Hardcoded List of all SmgTags assigned on import
             List<string> assignedtagsonimport = new List<string>()
             {
-                ""
+                "barrier-free",
+                "bonus vacanze", //to remove?
+                "bozencardplus",
+                "rittencard",
+                "klausencard",
+                "brixencard",
+                "almencardplus",
+                "activecard",
+                "winepass",
+                "ultentalcard",
+                "merancard",
+                "vinschgaucard",
+                "algundcard",
+                "holidaypass",
+                "valgardenamobilcard",
+                "dolomitimobilcard",
+                "mobilactivcard",
+                "suedtirolguestpass",
+                "holidaypass3zinnen",
+                "seiseralm_balance",
+                "workation",
+                "merancard_allyear",
+                "dolomiti_museumobilcard",
+                "sarntalcard",
+                "suedtirolguestpass_passeiertal_premium",
+                "suedtirolguestpass_mobilcard",
+                "suedtirolguestpass_museumobilcard",
+                "natzschabscard",
+                "accomodation bed bike",
+                "accomodation bett bike sport"
             };
             
             List<string> tagstopreserve = new List<string>();

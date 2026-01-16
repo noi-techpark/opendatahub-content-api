@@ -379,6 +379,36 @@ namespace Helper
                 serializer.Serialize(writer, data);
             }
         }
+
+
+        public static async Task GenerateJSONLTSAccoFeaturesList(
+            QueryFactory queryFactory,
+            string jsondir,
+            string jsonName
+        )
+        {
+            var serializer = new JsonSerializer();
+
+            var query = queryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("tags")
+                .TagTypesFilter(new List<string>() { "accommodationoption" });
+
+            var datafirst = await query.GetObjectListAsync<TagLinked>();
+
+            var data = datafirst
+                .Select(x => new { rid = x.Id, name = new Dictionary<string, string>() { { "en", x.TagName["en"] } } })
+                .ToList();
+
+            //Save json
+            string fileName = Path.Combine(jsondir, $"{jsonName}.json");
+            using (var writer = File.CreateText(fileName))
+            {
+                serializer.Serialize(writer, data);
+            }
+        }
+        
     }
 
     public struct AccoBooklist

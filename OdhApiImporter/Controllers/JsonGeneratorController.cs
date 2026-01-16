@@ -292,6 +292,42 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Generates lits AccommodationFeatures used in Accommodation Snc
+        [HttpGet, Route("ODH/AccommodationFeatures")]
+        public async Task<IActionResult> ProduceAccommodationFeaturesListJson(
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                await JsonGeneratorHelper.GenerateJSONLTSAccoFeaturesList(
+                    QueryFactory,
+                    settings.JsonConfig.Jsondir,
+                    "Features"
+                );
+
+                var result = GenericResultsHelper.GetSuccessJsonGenerateResult(
+                    "Json Generation",
+                    "AccommodationFeaturesList",
+                    "Generate Json AccommodationFeaturesList succeeded",
+                    true
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                var result = GenericResultsHelper.GetErrorJsonGenerateResult(
+                    "Json Generation",
+                    "AccommodationFeaturesList",
+                    "Generate Json AccommodationFeaturesList failed",
+                    ex,
+                    true
+                );
+
+                return BadRequest(result);
+            }
+        }
 
         #endregion
 
