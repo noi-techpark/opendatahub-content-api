@@ -5,7 +5,9 @@
 using DataModel;
 using Helper;
 using Helper.AccommodationRoomsExtension;
+using Helper.Extensions;
 using Helper.Generic;
+using Helper.IDM;
 using Helper.Location;
 using Helper.Tagging;
 using LTSAPI;
@@ -344,6 +346,18 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     );
                 }
 
+                //MetaInfos
+                var metainfosidm = default(MetaInfosOdhActivityPoi);
+                if(!opendata)
+                {
+                    metainfosidm = await QueryFactory
+                    .Query("odhactivitypoimetainfos")
+                    .Select("data")
+                    .Where("id", "metainfoaccommodation")
+                    .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
+                }
+
+
                 foreach (var data in accosdata)
                 {
                     string id = data.data.rid.ToUpper();
@@ -402,9 +416,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         await accommodationparsed.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "lts" }, new Dictionary<string, List<string>>() { { "lts", accommodationsroomparsed.Select(x => x.Id).ToList() } });
 
                         //How to deal with Accommodations where HGV Rooms are no more there? Check in MSS Import
-                    }
 
-                    //Preserve SmgTags, Meta Info, etc.... all custom logic
+                        //Preserve SmgTags
+                        await AssignODHTags(accommodationparsed, accommodationindb);
+
+                        //Add MetaInfo
+                        await AddIDMMetaTitleAndDescription(accommodationparsed, metainfosidm);
+                    }
 
 
                     //FINALLY UPDATE ACCOMMODATION ROOT OBJECT
@@ -710,6 +728,49 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return deletedisableresult;
         }
 
+
+        #region Compatibility Stuff
+
+        //Accommodation preserve ODHTags assignment
+        private async Task AssignODHTags(AccommodationV2 accoNew, AccommodationV2 accoOld)
+        {
+            //Hardcoded List of all SmgTags assigned on import
+            List<string> assignedtagsonimport = new List<string>()
+            {
+                ""
+            };
+            
+            List<string> tagstopreserve = new List<string>();
+            if (accoNew.SmgTags == null)
+                accoNew.SmgTags = new List<string>();
+
+            //Remove all ODHTags that where automatically assigned
+            if (accoNew != null && accoOld != null && accoOld.SmgTags != null && assignedtagsonimport != null)
+                tagstopreserve = accoOld.SmgTags.Except(assignedtagsonimport).ToList();
+
+            
+            //Readd Tags to preserve
+            foreach (var tagtopreserve in tagstopreserve)
+            {
+                accoNew.SmgTags.Add(tagtopreserve);
+            }
+
+            accoNew.SmgTags.RemoveEmptyStrings();
+        }
+
+        //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
+        private async Task AddIDMMetaTitleAndDescription(AccommodationV2 accoNew, MetaInfosOdhActivityPoi metainfo)
+        {
+            //var metainfosidm = await QueryFactory
+            //    .Query("odhactivitypoimetainfos")
+            //    .Select("data")
+            //    .Where("id", "metainfoexcelsmgpoi")
+            //    .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
+
+            IDMCustomHelper.SetMetaInfoForAccommodation(accoNew, metainfo);
+        }
+
+        #endregion
     }
 
 }

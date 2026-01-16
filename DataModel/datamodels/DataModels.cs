@@ -547,6 +547,10 @@ namespace DataModel
         public string? Vat { get; set; }
 
         public string? CountryCode { get; set; }
+
+        //New Fields 
+        public string? MetaTitle { get; set; }
+        public string? MetaDesc { get; set; }
     }
 
     public class AccoFeature
