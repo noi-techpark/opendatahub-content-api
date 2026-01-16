@@ -192,7 +192,10 @@ namespace OdhApiCore.Controllers
 
                     var (controller, id) = (chunks[0], chunks[1]);
 
-                    return Uri.UnescapeDataString(Url.Link($"Single{controller}", new { id })!);
+                    if (!String.IsNullOrEmpty(controller) && !String.IsNullOrEmpty(id))
+                        return Uri.UnescapeDataString(Url.Link($"Single{controller}", new { id })!);
+                    else
+                        return self;
                 };
             }
         }
@@ -269,6 +272,7 @@ namespace OdhApiCore.Controllers
 
         //CREATE and UPDATE data
         #region LEGACY UpsertData
+
         protected async Task<IActionResult> UpsertData<T>(
             T data,
             DataInfo datainfo,
@@ -315,6 +319,7 @@ namespace OdhApiCore.Controllers
         }
         
         #endregion
+
         protected async Task<IActionResult> UpsertData<T>(
             QueryFactoryExtension.Upsertable<T> data,
             DataInfo datainfo,
