@@ -69,7 +69,7 @@ namespace Helper
             return myobject switch
             {
                 AccommodationV2 al => GetMetadataforAccommodation(al),
-                AccommodationRoomLinked al => GetMetadataforAccommodationRoom(al),
+                AccommodationRoomLinked ar => GetMetadataforAccommodationRoom(ar),
                 //LTSActivityLinked ltsal => GetMetadataforActivity(ltsal),
                 //LTSPoiLinked ltspl => GetMetadataforPoi(ltspl),
                 //GastronomyLinked gl => GetMetadataforGastronomy(gl),

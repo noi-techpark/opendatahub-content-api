@@ -71,7 +71,7 @@ namespace Helper
             return odhtype switch
             {
                 Accommodation or AccommodationLinked or AccommodationV2 => "accommodation",
-                AccoRoom or AccommodationRoomLinked => "accommodationroom",
+                AccoRoom or AccommodationRoomLinked or AccommodationRoomV2 => "accommodationroom",
                 //LTSActivityLinked => "ltsactivity",
                 //LTSPoiLinked => "ltspoi",
                 //GastronomyLinked => "ltsgastronomy",
@@ -126,7 +126,7 @@ namespace Helper
             return odhtype switch
             {
                 Accommodation or AccommodationLinked or AccommodationV2 => "accommodations",
-                AccoRoom or AccommodationRoomLinked => "accommodationrooms",
+                AccoRoom or AccommodationRoomLinked or AccommodationRoomV2 => "accommodationrooms",
                 //LTSActivityLinked => "activities",
                 //LTSPoiLinked => "pois",
                 //GastronomyLinked => "gastronomies",
@@ -223,7 +223,7 @@ namespace Helper
             return odhtype switch
             {
                 "accommodation" => typeof(AccommodationV2),
-                "accommodationroom" => typeof(AccommodationRoomLinked),
+                "accommodationroom" => typeof(AccommodationRoomLinked), //to change to AccommodationRoomV2
                 //"ltsactivity" => typeof(LTSActivityLinked),
                 //"ltspoi" => typeof(LTSPoiLinked),
                 //"ltsgastronomy" => typeof(GastronomyLinked),
@@ -324,7 +324,7 @@ namespace Helper
             return odhtype switch
             {
                 "accommodations" => typeof(AccommodationV2),
-                "accommodationrooms" => typeof(AccommodationRoomLinked),
+                "accommodationrooms" => typeof(AccommodationRoomLinked),  //to change to AccommodationRoomV2
                 //"activities" => typeof(LTSActivityLinked),
                 //"pois" => typeof(LTSPoiLinked),
                 //"gastronomies" => typeof(GastronomyLinked),
@@ -424,7 +424,7 @@ namespace Helper
                 "accommodation" => JsonConvert.DeserializeObject<AccommodationV2>(raw.Value)!,
                 "accommodationroom" => JsonConvert.DeserializeObject<AccommodationRoomLinked>(
                     raw.Value
-                )!,
+                )!,  //to change to AccommodationRoomV2
                 //"ltsactivity" => JsonConvert.DeserializeObject<LTSActivityLinked>(raw.Value)!,
                 //"ltspoi" => JsonConvert.DeserializeObject<LTSPoiLinked>(raw.Value)!,
                 //"ltsgastronomy" => JsonConvert.DeserializeObject<GastronomyLinked>(raw.Value)!,

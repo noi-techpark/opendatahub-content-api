@@ -424,6 +424,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         await AddIDMMetaTitleAndDescription(accommodationparsed, metainfosidm);
                     }
 
+                    //Preserve SmgTags (preserve all not automatically assigned Tags)
+                    
+                    //Add Meta Info, etc.... all custom logic
+
+                    //Custom language sync
+
 
                     //FINALLY UPDATE ACCOMMODATION ROOT OBJECT
 
@@ -559,7 +565,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 objecttosave.CreatePublishedOnList();
 
                 //Populate Tags (Id/Source/Type)
-                await objecttosave.UpdateTagsExtension(QueryFactory);                
+                await objecttosave.UpdateTagsExtension(QueryFactory);
+
+                //Populate Id by using the LTS ID
+                objecttosave.Id = objecttosave.LTSId;
 
                 return await QueryFactory.UpsertData<AccommodationRoomV2>(
                     objecttosave,
