@@ -404,7 +404,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         //How to deal with Accommodations where HGV Rooms are no more there? Check in MSS Import
                     }
 
-                    //Preserve SmgTags, Meta Info, etc.... all custom logic
+                    //Preserve SmgTags (preserve all not automatically assigned Tags)
+                    
+                    //Add Meta Info, etc.... all custom logic
+
+                    //Custom language sync
 
 
                     //FINALLY UPDATE ACCOMMODATION ROOT OBJECT
