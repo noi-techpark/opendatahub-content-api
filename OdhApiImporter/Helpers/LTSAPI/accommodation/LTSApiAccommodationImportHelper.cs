@@ -382,10 +382,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         var accommodationsroomparsed = AccommodationParser.ParseLTSAccommodationRoom(data.data, false, xmlfiles, jsondata);
 
+                        int roomcounter = 0;
                         foreach (var accommodationroom in accommodationsroomparsed)
                         {
                             var accommodationroominsertresult = await InsertAccommodationRoomDataToDB(accommodationroom, jsondata);
-                            updatedetails.Add("accommodationroom_lts", new UpdateDetail()
+                            updatedetails.Add($"accommodationroom_lts_{roomcounter}", new UpdateDetail()
                             {
                                 created = accommodationroominsertresult.created,
                                 updated = accommodationroominsertresult.updated,
@@ -398,6 +399,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                 pushchannels = accommodationroominsertresult.pushchannels,
                                 changes = accommodationroominsertresult.changes,
                             });
+                            roomcounter++;
                         }
 
                         //Get rooms to delete
@@ -406,10 +408,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         var ltsroomstodelete = ltsroomsondb.Except(ltsrooms);
 
                         //Delete Deleted ROOMS
-                        foreach(var deletedroom in ltsroomstodelete)
+                        foreach (var deletedroom in ltsroomstodelete)
                         {
                             var accommodationroomdeleteresult = await DeleteOrDisableAccommodationRoomsData(deletedroom, true, false);
-                            updatedetails.Add("accommodationroom_lts", accommodationroomdeleteresult);
+                            updatedetails.Add("accommodationroom_lts_delete", accommodationroomdeleteresult);
                         }                        
 
                         //Regenerated AccoRooms List LTS on Accommodation object (make sure, HGV rooms are updated first)

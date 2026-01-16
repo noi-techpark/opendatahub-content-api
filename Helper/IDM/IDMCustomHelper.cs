@@ -441,8 +441,8 @@ namespace Helper.IDM
                     if (myacco.AccoDetail.ContainsKey(language))
                     {
                         //Hack Longdesc and Shortdesc are the opposite
-                        if (!String.IsNullOrEmpty(myacco.AccoDetail[language].Longdesc))
-                            myacco.AccoDetail[language].MetaDesc = myacco.AccoDetail[language].Longdesc;
+                        if (!String.IsNullOrEmpty(myacco.AccoDetail[language].Shortdesc))
+                            myacco.AccoDetail[language].MetaDesc = myacco.AccoDetail[language].Shortdesc;
                         else
                         {
                             //Erfahren Sie mehr zu unserem Angebot für Ihren Urlaub in [unterkunft], [ort] buchen auf ► suedtirol.info
