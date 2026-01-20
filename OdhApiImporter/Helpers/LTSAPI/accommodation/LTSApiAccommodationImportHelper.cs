@@ -373,7 +373,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await accommodationparsed.UpdateDistanceCalculation(QueryFactory);
 
                     //GET OLD Accommodation
-                    var accommodationindb = await LoadDataFromDB<AccommodationV2>(id, IDStyle.uppercase);
+                    var accommodationindb = await LoadDataFromDB<AccommodationV2>(id, IDStyle.uppercase, opendata);
 
                    
                     if (!opendata)
@@ -516,11 +516,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 return await QueryFactory.UpsertData<AccommodationV2>(
                     objecttosave,
-                    new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                    new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.accommodations.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
-                    rawdataid
+                    rawdataid,
+                    opendata
                 );
             }
             catch (Exception ex)
