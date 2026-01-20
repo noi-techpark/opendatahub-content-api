@@ -4,10 +4,10 @@
 
 using DataModel;
 using Helper;
+using Helper.AccommodationRoomsExtension;
 using Helper.Generic;
 using Helper.Location;
 using Helper.Tagging;
-using Helper.AccommodationRoomsExtension;
 using MSS;
 using Newtonsoft.Json;
 using OdhNotifier;
@@ -18,6 +18,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -160,13 +161,11 @@ namespace OdhApiImporter.Helpers.HGV
                     //Load Accommodation and fill out HGV Info                    
                     var accommodation = await LoadDataFromDB<AccommodationV2>(data.id_lts, IDStyle.uppercase);
 
-                    //Fill HGV Infos
-                    AccoHGVInfo accohgvinfo = new AccoHGVInfo();
-                    accohgvinfo.PriceFrom = Convert.ToInt32(data.price_from);
-                    accohgvinfo.AvailableFrom = data.available_from;
-                    accohgvinfo.Bookable = Convert.ToBoolean(Convert.ToInt16(data.bookable));
+                    //Add HGV Info for Accommodation
+                    await AddHGVInfoToAccommodation(data, accommodation);
 
-                    accommodation.AccoHGVInfo = accohgvinfo;
+                    //Add Cincode and id to mapping
+                    await AddHGVMappingToAccommodation(data, accommodation);
 
                     await accommodation.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "hgv" }, null);
 
@@ -429,6 +428,45 @@ namespace OdhApiImporter.Helpers.HGV
                     new CRUDConstraints(),
                     new CompareConfig(true, false)                    
                 );
+        }
+
+        private async Task AddHGVInfoToAccommodation(MssResponseBaseSearch hgvdata, AccommodationV2 accommodation)
+        {
+            //Fill HGV Infos
+            AccoHGVInfo accohgvinfo = new AccoHGVInfo();
+            accohgvinfo.PriceFrom = Convert.ToInt32(hgvdata.price_from);
+            accohgvinfo.AvailableFrom = hgvdata.available_from;
+            accohgvinfo.Bookable = Convert.ToBoolean(Convert.ToInt16(hgvdata.bookable));
+
+            accommodation.AccoHGVInfo = accohgvinfo;
+        }
+
+        private async Task AddHGVMappingToAccommodation(MssResponseBaseSearch hgvdata, AccommodationV2 accommodation)
+        {
+            //If no lts mapping is there
+            if (accommodation.Mapping == null)
+                accommodation.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            IDictionary<string, string> hgvdict = new Dictionary<string, string>();
+
+            if (accommodation.Mapping.ContainsKey("hgv"))
+                hgvdict = accommodation.Mapping["hgv"];
+
+            if(!String.IsNullOrEmpty(hgvdata.id))
+                hgvdict.TryAddOrUpdate("id", hgvdata.id);
+
+            //Add Cin from HGV to mapping
+            if (!String.IsNullOrEmpty(hgvdata.cin))
+                hgvdict.TryAddOrUpdate("cincode", hgvdata.cin);
+            else
+            {
+                if (hgvdict.ContainsKey("cincode"))
+                {
+                    hgvdict.Remove("cincode");
+                }
+            }
+
+             accommodation.Mapping.TryAddOrUpdate("hgv", hgvdict);
         }
         
     }
