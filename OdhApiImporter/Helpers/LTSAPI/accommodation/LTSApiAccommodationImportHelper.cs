@@ -412,8 +412,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         {
                             var accommodationroomdeleteresult = await DeleteOrDisableAccommodationRoomsData(deletedroom, true, false);
                             updatedetails.Add("accommodationroom_lts_delete", accommodationroomdeleteresult);
-                        }                        
+                        }
 
+                        //TODO Add the AccoLTSInfo
+                        await AssignAccoLTSInfo(accommodationsroomparsed, accommodationparsed);
+
+                        //CHECK IF THIS IS THE right way reloading it?
                         //Regenerated AccoRooms List LTS on Accommodation object (make sure, HGV rooms are updated first)
                         await accommodationparsed.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "lts" }, new Dictionary<string, List<string>>() { { "lts", accommodationsroomparsed.Select(x => x.Id).ToList() } });
 
@@ -498,13 +502,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
             try
             {
                 //Set LicenseInfo
-                objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
+                objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseforAccommodation(
                     objecttosave,
-                    Helper.LicenseHelper.GetLicenseforAccommodation
+                    opendata
                 );
 
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
-                objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave);
+                objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
                 //Set PublishedOn
                 objecttosave.CreatePublishedOnList();
@@ -738,6 +742,19 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
 
             return deletedisableresult;
+        }
+
+        public async Task AssignAccoLTSInfo(IEnumerable<AccommodationRoomV2> accoltsrooms, AccommodationV2 accommodation)
+        {
+            double? pricefrom = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFrom != null).OrderBy(x => x.PriceFrom).Select(x => x.PriceFrom).FirstOrDefault() : null;
+            double? pricefromperunit = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFromPerUnit != null).OrderBy(x => x.PriceFromPerUnit).Select(x => x.PriceFromPerUnit).FirstOrDefault() : null;
+
+            //If lts info is null
+            if (accommodation.AccoLTSInfo == null)
+                accommodation.AccoLTSInfo = new AccoLTSInfo();
+
+            accommodation.AccoLTSInfo.PriceFrom = (int?)pricefrom;
+            accommodation.AccoLTSInfo.PriceFromPerUnit = (int?)pricefromperunit;
         }
 
 

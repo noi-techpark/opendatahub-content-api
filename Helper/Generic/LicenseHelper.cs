@@ -54,6 +54,21 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
+        public static LicenseInfo GetLicenseforAccommodation(Accommodation data, bool opendata = false)
+        {
+            var isopendata = false;
+            var licensetype = "Closed";
+            var licenseholder = @"https://www.lts.it";
+
+            if (opendata && data.Source == "lts")
+            {
+                isopendata = true;
+                licensetype = "CC0";
+            }
+
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
+        }
+
         public static LicenseInfo GetLicenseforAccommodationRoom(AccoRoom data)
         {
             var isopendata = false;

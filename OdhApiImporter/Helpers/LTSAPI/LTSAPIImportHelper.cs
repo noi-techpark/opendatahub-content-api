@@ -242,7 +242,7 @@ namespace OdhApiImporter.Helpers
                         importerURL,
                         OdhPushnotifier
                     );                    
-                    var hgvupdateroomresult = await hgvroomapiimporthelper.SaveDataToODH(null, new List<string>() { id }, cancellationToken);
+                    var hgvupdateroomresult = await hgvroomapiimporthelper.SaveDataToODH(new List<string>() { id }, cancellationToken);
                     updateresultdict.Add("accommodationroom_hgv", hgvupdateroomresult);
 
                     //Get HGV data (Make sure the Rooms are imported first because of the AccoRoomInfo Object)
