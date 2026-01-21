@@ -2,6 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using A22;
+using DataModel;
+using Helper;
+using Helper.Generic;
+using OdhNotifier;
+using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,11 +15,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using A22;
-using DataModel;
-using Helper;
-using Helper.Generic;
-using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers
 {
@@ -27,9 +28,10 @@ namespace OdhApiImporter.Helpers
             QueryFactory queryfactory,
             string table,
             string importerURL,
-            string entity
+            string entity,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             idlistinterface = new List<string>();
 

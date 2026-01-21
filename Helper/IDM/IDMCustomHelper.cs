@@ -391,5 +391,78 @@ namespace Helper.IDM
         }
 
         #endregion
+
+        #region IDM Accommodation MetaInfo Generator
+
+        public static void SetMetaInfoForAccommodation(AccommodationV2 accommodation, MetaInfosOdhActivityPoi metainfo)
+        {
+            try
+            {
+                //Setting MetaInfo
+                BuildAccoMetaTitle(accommodation, metainfo);
+                BuildAccoMetaDescription(accommodation, metainfo);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        //RULE Title: [unterkunft], [ort] buchen | suedtirol.info (Vale sempre)
+        public static void BuildAccoMetaTitle(AccommodationV2 myacco, MetaInfosOdhActivityPoi metainfoacco)
+        {
+            foreach (var language in myacco.HasLanguage)
+            {
+                if (metainfoacco != null)
+                {
+                    if (myacco.AccoDetail.ContainsKey(language))
+                    {
+                        var title = metainfoacco.Metainfos[language].FirstOrDefault()["Title"].ToString();
+
+                        var acconame = myacco.AccoDetail[language].Name;
+                        var accoplace = myacco.AccoDetail[language].City;
+
+                        title = title.Replace("[AccoDetail." + language + ".Name]", acconame).Replace("[AccoDetail." + language + ".City]", accoplace);
+
+                        myacco.AccoDetail[language].MetaTitle = title;
+                    }
+                }
+            }
+        }
+
+        //RULE (Solo se il campo “short description” è compilato) Default Description: [short description]
+        //     (Se il campo „short description“ non è compilato) Description fallback: Erfahren Sie mehr zu unserem Angebot für Ihren Urlaub in [unterkunft], [ort] buchen auf ► suedtirol.info
+        public static void BuildAccoMetaDescription(AccommodationV2 myacco, MetaInfosOdhActivityPoi metainfoacco)
+        {
+            foreach (var language in myacco.HasLanguage)
+            {
+                if (metainfoacco != null)
+                {
+                    if (myacco.AccoDetail.ContainsKey(language))
+                    {
+                        //Hack Longdesc and Shortdesc are the opposite
+                        if (!String.IsNullOrEmpty(myacco.AccoDetail[language].Shortdesc))
+                            myacco.AccoDetail[language].MetaDesc = myacco.AccoDetail[language].Shortdesc;
+                        else
+                        {
+                            //Erfahren Sie mehr zu unserem Angebot für Ihren Urlaub in [unterkunft], [ort] buchen auf ► suedtirol.info
+                            //Description1 [unterkunft], [ort] Description2
+
+                            var desc = metainfoacco.Metainfos[language].FirstOrDefault()["Description"].ToString();
+
+                            var acconame = myacco.AccoDetail[language].Name;
+                            var accoplace = myacco.AccoDetail[language].City;
+
+                            desc = desc.Replace("[AccoDetail." + language + ".Name]", acconame).Replace("[AccoDetail." + language + ".City]", accoplace);
+
+                            myacco.AccoDetail[language].MetaDesc = desc;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        #endregion
     }
 }

@@ -2,6 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using DSS;
+using DSS.Parser;
+using Helper;
+using Helper.Generic;
+using Newtonsoft.Json;
+using OdhNotifier;
+using SqlKata.Execution;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,13 +17,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using DataModel;
-using DSS;
-using DSS.Parser;
-using Helper;
-using Helper.Generic;
-using Newtonsoft.Json;
-using SqlKata.Execution;
 
 namespace OdhApiImporter.Helpers.DSS
 {
@@ -25,9 +26,10 @@ namespace OdhApiImporter.Helpers.DSS
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             entitytype = "webcam";
             idlistdssinterface = new();

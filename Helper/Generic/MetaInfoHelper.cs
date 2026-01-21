@@ -68,8 +68,8 @@ namespace Helper
         {
             return myobject switch
             {
-                AccommodationV2 al => GetMetadataforAccommodation(al),
-                AccommodationRoomLinked al => GetMetadataforAccommodationRoom(al),
+                AccommodationV2 al => GetMetadataforAccommodation(al, reduced),
+                AccommodationRoomLinked ar => GetMetadataforAccommodationRoom(ar),
                 //LTSActivityLinked ltsal => GetMetadataforActivity(ltsal),
                 //LTSPoiLinked ltspl => GetMetadataforPoi(ltspl),
                 //GastronomyLinked gl => GetMetadataforGastronomy(gl),
@@ -119,6 +119,26 @@ namespace Helper
             bool reduced = false;
             if (data._Meta != null)
                 reduced = (bool)data._Meta.Reduced;
+
+            //fix if source is null
+            string? datasource = data.Source;
+
+            if (datasource == null)
+            {
+                datasource = "unknown";
+            }
+            else
+            {
+                datasource = datasource.ToLower();
+            }
+
+            return GetMetadata(data, datasource, reduced);
+        }
+
+        public static Metadata GetMetadataforAccommodation(AccommodationV2 data, bool reduced = false)
+        {            
+            //if (data._Meta != null)
+            //    reduced = (bool)data._Meta.Reduced;
 
             //fix if source is null
             string? datasource = data.Source;

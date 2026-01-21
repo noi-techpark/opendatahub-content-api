@@ -323,9 +323,9 @@ namespace DataModel
 
     public class AdditionalContact
     {
-        public string Type { get; set; }
+        public string? Type { get; set; }
         public ContactInfos ContactInfos { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
     }
 
     public class RelatedContent
@@ -547,6 +547,10 @@ namespace DataModel
         public string? Vat { get; set; }
 
         public string? CountryCode { get; set; }
+
+        //New Fields 
+        public string? MetaTitle { get; set; }
+        public string? MetaDesc { get; set; }
     }
 
     public class AccoFeature

@@ -305,6 +305,56 @@ namespace MSS
             return encodedDoc8;
         }
 
+        public static XDocument BuildBaseSearchPostData(
+            XElement idlist,            
+            XElement offerdetails, 
+            XElement hoteldetails, 
+            string lang, 
+            string idofchannel, 
+            string version, 
+            string source, 
+            string mssuser, 
+            string msspswd)
+        {
+            XElement myroot =
+                new XElement("root",
+                new XElement("version", version + ".0"),
+                new XElement("header",
+                    new XElement("credentials",
+                        new XElement("user", mssuser),
+                        new XElement("password", msspswd),
+                        new XElement("source", source)
+                        ),
+                    new XElement("method", "getHotelList"),
+                    new XElement("paging",
+                        new XElement("start", "0"),
+                        new XElement("limit", "0")
+                        )),
+                new XElement("request",
+                    new XElement("search",
+                        new XElement("lang", lang),
+                        idlist.Elements("id"),
+                        new XElement("id_ofchannel", idofchannel)),
+                    new XElement("options",
+                        offerdetails,
+                        hoteldetails
+                        ),
+                    new XElement("order"),
+                    new XElement("logging",
+                        new XElement("step")
+                        )
+                    )
+                );
+
+            XDocument encodedDoc8 = new XDocument(
+                new XDeclaration("1.0", "utf-8", "yes"),
+                myroot
+            );
+
+            return encodedDoc8;
+        }
+
+
         public static XDocument BuildSpecialPostData(
             XElement offerid,
             XElement roomlist,

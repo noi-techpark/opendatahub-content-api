@@ -18,9 +18,7 @@ using SqlKata.Execution;
 namespace OdhApiImporter.Helpers.LTSAPI
 {
     public class LTSApiEventTagsToODHTagImportHelper : ImportHelper, IImportHelper
-    {
-        private IOdhPushNotifier OdhPushnotifier;
-
+    {        
         public LTSApiEventTagsToODHTagImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
@@ -28,7 +26,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             string importerURL,
             IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             this.OdhPushnotifier = odhpushnotifier;
         }
@@ -150,11 +148,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //Push Data if changed
                     //push modified data to all published Channels
                     //TODO adding the push status to the response
-                    result.pushed = await ImportUtils.CheckIfObjectChangedAndPush(
-                        OdhPushnotifier,
+                    result.pushed = await CheckIfObjectChangedAndPush(                        
                         result,
                         result.id,
-                        result.odhtype
+                        result.odhtype,
+                        "lts.push"
                     );
 
                     newimportcounter = newimportcounter + result.created ?? 0;

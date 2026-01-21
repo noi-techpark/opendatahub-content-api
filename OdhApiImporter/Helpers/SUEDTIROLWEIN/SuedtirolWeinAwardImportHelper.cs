@@ -2,6 +2,13 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using Helper;
+using Helper.Generic;
+using OdhNotifier;
+using SqlKata.Execution;
+using SuedtirolWein;
+using SuedtirolWein.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -10,12 +17,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DataModel;
-using Helper;
-using Helper.Generic;
-using SqlKata.Execution;
-using SuedtirolWein;
-using SuedtirolWein.Parser;
 
 namespace OdhApiImporter.Helpers.SuedtirolWein
 {
@@ -25,9 +26,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
@@ -223,6 +225,11 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                         .ToList() ?? new();
 
                 var myquery = QueryFactory.Query("wines").Select("id");
+
+                //Check if this ids are all null then return
+                if (wineidlistonsource == null || wineidlistonsource.Contains(null))
+                    throw new Exception("idlist could not be created");
+
                 var winesondb = await myquery.GetAsync<string>();
 
                 var idstodelete = winesondb.Where(p => !wineidlistonsource.Any(p2 => p2 == p));
