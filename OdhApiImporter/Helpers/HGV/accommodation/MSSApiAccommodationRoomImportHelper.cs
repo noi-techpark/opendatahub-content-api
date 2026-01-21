@@ -212,18 +212,17 @@ namespace OdhApiImporter.Helpers.HGV
         {
             try
             {
-                //LicenseInfo, PublishedonList and MetaInfo NOT needed here since it is an addition
-                
-                //objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
-                //    objecttosave,
-                //    Helper.LicenseHelper.GetLicenseforAccommodation
-                //);
+                //Setting LicenseInfo
+                objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
+                    objecttosave,
+                    Helper.LicenseHelper.GetLicenseforAccommodationRoom
+                );
 
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
-                //objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave);
+                objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave);
 
                 //Set PublishedOn
-                //objecttosave.CreatePublishedOnList();
+                objecttosave.CreatePublishedOnList();
 
                 //Populate Tags (Id/Source/Type)
                 //await objecttosave.UpdateTagsExtension(QueryFactory);
@@ -252,7 +251,7 @@ namespace OdhApiImporter.Helpers.HGV
                 {
                     datasource = "hgv",
                     importdate = DateTime.Now,
-                    raw = JsonConvert.SerializeObject(data),
+                    raw = data.ToString(),
                     sourceinterface = "accommodations.rooms",
                     sourceid = data.Element("room_id").Value,
                     sourceurl = "http://www.easymailing.eu/mss/mss_service_test.php",

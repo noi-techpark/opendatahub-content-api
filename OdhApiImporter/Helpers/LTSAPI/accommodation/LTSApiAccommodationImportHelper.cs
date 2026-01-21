@@ -414,14 +414,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                             updatedetails.Add("accommodationroom_lts_delete", accommodationroomdeleteresult);
                         }
 
-                        //TODO Add the AccoLTSInfo
-                        await AssignAccoLTSInfo(accommodationsroomparsed, accommodationparsed);
+                        //Add the AccoLTSInfo
+                        AssignAccoLTSInfo(accommodationsroomparsed, accommodationparsed);
 
-                        //CHECK IF THIS IS THE right way reloading it?
-                        //Regenerated AccoRooms List LTS on Accommodation object (make sure, HGV rooms are updated first)
-                        await accommodationparsed.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "lts" }, new Dictionary<string, List<string>>() { { "lts", accommodationsroomparsed.Select(x => x.Id).ToList() } });
+                        //Readd AccoHGVInfo
+                        ReAddAccoHGVInfo(accommodationparsed, accommodationindb);
 
-                        //How to deal with Accommodations where HGV Rooms are no more there? Check in MSS Import
+                        //Regenerated AccoRooms List LTS on Accommodation object without DB Calls
+                        await accommodationparsed.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "lts" }, new Dictionary<string, List<string>>() { { "lts", accommodationsroomparsed.Select(x => x.Id).ToList() } });                        
 
                         //Preserve SmgTags
                         await AssignODHTags(accommodationparsed, accommodationindb);
@@ -744,7 +744,30 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return deletedisableresult;
         }
 
-        public async Task AssignAccoLTSInfo(IEnumerable<AccommodationRoomV2> accoltsrooms, AccommodationV2 accommodation)
+        #region Custom Stuff
+
+
+        public void ReAddAccoHGVInfo(AccommodationV2 accommodation, AccommodationV2 accommodationInDB)
+        {
+            //Readd AccoHGVInfo
+            if(accommodationInDB.AccoHGVInfo != null)
+                accommodation.AccoHGVInfo = accommodationInDB.AccoHGVInfo;
+
+            //Readd Mapping HGV
+            if(accommodationInDB.Mapping != null && accommodationInDB.Mapping.ContainsKey("hgv"))
+            {
+                foreach(var item in accommodationInDB.Mapping["hgv"])
+                {
+                    if (!accommodation.Mapping.ContainsKey("hgv"))
+                        accommodation.Mapping.TryAddOrUpdate("hgv", new Dictionary<string, string>());
+
+                    if (!accommodation.Mapping["hgv"].ContainsKey(item.Key))
+                        accommodation.Mapping["hgv"].TryAddOrUpdate(item.Key, item.Value);
+                }
+            }
+        }
+
+        public void AssignAccoLTSInfo(IEnumerable<AccommodationRoomV2> accoltsrooms, AccommodationV2 accommodation)
         {
             double? pricefrom = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFrom != null).OrderBy(x => x.PriceFrom).Select(x => x.PriceFrom).FirstOrDefault() : null;
             double? pricefromperunit = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFromPerUnit != null).OrderBy(x => x.PriceFromPerUnit).Select(x => x.PriceFromPerUnit).FirstOrDefault() : null;
@@ -757,6 +780,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             accommodation.AccoLTSInfo.PriceFromPerUnit = (int?)pricefromperunit;
         }
 
+        #endregion
 
         #region Compatibility Stuff
 
