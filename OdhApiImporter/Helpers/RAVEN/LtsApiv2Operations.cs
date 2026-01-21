@@ -68,7 +68,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                 var qs = new LTSQueryStrings()
                 {
                     page_size = 1,
-                    fields = "cinCode,amenities,suedtirolGuestPass,roomGroups,type,category,accessibility",   //amenities,mealPlans
+                    fields = "cinCode,amenities,suedtirolGuestPass,roomGroups,type,category,accessibility,reviews",   //amenities,mealPlans
                 };
                 var dict = ltsapi.GetLTSQSDictionary(qs);
 
@@ -432,7 +432,7 @@ namespace OdhApiImporter.Helpers.RAVEN
         {
             try
             {
-                //Todo parse response
+                //parse accessibility response
                 var accessibility =
                     ltsdata["data"] != null
                     ? ltsdata["data"]["accessibility"] != null
@@ -443,20 +443,120 @@ namespace OdhApiImporter.Helpers.RAVEN
                 int updateddata = 0;
 
                 //If lts accessibility info is not null and we have already independentdata
-                if (accessibility != null && accessibility.commitmentToAccessibilityUrl != null && accommodation.IndependentData != null && accommodation.IndependentData.IndependentDescription != null)
+                if (accessibility != null)
                 {
-                    foreach(var commitmenttoAccessibilityurl in accessibility.commitmentToAccessibilityUrl)
-                    {
-                        if (accommodation.IndependentData.IndependentDescription.ContainsKey(commitmenttoAccessibilityurl.Key))
-                        {
-                            var independentdesc = accommodation.IndependentData.IndependentDescription[commitmenttoAccessibilityurl.Key];
-                            independentdesc.CommitmentToAccessibilityUrl = commitmenttoAccessibilityurl.Value;
+                    //initialize indepentdata
+                    if (accommodation.IndependentData == null)
+                        accommodation.IndependentData = new IndependentData();
 
-                            accommodation.IndependentData.IndependentDescription.TryAddOrUpdate(commitmenttoAccessibilityurl.Key, independentdesc);
+                    if (accessibility.description != null)
+                    {
+                        foreach (var independentdesc in accessibility.description)
+                        {
+                            if (!String.IsNullOrEmpty(independentdesc.Value))
+                            {
+                                //Check If Independentdesc already exists otherwise create one
+                                if (!accommodation.IndependentData.IndependentDescription.ContainsKey(independentdesc.Key))
+                                {
+                                    accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
+                                    accommodation.IndependentData.IndependentDescription.TryAdd(independentdesc.Key, new IndependentDescription() { Language = independentdesc.Key });
+                                }
+
+                                accommodation.IndependentData.IndependentDescription[independentdesc.Key].Description = independentdesc.Value;
+
+                                updateddata = 1;
+                            }
                         }
-                        updateddata = 1;
-                    }                    
-                }                                
+                    }
+
+                    if (accessibility.website != null)
+                    {
+                        foreach (var accessibilitywebsite in accessibility.website)
+                        {
+                            if (!String.IsNullOrEmpty(accessibilitywebsite.Value))
+                            {
+                                //Check If Independentdesc already exists otherwise create one
+                                if (!accommodation.IndependentData.IndependentDescription.ContainsKey(accessibilitywebsite.Key))
+                                {
+                                    accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
+                                    accommodation.IndependentData.IndependentDescription.TryAdd(accessibilitywebsite.Key, new IndependentDescription() { Language = accessibilitywebsite.Key });
+                                }
+
+                                accommodation.IndependentData.IndependentDescription[accessibilitywebsite.Key].BacklinkUrl = accessibilitywebsite.Value;
+
+                                updateddata = 1;
+
+                            }
+                        }
+                    }
+
+
+                    if (accessibility.commitmentToAccessibilityUrl != null)
+                    {
+                        foreach (var commitmenttoAccessibilityurl in accessibility.commitmentToAccessibilityUrl)
+                        {
+                            if (!String.IsNullOrEmpty(commitmenttoAccessibilityurl.Value))
+                            {
+                                //Check If Independentdesc already exists otherwise create one
+                                if (!accommodation.IndependentData.IndependentDescription.ContainsKey(commitmenttoAccessibilityurl.Key))
+                                {
+                                    accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
+                                    accommodation.IndependentData.IndependentDescription.TryAdd(commitmenttoAccessibilityurl.Key, new IndependentDescription() { Language = commitmenttoAccessibilityurl.Key });
+                                }
+
+                                accommodation.IndependentData.IndependentDescription[commitmenttoAccessibilityurl.Key].CommitmentToAccessibilityUrl = commitmenttoAccessibilityurl.Value;
+
+                                updateddata = 1;
+                            }
+                        }
+                    }
+                }
+
+                //Independent Rating and Enabled
+
+                //parse review response
+                var reviews =
+                    ltsdata["data"] != null
+                    ? ltsdata["data"]["reviews"] != null
+                        ? ltsdata["data"]["reviews"].ToObject<List<LTSReview>>() : null
+                       : null;
+
+                if(reviews != null)
+                {
+                    if(reviews.Count > 0)
+                    {
+                        if (reviews.Where(x => x.type == "independent").Count() > 0)
+                        {
+                            var review = reviews.Where(x => x.type == "independent").FirstOrDefault();
+
+                            if (review != null)
+                            { 
+                                //initialize indepentdata
+                                if (accommodation.IndependentData == null)
+                                    accommodation.IndependentData = new IndependentData();
+
+                                accommodation.IndependentData.Enabled = review.isActive;
+                                accommodation.IndependentData.IndependentRating = Convert.ToInt32(review.rating);
+
+                                //IDM Custom Logic 
+                                if(accommodation.IndependentData.IndependentRating >= 3)
+                                {
+                                    if(accommodation.SmgTags == null)
+                                        accommodation.SmgTags = new List<string>();
+
+                                    if (!accommodation.SmgTags.Contains("barrier-free"))
+                                        accommodation.SmgTags.Add("barrier-free");
+                                }
+                                else
+                                {
+                                    if (accommodation.SmgTags != null && accommodation.SmgTags.Contains("barrier-free"))
+                                        accommodation.SmgTags.Remove("barrier-free");
+                                }
+                            }
+                        }
+                        //To check, if no review of independent is there isEnabled is null and rating is null?
+                    }
+                }
 
                 GenericResultsHelper.GetSuccessUpdateResult(
                     accommodation.Id,
@@ -575,5 +675,15 @@ namespace OdhApiImporter.Helpers.RAVEN
         public IDictionary<string, string>? description { get; set; }
 
         public IDictionary<string, string>? commitmentToAccessibilityUrl { get; set; }
+    }
+
+    public class LtsReviewAcco
+    {
+        public string type { get; set; }
+        public bool? isActive { get; set; }
+        public double? rating { get; set; }
+        public int? reviewsQuantity { get; set; }
+        public string? status { get; set; }
+        public string? id { get; set; }
     }
 }
