@@ -458,8 +458,10 @@ namespace OdhApiImporter.Helpers.RAVEN
                                 //Check If Independentdesc already exists otherwise create one
                                 if (!accommodation.IndependentData.IndependentDescription.ContainsKey(independentdesc.Key))
                                 {
-                                    accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
-                                    accommodation.IndependentData.IndependentDescription.TryAdd(independentdesc.Key, new IndependentDescription() { Language = independentdesc.Key });
+                                    if (accommodation.IndependentData.IndependentDescription == null)
+                                        accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
+
+                                    accommodation.IndependentData.IndependentDescription.TryAddOrUpdate(independentdesc.Key, new IndependentDescription() { Language = independentdesc.Key });
                                 }
 
                                 accommodation.IndependentData.IndependentDescription[independentdesc.Key].Description = independentdesc.Value;
@@ -478,8 +480,10 @@ namespace OdhApiImporter.Helpers.RAVEN
                                 //Check If Independentdesc already exists otherwise create one
                                 if (!accommodation.IndependentData.IndependentDescription.ContainsKey(accessibilitywebsite.Key))
                                 {
-                                    accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
-                                    accommodation.IndependentData.IndependentDescription.TryAdd(accessibilitywebsite.Key, new IndependentDescription() { Language = accessibilitywebsite.Key });
+                                    if (accommodation.IndependentData.IndependentDescription == null)
+                                        accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
+
+                                    accommodation.IndependentData.IndependentDescription.TryAddOrUpdate(accessibilitywebsite.Key, new IndependentDescription() { Language = accessibilitywebsite.Key });
                                 }
 
                                 accommodation.IndependentData.IndependentDescription[accessibilitywebsite.Key].BacklinkUrl = accessibilitywebsite.Value;
@@ -500,8 +504,10 @@ namespace OdhApiImporter.Helpers.RAVEN
                                 //Check If Independentdesc already exists otherwise create one
                                 if (!accommodation.IndependentData.IndependentDescription.ContainsKey(commitmenttoAccessibilityurl.Key))
                                 {
-                                    accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
-                                    accommodation.IndependentData.IndependentDescription.TryAdd(commitmenttoAccessibilityurl.Key, new IndependentDescription() { Language = commitmenttoAccessibilityurl.Key });
+                                    if(accommodation.IndependentData.IndependentDescription == null)
+                                        accommodation.IndependentData.IndependentDescription = new Dictionary<string, IndependentDescription>();
+
+                                    accommodation.IndependentData.IndependentDescription.TryAddOrUpdate(commitmenttoAccessibilityurl.Key, new IndependentDescription() { Language = commitmenttoAccessibilityurl.Key });
                                 }
 
                                 accommodation.IndependentData.IndependentDescription[commitmenttoAccessibilityurl.Key].CommitmentToAccessibilityUrl = commitmenttoAccessibilityurl.Value;
