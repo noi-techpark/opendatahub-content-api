@@ -173,7 +173,7 @@ namespace DataModel
     {
         public string? Self
         {
-            get { return String.IsNullOrEmpty(this.Id) ? null : "ODHTag/" + this.Id.ToLower(); }
+            get { return String.IsNullOrEmpty(this.Id) ? null : "Tag/" + this.LTSRID; }
         }
     }
 

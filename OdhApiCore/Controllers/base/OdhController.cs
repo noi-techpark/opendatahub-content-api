@@ -182,13 +182,14 @@ namespace OdhApiCore.Controllers
                     if (chunks.Length < 2)
                         return self;
 
-                    //Hack if there is another / in the route to check if it is not generating side effects
-                    if (chunks[1].Split('/').Count() > 1)
+                    //Hack for the Weather Controller if there is another / in the route to check if it is not generating side effects
+                    //TODO find a better solution here
+                    if (chunks[0].StartsWith("Weather") && chunks[1].Split('/').Count() > 1)
                     {
                         var chunksadditional = chunks[1].Split('/');
                         chunks[0] = chunks[0] + chunksadditional[0];
                         chunks[1] = chunksadditional[1];
-                    }
+                    }                    
 
                     var (controller, id) = (chunks[0], chunks[1]);
 
