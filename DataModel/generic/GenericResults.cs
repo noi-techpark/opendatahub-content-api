@@ -282,6 +282,48 @@ namespace DataModel
             return result;
         }
 
+        public static UpdateResult GetUpdateResultFromPGCRUDResult(           
+           string source,
+           //string updatetype, not needed single on PGCRUDResult
+           string message,
+           //string otherinfo, not needed we choose odhtype
+           PGCRUDResult pgcrudresult,
+           bool createlog
+       )
+        {
+            var result = new UpdateResult()
+            {
+                id = pgcrudresult.id,
+                source = source,
+                operation = pgcrudresult.operation,
+                updatetype = "single",
+                otherinfo = pgcrudresult.odhtype,
+                message = message,
+                recordsmodified = (pgcrudresult.created + pgcrudresult.updated + pgcrudresult.deleted),
+                created = pgcrudresult.created,
+                updated = pgcrudresult.updated,
+                deleted = pgcrudresult.deleted,
+                objectcompared = pgcrudresult.compareobject != null && pgcrudresult.compareobject.Value ? 1 : 0,
+                objectchanged = pgcrudresult.objectchanged,
+                objectimagechanged = pgcrudresult.objectimagechanged,
+                //objectchanges = detail.changes != null ? JsonConvert.DeserializeObject<dynamic>(detail.changes.ToString(Formatting.None)) : null,
+                objectchanges = null,
+                objectchangestring =
+                    pgcrudresult.changes != null ? pgcrudresult.changes.ToString(Formatting.None) : null,
+                pushchannels = pgcrudresult.pushchannels,
+                pushed = pgcrudresult.pushed,
+                error = pgcrudresult.error,
+                success =  pgcrudresult.error != null && pgcrudresult.error > 0 ? false : true,
+                exception = pgcrudresult.errorreason,
+                stacktrace = null,
+            };
+
+            if (createlog)
+                Console.WriteLine(JsonConvert.SerializeObject(result));
+
+            return result;
+        }
+
         public static UpdateResult GetErrorUpdateResult(
             string id,
             string source,
@@ -323,7 +365,7 @@ namespace DataModel
                 Console.WriteLine(JsonConvert.SerializeObject(result));
 
             return result;
-        }
+        }       
 
         public static UpdateResultFailureQueue GetSuccessUpdateResult(
             string id,

@@ -316,6 +316,8 @@ namespace OdhApiCore.Controllers
             //push modified data to all published Channels
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
 
+            //TODO Log this Result
+
             return ReturnCRUDResult(result);
         }
         
@@ -540,8 +542,38 @@ namespace OdhApiCore.Controllers
             }
         }
 
+        protected IActionResult ReturnUpdateResult(PGCRUDResult pgcrudresult, string source, string message, bool createlog)
+        {
+            //Use UpdateResult here
+            var result = GenericResultsHelper.GetUpdateResultFromPGCRUDResult(source, message, pgcrudresult, createlog);
 
-    }   
+            ///Give shorter Error messages to display directly in the databrowser
+            ///TODO some optimizations
+            switch (result.exception)
+            {
+                case "":
+                case null:
+                    return Ok(result);
+                case "Not Allowed":
+                    return StatusCode(403, "Not enough permissions");
+                case "Not Found":
+                    return NotFound();
+                case "Bad Request":
+                    return BadRequest();
+                case "No Data":
+                    return BadRequest(result.exception);
+                case "Data exists already":
+                    return BadRequest(result.exception);
+                case "Data to update Not Found":
+                    return BadRequest(result.exception);
+                case "Internal Error":
+                    return StatusCode(500);
+                default:
+                    return BadRequest(result);
+            }
+        }
+
+    }
 
     public abstract class OdhControllerWithSearch : OdhController
     {
