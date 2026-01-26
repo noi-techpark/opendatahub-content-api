@@ -316,9 +316,11 @@ namespace OdhApiCore.Controllers
             //push modified data to all published Channels
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
 
-            //TODO Log this Result
 
-            return ReturnCRUDResult(result);
+            //return ReturnCRUDResult(result);
+
+            //Use newer UpdateResult ?
+            return ReturnUpdateResult(result, editsource, "", true);
         }
         
         #endregion
