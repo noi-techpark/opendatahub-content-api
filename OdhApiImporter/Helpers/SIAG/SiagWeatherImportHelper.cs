@@ -30,13 +30,13 @@ namespace OdhApiImporter.Helpers
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
         )
         {
-            var updateresult = new UpdateDetail();
+            var updateresultlist = new List<UpdateDetail>();
 
             if (idlist != null)
             {
@@ -44,17 +44,13 @@ namespace OdhApiImporter.Helpers
 
                 foreach (var id in idlist)
                 {
-                    updateresulttemp = await SaveWeatherToHistoryTable(cancellationToken, id);
-
-                    updateresult = GenericResultsHelper.MergeUpdateDetail(
-                        new List<UpdateDetail>() { updateresult, updateresulttemp }
-                    );
+                    updateresultlist.Add(await SaveWeatherToHistoryTable(cancellationToken, id));
                 }
             }
             else
-                updateresult = await SaveWeatherToHistoryTable(cancellationToken, null);
+                updateresultlist.Add(await SaveWeatherToHistoryTable(cancellationToken, null));
 
-            return updateresult;
+            return updateresultlist;
         }
 
         public async Task<UpdateDetail> SaveWeatherToHistoryTable(

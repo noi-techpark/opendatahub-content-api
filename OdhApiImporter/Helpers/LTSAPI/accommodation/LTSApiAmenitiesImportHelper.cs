@@ -65,7 +65,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -76,7 +76,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //Import Single Data & Deactivate Data
             var result = await SaveAccommodationAmenitiesToPG(eventtags);
 
-            return result;
+            return new List<UpdateDetail>() { result };
         }
 
         private async Task<UpdateDetail> SaveAccommodationAmenitiesToPG(List<JObject> ltsdata)

@@ -22,7 +22,7 @@ namespace OdhApiImporter.Helpers
 {
     public interface IImportHelper
     {
-        Task<UpdateDetail> SaveDataToODH(
+        Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default

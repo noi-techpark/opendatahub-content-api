@@ -31,7 +31,7 @@ namespace OdhApiImporter.Helpers
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -44,9 +44,7 @@ namespace OdhApiImporter.Helpers
             //If in the DB there are museums no more listed in the siag response set this data to inactive
             var deleteresult = await SetDataNotinListToInactive(museumslist, cancellationToken);
 
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+            return new List<UpdateDetail>() { updateresult, deleteresult };
         }
 
         private async Task<XDocument> ImportList(CancellationToken cancellationToken)

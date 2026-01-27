@@ -30,7 +30,7 @@ namespace OdhApiImporter.Helpers
 
         #region NINJA Helpers
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -41,7 +41,7 @@ namespace OdhApiImporter.Helpers
             //Parse the data and save it to DB
             var result = await SaveEventsToPG(culturelist.Item1.data, culturelist.Item2.data);
 
-            return result;
+            return new List<UpdateDetail>() { result };
         }
 
         private async Task<Tuple<NinjaObject<NinjaEvent>, NinjaObject<NinjaPlaceRoom>>> ImportList(

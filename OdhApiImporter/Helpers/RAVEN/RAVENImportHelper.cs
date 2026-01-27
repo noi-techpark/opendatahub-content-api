@@ -44,7 +44,7 @@ namespace OdhApiImporter.Helpers
         //TODO Check if passed id has to be tranformed to lowercase or uppercase
 
 
-        public async Task<Tuple<string, UpdateDetail>> GetFromRavenAndTransformToPGObject(
+        public async Task<Tuple<string, List<UpdateDetail>>> GetFromRavenAndTransformToPGObject(
             string id,
             string datatype,
             CancellationToken cancellationToken
@@ -231,7 +231,7 @@ namespace OdhApiImporter.Helpers
                     }
 
                     //Merge with updateresult
-                    myupdateresult = GenericResultsHelper.MergeUpdateDetail(updateresultstomerge);
+                    myupdateresult = GenericResultsHelper.MergeUpdateDetailIntoOne(updateresultstomerge);
 
                     //Remove Exception not all accommodations have rooms
                     //else
@@ -1208,13 +1208,13 @@ namespace OdhApiImporter.Helpers
             )
                 mergelist.Add(updateresultreduced);
 
-            return Tuple.Create<string, UpdateDetail>(
+            return Tuple.Create<string, List<UpdateDetail>>(
                 mypgdata.Id,
-                GenericResultsHelper.MergeUpdateDetail(mergelist)
+                mergelist
             );
         }
 
-        public async Task<Tuple<string, UpdateDetail>> DeletePGObject(
+        public async Task<Tuple<string, List<UpdateDetail>>> DeletePGObject(
             string id,
             string datatype,
             CancellationToken cancellationToken
@@ -1496,9 +1496,9 @@ namespace OdhApiImporter.Helpers
             )
                 mergelist.Add(deleteresultreduced);
 
-            return Tuple.Create<string, UpdateDetail>(
+            return Tuple.Create<string, List<UpdateDetail>>(
                 id,
-                GenericResultsHelper.MergeUpdateDetail(mergelist)
+                mergelist
             );
         }
 

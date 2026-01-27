@@ -33,7 +33,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Main Method, Gets the data (Webcams) from source, Imports and Parses the data, Sets Data no more on the interface to inactive
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -48,9 +48,7 @@ namespace OdhApiImporter.Helpers
             //Disable Data not in panomax list
             var deleteresult = await SetDataNotinListToInactive(cancellationToken);
 
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+            return new List<UpdateDetail>() { updateresult, deleteresult };
         }
 
         //Get Data from Source

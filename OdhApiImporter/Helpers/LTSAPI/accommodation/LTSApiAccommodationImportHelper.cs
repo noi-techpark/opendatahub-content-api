@@ -35,18 +35,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        //Not implemented here
-        public async Task<UpdateDetail> SaveDataToODH(
-            DateTime? lastchanged = null,
-            List<string>? idlist = null,
-            bool reduced = false,
-            CancellationToken cancellationToken = default
-        )
-        {
-            throw new NotImplementedException();
-        }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default

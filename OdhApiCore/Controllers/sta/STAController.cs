@@ -160,12 +160,12 @@ namespace OdhApiCore.Controllers.sta
                         updatetype = "all",
                         otherinfo = "STA",
                         id = "",
-                        message = "Import Vendingpoints failed: " + ex.Message,
-                        recordsmodified = 0,
+                        message = "Import Vendingpoints failed",                        
                         created = 0,
                         updated = 0,
                         deleted = 0,
-                        success = false,
+                        error = 1,
+                        exception = ex.Message                        
                     }
                 );
             }

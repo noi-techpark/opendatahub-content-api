@@ -32,7 +32,7 @@ namespace OdhApiImporter.Helpers
 
         #region EBMS Helpers
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -56,9 +56,7 @@ namespace OdhApiImporter.Helpers
             //todo check if resulttuple item1 is null
             var deleteresult = await DeleteDeletedEvents(resulttuple, currenteventshort.ToList());
 
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+            return new List<UpdateDetail>() { updateresult, deleteresult };
         }
 
         private async Task<UpdateDetail> ImportData(

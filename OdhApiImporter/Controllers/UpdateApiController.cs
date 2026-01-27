@@ -65,7 +65,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update Raven";
             string updatetype = "single";
             string source = "api";
@@ -84,16 +84,17 @@ namespace OdhApiImporter.Controllers
                     datatype,
                     cancellationToken
                 );
-                updatedetail = resulttuple.Item2;
+                updatedetaillist.AddRange(resulttuple.Item2);
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     resulttuple.Item1,
                     source,
                     operation,
                     updatetype,
                     "Update Raven succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -101,14 +102,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     id,
                     source,
                     operation,
                     updatetype,
                     "Update Raven failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -125,7 +126,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Delete Raven";
             string updatetype = "single";
             string source = "api";
@@ -144,16 +145,17 @@ namespace OdhApiImporter.Controllers
                     datatype,
                     cancellationToken
                 );
-                updatedetail = resulttuple.Item2;
+                updatedetaillist.AddRange(resulttuple.Item2);
 
-                var deleteResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var deleteResult = GenericResultsHelper.GetUpdateResult(
                     resulttuple.Item1,
                     source,
                     operation,
                     updatetype,
                     "Delete Raven succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -161,14 +163,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     id,
                     source,
                     operation,
                     updatetype,
                     "Delete Raven failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -188,33 +190,42 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetailFailureQueue updatedetail = default(UpdateDetailFailureQueue);
             string operation = "Update Failurequeue";
             string updatetype = "multiple";
             string source = "api";
             string otherinfo = "";
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
 
             try
             {
                 var resulttuple = await OdhPushnotifier.PushFailureQueueToPublishedonService(
                     new List<string>() { publishedon },
                     elementstoprocess
-                );
+                );                
 
-                updatedetail = new UpdateDetailFailureQueue()
-                {
-                    pushchannels = resulttuple.Keys,
-                    pushed = resulttuple,
-                };
+                List<IDictionary<string, NotifierResponse>> resultungrouped =
+                    resulttuple
+                        .SelectMany(kvp =>
+                            kvp.Value.Select(response =>
+                                (IDictionary<string, NotifierResponse>)
+                                new Dictionary<string, NotifierResponse>
+                                {
+                                    { kvp.Key, response }
+                                }))
+                        .ToList();
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                foreach (var item in resultungrouped)
+                    updatedetaillist.Add(new UpdateDetail() { pushed = item, pushchannels = item.Keys });
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Elaborate Failurequeue succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -222,14 +233,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Elaborate Failurequeue failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -257,7 +268,7 @@ namespace OdhApiImporter.Controllers
             [FromBody] List<string> idlist
         )
         {
-            UpdateDetailFailureQueue updatedetail = default(UpdateDetailFailureQueue);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update Custom";
             string updatetype = "multiple";
             string source = "api";
@@ -272,20 +283,29 @@ namespace OdhApiImporter.Controllers
                     null
                 );
 
-                updatedetail = new UpdateDetailFailureQueue()
-                {
-                    pushchannels = resulttuple.Keys,
-                    pushed = resulttuple,
-                };
+                List<IDictionary<string, NotifierResponse>> resultungrouped =
+                    resulttuple
+                        .SelectMany(kvp =>
+                            kvp.Value.Select(response =>
+                                (IDictionary<string, NotifierResponse>)
+                                new Dictionary<string, NotifierResponse>
+                                {
+                                    { kvp.Key, response }
+                                }))
+                        .ToList();
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                foreach (var item in resultungrouped)
+                    updatedetaillist.Add(new UpdateDetail() { pushed = item, pushchannels = item.Keys });
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Custom Update succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -293,14 +313,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Custom Update failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -320,7 +340,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update EBMS";
             string updatetype = GetUpdateType(null);
             string source = "ebms";
@@ -337,15 +357,17 @@ namespace OdhApiImporter.Controllers
                 if (forceupdate)
                     ebmsimporthelper.forceupdate = true;
 
-                updatedetail = await ebmsimporthelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await ebmsimporthelper.SaveDataToODH(null, null, cancellationToken));
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "EBMS Eventshorts update succeeded",
                     "",
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -353,14 +375,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "EBMS Eventshorts update failed",
                     "",
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -379,7 +401,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update Ninja Events";
             string updatetype = GetUpdateType(null);
             string source = "mobilityapi";
@@ -392,15 +414,16 @@ namespace OdhApiImporter.Controllers
                     "events",
                     UrlGeneratorStatic("NINJA/Events")
                 );
-                updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Ninja Events update succeeded",
                     "",
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -408,14 +431,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Ninja Events update failed",
                     "",
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -430,7 +453,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update Ninja EventsFlattened";
             string updatetype = GetUpdateType(null);
             string source = "mobilityapi";
@@ -443,15 +466,16 @@ namespace OdhApiImporter.Controllers
                     "eventsv2",
                     UrlGeneratorStatic("NINJA/EventFlattened")
                 );
-                updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Ninja EventsFlattened update succeeded",
                     "",
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -459,14 +483,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Ninja EventsFlattened update failed",
                     "",
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -481,7 +505,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update Ninja VenuesFlattened";
             string updatetype = GetUpdateType(null);
             string source = "mobilityapi";
@@ -494,15 +518,16 @@ namespace OdhApiImporter.Controllers
                     "venuesv2",
                     UrlGeneratorStatic("NINJA/VenueFlattened")
                 );
-                updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+            updatedetaillist.AddRange(await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Ninja VenuesFlattened update succeeded",
                     "",
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -510,14 +535,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Ninja VenuesFlattened update failed",
                     "",
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -532,7 +557,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update Ninja Echarging";
             string updatetype = GetUpdateType(null);
             string source = "mobilityapi";
@@ -545,15 +570,16 @@ namespace OdhApiImporter.Controllers
                     "odhactivitypoi",
                     UrlGeneratorStatic("NINJA/Echarging")
                 );
-                updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Ninja Echarging update succeeded",
                     "",
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -561,14 +587,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Ninja Echarging update failed",
                     "",
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -585,7 +611,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import Weather data";
             string updatetype = GetUpdateType(null);
             string source = "siag";
@@ -599,15 +625,16 @@ namespace OdhApiImporter.Controllers
                     "weatherdatahistory",
                     UrlGeneratorStatic("Siag/Weather")
                 );
-                updatedetail = await siagimporthelper.SaveWeatherToHistoryTable(cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.Add(await siagimporthelper.SaveWeatherToHistoryTable(cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import Weather data succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -615,14 +642,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import Weather data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -636,7 +663,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import Weather data";
             string updatetype = "single";
             string source = "siag";
@@ -650,18 +677,19 @@ namespace OdhApiImporter.Controllers
                     "weatherdatahistory",
                     UrlGeneratorStatic("Siag/Weather")
                 );
-                updatedetail = await siagimporthelper.SaveWeatherToHistoryTable(
+                updatedetaillist.Add(await siagimporthelper.SaveWeatherToHistoryTable(
                     cancellationToken,
                     id
-                );
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                ));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     id,
                     source,
                     operation,
                     updatetype,
                     "Import Weather data succeeded id:" + id.ToString(),
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -669,14 +697,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import Weather data failed id:" + id.ToString(),
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -694,7 +722,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import SIAG Museum data";
             string updatetype = GetUpdateType(null);
             string source = "siag";
@@ -708,16 +736,17 @@ namespace OdhApiImporter.Controllers
                     "smgpois",
                     UrlGeneratorStatic("Siag/Museum")
                 );
-                updatedetail = await siagimporthelper.SaveDataToODH(null, null, cancellationToken);
+                updatedetaillist.AddRange(await siagimporthelper.SaveDataToODH(null, null, cancellationToken));
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SIAG Museum data succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -725,14 +754,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SIAG Museum data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -746,7 +775,7 @@ namespace OdhApiImporter.Controllers
            CancellationToken cancellationToken = default
        )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import SIAG Museum Tag data";
             string updatetype = GetUpdateType(null);
             string source = "siag";
@@ -760,16 +789,17 @@ namespace OdhApiImporter.Controllers
                     "tags",
                     UrlGeneratorStatic("Siag/Museum")
                 );
-                updatedetail = await siagimporthelper.SaveDataToODH(null, null, cancellationToken);
+                updatedetaillist.AddRange(await siagimporthelper.SaveDataToODH(null, null, cancellationToken));
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SIAG Museum Tag data succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -777,14 +807,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SIAG Museum Tag data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -802,7 +832,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import SuedtirolWein Company data";
             string updatetype = GetUpdateType(null);
             string source = "suedtirolwein";
@@ -817,16 +847,17 @@ namespace OdhApiImporter.Controllers
                         "smgpois",
                         UrlGeneratorStatic("SuedtirolWein/Company")
                     );
-                updatedetail = await sweinimporthelper.SaveDataToODH(null, null, cancellationToken);
+                updatedetaillist.AddRange(await sweinimporthelper.SaveDataToODH(null, null, cancellationToken));
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SuedtirolWein Company data succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -834,14 +865,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SuedtirolWein Company data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -855,7 +886,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import SuedtirolWein WineAward data";
             string updatetype = GetUpdateType(null);
             string source = "suedtirolwein";
@@ -870,16 +901,17 @@ namespace OdhApiImporter.Controllers
                         "wines",
                         UrlGeneratorStatic("SuedtirolWein/WineAward")
                     );
-                updatedetail = await sweinimporthelper.SaveDataToODH(null, null, cancellationToken);
+                updatedetaillist.AddRange(await sweinimporthelper.SaveDataToODH(null, null, cancellationToken));
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SuedtirolWein WineAward data succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -887,14 +919,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SuedtirolWein WineAward data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -912,7 +944,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import SkiArea To ODHActivityPoi data";
             string updatetype = GetUpdateType(null);
             string source = "common";
@@ -927,16 +959,17 @@ namespace OdhApiImporter.Controllers
                         "smgpois",
                         UrlGeneratorStatic("Common/Skiarea")
                     );
-                updatedetail = await skiareasimporthelper.SaveDataToODH(null, null, cancellationToken);
+                updatedetaillist.AddRange(await skiareasimporthelper.SaveDataToODH(null, null, cancellationToken));
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SkiArea To ODHActivityPoi data succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -944,14 +977,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import SkiArea To ODHActivityPoi data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -970,7 +1003,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail result = default(UpdateDetail);
+            List<UpdateDetail> resultlist = new List<UpdateDetail>();
             string operation = "Import LTS Accommodation Cincode";
             string updatetype = GetUpdateType(new List<string>() { id });
             string source = "lts";
@@ -1017,7 +1050,7 @@ namespace OdhApiImporter.Controllers
                     accommodation.Mapping.TryAddOrUpdate("lts", ltsdict);
 
                     //Save the Accommodation
-                    result = await QueryFactory.UpsertData<AccommodationLinked>(
+                    var result = await QueryFactory.UpsertData<AccommodationLinked>(
                         accommodation,
                         new DataInfo("accommodations", CRUDOperation.Update)
                         {
@@ -1051,16 +1084,19 @@ namespace OdhApiImporter.Controllers
                             result.pushchannels.ToList()
                         );
                     }
+
+                    resultlist.Add(result);
                 }
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodation CinCode data succeeded",
                     otherinfo,
-                    result,
+                    resultlist,
+                    null,
                     true
                 );
 
@@ -1068,14 +1104,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodation CinCode data failed",
                     otherinfo,
-                    result,
+                    resultlist,
                     ex,
                     true
                 );
@@ -1105,7 +1141,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import Vendingpoints";
             string updatetype = GetUpdateType(null);
             string source = "xls";
@@ -1119,19 +1155,20 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("STA/Vendingpoints")
                 );
 
-                updatedetail = await staimporthelper.PostVendingPointsFromSTA(
+                updatedetaillist.Add(await staimporthelper.PostVendingPointsFromSTA(
                     Request,
                     cancellationToken
-                );
+                ));
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Import Vendingpoints succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1139,14 +1176,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Import Vendingpoints failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,                    
                     ex,
                     true
                 );
@@ -1166,7 +1203,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update DSS " + dssentity;
             string updatetype = GetUpdateType(null);
             string source = "dss";
@@ -1185,11 +1222,11 @@ namespace OdhApiImporter.Controllers
                             UrlGeneratorStatic("DSS/Webcam")
                         );
 
-                        updatedetail = await dsswebcamimporthelper.SaveDataToODH(
+                        updatedetaillist.AddRange(await dsswebcamimporthelper.SaveDataToODH(
                             null,
                             null,
                             cancellationToken
-                        );
+                        ));
                         break;
 
                     default:
@@ -1201,22 +1238,23 @@ namespace OdhApiImporter.Controllers
                         );
                         dssimporthelper.entitytype = dssentity.ToLower();
 
-                        updatedetail = await dssimporthelper.SaveDataToODH(
+                        updatedetaillist.AddRange(await dssimporthelper.SaveDataToODH(
                             null,
                             null,
                             cancellationToken
-                        );
+                        ));
                         break;
                 }
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "DSS " + dssentity + " update succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1224,14 +1262,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "DSS " + dssentity + " update failed",
                     "",
-                    updatedetail,
+                    updatedetaillist,                   
                     ex,
                     true
                 );
@@ -1246,7 +1284,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update DSS skiarea";
             string updatetype = GetUpdateType(null);
             string source = "dss";
@@ -1261,16 +1299,17 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("DSS/SkiArea")
                 );
 
-                updatedetail = await dssimporthelper.SaveDataToODH(null, null, cancellationToken);
+                updatedetaillist.AddRange(await dssimporthelper.SaveDataToODH(null, null, cancellationToken));
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "DSS skiarea update succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1278,14 +1317,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "DSS skiarea update failed",
                     "",
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1304,7 +1343,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import Looptec Ejobs";
             string updatetype = GetUpdateType(null);
             string source = "looptec";
@@ -1319,19 +1358,21 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("LOOPTEC/Ejobs")
                 );
 
-                updatedetail = await looptecejobsimporthelper.SaveDataToODH(
+                updatedetaillist.AddRange(await looptecejobsimporthelper.SaveDataToODH(
                     null,
                     null,
                     cancellationToken
-                );
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                ));
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import Looptec Ejobs succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1339,14 +1380,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import Looptec Ejobs failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1364,7 +1405,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import PANOMAX Webcam";
             string updatetype = GetUpdateType(null);
             string source = "panomax";
@@ -1379,19 +1420,21 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("PANOMAX/Webcam")
                 );
 
-                updatedetail = await panomaximporthelper.SaveDataToODH(
+                updatedetaillist.AddRange(await panomaximporthelper.SaveDataToODH(
                     null,
                     null,
                     cancellationToken
-                );
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                ));
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import PANOMAX Webcam succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1399,14 +1442,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import PANOMAX Webcam failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1424,7 +1467,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import PANOCLOUD Webcam";
             string updatetype = GetUpdateType(null);
             string source = "panocloud";
@@ -1439,19 +1482,20 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("PANOCLOUD/Webcam")
                 );
 
-                updatedetail = await panocloudimporthelper.SaveDataToODH(
+                updatedetaillist.AddRange(await panocloudimporthelper.SaveDataToODH(
                     null,
                     null,
                     cancellationToken
-                );
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                ));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import PANOCLOUD Webcam succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1459,14 +1503,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import PANOCLOUD Webcam failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1484,7 +1528,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import FERATEL Wecam";
             string updatetype = GetUpdateType(null);
             string source = "feratel";
@@ -1499,19 +1543,20 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("FERATEL/Wecam")
                 );
 
-                updatedetail = await feratelwebcamimporthelper.SaveDataToODH(
+                updatedetaillist.AddRange(await feratelwebcamimporthelper.SaveDataToODH(
                     null,
                     null,
                     cancellationToken
-                );
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                ));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import FERATEL Wecam succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1519,14 +1564,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import FERATEL Wecam failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1545,7 +1590,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import A22 " + a22entity;
             string updatetype = GetUpdateType(null);
             string source = "a22";
@@ -1565,11 +1610,11 @@ namespace OdhApiImporter.Controllers
                             "webcams",
                             UrlGeneratorStatic("A22/Webcam")
                         );
-                        updatedetail = await a22importhelper.SaveDataToODH(
+                        updatedetaillist.AddRange(await a22importhelper.SaveDataToODH(
                             null,
                             null,
                             cancellationToken
-                        );
+                        ));
 
                         break;
                     case "servicearea":
@@ -1580,11 +1625,11 @@ namespace OdhApiImporter.Controllers
                             UrlGeneratorStatic("A22/ServiceArea"),
                             a22entity.ToLower()
                         );
-                        updatedetail = await a22importhelper.SaveDataToODH(
+                        updatedetaillist.AddRange(await a22importhelper.SaveDataToODH(
                             null,
                             null,
                             cancellationToken
-                        );
+                        ));
 
                         break;
                     case "tollstation":
@@ -1595,23 +1640,24 @@ namespace OdhApiImporter.Controllers
                             UrlGeneratorStatic("A22/Tollstation"),
                             a22entity.ToLower()
                         );
-                        updatedetail = await a22importhelper.SaveDataToODH(
+                        updatedetaillist.AddRange(await a22importhelper.SaveDataToODH(
                             null,
                             null,
                             cancellationToken
-                        );
+                        ));
 
                         break;
                 }
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import A22 " + a22entity + " succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1619,14 +1665,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import A22 " + a22entity + " failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1646,7 +1692,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS SuedtirolGuestpass Cardtypes";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -1661,15 +1707,17 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("LTS/SuedtirolGuestpass/Cardtypes")
                 );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS SuedtirolGuestpass Cardtypes succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1677,14 +1725,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS SuedtirolGuestpass Cardtypes data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1700,7 +1748,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Events Tags";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -1715,15 +1763,16 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("LTS/Events/Tags")
                 );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Events Tags succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist, 
+                    null,
                     true
                 );
 
@@ -1731,14 +1780,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Events Tags data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1754,7 +1803,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Events Tags To ODH Tags";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -1771,15 +1820,16 @@ namespace OdhApiImporter.Controllers
                         OdhPushnotifier
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Events Tags succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1787,14 +1837,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Events Tags data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1810,7 +1860,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Events Categories";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -1826,15 +1876,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Events/Categories")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Events Categories succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -1842,14 +1893,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Events Categories data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1865,7 +1916,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Events Classifications";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -1881,15 +1932,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Events/Classifications")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Events Classifications succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist, 
+                    null,
                     true
                 );
 
@@ -1897,14 +1949,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Events Classifications data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1920,7 +1972,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Gastronomies Categories";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -1936,15 +1988,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Gastronomies/Categories")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Gastronomies Categories succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist, 
+                    null,
                     true
                 );
 
@@ -1952,14 +2005,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Gastronomies Categories data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -1975,7 +2028,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Gastronomies Facilities";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -1991,15 +2044,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Gastronomies/Facilities")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Gastronomies Facilities succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2007,14 +2061,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Gastronomies Facilities data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2030,7 +2084,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Gastronomies CeremonyCodes";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2046,15 +2100,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Gastronomies/CeremonyCodes")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Gastronomies CeremonyCodes succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2062,14 +2117,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Gastronomies CeremonyCodes data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2085,7 +2140,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Gastronomies DishCodes";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2101,15 +2156,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Gastronomies/DishCodes")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Gastronomies DishCodes succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2117,14 +2173,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Gastronomies DishCodes data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2140,7 +2196,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Accommodations Categories";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2156,15 +2212,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Accommodations/Categories")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodations Categories succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2172,14 +2229,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodations Categories data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2195,7 +2252,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Accommodations Mealplans";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2211,15 +2268,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Accommodations/Mealplans")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodations Mealplans succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2227,14 +2285,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodations Mealplans data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2250,7 +2308,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Accommodation Types";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2266,15 +2324,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Accommodation/Types")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodation Types succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2282,14 +2341,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodation Types data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2305,7 +2364,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Accommodations Amenities";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2320,15 +2379,16 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("LTS/Accommodations/Amenities")
                 );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodations Amenities succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2336,14 +2396,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Accommodations Amenities data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2359,7 +2419,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Venues Categories";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2375,15 +2435,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Venues/Categories")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Venues Categories succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2391,14 +2452,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Venues Categories data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2414,7 +2475,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS Venues HallFeatures";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2430,15 +2491,16 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("LTS/Venues/HallFeatures")
                     );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Venues HallFeatures succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2446,14 +2508,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS Venues HallFeatures data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2469,7 +2531,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS ODHActivityPois Tags";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2484,15 +2546,16 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("LTS/ODHActivityPois/Tags")
                 );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS ODHActivityPois Tags succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2500,14 +2563,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS ODHActivityPois Tags data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2523,7 +2586,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import LTS ODHActivityPois TagProperties";
             string updatetype = GetUpdateType(null);
             string source = "lts";
@@ -2538,15 +2601,16 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("LTS/ODHActivityPois/TagProperties")
                 );
 
-                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(await importhelper.SaveDataToODH(null, null, cancellationToken));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS ODHActivityPois TagProperties succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2554,14 +2618,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import LTS ODHActivityPois TagProperties data failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2582,7 +2646,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update LTS";
             string updatetype = "single.synctrigger";
             string source = "api";
@@ -2624,10 +2688,9 @@ namespace OdhApiImporter.Controllers
                     }
                 }
 
-               
 
-                Tuple<string,UpdateDetail> resulttuple = default(Tuple<string,UpdateDetail>);
-
+                string returnedid = "";
+                
                 if (datatype == "accommodation")
                 {
                     RavenImportHelper ravenimporthelper = new RavenImportHelper(
@@ -2636,12 +2699,13 @@ namespace OdhApiImporter.Controllers
                         UrlGeneratorStatic("Raven/" + datatype),
                         OdhPushnotifier
                     );
-                    resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
+                    var resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
                         id,
                         datatype,
                         cancellationToken
                     );
-                    updatedetail = resulttuple.Item2;
+                    returnedid = resulttuple.Item1;
+                    updatedetaillist.AddRange(resulttuple.Item2);
                 }
                 else
                 {
@@ -2652,22 +2716,24 @@ namespace OdhApiImporter.Controllers
                        OdhPushnotifier
                    );
 
-                    resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
+                    var resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
                         idtopass,
                         datatypecalculated,
                         cancellationToken
                     );
-                    updatedetail = resulttuple.Item2;
+                    returnedid = resulttuple.Item1;
+                    updatedetaillist.AddRange(resulttuple.Item2);
                 }
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    resulttuple.Item1,
+                var updateResult = GenericResultsHelper.GetUpdateResult(
+                    returnedid,
                     source,
                     operation,
                     updatetype,
                     "Update LTS succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2675,14 +2741,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     id,
                     source,
                     operation,
                     updatetype,
                     "Update LTS failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2712,7 +2778,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update LTS";
             string updatetype = "single";
             string source = "api";
@@ -2731,16 +2797,17 @@ namespace OdhApiImporter.Controllers
                     datatype,
                     cancellationToken
                 );
-                updatedetail = resulttuple.Item2;
+                updatedetaillist.AddRange(resulttuple.Item2);
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     resulttuple.Item1,
                     source,
                     operation,
                     updatetype,
                     "Update LTS succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -2748,14 +2815,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     id,
                     source,
                     operation,
                     updatetype,
                     "Update LTS failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2779,7 +2846,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update LTS";
             string updatetype = "lastchanged";
             string source = "api";
@@ -2803,28 +2870,31 @@ namespace OdhApiImporter.Controllers
                     cancellationToken
                 );
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(result.Item2);
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     result.Item1,
                     source,
                     operation,
                     updatetype,
                     "Update LTS succeeded",
                     otherinfo,
-                    result.Item2,
+                    updatedetaillist,
+                    null,
                     true);
 
                 return Ok(updateResult);
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Update LTS failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2842,7 +2912,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update LTS";
             string updatetype = "deleted";
             string source = "api";
@@ -2866,28 +2936,31 @@ namespace OdhApiImporter.Controllers
                     cancellationToken
                 );
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(result.Item2);
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     result.Item1,
                     source,
                     operation,
                     updatetype,
                     "Update LTS succeeded",
                     otherinfo,
-                    result.Item2,
+                    updatedetaillist,
+                    null,
                     true);
 
                 return Ok(updateResult);
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Update LTS failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2905,7 +2978,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Update LTS";
             string updatetype = "activeinactive";
             string source = "api";
@@ -2925,28 +2998,31 @@ namespace OdhApiImporter.Controllers
                     cancellationToken
                 );
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                updatedetaillist.AddRange(result.Item2);
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     result.Item1,
                     source,
                     operation,
                     updatetype,
                     "Update LTS succeeded",
                     otherinfo,
-                    result.Item2,
+                    updatedetaillist,
+                    null,
                     true);
 
                 return Ok(updateResult);
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     "Update LTS failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -2963,7 +3039,7 @@ namespace OdhApiImporter.Controllers
            CancellationToken cancellationToken = default
        )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Delete LTS";
             string updatetype = "single";
             string source = "api";
@@ -2984,16 +3060,17 @@ namespace OdhApiImporter.Controllers
                     datatype,
                     cancellationToken
                 );
-                updatedetail = result.Item2;
+                updatedetaillist.AddRange(result.Item2);
 
-                var deleteResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var deleteResult = GenericResultsHelper.GetUpdateResult(
                     result.Item1,
                     source,
                     operation,
                     updatetype,
                     "Delete LTS succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -3001,14 +3078,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     id,
                     source,
                     operation,
                     updatetype,
                     "Delete LTS failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -3031,7 +3108,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import Outdooractive " + datatype;
             string updatetype = GetUpdateType(null);
             string source = "outdooractive";
@@ -3053,19 +3130,21 @@ namespace OdhApiImporter.Controllers
                 outdooractiveimporthelper.SetType(datatype);
                 outdooractiveimporthelper.updatefrom = lastchangeddate;
 
-                updatedetail = await outdooractiveimporthelper.SaveDataToODH(
+                updatedetaillist.AddRange(await outdooractiveimporthelper.SaveDataToODH(
                     null,
                     null,
                     cancellationToken
-                );
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                ));
+
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     $"Import Outdooractive {datatype} succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -3073,14 +3152,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                      $"Import Outdooractive {datatype} failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -3104,7 +3183,7 @@ namespace OdhApiImporter.Controllers
             //hikingtrails
             //intermunicipalcyclingroutes
 
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import DIGIWAY " + identifier;
             string updatetype = GetUpdateType(null);
             string source = "digiway";
@@ -3130,10 +3209,10 @@ namespace OdhApiImporter.Controllers
                     digiwayimporthelper.identifier = identifier.ToLower(); 
                     digiwayimporthelper.source = digiwayconfig.Source;
 
-                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                    updatedetaillist.AddRange(await digiwayimporthelper.SaveDataToODH(
                                             null,
                                             null,
-                                            cancellationToken);
+                                            cancellationToken));
                 }
                 else if (digiwayconfig.Source == "dservices3.arcgis.com")
                 {
@@ -3148,10 +3227,10 @@ namespace OdhApiImporter.Controllers
                     digiwayimporthelper.source = digiwayconfig.Source;
                     digiwayimporthelper.srid = digiwayconfig.SRid;
 
-                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                    updatedetaillist.AddRange(await digiwayimporthelper.SaveDataToODH(
                                             null,
                                             null,
-                                            cancellationToken);
+                                            cancellationToken));
                 }
                 else if (digiwayconfig.Source == "siat.provincia.tn.it")
                 {
@@ -3166,21 +3245,22 @@ namespace OdhApiImporter.Controllers
                     digiwayimporthelper.source = digiwayconfig.Source;
                     digiwayimporthelper.srid = digiwayconfig.SRid;
 
-                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                    updatedetaillist.AddRange(await digiwayimporthelper.SaveDataToODH(
                                             null,
                                             null,
-                                            cancellationToken);
+                                            cancellationToken));
                 }
 
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                         null,
                         source,
                         operation,
                         updatetype,
                         "Import DIGIWAY " + identifier + " succeeded",
                         otherinfo,
-                        updatedetail,
+                        updatedetaillist,
+                        null,
                         true
                     );
 
@@ -3188,14 +3268,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import DIGIWAY " + identifier + " failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -3213,7 +3293,7 @@ namespace OdhApiImporter.Controllers
         CancellationToken cancellationToken = default
     )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = "Import GTFSAPI StaTimeTablesStops";
             string updatetype = GetUpdateType(null);
             string source = "gtfsapi";
@@ -3228,19 +3308,20 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("GTFSAPI/StaTimeTablesStops")
                 );
 
-                updatedetail = await gtfsapiimporthelper.SaveDataToODH(
+                updatedetaillist.AddRange(await gtfsapiimporthelper.SaveDataToODH(
                     null,
                     null,
                     cancellationToken
-                );
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                ));
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import GTFSAPI StaTimeTablesStops succeeded",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
+                    null,
                     true
                 );
 
@@ -3248,14 +3329,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     null,
                     source,
                     operation,
                     updatetype,
                     "Import GTFSAPI StaTimeTablesStops failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );
@@ -3273,7 +3354,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
             string operation = $"Import HDS {type}";
             string updatetype = GetUpdateType(null);
             string source = "csv";
@@ -3287,20 +3368,21 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("HDS/MarketCalendar"),
                     type
                 );
-                
-                updatedetail = await hdsimporthelper.PostHDSMarketCalendar(
+
+                updatedetaillist.Add(await hdsimporthelper.PostHDSMarketCalendar(
                 Request,
                 cancellationToken
-                );
+                ));
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                         "",
                         source,
                         operation,
                         updatetype,
                         $"Import HDS {type} succeeded",
                         otherinfo,
-                        updatedetail,
+                        updatedetaillist,
+                        null,
                         true
                     );
 
@@ -3308,14 +3390,14 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     operation,
                     updatetype,
                     $"Import HDS {type} failed",
                     otherinfo,
-                    updatedetail,
+                    updatedetaillist,
                     ex,
                     true
                 );

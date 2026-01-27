@@ -554,7 +554,7 @@ namespace OdhApiCore.Controllers
         protected IActionResult ReturnUpdateResult(UpdateDetail detailresult, string? source, string? message, bool createlog)
         {
             //Use UpdateResult here
-            var result = GenericResultsHelper.GetUpdateResultFromUpdateDetail(source, message, detailresult, createlog);
+            var result = GenericResultsHelper.GetUpdateResult(null, source, detailresult.operation, "single", message, detailresult.type, new List<UpdateDetail>() { detailresult }, null, createlog);
 
             ///Give shorter Error messages to display directly in the databrowser
             ///TODO some optimizations

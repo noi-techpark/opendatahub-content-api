@@ -48,7 +48,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Update Single Data                
-        public async Task<Tuple<string, UpdateDetail>> UpdateSingleDataFromLTSApi(
+        public async Task<Tuple<string, List<UpdateDetail>>> UpdateSingleDataFromLTSApi(
             string id,
             string datatype,
             CancellationToken cancellationToken
@@ -230,14 +230,14 @@ namespace OdhApiImporter.Helpers
                 mergelist.Add(updateresultreduced);
             }                
 
-            return Tuple.Create<string, UpdateDetail>(
+            return Tuple.Create<string, List<UpdateDetail>>(
                 id,
-                GenericResultsHelper.MergeUpdateDetail(mergelist)
+                mergelist
             );
         }
 
         //Delete or Deactivate Single Data        
-        public async Task<Tuple<string, UpdateDetail>> DeleteSingleDataFromLTSApi(
+        public async Task<Tuple<string, List<UpdateDetail>>> DeleteSingleDataFromLTSApi(
             string id,
             string datatype,
             CancellationToken cancellationToken
@@ -410,25 +410,22 @@ namespace OdhApiImporter.Helpers
                 mergelist.Add(updateresultreduced);
             }
 
-            return Tuple.Create<string, UpdateDetail>(
+            return Tuple.Create<string, List<UpdateDetail>>(
                 id,
-                GenericResultsHelper.MergeUpdateDetail(mergelist)
+                mergelist
             );
         }
 
         //Update LastChanged Data (By using Update single data)
-        public async Task<Tuple<string, UpdateDetail>> UpdateLastChangedDataFromLTSApi(
+        public async Task<Tuple<string, List<UpdateDetail>>> UpdateLastChangedDataFromLTSApi(
             DateTime lastchanged,
             string datatype,
             CancellationToken cancellationToken
         )
         {
-            Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>);
+            Tuple<string, List<UpdateDetail>> updatedetail = default(Tuple<string, List<UpdateDetail>>);
             var lastchangedlist = default(List<string>);
-            int? updatecounter = 0;
-            int? createcounter = 0;
-            int? deletecounter = 0;
-            int? errorcounter = 0;
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
 
             switch (datatype.ToLower())
             {
@@ -446,8 +443,9 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "event", cancellationToken);
+                        updatedetaillist.AddRange(resulttuple.Item2);
 
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             resulttuple.Item1,
                             "api",
                             "Update LTS",
@@ -455,16 +453,12 @@ namespace OdhApiImporter.Helpers
                             "Update LTS succeeded",
                             datatype.ToLower(),
                             resulttuple.Item2,
+                            null,
                             true
-                        );
-
-                        createcounter = resulttuple.Item2.created + createcounter;
-                        updatecounter = resulttuple.Item2.updated + updatecounter;
-                        deletecounter = resulttuple.Item2.deleted + deletecounter;
-                        errorcounter = resulttuple.Item2.error + errorcounter;
+                        );                        
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -482,8 +476,9 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "gastronomy", cancellationToken);
+                        updatedetaillist.AddRange(resulttuple.Item2);
 
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             resulttuple.Item1,
                             "api",
                             "Update LTS",
@@ -491,16 +486,12 @@ namespace OdhApiImporter.Helpers
                             "Update LTS succeeded",
                             datatype.ToLower(),
                             resulttuple.Item2,
+                            null,
                             true
                         );
-
-                        createcounter = resulttuple.Item2.created + createcounter;
-                        updatecounter = resulttuple.Item2.updated + updatecounter;
-                        deletecounter = resulttuple.Item2.deleted + deletecounter;
-                        errorcounter = resulttuple.Item2.error + errorcounter;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -518,8 +509,9 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "poi", cancellationToken);
+                        updatedetaillist.AddRange(resulttuple.Item2);
 
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             resulttuple.Item1,
                             "api",
                             "Update LTS",
@@ -527,16 +519,12 @@ namespace OdhApiImporter.Helpers
                             "Update LTS succeeded",
                             datatype.ToLower(),
                             resulttuple.Item2,
+                            null,
                             true
                         );
-
-                        createcounter = resulttuple.Item2.created + createcounter;
-                        updatecounter = resulttuple.Item2.updated + updatecounter;
-                        deletecounter = resulttuple.Item2.deleted + deletecounter;
-                        errorcounter = resulttuple.Item2.error + errorcounter;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -554,8 +542,9 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "activity", cancellationToken);
+                        updatedetaillist.AddRange(resulttuple.Item2);
 
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             resulttuple.Item1,
                             "api",
                             "Update LTS",
@@ -563,16 +552,12 @@ namespace OdhApiImporter.Helpers
                             "Update LTS succeeded",
                             datatype.ToLower(),
                             resulttuple.Item2,
+                            null,
                             true
                         );
-
-                        createcounter = resulttuple.Item2.created + createcounter;
-                        updatecounter = resulttuple.Item2.updated + updatecounter;
-                        deletecounter = resulttuple.Item2.deleted + deletecounter;
-                        errorcounter = resulttuple.Item2.error + errorcounter;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -590,8 +575,9 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "venue", cancellationToken);
+                        updatedetaillist.AddRange(resulttuple.Item2);
 
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             resulttuple.Item1,
                             "api",
                             "Update LTS",
@@ -599,16 +585,12 @@ namespace OdhApiImporter.Helpers
                             "Update LTS succeeded",
                             datatype.ToLower(),
                             resulttuple.Item2,
+                            null,
                             true
-                        );
-
-                        createcounter = resulttuple.Item2.created + createcounter;
-                        updatecounter = resulttuple.Item2.updated + updatecounter;
-                        deletecounter = resulttuple.Item2.deleted + deletecounter;
-                        errorcounter = resulttuple.Item2.error + errorcounter;
+                        );                        
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -626,8 +608,9 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "measuringpoint", cancellationToken);
+                        updatedetaillist.AddRange(resulttuple.Item2);
 
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             resulttuple.Item1,
                             "api",
                             "Update LTS",
@@ -635,16 +618,12 @@ namespace OdhApiImporter.Helpers
                             "Update LTS succeeded",
                             datatype.ToLower(),
                             resulttuple.Item2,
+                            null,
                             true
-                        );
-
-                        createcounter = resulttuple.Item2.created + createcounter;
-                        updatecounter = resulttuple.Item2.updated + updatecounter;
-                        deletecounter = resulttuple.Item2.deleted + deletecounter;
-                        errorcounter = resulttuple.Item2.error + errorcounter;
+                        );                        
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -662,8 +641,9 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "webcam", cancellationToken);
+                        updatedetaillist.AddRange(resulttuple.Item2);
 
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             resulttuple.Item1,
                             "api",
                             "Update LTS",
@@ -671,16 +651,12 @@ namespace OdhApiImporter.Helpers
                             "Update LTS succeeded",
                             datatype.ToLower(),
                             resulttuple.Item2,
+                            null,
                             true
                         );
-
-                        createcounter = resulttuple.Item2.created + createcounter;
-                        updatecounter = resulttuple.Item2.updated + updatecounter;
-                        deletecounter = resulttuple.Item2.deleted + deletecounter;
-                        errorcounter = resulttuple.Item2.error + errorcounter;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -692,18 +668,15 @@ namespace OdhApiImporter.Helpers
         }
 
         //Update Deleted Data (By using Delete or deactivate single data)
-        public async Task<Tuple<string, UpdateDetail>> UpdateDeletedDataFromLTSApi(
+        public async Task<Tuple<string, List<UpdateDetail>>> UpdateDeletedDataFromLTSApi(
             DateTime lastchanged,
             string datatype,
             CancellationToken cancellationToken
         )
         {
-            Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>);
+            Tuple<string, List<UpdateDetail>> updatedetail = default(Tuple<string, List<UpdateDetail>>);
             var lastchangedlist = default(List<string>);
-            int? updatecounter = 0;
-            int? createcounter = 0;
-            int? deletecounter = 0;
-            int? errorcounter = 0;
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
 
             switch (datatype.ToLower())
             {
@@ -735,35 +708,24 @@ namespace OdhApiImporter.Helpers
                                     datatype
                                 );
 
+                        updatedetaillist.Add(updateresult);
+                        updatedetaillist.Add(updateresultreduced);
+
                         //Create Delete/Disable Log
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             id,
                             "api",
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
                             datatype.ToLower(),
-                            updateresult,
+                            new List<UpdateDetail>() { updateresult, updateresultreduced },
+                            null,
                             true
                         );
-
-                        createcounter = updateresult.created + createcounter;
-                        updatecounter = updateresult.updated + updatecounter;
-                        deletecounter = updateresult.deleted + deletecounter;
-                        errorcounter = updateresult.error + errorcounter;
-
-                        //Add also Reduced info
-                        if(updateresultreduced.created != null)
-                            createcounter = createcounter + updateresultreduced.created;
-                        if (updateresultreduced.updated != null)
-                            updatecounter = updatecounter + updateresultreduced.updated;
-                        if (updateresultreduced.deleted != null)
-                            deletecounter = deletecounter + updateresultreduced.deleted;
-                        if (updateresultreduced.error != null)
-                            errorcounter = errorcounter + updateresultreduced.error;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -799,35 +761,24 @@ namespace OdhApiImporter.Helpers
                                     datatype
                                 );
 
+                        updatedetaillist.Add(updateresult);
+                        updatedetaillist.Add(updateresultreduced);
+
                         //Create Delete/Disable Log
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             id,
                             "api",
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
                             datatype.ToLower(),
-                            updateresult,
+                            new List<UpdateDetail>() { updateresult, updateresultreduced },
+                            null,
                             true
                         );
-
-                        createcounter = updateresult.created + createcounter;
-                        updatecounter = updateresult.updated + updatecounter;
-                        deletecounter = updateresult.deleted + deletecounter;
-                        errorcounter = updateresult.error + errorcounter;
-
-                        //Add also Reduced info
-                        if (updateresultreduced.created != null)
-                            createcounter = createcounter + updateresultreduced.created;
-                        if (updateresultreduced.updated != null)
-                            updatecounter = updatecounter + updateresultreduced.updated;
-                        if (updateresultreduced.deleted != null)
-                            deletecounter = deletecounter + updateresultreduced.deleted;
-                        if (updateresultreduced.error != null)
-                            errorcounter = errorcounter + updateresultreduced.error;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -863,35 +814,24 @@ namespace OdhApiImporter.Helpers
                                     datatype
                                 );
 
+                        updatedetaillist.Add(updateresult);
+                        updatedetaillist.Add(updateresultreduced);
+
                         //Create Delete/Disable Log
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             id,
                             "api",
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
                             datatype.ToLower(),
-                            updateresult,
+                            new List<UpdateDetail>() { updateresult, updateresultreduced },
+                            null,
                             true
-                        );
-
-                        createcounter = updateresult.created + createcounter;
-                        updatecounter = updateresult.updated + updatecounter;
-                        deletecounter = updateresult.deleted + deletecounter;
-                        errorcounter = updateresult.error + errorcounter;
-
-                        //Add also Reduced info
-                        if (updateresultreduced.created != null)
-                            createcounter = createcounter + updateresultreduced.created;
-                        if (updateresultreduced.updated != null)
-                            updatecounter = updatecounter + updateresultreduced.updated;
-                        if (updateresultreduced.deleted != null)
-                            deletecounter = deletecounter + updateresultreduced.deleted;
-                        if (updateresultreduced.error != null)
-                            errorcounter = errorcounter + updateresultreduced.error;
+                        );                                                
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -927,35 +867,25 @@ namespace OdhApiImporter.Helpers
                                     datatype
                                 );
 
+                        updatedetaillist.Add(updateresult);
+                        updatedetaillist.Add(updateresultreduced);
+
+
                         //Create Delete/Disable Log
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             id,
                             "api",
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
                             datatype.ToLower(),
-                            updateresult,
+                            new List<UpdateDetail>() { updateresult, updateresultreduced },
+                            null,
                             true
-                        );
-
-                        createcounter = updateresult.created + createcounter;
-                        updatecounter = updateresult.updated + updatecounter;
-                        deletecounter = updateresult.deleted + deletecounter;
-                        errorcounter = updateresult.error + errorcounter;
-
-                        //Add also Reduced info
-                        if (updateresultreduced.created != null)
-                            createcounter = createcounter + updateresultreduced.created;
-                        if (updateresultreduced.updated != null)
-                            updatecounter = updatecounter + updateresultreduced.updated;
-                        if (updateresultreduced.deleted != null)
-                            deletecounter = deletecounter + updateresultreduced.deleted;
-                        if (updateresultreduced.error != null)
-                            errorcounter = errorcounter + updateresultreduced.error;
+                        );          
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -991,35 +921,26 @@ namespace OdhApiImporter.Helpers
                                     datatype
                                 );
 
+                        updatedetaillist.Add(updateresult);
+                        updatedetaillist.Add(updateresultreduced);
+
+
                         //Create Delete/Disable Log
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             id,
                             "api",
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
                             datatype.ToLower(),
-                            updateresult,
+                            new List<UpdateDetail>() { updateresult, updateresultreduced },
+                            null,
                             true
                         );
-
-                        createcounter = updateresult.created + createcounter;
-                        updatecounter = updateresult.updated + updatecounter;
-                        deletecounter = updateresult.deleted + deletecounter;
-                        errorcounter = updateresult.error + errorcounter;
-
-                        //Add also Reduced info
-                        if (updateresultreduced.created != null)
-                            createcounter = createcounter + updateresultreduced.created;
-                        if (updateresultreduced.updated != null)
-                            updatecounter = updatecounter + updateresultreduced.updated;
-                        if (updateresultreduced.deleted != null)
-                            deletecounter = deletecounter + updateresultreduced.deleted;
-                        if (updateresultreduced.error != null)
-                            errorcounter = errorcounter + updateresultreduced.error;
+                        
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -1055,35 +976,24 @@ namespace OdhApiImporter.Helpers
                                     datatype
                                 );
 
+                        updatedetaillist.Add(updateresult);
+                        updatedetaillist.Add(updateresultreduced);
+
                         //Create Delete/Disable Log
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             id,
                             "api",
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
                             datatype.ToLower(),
-                            updateresult,
+                            new List<UpdateDetail>() { updateresult, updateresultreduced },
+                            null,
                             true
                         );
-
-                        createcounter = updateresult.created + createcounter;
-                        updatecounter = updateresult.updated + updatecounter;
-                        deletecounter = updateresult.deleted + deletecounter;
-                        errorcounter = updateresult.error + errorcounter;
-
-                        //Add also Reduced info
-                        if (updateresultreduced.created != null)
-                            createcounter = createcounter + updateresultreduced.created;
-                        if (updateresultreduced.updated != null)
-                            updatecounter = updatecounter + updateresultreduced.updated;
-                        if (updateresultreduced.deleted != null)
-                            deletecounter = deletecounter + updateresultreduced.deleted;
-                        if (updateresultreduced.error != null)
-                            errorcounter = errorcounter + updateresultreduced.error;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -1119,35 +1029,25 @@ namespace OdhApiImporter.Helpers
                                     datatype
                                 );
 
+                        updatedetaillist.Add(updateresult);
+                        updatedetaillist.Add(updateresultreduced);
+
+
                         //Create Delete/Disable Log
-                        GenericResultsHelper.GetSuccessUpdateResult(
+                        GenericResultsHelper.GetUpdateResult(
                             id,
                             "api",
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
                             datatype.ToLower(),
-                            updateresult,
+                            new List<UpdateDetail>() { updateresult, updateresultreduced },
+                            null,
                             true
                         );
-
-                        createcounter = updateresult.created + createcounter;
-                        updatecounter = updateresult.updated + updatecounter;
-                        deletecounter = updateresult.deleted + deletecounter;
-                        errorcounter = updateresult.error + errorcounter;
-
-                        //Add also Reduced info
-                        if (updateresultreduced.created != null)
-                            createcounter = createcounter + updateresultreduced.created;
-                        if (updateresultreduced.updated != null)
-                            updatecounter = updatecounter + updateresultreduced.updated;
-                        if (updateresultreduced.deleted != null)
-                            deletecounter = deletecounter + updateresultreduced.deleted;
-                        if (updateresultreduced.error != null)
-                            errorcounter = errorcounter + updateresultreduced.error;
                     }
 
-                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), updatedetaillist);
 
                     break;
 
@@ -1159,13 +1059,15 @@ namespace OdhApiImporter.Helpers
         }
 
         //Finish Active/Inactive Sync (TO CHECK IF needed outside of Gastromy)
-        public async Task<Tuple<string, UpdateDetail>> UpdateActiveInactiveDataFromLTSApi(
+        public async Task<Tuple<string, List<UpdateDetail>>> UpdateActiveInactiveDataFromLTSApi(
             bool onlyactive,
             string datatype,
             CancellationToken cancellationToken
         )
         {
-            Tuple<string, UpdateDetail> updatedetail = default(Tuple<string, UpdateDetail>);
+            Tuple<string, List<UpdateDetail>> updatedetail = default(Tuple<string, List<UpdateDetail>>);
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
+
             var activelist = default(List<string>);
             var activelistinDB = default(List<string>);
             var idstodelete = default(List<string>?);
@@ -1174,8 +1076,7 @@ namespace OdhApiImporter.Helpers
             List<string> datatoprocesslist = new List<string>() { "full", "reduced" };
 
             bool reduced = false;
-
-            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
+            
             List<string> updatedidlist = new List<string>();
 
             switch (datatype.ToLower())
@@ -1189,12 +1090,7 @@ namespace OdhApiImporter.Helpers
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
-                    {
-                        int? updatecounter = 0;
-                        int? createcounter = 0;
-                        int? deletecounter = 0;
-                        int? errorcounter = 0;
-
+                    {                        
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -1223,47 +1119,39 @@ namespace OdhApiImporter.Helpers
                                             id,
                                             datatype
                                         );
+
+                                updatedetaillist.Add(updateresult);
                             }
 
-                            if(reduced)
+                            if (reduced)
+                            {
                                 //Get Reduced                    
                                 updateresultreduced = await ltsapieventimporthelper.DeleteOrDisableEventData(id, true, true);
 
+                                updatedetaillist.Add(updateresultreduced);
+                            }
 
                             //Create Delete/Disable Log
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 id,
                                 "api",
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
-                                updateresult,
+                                new List<UpdateDetail>() { updateresult, updateresultreduced },
+                                null,
                                 true
                             );
-
-                            createcounter = updateresult.created + createcounter;
-                            updatecounter = updateresult.updated + updatecounter;
-                            deletecounter = updateresult.deleted + deletecounter;
-                            errorcounter = updateresult.error + errorcounter;
-
-                            //Add also Reduced info
-                            if (updateresultreduced.created != null)
-                                createcounter = createcounter + updateresultreduced.created;
-                            if (updateresultreduced.updated != null)
-                                updatecounter = updatecounter + updateresultreduced.updated;
-                            if (updateresultreduced.deleted != null)
-                                deletecounter = deletecounter + updateresultreduced.deleted;
-                            if (updateresultreduced.error != null)
-                                errorcounter = errorcounter + updateresultreduced.error;
                         }
 
                         //Call Single Update for all active Items not present in DB
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "event", cancellationToken);
+                            updatedetaillist.AddRange(resulttuple.Item2);
 
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 resulttuple.Item1,
                                 "api",
                                 "Update LTS",
@@ -1271,16 +1159,11 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
                                 resulttuple.Item2,
+                                null,
                                 true
                             );
-
-                            createcounter = resulttuple.Item2.created + createcounter;
-                            updatecounter = resulttuple.Item2.updated + updatecounter;
-                            deletecounter = resulttuple.Item2.deleted + deletecounter;
-                            errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
                         updatedidlist.AddRange(idstodelete);
                         updatedidlist.AddRange(idstoimport);
                     }
@@ -1296,11 +1179,6 @@ namespace OdhApiImporter.Helpers
 
                     foreach(var datatoprocess in datatoprocesslist)
                     {
-                        int? updatecounter = 0;
-                        int? createcounter = 0;
-                        int? deletecounter = 0;
-                        int? errorcounter = 0;
-
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -1328,43 +1206,28 @@ namespace OdhApiImporter.Helpers
                                             "smgpoi" + id.ToLower(),
                                             datatype
                                         );
-                            }
-                                
-                            if(reduced)
-                                updateresultreduced = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id.Replace("smgpoi", ""), true, true);
 
+                                updatedetaillist.Add(updateresult);
+                            }
+
+                            if (reduced)
+                            {
+                                updateresultreduced = await ltsapigastroimporthelper.DeleteOrDisableGastronomiesData(id.Replace("smgpoi", ""), true, true);
+                                updatedetaillist.Add(updateresultreduced);
+                            }
 
                             //Create Delete/Disable Log
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 id,
                                 "api",
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
-                                updateresult,
+                                new List<UpdateDetail>() { updateresult, updateresultreduced },
+                                null,
                                 true
-                            );
-
-                            if (updateresult.created != null)
-                                createcounter = updateresult.created + createcounter;
-                            if (updateresult.updated != null)
-                                updatecounter = updateresult.updated + updatecounter;
-                            if (updateresult.deleted != null)
-                                deletecounter = updateresult.deleted + deletecounter;
-                            if (updateresult.error != null)
-                                errorcounter = updateresult.error + errorcounter;
-
-
-                            //Add also Reduced info
-                            if (updateresultreduced.created != null)
-                                createcounter = createcounter + updateresultreduced.created;
-                            if (updateresultreduced.updated != null)
-                                updatecounter = updatecounter + updateresultreduced.updated;
-                            if (updateresultreduced.deleted != null)
-                                deletecounter = deletecounter + updateresultreduced.deleted;
-                            if (updateresultreduced.error != null)
-                                errorcounter = errorcounter + updateresultreduced.error;
+                            );                            
                         }
 
                         //Call Single Update for all active Items not present in DB
@@ -1372,8 +1235,9 @@ namespace OdhApiImporter.Helpers
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "gastronomy", cancellationToken);
+                            updatedetaillist.AddRange(resulttuple.Item2);
 
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 resulttuple.Item1,
                                 "api",
                                 "Update LTS",
@@ -1381,16 +1245,11 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
                                 resulttuple.Item2,
+                                null,
                                 true
                             );
-
-                            createcounter = resulttuple.Item2.created + createcounter;
-                            updatecounter = resulttuple.Item2.updated + updatecounter;
-                            deletecounter = resulttuple.Item2.deleted + deletecounter;
-                            errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
                         updatedidlist.AddRange(idstodelete);
                         updatedidlist.AddRange(idstoimport);
                     }
@@ -1407,11 +1266,6 @@ namespace OdhApiImporter.Helpers
 
                     foreach (var datatoprocess in datatoprocesslist)
                     {
-                        int? updatecounter = 0;
-                        int? createcounter = 0;
-                        int? deletecounter = 0;
-                        int? errorcounter = 0;
-
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -1439,51 +1293,36 @@ namespace OdhApiImporter.Helpers
                                             "smgpoi" + id.ToLower(),
                                             datatype
                                         );
+
+                                updatedetaillist.Add(updateresult);
                             }
 
                             if (reduced)
+                            {
                                 updateresultreduced = await ltsapipoiimporthelper.DeleteOrDisablePoisData(id.Replace("smgpoi", ""), true, true);
-
+                                updatedetaillist.Add(updateresultreduced);
+                            }
 
                             //Create Delete/Disable Log
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 id,
                                 "api",
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
-                                updateresult,
+                                new List<UpdateDetail>() { updateresult, updateresultreduced },
+                                null,
                                 true
                             );
-
-                            if (updateresult.created != null)
-                                createcounter = updateresult.created + createcounter;
-                            if (updateresult.updated != null)
-                                updatecounter = updateresult.updated + updatecounter;
-                            if (updateresult.deleted != null)
-                                deletecounter = updateresult.deleted + deletecounter;
-                            if (updateresult.error != null)
-                                errorcounter = updateresult.error + errorcounter;
-
-
-                            //Add also Reduced info
-                            if (updateresultreduced.created != null)
-                                createcounter = createcounter + updateresultreduced.created;
-                            if (updateresultreduced.updated != null)
-                                updatecounter = updatecounter + updateresultreduced.updated;
-                            if (updateresultreduced.deleted != null)
-                                deletecounter = deletecounter + updateresultreduced.deleted;
-                            if (updateresultreduced.error != null)
-                                errorcounter = errorcounter + updateresultreduced.error;
                         }
 
                         //Call Single Update for all active Items not present in DB
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "poi", cancellationToken);
-
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            updatedetaillist.AddRange(resulttuple.Item2);
+                            GenericResultsHelper.GetUpdateResult(
                                 resulttuple.Item1,
                                 "api",
                                 "Update LTS",
@@ -1491,16 +1330,11 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
                                 resulttuple.Item2,
+                                null,
                                 true
                             );
-
-                            createcounter = resulttuple.Item2.created + createcounter;
-                            updatecounter = resulttuple.Item2.updated + updatecounter;
-                            deletecounter = resulttuple.Item2.deleted + deletecounter;
-                            errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
                         updatedidlist.AddRange(idstodelete);
                         updatedidlist.AddRange(idstoimport);
                     }
@@ -1516,12 +1350,7 @@ namespace OdhApiImporter.Helpers
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
-                    {
-                        int? updatecounter = 0;
-                        int? createcounter = 0;
-                        int? deletecounter = 0;
-                        int? errorcounter = 0;
-
+                    {                        
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -1549,51 +1378,37 @@ namespace OdhApiImporter.Helpers
                                             id,
                                             datatype
                                         );
+
+                                updatedetaillist.Add(updateresult);
                             }
 
                             if (reduced)
+                            {
                                 updateresultreduced = await ltsapiactivityimporthelper.DeleteOrDisableActivitiesData(id.Replace("smgpoi", ""), true, true);
+                                updatedetaillist.Add(updateresultreduced);
+                            }
 
 
                             //Create Delete/Disable Log
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 id,
                                 "api",
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
-                                updateresult,
+                                new List<UpdateDetail>() { updateresult, updateresultreduced },
+                                null,
                                 true
                             );
-
-                            if (updateresult.created != null)
-                                createcounter = updateresult.created + createcounter;
-                            if (updateresult.updated != null)
-                                updatecounter = updateresult.updated + updatecounter;
-                            if (updateresult.deleted != null)
-                                deletecounter = updateresult.deleted + deletecounter;
-                            if (updateresult.error != null)
-                                errorcounter = updateresult.error + errorcounter;
-
-
-                            //Add also Reduced info
-                            if (updateresultreduced.created != null)
-                                createcounter = createcounter + updateresultreduced.created;
-                            if (updateresultreduced.updated != null)
-                                updatecounter = updatecounter + updateresultreduced.updated;
-                            if (updateresultreduced.deleted != null)
-                                deletecounter = deletecounter + updateresultreduced.deleted;
-                            if (updateresultreduced.error != null)
-                                errorcounter = errorcounter + updateresultreduced.error;
                         }
 
                         //Call Single Update for all active Items not present in DB
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "activity", cancellationToken);
-
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            updatedetaillist.AddRange(resulttuple.Item2);
+                            GenericResultsHelper.GetUpdateResult(
                                 resulttuple.Item1,
                                 "api",
                                 "Update LTS",
@@ -1601,16 +1416,11 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
                                 resulttuple.Item2,
+                                null,
                                 true
                             );
-
-                            createcounter = resulttuple.Item2.created + createcounter;
-                            updatecounter = resulttuple.Item2.updated + updatecounter;
-                            deletecounter = resulttuple.Item2.deleted + deletecounter;
-                            errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
                         updatedidlist.AddRange(idstodelete);
                         updatedidlist.AddRange(idstoimport);
                     }
@@ -1627,11 +1437,6 @@ namespace OdhApiImporter.Helpers
 
                     foreach (var datatoprocess in datatoprocesslist)
                     {
-                        int? updatecounter = 0;
-                        int? createcounter = 0;
-                        int? deletecounter = 0;
-                        int? errorcounter = 0;
-
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -1659,51 +1464,36 @@ namespace OdhApiImporter.Helpers
                                             id,
                                             datatype
                                         );
+                                updatedetaillist.Add(updateresult);
                             }
 
                             if (reduced)
+                            {
                                 updateresultreduced = await ltsapivenueimporthelper.DeleteOrDisableVenuesData(id, true, true);
-
+                                updatedetaillist.Add(updateresultreduced);
+                            }
 
                             //Create Delete/Disable Log
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 id,
                                 "api",
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
-                                updateresult,
+                                new List<UpdateDetail>() { updateresult, updateresultreduced },
+                                null,
                                 true
                             );
-
-                            if (updateresult.created != null)
-                                createcounter = updateresult.created + createcounter;
-                            if (updateresult.updated != null)
-                                updatecounter = updateresult.updated + updatecounter;
-                            if (updateresult.deleted != null)
-                                deletecounter = updateresult.deleted + deletecounter;
-                            if (updateresult.error != null)
-                                errorcounter = updateresult.error + errorcounter;
-
-
-                            //Add also Reduced info
-                            if (updateresultreduced.created != null)
-                                createcounter = createcounter + updateresultreduced.created;
-                            if (updateresultreduced.updated != null)
-                                updatecounter = updatecounter + updateresultreduced.updated;
-                            if (updateresultreduced.deleted != null)
-                                deletecounter = deletecounter + updateresultreduced.deleted;
-                            if (updateresultreduced.error != null)
-                                errorcounter = errorcounter + updateresultreduced.error;
                         }
 
                         //Call Single Update for all active Items not present in DB
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "venue", cancellationToken);
+                            updatedetaillist.AddRange(resulttuple.Item2);
 
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 resulttuple.Item1,
                                 "api",
                                 "Update LTS",
@@ -1711,16 +1501,11 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
                                 resulttuple.Item2,
+                                null,
                                 true
                             );
-
-                            createcounter = resulttuple.Item2.created + createcounter;
-                            updatecounter = resulttuple.Item2.updated + updatecounter;
-                            deletecounter = resulttuple.Item2.deleted + deletecounter;
-                            errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
                         updatedidlist.AddRange(idstodelete);
                         updatedidlist.AddRange(idstoimport);
                     }
@@ -1737,11 +1522,6 @@ namespace OdhApiImporter.Helpers
 
                     foreach (var datatoprocess in datatoprocesslist)
                     {
-                        int? updatecounter = 0;
-                        int? createcounter = 0;
-                        int? deletecounter = 0;
-                        int? errorcounter = 0;
-
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -1769,51 +1549,38 @@ namespace OdhApiImporter.Helpers
                                             id,
                                             datatype
                                         );
+
+                                updatedetaillist.Add(updateresult);
                             }
 
                             if (reduced)
+                            {
                                 updateresultreduced = await ltsapimeasuringpointimporthelper.DeleteOrDisableMeasuringpointsData(id, true, true);
+                                updatedetaillist.Add(updateresultreduced);
+                            }
 
 
-                            //Create Delete/Disable Log
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                                //Create Delete/Disable Log
+                                GenericResultsHelper.GetUpdateResult(
                                 id,
                                 "api",
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
-                                updateresult,
+                                new List<UpdateDetail>() { updateresult, updateresultreduced },
+                                null,
                                 true
                             );
-
-                            if (updateresult.created != null)
-                                createcounter = updateresult.created + createcounter;
-                            if (updateresult.updated != null)
-                                updatecounter = updateresult.updated + updatecounter;
-                            if (updateresult.deleted != null)
-                                deletecounter = updateresult.deleted + deletecounter;
-                            if (updateresult.error != null)
-                                errorcounter = updateresult.error + errorcounter;
-
-
-                            //Add also Reduced info
-                            if (updateresultreduced.created != null)
-                                createcounter = createcounter + updateresultreduced.created;
-                            if (updateresultreduced.updated != null)
-                                updatecounter = updatecounter + updateresultreduced.updated;
-                            if (updateresultreduced.deleted != null)
-                                deletecounter = deletecounter + updateresultreduced.deleted;
-                            if (updateresultreduced.error != null)
-                                errorcounter = errorcounter + updateresultreduced.error;
                         }
 
                         //Call Single Update for all active Items not present in DB
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "measuringpoint", cancellationToken);
+                            updatedetaillist.AddRange(resulttuple.Item2);
 
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 resulttuple.Item1,
                                 "api",
                                 "Update LTS",
@@ -1821,16 +1588,11 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
                                 resulttuple.Item2,
+                                null,
                                 true
                             );
-
-                            createcounter = resulttuple.Item2.created + createcounter;
-                            updatecounter = resulttuple.Item2.updated + updatecounter;
-                            deletecounter = resulttuple.Item2.deleted + deletecounter;
-                            errorcounter = resulttuple.Item2.error + errorcounter;
                         }
 
-                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
                         updatedidlist.AddRange(idstodelete);
                         updatedidlist.AddRange(idstoimport);
                     }
@@ -1846,12 +1608,7 @@ namespace OdhApiImporter.Helpers
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
-                    {
-                        int? updatecounter = 0;
-                        int? createcounter = 0;
-                        int? deletecounter = 0;
-                        int? errorcounter = 0;
-
+                    {                        
                         if (datatoprocess == "reduced")
                             reduced = true;
 
@@ -1879,51 +1636,37 @@ namespace OdhApiImporter.Helpers
                                             id,
                                             datatype
                                         );
+                                updatedetaillist.Add(updateresult);
                             }
 
                             if (reduced)
+                            {
                                 updateresultreduced = await ltsapiwebcamimporthelper.DeleteOrDisableWebcamsData(id, true, true);
+                                updatedetaillist.Add(updateresultreduced);
+                            }
 
 
                             //Create Delete/Disable Log
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 id,
                                 "api",
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
-                                updateresult,
+                                new List<UpdateDetail>() { updateresult, updateresultreduced },
+                                null,
                                 true
-                            );
-
-                            if (updateresult.created != null)
-                                createcounter = updateresult.created + createcounter;
-                            if (updateresult.updated != null)
-                                updatecounter = updateresult.updated + updatecounter;
-                            if (updateresult.deleted != null)
-                                deletecounter = updateresult.deleted + deletecounter;
-                            if (updateresult.error != null)
-                                errorcounter = updateresult.error + errorcounter;
-
-
-                            //Add also Reduced info
-                            if (updateresultreduced.created != null)
-                                createcounter = createcounter + updateresultreduced.created;
-                            if (updateresultreduced.updated != null)
-                                updatecounter = updatecounter + updateresultreduced.updated;
-                            if (updateresultreduced.deleted != null)
-                                deletecounter = deletecounter + updateresultreduced.deleted;
-                            if (updateresultreduced.error != null)
-                                errorcounter = errorcounter + updateresultreduced.error;
+                            );                            
                         }
 
                         //Call Single Update for all active Items not present in DB
                         foreach (var id in idstoimport)
                         {
                             var resulttuple = await UpdateSingleDataFromLTSApi(id, "webcam", cancellationToken);
+                            updatedetaillist.AddRange(resulttuple.Item2);
 
-                            GenericResultsHelper.GetSuccessUpdateResult(
+                            GenericResultsHelper.GetUpdateResult(
                                 resulttuple.Item1,
                                 "api",
                                 "Update LTS",
@@ -1931,16 +1674,11 @@ namespace OdhApiImporter.Helpers
                                 "Update LTS succeeded",
                                 datatype.ToLower(),
                                 resulttuple.Item2,
+                                null,
                                 true
-                            );
-
-                            createcounter = resulttuple.Item2.created + createcounter;
-                            updatecounter = resulttuple.Item2.updated + updatecounter;
-                            deletecounter = resulttuple.Item2.deleted + deletecounter;
-                            errorcounter = resulttuple.Item2.error + errorcounter;
+                            );                            
                         }
 
-                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
                         updatedidlist.AddRange(idstodelete);
                         updatedidlist.AddRange(idstoimport);
                     }
@@ -1951,7 +1689,7 @@ namespace OdhApiImporter.Helpers
                 default:
                     throw new Exception("no match found");
             }
-            updatedetail = Tuple.Create(String.Join(",", updatedidlist), GenericResultsHelper.MergeUpdateDetail(updatedetaillist));
+            updatedetail = Tuple.Create(String.Join(",", updatedidlist), updatedetaillist);
 
             return updatedetail;
         }

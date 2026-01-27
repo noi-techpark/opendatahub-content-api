@@ -50,7 +50,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             throw new NotImplementedException();
         }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default

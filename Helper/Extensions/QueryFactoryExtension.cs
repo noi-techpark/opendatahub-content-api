@@ -702,26 +702,26 @@ namespace Helper
             catch (Exception ex)
             {
                 //Create a Log entry
-                GenericResultsHelper.GetErrorUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     data.Id,
                     "api",
                     "Insert Rawchanges",
                     "single",
                     "Insert Rawchanges failed, " + equalityresult.patch != null ? equalityresult.patch.ToString() : "no change",
                     data._Meta.Type,
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 0,
                         changes = null,
                         objectcompared = null,
                         created = 0,
                         deleted = 0,
-                        error = 1,                        
+                        error = 1,
                         objectchanged = 0,
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    }},
                     ex,
                     true
                 );
