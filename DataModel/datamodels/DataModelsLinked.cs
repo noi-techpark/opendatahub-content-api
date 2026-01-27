@@ -2666,11 +2666,33 @@ namespace DataModel
 
         [SwaggerSchema("Tag Ids")]
         public ICollection<string>? TagIds { get; set; }
+
+        [SwaggerSchema("Coordiante source configuration")]
+        public CoordinateSource? CoordinateSource { get; set; }
     }
 
     #endregion
 }
 
+public static class CoordinateSourceType
+{
+    public const string Geo = "Geo";
+    public const string GeoShapeReference = "GeoShapeReference";
+    public const string GpsInfo = "GpsInfo";
+}
+
+public class CoordinateSource
+{
+    [SwaggerSchema("Type of the coordinate source")]
+    [SwaggerEnum(new[] { "Geo", "GeoShapeReference", "GpsInfo" })]
+    public string? Type { get; set; } = CoordinateSourceType.GpsInfo;
+
+    [SwaggerSchema("Field from which to extrapolate coordinate data")]
+    public string? Field { get; set; }
+
+    [SwaggerSchema("Use default entry, if multiple. For Geo types is .default = true field, for the other is the first element")]
+    public bool? UseDefault {get; set; }
+}
 
 #region obsolete toremove
 
