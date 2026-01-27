@@ -557,21 +557,21 @@ namespace OdhApiCore.Controllers
                 case null:
                     return Ok(result);
                 case "Not Allowed":
-                    return StatusCode(403, "Not enough permissions");
+                    return CustomApiActionResults.ForbiddenValidation("You do not have permission to perform this action");
                 case "Not Found":
                     return NotFound();
                 case "Bad Request":
                     return BadRequest();
                 case "No Data":
-                    return BadRequest(result.exception);
+                    return CustomApiActionResults.BadRequestValidation(result.exception);
                 case "Data exists already":
-                    return BadRequest(result.exception);
+                    return CustomApiActionResults.BadRequestValidation(result.exception);
                 case "Data to update Not Found":
-                    return BadRequest(result.exception);
+                    return CustomApiActionResults.BadRequestValidation(result.exception);
                 case "Internal Error":
                     return StatusCode(500);
                 default:
-                    return BadRequest(result);
+                    return CustomApiActionResults.BadRequestValidation(result.exception);
             }
         }
 
@@ -688,5 +688,5 @@ namespace OdhApiCore.Controllers
             return BadRequest("GET method not found");
         }
 
-    }
+    }    
 }
