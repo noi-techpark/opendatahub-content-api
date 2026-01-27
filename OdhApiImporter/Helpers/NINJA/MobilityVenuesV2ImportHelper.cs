@@ -203,7 +203,7 @@ namespace OdhApiImporter.Helpers
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             VenueFlattened venuetosave,
             NinjaData<NinjaPlaceRoom> ninjavenue
         )

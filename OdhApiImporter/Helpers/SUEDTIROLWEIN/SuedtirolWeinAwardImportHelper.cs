@@ -262,7 +262,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             WineLinked wineaward,
             KeyValuePair<string, XElement> suedtirolweindata
         )

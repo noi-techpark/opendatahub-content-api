@@ -338,19 +338,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var result = await InsertDataToDB(measuringpointparsed, data.data, jsondata);
           
-                    updatedetails.Add(new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    });
+                    updatedetails.Add(result);
 
                     idlistlts.Add(id);
 
@@ -378,7 +366,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     error = 1,
                     objectchanged = 0,
                     objectimagechanged = 0,
-                    comparedobjects = 0,
+                    objectcompared = 0,
                     pushchannels = null,
                     changes = null                    
                 });
@@ -387,7 +375,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return updatedetails.FirstOrDefault();
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             MeasuringpointV2 objecttosave,
             LTSWeatherSnowsData weathersnowlts,
             IDictionary<string, JArray>? jsonfiles
@@ -447,10 +435,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
         
         public async Task<UpdateDetail> DeleteOrDisableMeasuringpointsData(string id, bool delete, bool reduced)
-        {
-            UpdateDetail deletedisableresult = default(UpdateDetail);
-
-            PGCRUDResult result = default(PGCRUDResult);
+        {          
+            UpdateDetail result = default(UpdateDetail);
 
             if (delete)
             {
@@ -459,24 +445,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 new DataInfo("measuringpoints", CRUDOperation.Delete),
                 new CRUDConstraints(),
                 reduced
-                );
-
-                if (result.errorreason != "Data Not Found")
-                {
-                    deletedisableresult = new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    };
-                }
+                );                
             }
             else
             {
@@ -505,26 +474,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                new EditInfo("lts.measuringpoints.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
-                        );
-
-                        deletedisableresult = new UpdateDetail()
-                        {
-                            created = result.created,
-                            updated = result.updated,
-                            deleted = result.deleted,
-                            error = result.error,
-                            objectchanged = result.objectchanged,
-                            objectimagechanged = result.objectimagechanged,
-                            comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                            pushchannels = result.pushchannels,
-                            changes = result.changes,
-                        };
+                        );                        
                     }
                 }
             }
 
-            return deletedisableresult;
+            return result;
         }
 
      

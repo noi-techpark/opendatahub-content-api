@@ -120,7 +120,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     {
                         updated = 1,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 0,
@@ -145,7 +145,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 1,
@@ -195,7 +195,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     {
                         updated = 1,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 0,
@@ -220,7 +220,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 1,
@@ -385,7 +385,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     {
                         updated = 1,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 0,
@@ -410,7 +410,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 1,
@@ -575,7 +575,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     {
                         updated = updateddata,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 0,
@@ -600,7 +600,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 1,

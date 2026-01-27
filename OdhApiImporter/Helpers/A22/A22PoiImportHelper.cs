@@ -224,7 +224,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Inserting into DB
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked odhactivitypoi,
             KeyValuePair<string, XElement> a22data
         )

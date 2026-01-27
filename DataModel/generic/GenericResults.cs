@@ -62,7 +62,7 @@ namespace DataModel
         public int? error { get; init; }
 
         //Comparision
-        public int? comparedobjects { get; init; }
+        public int? objectcompared { get; init; }
         public int? objectchanged { get; init; }
         public int? objectimagechanged { get; init; }
 
@@ -74,6 +74,24 @@ namespace DataModel
         public IDictionary<string, NotifierResponse>? pushed { get; set; }
 
         public string? exception { get; set; }
+
+        //from PGCrudResult
+        public string id { get; init; }
+        public string? type { get; init; }
+        public string operation { get; init; }
+
+        public static UpdateDetail Default => new UpdateDetail
+        {
+            created = 0,
+            updated = 0,
+            deleted = 0,
+            error = 0,
+            objectcompared = 0,
+            objectchanged = 0,
+            objectimagechanged = 0,
+            pushchannels = new List<string>(),
+            pushed = new Dictionary<string, NotifierResponse>()
+        };
     }
 
     //TO CHECK if this could be unified
@@ -114,43 +132,44 @@ namespace DataModel
         public IDictionary<string, ICollection<NotifierResponse>>? pushed { get; set; }
     }
 
-    public struct PGCRUDResult
-    {
-        public string id { get; init; }
+    //public struct PGCRUDResult
+    //{
+    //    public string id { get; init; }
+    //    public string? type { get; init; }
+    //    public string operation { get; init; }
 
-        public string? odhtype { get; init; }
-        public string operation { get; init; }
-        public int? updated { get; init; }
-        public int? created { get; init; }
-        public int? deleted { get; init; }
 
-        public int? error { get; init; }
+    //    public int? updated { get; init; }
+    //    public int? created { get; init; }
+    //    public int? deleted { get; init; }
 
-        public string? errorreason { get; init; }
+    //    public int? error { get; init; }
 
-        public bool? compareobject { get; init; }
-        public int? objectchanged { get; init; }
-        public int? objectimagechanged { get; init; }
+    //    public string? errorreason { get; init; }
 
-        public ICollection<string>? pushchannels { get; init; }
+    //    public bool? compareobject { get; init; }
+    //    public int? objectchanged { get; init; }
+    //    public int? objectimagechanged { get; init; }
 
-        public JToken? changes { get; init; }
+    //    public ICollection<string>? pushchannels { get; init; }
 
-        public IDictionary<string, NotifierResponse>? pushed { get; set; }
+    //    public JToken? changes { get; init; }
 
-        public static PGCRUDResult Default => new PGCRUDResult
-        {
-            created = 0,
-            updated = 0,
-            deleted = 0,
-            error = 0,
-            compareobject = false,
-            objectchanged = 0,
-            objectimagechanged = 0,
-            pushchannels = new List<string>(),
-            pushed = new Dictionary<string, NotifierResponse>()
-        };
-    }
+    //    public IDictionary<string, NotifierResponse>? pushed { get; set; }
+
+    //    public static PGCRUDResult Default => new PGCRUDResult
+    //    {
+    //        created = 0,
+    //        updated = 0,
+    //        deleted = 0,
+    //        error = 0,
+    //        compareobject = false,
+    //        objectchanged = 0,
+    //        objectimagechanged = 0,
+    //        pushchannels = new List<string>(),
+    //        pushed = new Dictionary<string, NotifierResponse>()
+    //    };
+    //}
 
     public struct JsonGenerationResult
     {
@@ -182,7 +201,7 @@ namespace DataModel
 
             foreach (var updatedetail in updatedetails)
             {
-                objectscompared = updatedetail.comparedobjects + objectscompared;
+                objectscompared = updatedetail.objectcompared + objectscompared;
 
                 created = updatedetail.created + created;
                 updated = updatedetail.updated + updated;
@@ -228,7 +247,7 @@ namespace DataModel
                 updated = updated,
                 deleted = deleted,
                 error = error,
-                comparedobjects = objectscompared,
+                objectcompared = objectscompared,
                 objectchanged = objectchanged,
                 objectimagechanged = objectimagechanged,
                 pushchannels = channelstopush,
@@ -261,7 +280,7 @@ namespace DataModel
                 created = detail.created,
                 updated = detail.updated,
                 deleted = detail.deleted,
-                objectcompared = detail.comparedobjects,
+                objectcompared = detail.objectcompared,
                 objectchanged = detail.objectchanged,
                 objectimagechanged = detail.objectimagechanged,
                 //objectchanges = detail.changes != null ? JsonConvert.DeserializeObject<dynamic>(detail.changes.ToString(Formatting.None)) : null,
@@ -282,39 +301,39 @@ namespace DataModel
             return result;
         }
 
-        public static UpdateResult GetUpdateResultFromPGCRUDResult(           
-           string source,
+        public static UpdateResult GetUpdateResultFromUpdateDetail(
+           string? source,
            //string updatetype, not needed single on PGCRUDResult
-           string message,
+           string? message,
            //string otherinfo, not needed we choose odhtype
-           PGCRUDResult pgcrudresult,
+           UpdateDetail detail,
            bool createlog
        )
         {
             var result = new UpdateResult()
             {
-                id = pgcrudresult.id,
+                id = detail.id,
                 source = source,
-                operation = pgcrudresult.operation,
+                operation = detail.operation,
                 updatetype = "single",
-                otherinfo = pgcrudresult.odhtype,
+                otherinfo = detail.type,
                 message = message,
-                recordsmodified = (pgcrudresult.created + pgcrudresult.updated + pgcrudresult.deleted),
-                created = pgcrudresult.created,
-                updated = pgcrudresult.updated,
-                deleted = pgcrudresult.deleted,
-                objectcompared = pgcrudresult.compareobject != null && pgcrudresult.compareobject.Value ? 1 : 0,
-                objectchanged = pgcrudresult.objectchanged,
-                objectimagechanged = pgcrudresult.objectimagechanged,
+                recordsmodified = (detail.created + detail.updated + detail.deleted),
+                created = detail.created,
+                updated = detail.updated,
+                deleted = detail.deleted,
+                objectcompared = detail.objectcompared,
+                objectchanged = detail.objectchanged,
+                objectimagechanged = detail.objectimagechanged,
                 //objectchanges = detail.changes != null ? JsonConvert.DeserializeObject<dynamic>(detail.changes.ToString(Formatting.None)) : null,
                 objectchanges = null,
                 objectchangestring =
-                    pgcrudresult.changes != null ? pgcrudresult.changes.ToString(Formatting.None) : null,
-                pushchannels = pgcrudresult.pushchannels,
-                pushed = pgcrudresult.pushed,
-                error = pgcrudresult.error,
-                success =  pgcrudresult.error != null && pgcrudresult.error > 0 ? false : true,
-                exception = pgcrudresult.errorreason,
+                    detail.changes != null ? detail.changes.ToString(Formatting.None) : null,
+                pushchannels = detail.pushchannels,
+                pushed = detail.pushed,
+                error = detail.error,
+                success = detail.error != null && detail.error > 0 ? false : true,
+                exception = detail.exception,
                 stacktrace = null,
             };
 
@@ -323,6 +342,48 @@ namespace DataModel
 
             return result;
         }
+
+       // public static UpdateResult GetUpdateResultFromPGCRUDResult(           
+       //    string source,
+       //    //string updatetype, not needed single on PGCRUDResult
+       //    string message,
+       //    //string otherinfo, not needed we choose odhtype
+       //    PGCRUDResult pgcrudresult,
+       //    bool createlog
+       //)
+       // {
+       //     var result = new UpdateResult()
+       //     {
+       //         id = pgcrudresult.id,
+       //         source = source,
+       //         operation = pgcrudresult.operation,
+       //         updatetype = "single",
+       //         otherinfo = pgcrudresult.odhtype,
+       //         message = message,
+       //         recordsmodified = (pgcrudresult.created + pgcrudresult.updated + pgcrudresult.deleted),
+       //         created = pgcrudresult.created,
+       //         updated = pgcrudresult.updated,
+       //         deleted = pgcrudresult.deleted,
+       //         objectcompared = pgcrudresult.compareobject != null && pgcrudresult.compareobject.Value ? 1 : 0,
+       //         objectchanged = pgcrudresult.objectchanged,
+       //         objectimagechanged = pgcrudresult.objectimagechanged,
+       //         //objectchanges = detail.changes != null ? JsonConvert.DeserializeObject<dynamic>(detail.changes.ToString(Formatting.None)) : null,
+       //         objectchanges = null,
+       //         objectchangestring =
+       //             pgcrudresult.changes != null ? pgcrudresult.changes.ToString(Formatting.None) : null,
+       //         pushchannels = pgcrudresult.pushchannels,
+       //         pushed = pgcrudresult.pushed,
+       //         error = pgcrudresult.error,
+       //         success =  pgcrudresult.error != null && pgcrudresult.error > 0 ? false : true,
+       //         exception = pgcrudresult.errorreason,
+       //         stacktrace = null,
+       //     };
+
+       //     if (createlog)
+       //         Console.WriteLine(JsonConvert.SerializeObject(result));
+
+       //     return result;
+       // }
 
         public static UpdateResult GetErrorUpdateResult(
             string id,
@@ -348,7 +409,7 @@ namespace DataModel
                 created = detail.created,
                 updated = detail.updated,
                 deleted = detail.deleted,
-                objectcompared = detail.comparedobjects,
+                objectcompared = detail.objectcompared,
                 objectchanged = detail.objectchanged,
                 objectimagechanged = detail.objectimagechanged,
                 objectchanges = null,
@@ -540,7 +601,7 @@ namespace DataModel
         public JToken? patch { get; set; }
     }
 
-    public class BatchCRUDResult
+    public class BatchUpdateResult
     {
         /// <summary>
         /// Indicates if the entire batch operation succeeded (all items processed successfully)

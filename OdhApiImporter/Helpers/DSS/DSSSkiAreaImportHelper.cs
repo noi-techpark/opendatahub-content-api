@@ -200,7 +200,7 @@ namespace OdhApiImporter.Helpers.DSS
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             SkiAreaLinked skiarea,
             KeyValuePair<string, dynamic> dssdata
         )

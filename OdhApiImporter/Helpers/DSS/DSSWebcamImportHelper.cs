@@ -309,7 +309,7 @@ namespace OdhApiImporter.Helpers.DSS
             return webcam;
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             WebcamInfoLinked webcam,
             KeyValuePair<string, dynamic> dssdata
         )

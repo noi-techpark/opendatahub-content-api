@@ -626,7 +626,7 @@ namespace OdhApiImporter.Helpers.DSS
             return odhactivitypoi;
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked odhactivitypoi,
             KeyValuePair<string, dynamic> dssdata
         )
@@ -662,7 +662,7 @@ namespace OdhApiImporter.Helpers.DSS
                 return pgcrudresult;
             }
             else
-                return new PGCRUDResult
+                return new UpdateDetail
                 {
                     created = 1,
                     deleted = 0,

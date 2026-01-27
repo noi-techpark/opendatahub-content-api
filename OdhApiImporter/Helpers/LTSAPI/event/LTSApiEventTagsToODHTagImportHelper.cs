@@ -154,7 +154,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         OdhPushnotifier,
                         result,
                         result.id,
-                        result.odhtype
+                        result.type
                     );
 
                     newimportcounter = newimportcounter + result.created ?? 0;
@@ -214,7 +214,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHTagLinked objecttosave,
             LTSEventTag eventtag
         )

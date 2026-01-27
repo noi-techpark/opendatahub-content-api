@@ -217,7 +217,7 @@ namespace OdhApiImporter.Helpers
 
         //}
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             EventLinked eventtosave,
             KeyValuePair<string, NinjaEvent> ninjaevent
         )

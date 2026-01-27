@@ -970,16 +970,14 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetail updatedetail = default(UpdateDetail);
+            UpdateDetail result = default(UpdateDetail);
             string operation = "Import LTS Accommodation Cincode";
             string updatetype = GetUpdateType(new List<string>() { id });
             string source = "lts";
             string otherinfo = "accommodation.cin";
 
             try
-            {
-                //LtsApi ltsapi = new LtsApi(settings.LtsCredentials);
-
+            {                
                 LtsApi ltsapi = new LtsApi(
                     settings.LtsCredentials.serviceurl,
                     settings.LtsCredentials.username,
@@ -1019,7 +1017,7 @@ namespace OdhApiImporter.Controllers
                     accommodation.Mapping.TryAddOrUpdate("lts", ltsdict);
 
                     //Save the Accommodation
-                    var result = await QueryFactory.UpsertData<AccommodationLinked>(
+                    result = await QueryFactory.UpsertData<AccommodationLinked>(
                         accommodation,
                         new DataInfo("accommodations", CRUDOperation.Update)
                         {
@@ -1053,21 +1051,6 @@ namespace OdhApiImporter.Controllers
                             result.pushchannels.ToList()
                         );
                     }
-
-                    updatedetail = new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        comparedobjects =
-                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                        pushed = result.pushed,
-                    };
                 }
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -1077,7 +1060,7 @@ namespace OdhApiImporter.Controllers
                     updatetype,
                     "Import LTS Accommodation CinCode data succeeded",
                     otherinfo,
-                    updatedetail,
+                    result,
                     true
                 );
 
@@ -1092,7 +1075,7 @@ namespace OdhApiImporter.Controllers
                     updatetype,
                     "Import LTS Accommodation CinCode data failed",
                     otherinfo,
-                    updatedetail,
+                    result,
                     ex,
                     true
                 );

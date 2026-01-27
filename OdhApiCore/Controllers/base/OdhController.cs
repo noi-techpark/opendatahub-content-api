@@ -314,7 +314,7 @@ namespace OdhApiCore.Controllers
             );
 
             //push modified data to all published Channels
-            result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
+            result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.type);
 
 
             //return ReturnCRUDResult(result);
@@ -358,9 +358,12 @@ namespace OdhApiCore.Controllers
             );
 
             //push modified data to all published Channels
-            result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
+            result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.type);
 
-            return ReturnCRUDResult(result);
+            //return ReturnCRUDResult(result);
+
+            //Use newer UpdateResult ?
+            return ReturnUpdateResult(result, editsource, "", true);
         }
 
         //BATCH CREATE and UPDATE data
@@ -421,7 +424,8 @@ namespace OdhApiCore.Controllers
         protected async Task<IActionResult> DeleteData<T>(
             string id,
             DataInfo datainfo,
-            CRUDConstraints crudconstraints
+            CRUDConstraints crudconstraints,
+            string editsource = "api"
         )
             where T : IIdentifiable, IMetaData, IImportDateassigneable, new()
         {
@@ -432,14 +436,17 @@ namespace OdhApiCore.Controllers
 
             var result = await QueryFactory.DeleteData<T>(id, datainfo, crudconstraints);
             //push modified data to all published Channels
-            result.pushed = await PushDeletedObject(result, result.id, result.odhtype);
+            result.pushed = await PushDeletedObject(result, result.id, result.type);
 
-            return ReturnCRUDResult(result);
+            //return ReturnCRUDResult(result);
+
+            //Use newer UpdateResult ?
+            return ReturnUpdateResult(result, editsource, "", true);
         }
 
         //PUSH Modified data
         protected async Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
-            PGCRUDResult myupdateresult,
+            UpdateDetail myupdateresult,
             string id,
             string datatype,
             IDictionary<string, bool>? additionalpushinfo = null,
@@ -488,7 +495,7 @@ namespace OdhApiCore.Controllers
 
         //PUSH Deleted data
         private async Task<IDictionary<string, NotifierResponse>?> PushDeletedObject(
-            PGCRUDResult myupdateresult,
+            UpdateDetail myupdateresult,
             string id,
             string datatype,
             string pushorigin = "odh.api.push"
@@ -516,11 +523,11 @@ namespace OdhApiCore.Controllers
             return pushresults;
         }
 
-        protected IActionResult ReturnCRUDResult(PGCRUDResult result)
+        protected IActionResult ReturnUpdateDetail(UpdateDetail result)
         {
             ///Give shorter Error messages to display directly in the databrowser
             ///TODO some optimizations
-            switch (result.errorreason)
+            switch (result.exception)
             {
                 case "":
                 case null:
@@ -532,11 +539,11 @@ namespace OdhApiCore.Controllers
                 case "Bad Request":
                     return BadRequest();
                 case "No Data":
-                    return BadRequest(result.errorreason);
+                    return BadRequest(result.exception);
                 case "Data exists already":
-                    return BadRequest(result.errorreason);
+                    return BadRequest(result.exception);
                 case "Data to update Not Found":
-                    return BadRequest(result.errorreason);
+                    return BadRequest(result.exception);
                 case "Internal Error":
                     return StatusCode(500);
                 default:
@@ -544,10 +551,10 @@ namespace OdhApiCore.Controllers
             }
         }
 
-        protected IActionResult ReturnUpdateResult(PGCRUDResult pgcrudresult, string source, string message, bool createlog)
+        protected IActionResult ReturnUpdateResult(UpdateDetail detailresult, string? source, string? message, bool createlog)
         {
             //Use UpdateResult here
-            var result = GenericResultsHelper.GetUpdateResultFromPGCRUDResult(source, message, pgcrudresult, createlog);
+            var result = GenericResultsHelper.GetUpdateResultFromUpdateDetail(source, message, detailresult, createlog);
 
             ///Give shorter Error messages to display directly in the databrowser
             ///TODO some optimizations

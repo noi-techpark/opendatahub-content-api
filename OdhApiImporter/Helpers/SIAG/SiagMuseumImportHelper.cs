@@ -377,7 +377,7 @@ namespace OdhApiImporter.Helpers
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked odhactivitypoi,
             KeyValuePair<string, XElement> siagmuseumdata,
             IDictionary<string, JArray>? jsonfiles

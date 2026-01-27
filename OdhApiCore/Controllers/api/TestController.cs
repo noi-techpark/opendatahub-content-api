@@ -267,7 +267,7 @@
 //         /// </summary>
 //         /// <param name="testdata">Testdata Object</param>
 //         /// <returns>Http Response</returns>
-//         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+//         [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
 //         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 //         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 //         [AuthorizeODH(PermissionAction.Create)]
@@ -302,7 +302,7 @@
 //         /// <param name="id">Testdata Id</param>
 //         /// <param name="testdata">Testdata Object</param>
 //         /// <returns>Http Response</returns>
-//         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+//         [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
 //         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 //         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 //         [HttpPut, Route("Testdata/{id}")]
@@ -334,7 +334,7 @@
 //         /// <returns>Http Response</returns>
 //         //[Authorize(Roles = "DataWriter,DataDelete,TestdataManager,TestdataDelete")]
 //         [AuthorizeODH(PermissionAction.Delete)]
-//         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+//         [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
 //         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 //         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
 //         [HttpDelete, Route("Testdata/{id}")]

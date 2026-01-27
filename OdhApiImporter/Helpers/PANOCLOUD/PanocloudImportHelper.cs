@@ -177,7 +177,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Inserting into DB
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             WebcamInfoLinked webcam,
             KeyValuePair<string, dynamic> panomaxdata
         )
