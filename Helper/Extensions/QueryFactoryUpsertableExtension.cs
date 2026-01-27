@@ -64,7 +64,7 @@ namespace Helper
             public int? ObjectChanged { get; set; }
             public int? ObjectImageChanged { get; set; }
             public EqualityResult? ComparisonResult { get; set; }
-            public PGCRUDResult? ErrorResult { get; set; } // Set if preparation failed
+            public UpdateDetail? ErrorResult { get; set; } // Set if preparation failed
             public IDictionary<string, object> StoredData { get; set; } = new Dictionary<string, object>();
 
             public string GetDataID()
@@ -122,12 +122,12 @@ namespace Helper
             //Check data.Data condition return not allowed if it fails
             if (!CheckCRUDCondition.CRUDOperationAllowed(data.Data, constraintToCheck.Condition))
             {
-                prepared.ErrorResult = PGCRUDResult.Default with
+                prepared.ErrorResult = UpdateDetail.Default with
                 {
                     id = data.Data.Id,
-                    odhtype = data.Data._Meta.Type,
+                    type = data.Data._Meta.Type,
                     error = 1,
-                    errorreason = "Not Allowed",
+                    exception = "Not Allowed",
                     operation = dataconfig.Operation.ToString(),
                     objectchanged = objectchangedcount,
                     objectimagechanged = objectimagechangedcount,
@@ -141,12 +141,12 @@ namespace Helper
                 // Create case
                 if (dataconfig.ErrorWhendataIsNew)
                 {
-                    prepared.ErrorResult = PGCRUDResult.Default with
+                    prepared.ErrorResult = UpdateDetail.Default with
                     {
                         id = data.Data.Id,
-                        odhtype = data.Data._Meta.Type,
+                        type = data.Data._Meta.Type,
                         error = 1,
-                        errorreason = "Data to update Not Found",
+                        exception = "Data to update Not Found",
                         operation = dataconfig.Operation.ToString(),
                         objectchanged = objectchangedcount,
                         objectimagechanged = objectimagechangedcount,
@@ -175,12 +175,12 @@ namespace Helper
                 // Update case
                 if (dataconfig.ErrorWhendataExists)
                 {
-                    prepared.ErrorResult = PGCRUDResult.Default with
+                    prepared.ErrorResult = UpdateDetail.Default with
                     {
                         id = data.Data.Id,
-                        odhtype = data.Data._Meta.Type,
+                        type = data.Data._Meta.Type,
                         error = 1,
-                        errorreason = "Data exists already",
+                        exception = "Data exists already",
                         operation = dataconfig.Operation.ToString(),
                         objectchanged = objectchangedcount,
                         objectimagechanged = objectimagechangedcount,
@@ -280,7 +280,7 @@ namespace Helper
         /// <param name="compareConfig">Compare configuration</param>
         /// <param name="reduced">Whether this is reduced data</param>
         /// <returns>BatchCRUDResult with aggregated statistics and individual results</returns>
-        public static async Task<BatchCRUDResult> UpsertDataArray<T>(
+        public static async Task<BatchUpdateResult> UpsertDataArray<T>(
             this QueryFactory QueryFactory,
             IEnumerable<Upsertable<T>> dataList,
             DataInfo dataconfig,
@@ -291,7 +291,7 @@ namespace Helper
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
         {
-            var batchResult = new BatchCRUDResult();
+            var batchResult = new BatchUpdateResult();
 
             if (dataList == null || !dataList.Any())
             {
@@ -402,7 +402,7 @@ namespace Helper
                         {
                             validationErrors[errorKey] = new List<string>();
                         }
-                        validationErrors[errorKey].Add(prepared.ErrorResult.Value.errorreason ?? "Unknown error");
+                        validationErrors[errorKey].Add(prepared.ErrorResult.Value.exception ?? "Unknown error");
                     }
                 }
 
@@ -539,7 +539,7 @@ namespace Helper
         /// <param name="constraints">Constraints for CRUD operations</param>
         /// <param name="compareConfig"></param>
         /// <returns></returns>
-        public static async Task<PGCRUDResult> UpsertData<T>(
+        public static async Task<UpdateDetail> UpsertData<T>(
             this QueryFactory QueryFactory,
             Upsertable<T> data,
             DataInfo dataconfig,
@@ -613,12 +613,12 @@ namespace Helper
 
             // Check if write succeeded
             if (createresult == 0 && updateresult == 0)
-                return PGCRUDResult.Default with
+                return UpdateDetail.Default with
                 {
                     id = d.Id,
-                    odhtype = d._Meta.Type,
+                    type = d._Meta.Type,
                     error = 1,
-                    errorreason = "Internal Error",
+                    exception = "Internal Error",
                     operation = dataconfig.Operation.ToString(),
                     objectchanged = prepared.ObjectChanged,
                     objectimagechanged = prepared.ObjectImageChanged,
@@ -636,14 +636,14 @@ namespace Helper
                 );
             }
 
-            return PGCRUDResult.Default with
+            return UpdateDetail.Default with
             {
                 id = d.Id,
-                odhtype = d._Meta.Type,
+                type = d._Meta.Type,
                 created = createresult,
                 updated = updateresult,
                 operation = dataconfig.Operation.ToString(),
-                compareobject = compareConfig.CompareData,
+                objectcompared = compareConfig.CompareData ? 1 : 0,
                 objectchanged = prepared.ObjectChanged,
                 objectimagechanged = prepared.ObjectImageChanged,
                 pushchannels = prepared.PushChannels,

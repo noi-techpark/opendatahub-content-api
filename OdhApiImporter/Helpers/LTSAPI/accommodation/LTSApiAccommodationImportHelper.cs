@@ -35,18 +35,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        //Not implemented here
-        public async Task<UpdateDetail> SaveDataToODH(
-            DateTime? lastchanged = null,
-            List<string>? idlist = null,
-            bool reduced = false,
-            CancellationToken cancellationToken = default
-        )
-        {
-            throw new NotImplementedException();
-        }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -367,19 +357,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var result = await InsertDataToDB(accommodationparsed, data.data, jsonfiles);
 
-                    updatedetails.Add(new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    });
+                    updatedetails.Add(result);
 
                     idlistlts.Add(id);
 
@@ -407,7 +385,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     error = 1,
                     objectchanged = 0,
                     objectimagechanged = 0,
-                    comparedobjects = 0,
+                    objectcompared = 0,
                     pushchannels = null,
                     changes = null
                 });
@@ -416,7 +394,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return updatedetails.FirstOrDefault();
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             AccommodationV2 objecttosave,
             LTSAccoData data,
             IDictionary<string, JArray>? jsonfiles
@@ -475,10 +453,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         public async Task<UpdateDetail> DeleteOrDisableAccommodationsData(string id, bool delete, bool reduced)
-        {
-            UpdateDetail deletedisableresult = default(UpdateDetail);
-
-            PGCRUDResult result = default(PGCRUDResult);
+        {           
+            UpdateDetail result = default(UpdateDetail);
 
             if (delete)
             {
@@ -488,23 +464,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 new CRUDConstraints(),
                 reduced
                 );
-
-                if (result.errorreason != "Data Not Found")
-                {
-                    deletedisableresult = new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    };
-                }
             }
             else
             {
@@ -529,25 +488,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                new EditInfo("lts.accommodations.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
-                        );
-
-                        deletedisableresult = new UpdateDetail()
-                        {
-                            created = result.created,
-                            updated = result.updated,
-                            deleted = result.deleted,
-                            error = result.error,
-                            objectchanged = result.objectchanged,
-                            objectimagechanged = result.objectimagechanged,
-                            comparedobjects = result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                            pushchannels = result.pushchannels,
-                            changes = result.changes,
-                        };
+                        );                        
                     }
                 }
             }
 
-            return deletedisableresult;
+            return result;
         }
 
     }

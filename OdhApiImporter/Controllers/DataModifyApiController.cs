@@ -80,13 +80,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify EventShort",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -115,12 +113,10 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
-                    recordsmodified = objectscount,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0                    
                 }
             );
         }
@@ -145,12 +141,10 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
-                    recordsmodified = objectscount,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -176,13 +170,11 @@ namespace OdhApiImporter.Controllers
                     operation = "ResaveEventShortWithTags EventShort",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -213,13 +205,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Accommodation",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -243,13 +233,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Accommodation Array",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -273,13 +261,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Accommodation V2",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -301,13 +287,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Articles",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = 0,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -328,13 +312,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Articles",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = 0,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -356,13 +338,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify WeatherHistory",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = 0,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -399,12 +379,10 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
-                    recordsmodified = objectscount,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -422,13 +400,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify STA Vendingpoint",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = 0,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -455,12 +431,10 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
-                    recordsmodified = objectscount,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -487,13 +461,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Metadata Record Count",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -517,13 +489,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Resave Metadata",
                     updatetype = "custom",
                     otherinfo = Request.Host.ToString(),
-                    message = "Done",
-                    recordsmodified = 0,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -544,13 +514,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Resave Tags",
                     updatetype = "custom",
                     otherinfo = Request.Host.ToString(),
-                    message = "Done",
-                    recordsmodified = 0,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -709,12 +677,10 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = odhtype,
                     message = "Done",
-                    recordsmodified = objectscount,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -740,12 +706,10 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
-                    recordsmodified = 0,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -782,12 +746,10 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
-                    recordsmodified = objectscount,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0                    
                 }
             );
         }
@@ -813,12 +775,10 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
-                    recordsmodified = objectscount,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -839,13 +799,11 @@ namespace OdhApiImporter.Controllers
                     operation = "EventShortTypesToTags",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -866,13 +824,11 @@ namespace OdhApiImporter.Controllers
                     operation = "GastronomyTypesToTags",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -893,13 +849,11 @@ namespace OdhApiImporter.Controllers
                     operation = "VenueTypesToTags",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -920,13 +874,11 @@ namespace OdhApiImporter.Controllers
                     operation = "VenueSeatTypesToTags",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -947,13 +899,11 @@ namespace OdhApiImporter.Controllers
                     operation = "ArticleTypesToTags",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -974,13 +924,11 @@ namespace OdhApiImporter.Controllers
                     operation = "TagSourceFix",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1001,13 +949,11 @@ namespace OdhApiImporter.Controllers
                     operation = "TagTypesFix",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1028,13 +974,11 @@ namespace OdhApiImporter.Controllers
                     operation = "TagParentIdFix",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1055,13 +999,11 @@ namespace OdhApiImporter.Controllers
                     operation = "TranslatedODHTagsFix",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1082,13 +1024,11 @@ namespace OdhApiImporter.Controllers
                     operation = "TagsValidForEntityFix",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1149,13 +1089,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify GeoShape",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1190,13 +1128,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Reduced " + table,
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1258,13 +1194,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify WineAwards",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = 0,
+                    message = "Done",                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1292,13 +1226,11 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Events Datamodel",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done, failed ids:" + objectscount.Item2,
-                    recordsmodified = objectscount.Item1,
+                    message = "Done, failed ids:" + objectscount.Item2,                    
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1329,14 +1261,12 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Venue",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount.Item1,
+                    message = "Done",                    
                     exception = objectscount.Item2,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }
@@ -1366,14 +1296,12 @@ namespace OdhApiImporter.Controllers
                     operation = "Modify Measuringpoint",
                     updatetype = "custom",
                     otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount.Item1,
+                    message = "Done",                    
                     exception = objectscount.Item2,
                     created = 0,
                     deleted = 0,
                     id = "",
-                    updated = 0,
-                    success = true,
+                    updated = 0,                    
                 }
             );
         }

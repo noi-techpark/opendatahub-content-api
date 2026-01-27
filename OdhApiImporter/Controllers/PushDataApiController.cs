@@ -86,46 +86,41 @@ namespace OdhApiImporter.Controllers
                     taglist
                 );
 
-                List<UpdateResult> updates = new List<UpdateResult>();
+                List<UpdateDetail> updates = new List<UpdateDetail>();
                 foreach (var result in results)
                 {
                     updates.Add(
-                        new UpdateResult
+                        new UpdateDetail
                         {
-                            operation = type + ".push." + notificationchannel,
-                            updatetype = "custom",
-                            otherinfo = "",
-                            message = "Done",
-                            recordsmodified = 0,
                             created = 0,
                             deleted = 0,
                             id = result.Key,
                             updated = 0,
-                            success = true,
+                            error = 0,
                             pushed = result.Value,
-                            source = "api",
                             pushchannels = result.Value.Keys,
                             objectcompared = 0,
-                            objectchanges = null,
-                            objectchangestring = null,
+                            changes = null,
                             objectchanged = 0,
                             objectimagechanged = 0,
                         }
                     );
                 }
 
-                return Ok(updates);
+                return Ok(GenericResultsHelper.GetUpdateResult(
+                    null, "api", type + ".push." + notificationchannel, "custom", "Done", "", updates, null, true
+                    ));
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     ids ?? tags,
                     "api",
                     type + ".push." + notificationchannel,
                     "custom",
                     "Push to Marketplace failed",
                     "",
-                    default(UpdateDetail),
+                    new List<UpdateDetail>(){ new UpdateDetail() { error = 1 } },
                     ex,
                     true
                 );
