@@ -2676,14 +2676,14 @@ namespace DataModel
 
 public static class CoordinateSourceType
 {
-    public const string Geo = "Geo";
+    public const string GeoData = "GeoData";
     public const string GpsInfo = "GpsInfo";
 }
 
 public class CoordinateSource
 {
     [SwaggerSchema("Type of the coordinate source")]
-    [SwaggerEnum(new[] { "Geo", "GeoShapeReference", "GpsInfo" })]
+    [SwaggerEnum(new[] { "GeoData", "GpsInfo" })]
     public string? Type { get; set; } = CoordinateSourceType.GpsInfo;
 
     [SwaggerSchema("Field from which to extrapolate coordinate data")]
