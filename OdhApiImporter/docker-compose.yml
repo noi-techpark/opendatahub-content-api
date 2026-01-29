@@ -122,8 +122,11 @@ services:
       ASPNETCORE_DigiWayConfig__sentieri_della_sat__Source: ${DIGIWAY_TNHIKINGTRAIL_SOURCE}
       ASPNETCORE_DigiWayConfig__sentieri_della_sat__Format: ${DIGIWAY_TNHIKINGTRAIL_FORMAT}
       ASPNETCORE_DigiWayConfig__sentieri_della_sat__SRid: ${DIGIWAY_TNHIKINGTRAIL_SRID}
-
-
+      ASPNETCORE_ZOHOConfig__ClientId: ${DIGIWAY_ZOHO_CLIENTID}
+      ASPNETCORE_ZOHOConfig__ClientSecret: ${DIGIWAY_ZOHO_CLIENTSECRET}
+      ASPNETCORE_ZOHOConfig__ServiceUrl: ${DIGIWAY_ZOHO_SERVICEURL}
+      ASPNETCORE_ZOHOConfig__AuthUrl: ${DIGIWAY_ZOHO_AUTHURL}
+      ASPNETCORE_ZOHOConfig__Scope: ${DIGIWAY_ZOHO_SCOPE}
       ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl: ${GTFSAPI_STATIMETABLES_URL}
     ports:
       - "8002:80"

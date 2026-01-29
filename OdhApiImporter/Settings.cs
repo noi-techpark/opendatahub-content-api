@@ -44,6 +44,8 @@ namespace OdhApiImporter
         private readonly IDictionary<string, DigiWayConfig> digiwayConfig;
         private readonly IDictionary<string, GTFSApiConfig> gtfsapiConfig;
 
+        private readonly ZOHOConfig zohoConfig;
+
         public Settings(IConfiguration configuration)
         {
             this.configuration = configuration;
@@ -265,6 +267,15 @@ namespace OdhApiImporter
                 ltsapiopen.GetValue<string>("XLSClientid", ""),
                 ltsapiopen.GetValue<bool>("Opendata", true)
             );
+
+            var zoho = this.configuration.GetSection("ZohoConfig");
+            this.zohoConfig = new ZOHOConfig(
+                zoho.GetValue<string>("ClientId", ""),
+                zoho.GetValue<string>("ClientSecret", ""),
+                zoho.GetValue<string>("ServiceUrl", ""),
+                zoho.GetValue<string>("AuthUrl", ""),
+                zoho.GetValue<string>("Scope", "")
+            );
         }
 
         public string PostgresConnectionString => this.connectionString.Value;
@@ -307,5 +318,7 @@ namespace OdhApiImporter
         public LTSCredentials LtsCredentialsOpen => this.ltsCredentialsOpen;
         public IDictionary<string, DigiWayConfig> DigiWayConfig => this.digiwayConfig;
         public IDictionary<string, GTFSApiConfig> GTFSApiConfig => this.gtfsapiConfig;
+
+        public ZOHOConfig ZohoConfig => this.zohoConfig;
     }
 }
