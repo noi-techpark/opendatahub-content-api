@@ -2677,7 +2677,6 @@ namespace DataModel
 public static class CoordinateSourceType
 {
     public const string Geo = "Geo";
-    public const string GeoShapeReference = "GeoShapeReference";
     public const string GpsInfo = "GpsInfo";
 }
 
@@ -2689,9 +2688,6 @@ public class CoordinateSource
 
     [SwaggerSchema("Field from which to extrapolate coordinate data")]
     public string? Field { get; set; }
-
-    [SwaggerSchema("Use default entry, if multiple. For Geo types is .default = true field, for the other is the first element")]
-    public bool? UseDefault {get; set; }
 }
 
 #region obsolete toremove
