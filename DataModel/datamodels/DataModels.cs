@@ -324,8 +324,8 @@ namespace DataModel
     public class AdditionalContact
     {
         public string Type { get; set; }
-        public ContactInfos ContactInfos { get; set; }
-        public string Description { get; set; }
+        public ContactInfos? ContactInfos { get; set; }
+        public string? Description { get; set; }
     }
 
     public class RelatedContent
