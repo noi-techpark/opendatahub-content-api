@@ -172,6 +172,11 @@ jobs:
           X_DIGIWAY_TNHIKINGTRAIL_FORMAT: "geojson"
           X_DIGIWAY_TNHIKINGTRAIL_SRID: "4326"
           X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
+          X_DIGIWAY_ZOHO_CLIENTID: ${{ secrets.DIGIWAY_ZOHO_CLIENTID }}
+          X_DIGIWAY_ZOHO_CLIENTSECRET: ${{ secrets.DIGIWAY_ZOHO_CLIENTSECRET }}
+          X_DIGIWAY_ZOHO_SERVICEURL: ${{ secrets.DIGIWAY_ZOHO_SERVICEURL }}
+          X_DIGIWAY_ZOHO_AUTHURL: "https://accounts.zoho.com/oauth/v2/token"
+          X_DIGIWAY_ZOHO_SCOPE: "ZohoCreator.report.READ"
 
       - name: Setup config
         run: |
@@ -348,6 +353,11 @@ jobs:
           X_DIGIWAY_TNHIKINGTRAIL_FORMAT: "geojson"
           X_DIGIWAY_TNHIKINGTRAIL_SRID: "4326"
           X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
+          X_DIGIWAY_ZOHO_CLIENTID: ${{ secrets.DIGIWAY_ZOHO_CLIENTID }}
+          X_DIGIWAY_ZOHO_CLIENTSECRET: ${{ secrets.DIGIWAY_ZOHO_CLIENTSECRET }}
+          X_DIGIWAY_ZOHO_SERVICEURL: ${{ secrets.DIGIWAY_ZOHO_SERVICEURL }}
+          X_DIGIWAY_ZOHO_AUTHURL: "https://accounts.zoho.com/oauth/v2/token"
+          X_DIGIWAY_ZOHO_SCOPE: "ZohoCreator.report.READ"
           
       - name: Setup config
         run: |
