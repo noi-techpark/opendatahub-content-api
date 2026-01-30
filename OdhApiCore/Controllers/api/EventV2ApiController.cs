@@ -206,7 +206,7 @@ namespace OdhApiCore.Controllers
 
             if (savetotable)
             {
-                List<PGCRUDResult> result = new List<PGCRUDResult>();
+                List<UpdateDetail> result = new List<UpdateDetail>();
                 foreach (var datasingle in convertresult)
                 {
                     foreach (var venue in datasingle.Venues)
@@ -262,7 +262,7 @@ namespace OdhApiCore.Controllers
 
             if (savetotable)
             {
-                List<PGCRUDResult> result = new List<PGCRUDResult>();
+                List<UpdateDetail> result = new List<UpdateDetail>();
 
                 foreach (var datasingle in convertresult)
                 {
@@ -309,7 +309,7 @@ namespace OdhApiCore.Controllers
 
             var listtaglinked = new List<TagLinked>();
 
-            List<PGCRUDResult> result = new List<PGCRUDResult>();
+            List<UpdateDetail> result = new List<UpdateDetail>();
 
             foreach (var data in datalist)
             {
@@ -525,7 +525,7 @@ namespace OdhApiCore.Controllers
         //[InvalidateCacheOutput(nameof(GetEventList))]
         [AuthorizeODH(PermissionAction.Create)]
         //[Authorize(Roles = "DataWriter,DataCreate,EventManager,EventCreate")]
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Event")]
@@ -564,7 +564,7 @@ namespace OdhApiCore.Controllers
         /// <returns>Http Response</returns>
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[InvalidateCacheOutput(nameof(GetEventList))]
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Update)]
@@ -605,7 +605,7 @@ namespace OdhApiCore.Controllers
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[InvalidateCacheOutput(nameof(GetEventList))]
         //[Authorize(Roles = "DataWriter,DataDelete,EventManager,EventDelete")]
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Delete)]

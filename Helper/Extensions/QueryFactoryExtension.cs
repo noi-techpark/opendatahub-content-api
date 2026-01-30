@@ -196,7 +196,7 @@ namespace Helper
         /// <param name="constraints">Constraints for CRUD operations</param>
         /// <param name="compareConfig">Compare data/images true/false</param>
         /// <returns></returns>
-        public static async Task<PGCRUDResult> UpsertData<T>(
+        public static async Task<UpdateDetail> UpsertData<T>(
             this QueryFactory QueryFactory,
             T data,
             DataInfo dataconfig,
@@ -219,18 +219,18 @@ namespace Helper
 
             //If no data is passed return error
             if (data == null)
-                return new PGCRUDResult()
+                return new UpdateDetail()
                 {
                     id = "",
-                    odhtype = "",
+                    type = "",
                     created = 0,
                     updated = 0,
                     deleted = 0,
                     error = 1,
-                    errorreason = "No Data",
+                    exception = "No Data",
                     operation = dataconfig.Operation.ToString(),
                     changes = 0,
-                    compareobject = false,
+                    objectcompared = 0,
                     objectchanged = 0,
                     objectimagechanged = 0,
                     pushchannels = channelstopublish,
@@ -285,18 +285,18 @@ namespace Helper
             //Check data condition return not allowed if it fails
             if (!CheckCRUDCondition.CRUDOperationAllowed(data, constraints.Condition))
             {
-                return new PGCRUDResult()
+                return new UpdateDetail()
                 {
                     id = data.Id,
-                    odhtype = data._Meta.Type,
+                    type = data._Meta.Type,
                     created = 0,
                     updated = 0,
                     deleted = 0,
                     error = 1,
-                    errorreason = "Not Allowed",
+                    exception = "Not Allowed",
                     operation = dataconfig.Operation.ToString(),
                     changes = null,
-                    compareobject = false,
+                    objectcompared = 0,
                     objectchanged = objectchangedcount,
                     objectimagechanged = objectimagechangedcount,
                     pushchannels = channelstopublish,
@@ -306,18 +306,18 @@ namespace Helper
             if (queryresult == null)
             {
                 if (dataconfig.ErrorWhendataIsNew)
-                    return new PGCRUDResult()
+                    return new UpdateDetail()
                     {
                         id = data.Id,
-                        odhtype = data._Meta.Type,
+                        type = data._Meta.Type,
                         created = 0,
                         updated = 0,
                         deleted = 0,
                         error = 1,
-                        errorreason = "Data to update Not Found",
+                        exception = "Data to update Not Found",
                         operation = dataconfig.Operation.ToString(),
                         changes = null,
-                        compareobject = false,
+                        objectcompared = 0,
                         objectchanged = objectchangedcount,
                         objectimagechanged = objectimagechangedcount,
                         pushchannels = channelstopublish,
@@ -357,18 +357,18 @@ namespace Helper
             else
             {
                 if (dataconfig.ErrorWhendataExists)
-                    return new PGCRUDResult()
+                    return new UpdateDetail()
                     {
                         id = data.Id,
-                        odhtype = data._Meta.Type,
+                        type = data._Meta.Type,
                         created = 0,
                         updated = 0,
                         deleted = 0,
                         error = 1,
-                        errorreason = "Data exists already",
+                        exception = "Data exists already",
                         operation = dataconfig.Operation.ToString(),
                         changes = null,
-                        compareobject = false,
+                        objectcompared = 0,
                         objectchanged = objectchangedcount,
                         objectimagechanged = objectimagechangedcount,
                         pushchannels = channelstopublish,
@@ -451,18 +451,18 @@ namespace Helper
             }
 
             if (createresult == 0 && updateresult == 0)
-                return new PGCRUDResult()
+                return new UpdateDetail()
                 {
                     id = data.Id,
-                    odhtype = data._Meta.Type,
+                    type = data._Meta.Type,
                     created = 0,
                     updated = 0,
                     deleted = 0,
                     error = 1,
-                    errorreason = "Internal Error",
+                    exception = "Internal Error",
                     operation = dataconfig.Operation.ToString(),
                     changes = null,
-                    compareobject = false,
+                    objectcompared = 0,
                     objectchanged = objectchangedcount,
                     objectimagechanged = objectimagechangedcount,
                     pushchannels = channelstopublish,
@@ -498,17 +498,17 @@ namespace Helper
                 }
             }
 
-            return new PGCRUDResult()
+            return new UpdateDetail()
             {
                 id = data.Id,
-                odhtype = data._Meta.Type,
+                type = data._Meta.Type,
                 created = createresult,
                 updated = updateresult,
                 deleted = 0,
                 error = errorresult,
-                errorreason = errorreason,
+                exception = errorreason,
                 operation = dataconfig.Operation.ToString(),
-                compareobject = compareConfig.CompareData,
+                objectcompared = compareConfig.CompareData ? 1 : 0,
                 objectchanged = objectchangedcount,
                 objectimagechanged = objectimagechangedcount,
                 pushchannels = channelstopublish,
@@ -525,7 +525,7 @@ namespace Helper
         /// <param name="dataconfig"></param>
         /// <param name="condition"></param>
         /// <returns></returns>
-        public static async Task<PGCRUDResult> DeleteData<T>(
+        public static async Task<UpdateDetail> DeleteData<T>(
             this QueryFactory QueryFactory,
             string id,
             DataInfo dataconfig,
@@ -537,18 +537,18 @@ namespace Helper
             List<string> channelstopublish = new List<string>();
 
             if (string.IsNullOrEmpty(id))
-                return new PGCRUDResult()
+                return new UpdateDetail()
                 {
                     id = "",
-                    odhtype = "",
+                    type = "",
                     created = 0,
                     updated = 0,
                     deleted = 0,
                     error = 1,
-                    errorreason = "Bad Request",
+                    exception = "Bad Request",
                     operation = dataconfig.Operation.ToString(),
                     changes = null,
-                    compareobject = false,
+                    objectcompared = 0,
                     objectchanged = null,
                     objectimagechanged = null,
                     pushchannels = channelstopublish,
@@ -581,18 +581,18 @@ namespace Helper
 
             if (queryresult == null)
             {
-                return new PGCRUDResult()
+                return new UpdateDetail()
                 {
                     id = idtodelete,
-                    odhtype = null,
+                    type = null,
                     created = 0,
                     updated = 0,
                     deleted = 0,
                     error = 1,
-                    errorreason = "Data Not Found",
+                    exception = "Data Not Found",
                     operation = dataconfig.Operation.ToString(),
                     changes = null,
-                    compareobject = false,
+                    objectcompared = 0,
                     objectchanged = null,
                     objectimagechanged = null,
                     pushchannels = channelstopublish,
@@ -603,18 +603,18 @@ namespace Helper
                 //Check data condition
                 if (!CheckCRUDCondition.CRUDOperationAllowed(queryresult, constraints.Condition))
                 {
-                    return new PGCRUDResult()
+                    return new UpdateDetail()
                     {
                         id = idtodelete,
-                        odhtype = queryresult._Meta.Type,
+                        type = queryresult._Meta.Type,
                         created = 0,
                         updated = 0,
                         deleted = 0,
                         error = 1,
-                        errorreason = "Not Allowed",
+                        exception = "Not Allowed",
                         operation = dataconfig.Operation.ToString(),
                         changes = null,
-                        compareobject = false,
+                        objectcompared = 0,
                         objectchanged = null,
                         objectimagechanged = null,
                         pushchannels = channelstopublish,
@@ -633,35 +633,35 @@ namespace Helper
             }
 
             if (deleteresult == 0)
-                return new PGCRUDResult()
+                return new UpdateDetail()
                 {
                     id = idtodelete,
-                    odhtype = queryresult._Meta.Type,
+                    type = queryresult._Meta.Type,
                     created = 0,
                     updated = 0,
                     deleted = 0,
                     error = 1,
-                    errorreason = "Internal Error",
+                    exception = "Internal Error",
                     operation = dataconfig.Operation.ToString(),
                     changes = null,
-                    compareobject = false,
+                    objectcompared = 0,
                     objectchanged = null,
                     objectimagechanged = null,
                     pushchannels = channelstopublish,
                 };
 
-            return new PGCRUDResult()
+            return new UpdateDetail()
             {
                 id = idtodelete,
-                odhtype = queryresult._Meta.Type,
+                type = queryresult._Meta.Type,
                 created = 0,
                 updated = 0,
                 deleted = deleteresult,
                 error = 0,
-                errorreason = errorreason,
+                exception = errorreason,
                 operation = dataconfig.Operation.ToString(),
                 changes = null,
-                compareobject = false,
+                objectcompared = 0,
                 objectchanged = null,
                 objectimagechanged = null,
                 pushchannels = channelstopublish,
@@ -702,26 +702,26 @@ namespace Helper
             catch (Exception ex)
             {
                 //Create a Log entry
-                GenericResultsHelper.GetErrorUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     data.Id,
                     "api",
                     "Insert Rawchanges",
                     "single",
                     "Insert Rawchanges failed, " + equalityresult.patch != null ? equalityresult.patch.ToString() : "no change",
                     data._Meta.Type,
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
-                        error = 1,                        
+                        error = 1,
                         objectchanged = 0,
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    }},
                     ex,
                     true
                 );

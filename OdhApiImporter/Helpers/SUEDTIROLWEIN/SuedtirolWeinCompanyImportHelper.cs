@@ -36,7 +36,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
         )
             : base(settings, queryfactory, table, importerURL) { }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -48,9 +48,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
             var deleteresult = await SetDataNotinListToInactive(winegastrolist, cancellationToken);
 
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+            return new List<UpdateDetail>() { updateresult, deleteresult };
         }
 
         public async Task<IDictionary<string, XDocument>> ImportList(
@@ -355,7 +353,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked odhactivitypoi,
             KeyValuePair<string, XElement> suedtirolweindata
         )
