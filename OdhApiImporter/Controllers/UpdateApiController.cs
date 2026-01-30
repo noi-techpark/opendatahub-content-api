@@ -3224,7 +3224,7 @@ namespace OdhApiImporter.Controllers
 
         #region ZOHO_DIGIWAY
 
-        [Authorize(Roles = "DataWriter")]
+        [Authorize(Roles = "DataPush")]
         [HttpGet, Route("Zoho/TrailClosures/Update")]
         public async Task<IActionResult> SaveZohoTrailClosuresDataToAnnouncements(
             CancellationToken cancellationToken
