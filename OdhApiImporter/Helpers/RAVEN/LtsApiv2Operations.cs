@@ -544,20 +544,20 @@ namespace OdhApiImporter.Helpers.RAVEN
                                 accommodation.IndependentData.Enabled = review.isActive;
                                 accommodation.IndependentData.IndependentRating = Convert.ToInt32(review.rating);
 
-                                //IDM Custom Logic 
-                                if(accommodation.IndependentData.IndependentRating >= 3)
-                                {
-                                    if(accommodation.SmgTags == null)
-                                        accommodation.SmgTags = new List<string>();
+                                ////IDM Custom Logic 
+                                //if(accommodation.IndependentData.IndependentRating >= 3)
+                                //{
+                                //    if(accommodation.SmgTags == null)
+                                //        accommodation.SmgTags = new List<string>();
 
-                                    if (!accommodation.SmgTags.Contains("barrier-free"))
-                                        accommodation.SmgTags.Add("barrier-free");
-                                }
-                                else
-                                {
-                                    if (accommodation.SmgTags != null && accommodation.SmgTags.Contains("barrier-free"))
-                                        accommodation.SmgTags.Remove("barrier-free");
-                                }
+                                //    if (!accommodation.SmgTags.Contains("barrier-free"))
+                                //        accommodation.SmgTags.Add("barrier-free");
+                                //}
+                                //else
+                                //{
+                                //    if (accommodation.SmgTags != null && accommodation.SmgTags.Contains("barrier-free"))
+                                //        accommodation.SmgTags.Remove("barrier-free");
+                                //}
                             }
                         }
                         //To check, if no review of independent is there isEnabled is null and rating is null?
