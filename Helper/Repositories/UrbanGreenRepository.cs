@@ -7,7 +7,7 @@ using DataModel;
 
 namespace Helper
 {
-    class UpsertableUrbanGreen: Helper.QueryFactoryExtension.Upsertable<UrbanGreen>
+    public class UpsertableUrbanGreen: Helper.QueryFactoryExtension.Upsertable<UrbanGreen>
     {
         public UpsertableUrbanGreen(UrbanGreen data)
         : base(

@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Controllers.api;
-using OdhApiCore.Repositories;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
