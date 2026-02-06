@@ -3,9 +3,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using NetTopologySuite.Geometries;
-using System;
+using NetTopologySuite.Geometries.Utilities;
 using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
+using System;
+
+
 
 namespace Helper.Geo
 {
@@ -271,5 +274,51 @@ namespace Helper.Geo
             return latitude >= -90.0 && latitude <= 90.0 &&
                    longitude >= -180.0 && longitude <= 180.0;
         }
+    }
+
+    public static class EPSG3857ToEPSG4326
+    {
+        public static Geometry ConvertEPSG3857ToEPSG4326(Geometry geometry)
+        {            
+            Geometry geom3857 = geometry;
+
+            var ctFactory = new CoordinateTransformationFactory();
+
+            var transform = ctFactory.CreateFromCoordinateSystems(
+                ProjectedCoordinateSystem.WebMercator, // EPSG:3857
+                GeographicCoordinateSystem.WGS84       // EPSG:4326
+            );
+
+            var geom4326 = (Geometry)geom3857.Copy();
+            geom4326.Apply(new ProjNetFilter(transform.MathTransform));
+            geom4326.SRID = 4326;
+
+            return geom4326;
+        }
+    }
+
+    public sealed class ProjNetFilter : ICoordinateSequenceFilter
+    {
+        private readonly MathTransform _transform;
+
+        public ProjNetFilter(MathTransform transform)
+        {
+            _transform = transform;
+        }
+
+        public void Filter(CoordinateSequence seq, int i)
+        {
+            var result = _transform.Transform(new[]
+            {
+            seq.GetX(i),
+            seq.GetY(i)
+        });
+
+            seq.SetX(i, result[0]);
+            seq.SetY(i, result[1]);
+        }
+
+        public bool Done => false;
+        public bool GeometryChanged => true;
     }
 }

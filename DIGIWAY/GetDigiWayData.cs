@@ -160,5 +160,27 @@ namespace DIGIWAY
 
         #endregion
 
+        #region GeoJson
+
+        public static async Task<ICollection<GeoJsonFeature>?> GetDigiWayGeoJsonDataFromFileAsync(
+            string user,
+            string pass,
+            string serviceurl,
+            bool createfromurl = true
+        )
+        {            
+            var reader = new GeoJsonFileReader();
+            var fileInfo = reader.GetFileInfo(serviceurl);
+
+            // Read the actual features
+            var featureCollection = await reader.ReadGeoJsonFileAsync(serviceurl);
+
+            // Convert to simple features for easier access
+            var features = reader.GetFeatures(featureCollection);
+
+            return features;           
+        }
+
+        #endregion
     }
 }
