@@ -95,7 +95,12 @@ namespace DIGIWAY
             spatialdata.Id = ("urn:" + identifier + ":" + digiwaydata.Attributes["TYPE_CODE"].ToString() + ":" + digiwaydata.Attributes["PATH_CODE"].ToString()).ToLower();
             spatialdata.Active = true;
             spatialdata.FirstImport = spatialdata.FirstImport == null ? DateTime.Now : spatialdata.FirstImport;
-            spatialdata.LastChange = digiwaydata.Attributes["DATA_STATUS"] != null ? Convert.ToDateTime(digiwaydata.Attributes["DATA_STATUS"].ToString()) : DateTime.Now;
+            spatialdata.LastChange =
+                spatialdata.LastChange =
+                digiwaydata.Attributes["DATA_STATUS"] != null &&
+                DateTime.TryParse(digiwaydata.Attributes["DATA_STATUS"].ToString(), out var dt)
+                    ? dt
+                    : DateTime.Now;
             //odhactivitypoi.HasLanguage = new List<string>() { "it" };
             //odhactivitypoi.Shortname = digiwaydata.Attributes["TYPE_E"] != null ? digiwaydata.Attributes["denominazi"].ToString() : null;
             //odhactivitypoi.Detail = new Dictionary<string, Detail>();
@@ -126,8 +131,8 @@ namespace DIGIWAY
 
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             foreach (var feature in digiwaydata.Attributes)
-            {                
-                additionalvalues.Add(feature.Key, feature.Value == null ? feature.Value.ToString() : null);
+            {
+                additionalvalues.Add(feature.Key, feature.Value?.ToString());
             }
             spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
 
@@ -151,7 +156,13 @@ namespace DIGIWAY
             spatialdata.Id = ("urn:" + identifier + ":" + System.Guid.NewGuid()).ToLower();
             spatialdata.Active = true;
             spatialdata.FirstImport = spatialdata.FirstImport == null ? DateTime.Now : spatialdata.FirstImport;
-            spatialdata.LastChange = digiwaydata.Attributes["DATA_STATUS"] != null ? Convert.ToDateTime(digiwaydata.Attributes["DATA_STATUS"].ToString()) : DateTime.Now;
+
+            spatialdata.LastChange =
+                digiwaydata.Attributes["DATA_STATUS"] != null &&
+                DateTime.TryParse(digiwaydata.Attributes["DATA_STATUS"].ToString(), out var dt)
+                    ? dt
+                    : DateTime.Now;
+
             //odhactivitypoi.HasLanguage = new List<string>() { "it" };
             //odhactivitypoi.Shortname = digiwaydata.Attributes["TYPE_E"] != null ? digiwaydata.Attributes["denominazi"].ToString() : null;
             //odhactivitypoi.Detail = new Dictionary<string, Detail>();

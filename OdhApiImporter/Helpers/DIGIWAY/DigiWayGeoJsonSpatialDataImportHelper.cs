@@ -56,11 +56,11 @@ namespace OdhApiImporter.Helpers
             ////UPDATE all data
             var updateresult = await ImportData(data, cancellationToken);
 
-            //Disable Data not in list
-            var deleteresult = await SetDataNotinListToInactive(cancellationToken);
+            //Disable Data not in list currently unavailable
+            //var deleteresult = await SetDataNotinListToInactive(cancellationToken);
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
+                new List<UpdateDetail>() { updateresult }
             );
         }
 
