@@ -109,18 +109,18 @@ namespace OdhApiImporter.Helpers.RAVEN
 
                 accommodation.Mapping.TryAddOrUpdate("lts", ltsdict);
 
-                GenericResultsHelper.GetSuccessUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     accommodation.Id,
                     "api",
                     "Update CinCode",
                     "single",
                     "Update CinCode success",
                     "accommodation",
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 1,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 0,
@@ -128,24 +128,25 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    }},
+                    null,
                     true
                 );
             }
             catch (Exception ex)
             {
-                GenericResultsHelper.GetErrorUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     accommodation.Id,
                     "api",
                     "Update CinCode",
                     "single",
                     "Update CinCode failed",
                     "accommodation",
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 1,
@@ -153,7 +154,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    } },
                     ex,
                     true
                 );
@@ -184,18 +185,18 @@ namespace OdhApiImporter.Helpers.RAVEN
                 accommodation.AccoLTSInfo.PriceFrom = (int?)pricefrom;
                 accommodation.AccoLTSInfo.PriceFromPerUnit = (int?)pricefromperunit;
 
-                GenericResultsHelper.GetSuccessUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     accommodation.Id,
                     "api",
                     "Update AccoLTSInfo",
                     "single",
                     "Update AccoLTSInfo success",
                     "accommodation",
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 1,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 0,
@@ -203,24 +204,25 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    } },
+                    null,
                     true
                 );
             }
             catch (Exception ex)
             {
-                GenericResultsHelper.GetErrorUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     accommodation.Id,
                     "api",
                     "Update AccoLTSInfo",
                     "single",
                     "Update AccoLTSInfo failed",
                     "accommodation",
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 1,
@@ -228,7 +230,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    } },
                     ex,
                     true
                 );
@@ -374,18 +376,18 @@ namespace OdhApiImporter.Helpers.RAVEN
                 //Populate Tags (Id/Source/Type)
                 await accommodation.UpdateTagsExtension(queryFactory);
 
-                GenericResultsHelper.GetSuccessUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     accommodation.Id,
                     "api",
                     "Update Guestcard",
                     "single",
                     "Update Guestcard success",
                     "accommodation",
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 1,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 0,
@@ -393,24 +395,25 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    } },
+                    null,
                     true
                 );
             }
             catch (Exception ex)
             {
-                GenericResultsHelper.GetErrorUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     accommodation.Id,
                     "api",
                     "Update Guestcard",
                     "single",
                     "Update Guestcard failed",
                     "accommodation",
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 1,
@@ -418,7 +421,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    } },
                     ex,
                     true
                 );
@@ -564,18 +567,18 @@ namespace OdhApiImporter.Helpers.RAVEN
                     }
                 }
 
-                GenericResultsHelper.GetSuccessUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     accommodation.Id,
                     "api",
                     "Update AccoIndependentData",
                     "single",
                     "Update AccoIndependentData success",
                     "accommodation",
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = updateddata,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 0,
@@ -583,24 +586,25 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    } },
+                    null,
                     true
                 );
             }
             catch (Exception ex)
             {
-                GenericResultsHelper.GetErrorUpdateResult(
+                GenericResultsHelper.GetUpdateResult(
                     accommodation.Id,
                     "api",
                     "Update AccoIndependentData",
                     "single",
                     "Update AccoIndependentData failed",
                     "accommodation",
-                    new UpdateDetail()
+                    new List<UpdateDetail>() { new UpdateDetail()
                     {
                         updated = 0,
                         changes = null,
-                        comparedobjects = null,
+                        objectcompared = null,
                         created = 0,
                         deleted = 0,
                         error = 1,
@@ -608,7 +612,7 @@ namespace OdhApiImporter.Helpers.RAVEN
                         objectimagechanged = 0,
                         pushed = null,
                         pushchannels = null,
-                    },
+                    } },
                     ex,
                     true
                 );

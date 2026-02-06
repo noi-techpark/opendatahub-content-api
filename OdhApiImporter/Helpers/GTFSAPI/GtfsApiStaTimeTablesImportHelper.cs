@@ -40,7 +40,7 @@ namespace OdhApiImporter.Helpers
             idlistfrominterface = new List<string>();
         }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -54,9 +54,7 @@ namespace OdhApiImporter.Helpers
             //Disable Data not in list
             var deleteresult = await SetDataNotinListToInactive(cancellationToken);
 
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+            return new List<UpdateDetail>() { updateresult, deleteresult };
         }
 
         //Get Data from Source
@@ -175,7 +173,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Inserting into DB
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked data,
             KeyValuePair<string, StaTimeTableStopsCsv> stadata
         )

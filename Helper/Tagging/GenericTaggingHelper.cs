@@ -50,12 +50,12 @@ namespace Helper
                             updatetype = "single",
                             otherinfo = "",
                             id = mypgdata.Id,
-                            message = "Tagging conversion failed: " + ex.Message,
-                            recordsmodified = 0,
+                            message = "Tagging conversion failed",
                             created = 0,
                             updated = 0,
                             deleted = 0,
-                            success = false,
+                            error = 1,
+                            exception = ex.Message
                         }
                     )
                 );

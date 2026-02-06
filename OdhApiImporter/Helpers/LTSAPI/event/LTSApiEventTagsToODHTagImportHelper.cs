@@ -69,7 +69,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
         }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -80,7 +80,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //Import Single Data & Deactivate Data
             var result = await SaveEventTagsToPG(eventtags);
 
-            return result;
+            return new List<UpdateDetail>() { result };
         }
 
         private async Task<UpdateDetail> SaveEventTagsToPG(List<JObject> ltsdata)
@@ -154,7 +154,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         OdhPushnotifier,
                         result,
                         result.id,
-                        result.odhtype
+                        result.type
                     );
 
                     newimportcounter = newimportcounter + result.created ?? 0;
@@ -214,7 +214,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHTagLinked objecttosave,
             LTSEventTag eventtag
         )

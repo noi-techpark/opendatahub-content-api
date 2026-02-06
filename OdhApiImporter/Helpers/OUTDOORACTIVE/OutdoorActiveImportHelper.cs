@@ -49,7 +49,7 @@ namespace OdhApiImporter.Helpers
                 throw new Exception("invalid type passed");
         }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -63,10 +63,8 @@ namespace OdhApiImporter.Helpers
 
             //UPDATE all data
             var updateresult = await ImportData(data, cancellationToken);
-            
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult }
-            );
+
+            return new List<UpdateDetail>() { updateresult };
         }
 
         //Get Data from Source
@@ -260,7 +258,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Inserting into DB
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked odhactivitypoi,
             KeyValuePair<string, XElement> oadata
         )

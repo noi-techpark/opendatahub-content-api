@@ -44,7 +44,7 @@ namespace OdhApiImporter.Helpers
         //TODO Check if passed id has to be tranformed to lowercase or uppercase
 
 
-        public async Task<Tuple<string, UpdateDetail>> GetFromRavenAndTransformToPGObject(
+        public async Task<Tuple<string, List<UpdateDetail>>> GetFromRavenAndTransformToPGObject(
             string id,
             string datatype,
             CancellationToken cancellationToken
@@ -231,7 +231,7 @@ namespace OdhApiImporter.Helpers
                     }
 
                     //Merge with updateresult
-                    myupdateresult = GenericResultsHelper.MergeUpdateDetail(updateresultstomerge);
+                    myupdateresult = GenericResultsHelper.MergeUpdateDetailIntoOne(updateresultstomerge);
 
                     //Remove Exception not all accommodations have rooms
                     //else
@@ -1208,13 +1208,13 @@ namespace OdhApiImporter.Helpers
             )
                 mergelist.Add(updateresultreduced);
 
-            return Tuple.Create<string, UpdateDetail>(
+            return Tuple.Create<string, List<UpdateDetail>>(
                 mypgdata.Id,
-                GenericResultsHelper.MergeUpdateDetail(mergelist)
+                mergelist
             );
         }
 
-        public async Task<Tuple<string, UpdateDetail>> DeletePGObject(
+        public async Task<Tuple<string, List<UpdateDetail>>> DeletePGObject(
             string id,
             string datatype,
             CancellationToken cancellationToken
@@ -1496,9 +1496,9 @@ namespace OdhApiImporter.Helpers
             )
                 mergelist.Add(deleteresultreduced);
 
-            return Tuple.Create<string, UpdateDetail>(
+            return Tuple.Create<string, List<UpdateDetail>>(
                 id,
-                GenericResultsHelper.MergeUpdateDetail(mergelist)
+                mergelist
             );
         }
 
@@ -1539,72 +1539,9 @@ namespace OdhApiImporter.Helpers
                     new CRUDConstraints()
                 );
 
-            return new UpdateDetail()
-            {
-                created = result.created,
-                updated = result.updated,
-                deleted = result.deleted,
-                error = result.error,
-                objectchanged = result.objectchanged,
-                objectimagechanged = result.objectimagechanged,
-                comparedobjects =
-                    result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                pushchannels = result.pushchannels,
-                changes = result.changes,
-            };
+            return result;
         }
-
-        ////For Destinationdata Venue
-        //private async Task<UpdateDetail> SaveRavenDestinationdataObjectToPG<T, V>(
-        //    T datatosave,
-        //    V destinationdatatosave,
-        //    string table,
-        //    bool deletereduceddata
-        //)
-        //    where T : IIdentifiable,
-        //        IImportDateassigneable,
-        //        IMetaData,
-        //        ILicenseInfo,
-        //        IPublishedOn,
-        //        IImageGalleryAware,
-        //        new()
-        //    where V : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo
-        //{
-        //    datatosave._Meta.LastUpdate = datatosave.LastChange;
-
-        //    var result = await QueryFactory.UpsertDataDestinationData<T, V>(
-        //        datatosave,
-        //        destinationdatatosave,
-        //        table,
-        //        false,
-        //        false,
-        //        true,
-        //        true
-        //    );
-
-        //    //Delete the reduced data if available
-        //    if (deletereduceddata)
-        //        await QueryFactory.DeleteData<T>(
-        //            datatosave.Id + "_reduced",
-        //            new DataInfo(table, CRUDOperation.Delete),
-        //            new CRUDConstraints()
-        //        );
-
-        //    return new UpdateDetail()
-        //    {
-        //        created = result.created,
-        //        updated = result.updated,
-        //        deleted = result.deleted,
-        //        error = result.error,
-        //        comparedobjects =
-        //            result.compareobject != null && result.compareobject.Value ? 1 : 0,
-        //        objectchanged = result.objectchanged,
-        //        objectimagechanged = result.objectimagechanged,
-        //        pushchannels = result.pushchannels,
-        //        changes = result.changes,
-        //    };
-        //}
-
+      
         public async Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
             UpdateDetail myupdateresult,
             string id,
@@ -1670,10 +1607,10 @@ namespace OdhApiImporter.Helpers
                 new CRUDConstraints()
             );
 
-            var reducedresult = new PGCRUDResult()
+            var reducedresult = new UpdateDetail()
             {
                 changes = null,
-                compareobject = false,
+                objectcompared = 0,
                 created = 0,
                 deleted = 0,
                 error = 0,
@@ -1695,18 +1632,7 @@ namespace OdhApiImporter.Helpers
                 );
             }
 
-            return new UpdateDetail()
-            {
-                created = result.created,
-                updated = result.updated,
-                deleted = result.deleted + reducedresult.deleted,
-                error = result.error + reducedresult.error,
-                objectchanged = result.objectchanged,
-                objectimagechanged = result.objectimagechanged,
-                comparedobjects = 0,
-                pushchannels = result.pushchannels,
-                changes = result.changes,
-            };
+            return reducedresult;
         }
 
         private async Task<IDictionary<string, NotifierResponse>?> PushDeletedObject(

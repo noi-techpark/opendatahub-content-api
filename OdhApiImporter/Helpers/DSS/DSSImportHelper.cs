@@ -45,7 +45,7 @@ namespace OdhApiImporter.Helpers.DSS
 
         public List<string> idlistdssinterface { get; set; }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,
             CancellationToken cancellationToken = default
@@ -60,9 +60,7 @@ namespace OdhApiImporter.Helpers.DSS
             //Disable Data no
             var deleteresult = await SetDataNotinListToInactive(cancellationToken);
 
-            return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+            return new List<UpdateDetail>() { updateresult, deleteresult };
         }
 
         //Imports DSS Data
@@ -626,7 +624,7 @@ namespace OdhApiImporter.Helpers.DSS
             return odhactivitypoi;
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked odhactivitypoi,
             KeyValuePair<string, dynamic> dssdata
         )
@@ -662,7 +660,7 @@ namespace OdhApiImporter.Helpers.DSS
                 return pgcrudresult;
             }
             else
-                return new PGCRUDResult
+                return new UpdateDetail
                 {
                     created = 1,
                     deleted = 0,

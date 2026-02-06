@@ -801,12 +801,12 @@ namespace SuedtirolWein.Parser
                         List<GpsInfo> gpsinfolist = new List<GpsInfo>();
                         GpsInfo mygps = new GpsInfo();
                         mygps.Latitude = Convert.ToDouble(
-                            companydata["de"].Element("latidude").Value,
-                            CultureInfo.CurrentCulture
+                            companydata["de"].Element("latidude").Value.Replace(",","."),
+                            CultureInfo.InvariantCulture
                         );
                         mygps.Longitude = Convert.ToDouble(
-                            companydata["de"].Element("longitude").Value,
-                            CultureInfo.CurrentCulture
+                            companydata["de"].Element("longitude").Value.Replace(",", "."),
+                            CultureInfo.InvariantCulture
                         );
                         mygps.Gpstype = "position";
                         gpsinfolist.Add(mygps);

@@ -49,7 +49,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             throw new NotImplementedException();            
         }
 
-        public async Task<UpdateDetail> SaveDataToODH(
+        public async Task<IEnumerable<UpdateDetail>> SaveDataToODH(
             DateTime? lastchanged = null,
             List<string>? idlist = null,            
             CancellationToken cancellationToken = default
@@ -394,19 +394,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //updateimportcounter = updateimportcounter + result.updated ?? 0;
                     //errorimportcounter = errorimportcounter + result.error ?? 0;
 
-                    updatedetails.Add(new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    });
+                    updatedetails.Add(result);
 
                     idlistlts.Add(id);
 
@@ -486,7 +474,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     error = 1,
                     objectchanged = 0,
                     objectimagechanged = 0,
-                    comparedobjects = 0,
+                    objectcompared = 0,
                     pushchannels = null,
                     changes = null                    
                 });
@@ -505,7 +493,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return updatedetails.FirstOrDefault();
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             EventLinked objecttosave,
             LTSEventData eventlts            
         )
@@ -561,10 +549,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
         public async Task<UpdateDetail> DeleteOrDisableEventData(string id, bool delete, bool reduced)
-        {
-            UpdateDetail deletedisableresult = default(UpdateDetail);
-
-            PGCRUDResult result = default(PGCRUDResult);
+        {           
+            UpdateDetail result = default(UpdateDetail);
 
             if (delete)
             {
@@ -573,24 +559,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     new DataInfo("events", CRUDOperation.Delete),
                     new CRUDConstraints(),
                     reduced
-                );
-
-                if (result.errorreason != "Data Not Found")
-                {
-                    deletedisableresult = new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    };
-                }
+                );                
             }
             else
             {
@@ -619,26 +588,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                new EditInfo("lts.events.import.deactivate", importerURL),
                                new CRUDConstraints(),
                                new CompareConfig(true, false)
-                        );
-
-                        deletedisableresult = new UpdateDetail()
-                        {
-                            created = result.created,
-                            updated = result.updated,
-                            deleted = result.deleted,
-                            error = result.error,
-                            objectchanged = result.objectchanged,
-                            objectimagechanged = result.objectimagechanged,
-                            comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                            pushchannels = result.pushchannels,
-                            changes = result.changes,
-                        };
+                        );                        
                     }
                 }
             }
 
-            return deletedisableresult;
+            return result;
         }
 
         private async Task MergeEventDates(EventLinked eventNew, EventLinked eventOld, int monthstogoback = 12)
