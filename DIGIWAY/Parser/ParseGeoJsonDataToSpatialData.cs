@@ -92,7 +92,7 @@ namespace DIGIWAY
             if (spatialdata == null)
                 spatialdata = new SpatialData();
 
-            spatialdata.Id = ("urn:" + identifier + ":" + digiwaydata.Attributes["TYPE_CODE"].ToString() + ":" + digiwaydata.Attributes["PATH_CODE"].ToString()).ToLower();
+            spatialdata.Id = ("urn:" + identifier + ":" + System.Guid.NewGuid()).ToLower();
             spatialdata.Active = true;
             spatialdata.FirstImport = spatialdata.FirstImport == null ? DateTime.Now : spatialdata.FirstImport;
             spatialdata.LastChange =

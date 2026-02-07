@@ -2,15 +2,17 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using NetTopologySuite.Features;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NetTopologySuite.Features;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
 
 namespace DIGIWAY.Model.GeoJsonReadModel
 {
@@ -61,6 +63,57 @@ namespace DIGIWAY.Model.GeoJsonReadModel
             {
                 string geoJsonContent = await File.ReadAllTextAsync(filePath, Encoding.UTF8);
                 return _geoJsonReader.Read<FeatureCollection>(geoJsonContent);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error reading GeoJSON file: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Reads a GeoJSON file As Stream asynchronously
+        /// </summary>
+        /// <param name="filePath">Path to the GeoJSON file</param>
+        /// <returns>NetTopologySuite FeatureCollection</returns>
+        public async Task<FeatureCollection> ReadGeoJsonFileAsStreamAsync(string filePath)
+        {
+            if (!File.Exists(filePath))
+                throw new FileNotFoundException($"GeoJSON file not found: {filePath}");
+
+            try
+            {
+                var features = new List<IFeature>();
+                var geoJsonReader = new GeoJsonReader();
+
+                using var fs = File.OpenRead(filePath);
+                using var sr = new StreamReader(fs);
+                using var reader = new JsonTextReader(sr);
+
+                while (reader.Read())
+                {
+                    if (reader.TokenType == JsonToken.PropertyName &&
+                        (string)reader.Value == "features")
+                    {
+                        reader.Read(); // StartArray
+
+                        while (reader.Read() && reader.TokenType != JsonToken.EndArray)
+                        {
+                            var featureToken = JToken.ReadFrom(reader);
+                            var featureJson = featureToken.ToString();
+
+                            var feature = geoJsonReader.Read<Feature>(featureJson);
+
+                            // optional: filtern / vereinfachen / reprojizieren
+                            features.Add(feature);
+                        }
+                    }
+                }
+
+                var featureCollection = new FeatureCollection();
+                foreach (var f in features)
+                    featureCollection.Add(f);
+
+                return featureCollection;
             }
             catch (Exception ex)
             {

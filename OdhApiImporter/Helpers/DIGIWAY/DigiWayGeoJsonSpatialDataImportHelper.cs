@@ -235,12 +235,11 @@ namespace OdhApiImporter.Helpers
             GeoJsonFeature input
         )
         {
-            //Get the ODH Item
-            var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
+            //Get the ODH Item - Disable this since the Id is not easy to assign
+            //var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
+            //var dataindb = await query.GetObjectSingleAsync<SpatialData>();
 
-            var dataindb = await query.GetObjectSingleAsync<SpatialData>();
-
-            var result = ParseGeoJsonDataToSpatialData.ParseToSpatialData(dataindb, input, identifier, source, srid);
+            var result = ParseGeoJsonDataToSpatialData.ParseToSpatialData(null, input, identifier, source, srid);
 
             return result;
         }
