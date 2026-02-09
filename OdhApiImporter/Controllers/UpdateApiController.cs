@@ -815,7 +815,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        UrlGeneratorStatic("SuedtirolWein/Company")
+                        UrlGeneratorStatic("SuedtirolWein/Company"),
+                        OdhPushnotifier
                     );
                 updatedetail = await sweinimporthelper.SaveDataToODH(null, null, cancellationToken);
 

@@ -46,6 +46,9 @@ namespace OdhApiImporter.Helpers
         //Task<T> LoadDataFromDB<T>(string id, bool reduced);
 
         //Task<UpdateDetail> ImportData(ImportObject importobject, CancellationToken cancellationToken);
+
+        //Add Pusher Method
+
     }
 
     public interface IImportHelperLTS : IImportHelper
