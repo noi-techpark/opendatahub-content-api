@@ -208,8 +208,8 @@ namespace OdhApiCore.Controllers
                                 )
                             )
                     )
-                    .ApplyRawFilter(rawfilter)
-                    .ApplyOrdering_GeneratedColumns(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort);
+                    .ApplyRawFilter(rawfilter);
+                    //.ApplyOrdering_GeneratedColumns(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort);
 
                 //IF getasidarray set simply return array of ids
                 if (getasidarray)
