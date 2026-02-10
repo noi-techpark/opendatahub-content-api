@@ -59,7 +59,7 @@ namespace Helper.Identity
             bool isAuthorized = CheckAccess(
                 context.HttpContext.User,
                 _actions,
-                context.HttpContext.Request.Path.GetPathNextTo("/", "v1")
+                context.HttpContext.Request.Path.GetPathNextToCombinedRoutes("/", "v1")
             ); // :)
 
             if (!isAuthorized)
