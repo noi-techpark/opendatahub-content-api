@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
-using NetTopologySuite.Triangulate.Tri;
 using System;
 using System.Collections.Generic;
 using System.Linq;
