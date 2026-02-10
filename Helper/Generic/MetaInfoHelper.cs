@@ -370,42 +370,58 @@ namespace Helper
 
         public static Metadata GetMetadataforExperienceArea(ExperienceAreaLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforMetaRegion(MetaRegionLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforRegion(RegionLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforTourismverein(TourismvereinLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforMunicipality(MunicipalityLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforDistrict(DistrictLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforSkiArea(SkiAreaLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforSkiRegion(SkiRegionLinked data)
         {
-            return GetMetadata(data, "idm",  false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforArea(AreaLinked data)

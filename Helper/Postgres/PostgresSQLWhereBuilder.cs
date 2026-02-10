@@ -1559,8 +1559,8 @@ namespace Helper
                 .When(
                     !String.IsNullOrEmpty(additionalfilter),
                     q => q.FilterAdditionalDataByCondition(additionalfilter)
-                )
-                .FilterDataByAccessRoles(userroles);
+                );
+                //.FilterDataByAccessRoles(userroles);
         }
     }
 }

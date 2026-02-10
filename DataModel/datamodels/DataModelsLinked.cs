@@ -1922,7 +1922,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public SkiRegionLink SkiRegion
+        public SkiRegionLink? SkiRegion
         {
             get
             {
@@ -1982,7 +1982,7 @@ namespace DataModel
         public new LocationInfoLinked? LocationInfo { get; set; }
 
         //GpsInfo
-        public ICollection<GpsInfo> GpsInfo { get; set; }
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -2086,7 +2086,7 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo> GpsInfo { get; set; }
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]

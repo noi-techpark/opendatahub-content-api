@@ -190,7 +190,7 @@ namespace DataModel
         public int? AltitudeFrom { get; set; }
         public int? AltitudeTo { get; set; }
 
-        public IDictionary<string, string> SkiRegionName { get; set; }
+        public IDictionary<string, string>? SkiRegionName { get; set; }
 
         [SwaggerDeprecated("Deprecated use AreaIds")]
         public HashSet<string>? AreaId { get; set; }
@@ -212,8 +212,8 @@ namespace DataModel
         public ICollection<string>? RegionIds { get; set; }
 
         //New Municipality and District Ids
-        public ICollection<string> MunicipalityIds { get; set; }
-        public ICollection<string> DistrictIds { get; set; }
+        public ICollection<string>? MunicipalityIds { get; set; }
+        public ICollection<string>? DistrictIds { get; set; }
 
         public ICollection<GpsPolygon>? GpsPolygon { get; set; }
 
