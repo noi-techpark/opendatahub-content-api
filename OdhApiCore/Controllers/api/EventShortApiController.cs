@@ -1094,7 +1094,7 @@ namespace OdhApiCore.Controllers.api
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("EventShort")]
         //[InvalidateCacheOutput("GetReducedAsync")]
-        public async Task<IActionResult> Post([FromBody] EventShortLinked eventshort)
+        public async Task<IActionResult> Post([FromBody] EventShortLinked eventshort, bool generateid = true)
         {
             //Additional Filters on the Action Create
             AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
@@ -1280,7 +1280,13 @@ namespace OdhApiCore.Controllers.api
                     //return Ok(new GenericResultExtended() { Message = "INSERT EventShort succeeded, Id:" + eventshort.Id, Id = eventshort.Id });
 
                     //GENERATE ID
-                    eventshort.Id = Helper.IdGenerator.GenerateIDFromType(eventshort);
+                    
+                    //Generate Id or use the assigned
+                    if (generateid)
+                        eventshort.Id = Helper.IdGenerator.GenerateIDFromType(eventshort);
+                    else if (String.IsNullOrEmpty(eventshort.Id))
+                        throw new Exception("Id is null");
+
 
                     //Take Display1 value and set it to ActiveToday
                     if (eventshort.ActiveToday == true)

@@ -307,7 +307,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Trip")]
-        public Task<IActionResult> Post([FromBody] Trip trip)
+        public Task<IActionResult> Post([FromBody] Trip trip, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -328,7 +328,12 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
 
-                trip.Id = Helper.IdGenerator.GenerateIDFromType(trip);
+                
+                //Generate Id or use the assigned
+                if (generateid)
+                    trip.Id = Helper.IdGenerator.GenerateIDFromType(trip);
+                else if (String.IsNullOrEmpty(trip.Id))
+                    throw new Exception("Id is null");
 
                 if (trip.LicenseInfo == null)
                     trip.LicenseInfo = new LicenseInfo() { ClosedData = false };

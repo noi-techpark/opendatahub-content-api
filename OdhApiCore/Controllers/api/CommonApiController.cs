@@ -2027,7 +2027,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,MetaRegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("MetaRegion")]
-        public Task<IActionResult> Post([FromBody] MetaRegionLinked data)
+        public Task<IActionResult> Post([FromBody] MetaRegionLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2035,7 +2035,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("MetaRegion")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2043,8 +2047,6 @@ namespace OdhApiCore.Controllers.api
                 data.TrimStringProperties();
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
-
-
 
                 return await UpsertData<MetaRegionLinked>(
                     data,
@@ -2064,15 +2066,19 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,RegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Region")]
-        public Task<IActionResult> Post([FromBody] RegionLinked data)
+        public Task<IActionResult> Post([FromBody] RegionLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Filters on the Action Create
                 AdditionalFiltersToAddEndpoint("Region")
                     .TryGetValue("Create", out var additionalfilter);
-
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2099,7 +2105,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,ExperienceAreaCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("ExperienceArea")]
-        public Task<IActionResult> Post([FromBody] ExperienceAreaLinked data)
+        public Task<IActionResult> Post([FromBody] ExperienceAreaLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2107,7 +2113,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("ExperienceArea")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2134,7 +2144,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,TourismAssociationCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("TourismAssociation")]
-        public Task<IActionResult> Post([FromBody] TourismvereinLinked data)
+        public Task<IActionResult> Post([FromBody] TourismvereinLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2142,7 +2152,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("TourismAssociation")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2169,7 +2183,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,MunicipalityCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Municipality")]
-        public Task<IActionResult> Post([FromBody] MunicipalityLinked data)
+        public Task<IActionResult> Post([FromBody] MunicipalityLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2177,7 +2191,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("Municipality")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2204,7 +2222,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,DistrictCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("District")]
-        public Task<IActionResult> Post([FromBody] DistrictLinked data)
+        public Task<IActionResult> Post([FromBody] DistrictLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2212,7 +2230,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("District")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2239,7 +2261,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,AreaCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Area")]
-        public Task<IActionResult> Post([FromBody] AreaLinked data)
+        public Task<IActionResult> Post([FromBody] AreaLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2247,7 +2269,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("Area")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 //data.CheckMyInsertedLanguages(null);
@@ -2274,7 +2300,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,SkiRegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("SkiRegion")]
-        public Task<IActionResult> Post([FromBody] SkiRegionLinked data)
+        public Task<IActionResult> Post([FromBody] SkiRegionLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2282,7 +2308,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("SkiRegion")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2309,7 +2339,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,SkiAreaCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("SkiArea")]
-        public Task<IActionResult> Post([FromBody] SkiAreaLinked data)
+        public Task<IActionResult> Post([FromBody] SkiAreaLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2317,7 +2347,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("SkiArea")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2344,7 +2378,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,WineAwardCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("WineAward")]
-        public Task<IActionResult> Post([FromBody] WineLinked data)
+        public Task<IActionResult> Post([FromBody] WineLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2352,7 +2386,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("WineAward")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);

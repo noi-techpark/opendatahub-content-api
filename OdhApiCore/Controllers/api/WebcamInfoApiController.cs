@@ -328,7 +328,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("WebcamInfo")]
-        public Task<IActionResult> Post([FromBody] WebcamInfoLinked webcam)
+        public Task<IActionResult> Post([FromBody] WebcamInfoLinked webcam, bool generateid = true)
         {
             //TODO IGNORE Fields
             //AreaIds, LicenseInfo, SmgTags, WebcamAssignedOn, Meta
@@ -339,8 +339,11 @@ namespace OdhApiCore.Controllers
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
-
-                webcam.Id = Helper.IdGenerator.GenerateIDFromType(webcam);
+                
+                if (generateid)
+                    webcam.Id = Helper.IdGenerator.GenerateIDFromType(webcam);
+                else if (String.IsNullOrEmpty(webcam.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 webcam.CheckMyInsertedLanguages(null);

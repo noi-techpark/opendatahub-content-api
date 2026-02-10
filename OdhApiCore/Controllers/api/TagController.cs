@@ -2,11 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AspNetCore.CacheOutput;
 using DataModel;
 using Helper;
@@ -17,9 +12,15 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers
 {
@@ -324,11 +325,10 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
 
                 //Allowing mixed id styles
-                 if (generateid)
+                if (generateid)
                     tag.Id = Helper.IdGenerator.GenerateIDFromType(tag);
-                else
-                    if (tag.Id == null)
-                        throw new Exception("Id is null");
+                else if (String.IsNullOrEmpty(tag.Id))
+                    throw new Exception("Id is null");
 
                 return await UpsertData<TagLinked>(
                     tag,

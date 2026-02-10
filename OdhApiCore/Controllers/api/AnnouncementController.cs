@@ -308,7 +308,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Announcement")]
-        public Task<IActionResult> Post([FromBody] Announcement announcement)
+        public Task<IActionResult> Post([FromBody] Announcement announcement, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {

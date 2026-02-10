@@ -666,15 +666,18 @@ namespace OdhApiCore.Controllers.api
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("ODHActivityPoi")]
-        public Task<IActionResult> Post([FromBody] ODHActivityPoiLinked odhactivitypoi)
+        public Task<IActionResult> Post([FromBody] ODHActivityPoiLinked odhactivitypoi, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
-
-                //GENERATE ID
-                odhactivitypoi.Id = Helper.IdGenerator.GenerateIDFromType(odhactivitypoi);
+              
+                //Generate Id or use the assigned
+                if (generateid)
+                    odhactivitypoi.Id = Helper.IdGenerator.GenerateIDFromType(odhactivitypoi);
+                else if (String.IsNullOrEmpty(odhactivitypoi.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 odhactivitypoi.CheckMyInsertedLanguages(
