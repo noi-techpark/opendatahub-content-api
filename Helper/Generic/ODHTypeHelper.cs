@@ -54,8 +54,9 @@ namespace Helper
                 "snowreport",
                 "geoshape",
                 "announcement",
-                "urbangreen",                
-                "trip"
+                "urbangreen",
+                "trip",
+                "spatialdata"
             };
         }
 
@@ -113,6 +114,7 @@ namespace Helper
                 Announcement => "announcement",
                 UrbanGreen => "urbangreen",
                 Trip => "trip",
+                SpatialData => "spatialdata",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -163,6 +165,7 @@ namespace Helper
                 Announcement => "announcements",
                 UrbanGreen => "urbangreens",
                 Trip => "trips",
+                SpatialData => "spatialdatas",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -213,6 +216,7 @@ namespace Helper
                 "announcement" => "announcements",
                 "urbangreen" => "urbangreens",
                 "trip" => "trips",
+                "spatialdata" => "spatialdatas",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -264,6 +268,7 @@ namespace Helper
                 "announcement" => typeof(Announcement),
                 "urbangreen" => typeof(UrbanGreen),
                 "trip" => typeof(Trip),
+                "spatialdata" => typeof(SpatialData),
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -316,6 +321,7 @@ namespace Helper
                 "announcements" => "announcement",
                 "urbangreens" => "urbangreen",
                 "trips" => "trip",
+                "spatialdatas" => "spatialdata",
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -365,6 +371,7 @@ namespace Helper
                 "announcements" => typeof(Announcement),
                 "urbangreens" => typeof(UrbanGreen),
                 "trips" => typeof(Trip),
+                "spatialdatas" => typeof(SpatialData),
                 _ => throw new Exception("not known table name"),
             };
         }
@@ -417,6 +424,7 @@ namespace Helper
                 "announcement" => id.ToLower(),
                 "urbangreen" => id.ToLower(),
                 "trip" => id.ToLower(),
+                "spatialdata" => id.ToLower(),
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -465,6 +473,7 @@ namespace Helper
                 "announcement" => JsonConvert.DeserializeObject<Announcement>(raw.Value)!,
                 "trip" => JsonConvert.DeserializeObject<Trip>(raw.Value)!,
                 "urbangreen" => JsonConvert.DeserializeObject<UrbanGreen>(raw.Value)!,
+                "spatialdata" => JsonConvert.DeserializeObject<SpatialData>(raw.Value)!,
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -511,6 +520,7 @@ namespace Helper
                 odhtypes.Add("announcement");
                 odhtypes.Add("trip");
                 odhtypes.Add("urbangreen");
+                odhtypes.Add("spatialdata");
             }
 
             return odhtypes.ToArray();
@@ -540,6 +550,7 @@ namespace Helper
                 or "announcement"
                 or "trip" // to check
                 or "urbangreen"
+                or "spatialdata"
                 or "venue" => PostgresSQLWhereBuilder.TitleFieldsToSearchFor,
                 //"measuringpoint" => PostgresSQLWhereBuilder.,
                 //                "webcam" => PostgresSQLWhereBuilder.WebcamnameFieldsToSearchFor,
@@ -593,6 +604,7 @@ namespace Helper
                 "announcement" => "Announcement",
                 "trip" => "Trip",
                 "urbangreen" => "UrbanGreen",
+                "spatialdata" => "SpatialData",
                 "geoshape" => "GeoShape",
 
                 _ => throw new Exception("not known odh type"),
@@ -643,6 +655,7 @@ namespace Helper
                 or "announcement"
                 or "trip"
                 or "urbangreen"
+                or "spatialdata"
                 or "venue" => $"Detail.{language}.Title",
                 "measuringpoint" => $"Shortname",
                 "webcam" => $"Webcamname.{language}",
@@ -675,6 +688,7 @@ namespace Helper
                 or "announcement"
                 or "trip"
                 or "urbangreen"
+                or "spatialdata"
                 or "experiencearea" => $"Detail.{language}.BaseText",
                 "measuringpoint" => "notextfield",
                 "webcam" => "notextfield",

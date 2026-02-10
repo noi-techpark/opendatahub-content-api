@@ -3189,7 +3189,24 @@ namespace OdhApiImporter.Controllers
                                             null,
                                             cancellationToken);
                 }
+                else if (digiwayconfig.Source == "euregio" || digiwayconfig.Source == "euregio")
+                {
+                    DigiWayGeoJsonSpatialDataImportHelper digiwayimporthelper = new DigiWayGeoJsonSpatialDataImportHelper(
+                        settings,
+                        QueryFactory,
+                        "spatialdatas",
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
 
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                         null,

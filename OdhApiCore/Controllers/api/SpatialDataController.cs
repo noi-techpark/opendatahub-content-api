@@ -26,12 +26,12 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    public class AnnouncementController : OdhController
+    public class SpatialDataController : OdhController
     {
-        public AnnouncementController(
+        public SpatialDataController(
             IWebHostEnvironment env,
             ISettings settings,
-            ILogger<AnnouncementController> logger,
+            ILogger<SpatialDataController> logger,
             QueryFactory queryFactory,
             IOdhPushNotifier odhpushnotifier
         )
@@ -40,7 +40,7 @@ namespace OdhApiCore.Controllers
         #region SWAGGER Exposed API
 
         /// <summary>
-        /// GET Announcement List
+        /// GET SpatialData List
         /// </summary>
         /// <param name="pagenumber">Pagenumber</param>
         /// <param name="pagesize">Elements per Page, (default:10)</param>
@@ -49,8 +49,6 @@ namespace OdhApiCore.Controllers
         /// <param name="langfilter">Langfilter (returns only data available in the selected Language, Separator ',' possible values: 'de,it,en,nl,sc,pl,fr,ru', 'null': Filter disabled)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of IDs, 'null' = No Filter), (default:'null')</param>
         /// <param name="source">Source Filter, (default:'null')</param>
-        /// <param name="begin">Begin Filter (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), if set only announcements intesecting with begin are returned. **INCLUSIVE** (default: 'null')</param>
-        /// <param name="end">End Filter (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), if set only announcements intesecting with end are returned. **INCLUSIVE**  (default: 'null')</param>
         /// <param name="polygon">valid WKT (Well-known text representation of geometry) Format, Examples (POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))) / By Using the GeoShapes Api (v1/GeoShapes) and passing Country.Type.Id OR Country.Type.Name Example (it.municipality.3066) / Bounding Box Filter bbc: 'Bounding Box Contains', 'bbi': 'Bounding Box Intersects', followed by a List of Comma Separated Longitude Latitude Tuples, 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#polygon-filter-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagId,TagId,TagId) example or(traffic-event:hindrance,traffic-event:mountain-pass) - Combining and/or is not supported at the moment. (default: 'null')</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
@@ -59,14 +57,14 @@ namespace OdhApiCore.Controllers
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <returns>Collection of Announcement Objects</returns>
+        /// <returns>Collection of SpatialData Objects</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(JsonResult<Announcement>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(JsonResult<SpatialData>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Announcement")]
+        [HttpGet, Route("SpatialData")]
         public async Task<IActionResult> Get(
             uint? pagenumber = 1,
             PageSize pagesize = null!,
@@ -74,8 +72,6 @@ namespace OdhApiCore.Controllers
             string? langfilter = null,
             string? idlist = null,
             string? source = null,
-            string? begin = null,
-            string? end = null,
             string? tagfilter = null,
             string? seed = null,
             string? polygon = null,
@@ -100,8 +96,6 @@ namespace OdhApiCore.Controllers
                 langfilter,
                 idlist,
                 source,
-                begin,
-                end,
                 tagfilter,
                 seed,
                 polygonsearchresult,
@@ -116,21 +110,21 @@ namespace OdhApiCore.Controllers
         }
 
         /// <summary>
-        /// GET Announcement Single
+        /// GET SpatialData Single
         /// </summary>
-        /// <param name="id">ID of the Announcement</param>
+        /// <param name="id">ID of the SpatialData</param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language (default:'null' all languages are displayed)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <returns>Announcement Object</returns>
+        /// <returns>SpatialData Object</returns>
         /// <response code="200">Object created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(Announcement), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SpatialData), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpGet, Route("Announcement/{id}", Name = "SingleAnnouncement")]
-        public async Task<IActionResult> GetAnnouncementSingle(
+        [HttpGet, Route("SpatialData/{id}", Name = "SingleSpatialData")]
+        public async Task<IActionResult> GetSpatialDataSingle(
             string id,
             string? language = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,            
@@ -158,8 +152,6 @@ namespace OdhApiCore.Controllers
             string? languagefilter,
             string? idfilter,
             string? source,
-            string? begin,
-            string? end,
             string? tagfilter,
             string? seed,
             GeoPolygonSearchResult? polygonsearchresult,
@@ -177,15 +169,13 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
-                AnnouncementHelper helper =
-                            await AnnouncementHelper.CreateAsync(
+                SpatialDataHelper helper =
+                            await SpatialDataHelper.CreateAsync(
                                 queryFactory: QueryFactory,
                                 idfilter: idfilter,
                                 languagefilter: languagefilter,
                                 sourcefilter: source,
                                 tagfilter: tagfilter,
-                                begindate: begin,
-                                enddate: end,
                                 cancellationToken
                             );
 
@@ -193,16 +183,14 @@ namespace OdhApiCore.Controllers
                     .Query()
                     .When(getasidarray, x => x.Select("id"))
                     .When(!getasidarray, x => x.SelectRaw("data"))
-                    .From("announcements")
-                    .AnnouncementWhereExpression(
+                    .From("spatialdatas")
+                    .SpatialDataWhereExpression(
                         languagelist: helper.languagelist,
                         idlist: helper.idlist,
                         sourcelist: helper.sourcelist,
                         searchfilter: searchfilter,
                         language: language,
                         tagdict: helper.tagdict,
-                        start: helper.begin,
-                        end: helper.end,
                         additionalfilter: additionalfilter,
                         userroles: UserRolesToFilter
                     )
@@ -273,7 +261,7 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
 
                 var data = await QueryFactory
-                    .Query("announcements")
+                    .Query("spatialdatas")
                     .Select("data")
                     .Where("id", id.ToLower())
                     .When(
@@ -296,26 +284,26 @@ namespace OdhApiCore.Controllers
         #endregion
 
         #region POST PUT DELETE
-        
+
         /// <summary>
-        /// POST Insert new Announcement
+        /// POST Insert new SpatialData
         /// </summary>
-        /// <param name="announcement">Announcement Object</param>
+        /// <param name="spatialdata">SpatialData Object</param>
         /// <returns>Http Response</returns>
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
-        [HttpPost, Route("Announcement")]
-        public Task<IActionResult> Post([FromBody] Announcement announcement, bool generateid = true)
+        [HttpPost, Route("SpatialData")]
+        public Task<IActionResult> Post([FromBody] SpatialData spatialdata)
         {
             return DoAsyncReturn(async () =>
             {
-                if (!announcement.Geo.GeoInfoIsValid())
+                if (!spatialdata.Geo.GeoInfoIsValid())
                 {
                     return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
                 }
-                foreach (var kvp in announcement.Geo)
+                foreach (var kvp in spatialdata.Geo)
                 {
                     if (!kvp.Value.IsValidGeometry)
                     {
@@ -326,17 +314,17 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
 
-                announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
+                spatialdata.Id = Helper.IdGenerator.GenerateIDFromType(spatialdata);
 
-                if (announcement.LicenseInfo == null)
-                    announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
+                if (spatialdata.LicenseInfo == null)
+                    spatialdata.LicenseInfo = new LicenseInfo() { ClosedData = false };
 
                 //TRIM all strings
-                announcement.TrimStringProperties();
+                spatialdata.TrimStringProperties();
 
-                return await UpsertData<Announcement>(
-                    new UpsertableAnnouncement(announcement),
-                    new DataInfo("announcements", CRUDOperation.Create),
+                return await UpsertData<SpatialData>(
+                    new UpsertableSpatialData(spatialdata),
+                    new DataInfo("spatialdatas", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(createFilter, UserRolesToFilter)
                 );
@@ -344,23 +332,23 @@ namespace OdhApiCore.Controllers
         }
 
         /// <summary>
-        /// PUT Upsert array of Announcements with well known ids
+        /// PUT Upsert array of SpatialData with well known ids
         /// </summary>
-        /// <param name="announcements">List of Announcement Objects</param>
+        /// <param name="spatialdatas">List of SpatialData Objects</param>
         /// <returns>Http Response with batch results</returns>
         [ProducesResponseType(typeof(BatchCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(new[] { PermissionAction.Create, PermissionAction.Update })]
-        [HttpPut, Route("Announcement")]
-        public Task<IActionResult> Put(List<Announcement> announcements)
+        [HttpPut, Route("SpatialData")]
+        public Task<IActionResult> Put(List<SpatialData> spatialdatas)
         {
             return DoAsync(async () =>
             {
-                if (announcements == null || announcements.Count == 0)
+                if (spatialdatas == null || spatialdatas.Count == 0)
                 {
-                    ModelState.AddModelError("announcements", "No announcements provided");
+                    ModelState.AddModelError("spatialdatas", "No spatialdatas provided");
                     return ValidationProblem(ModelState);
                 }
 
@@ -368,16 +356,16 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
                 AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
-                // Validate all announcements and collect errors
-                for (int i = 0; i < announcements.Count; i++)
+                // Validate all spatialdatas and collect errors
+                for (int i = 0; i < spatialdatas.Count; i++)
                 {
-                    var announcement = announcements[i];
-                    if (!announcement.Geo.GeoInfoIsValid())
+                    var spatialdata = spatialdatas[i];
+                    if (!spatialdata.Geo.GeoInfoIsValid())
                     {
                         ModelState.AddModelError($"[{i}].Geo", "Exactly one default GeoInfo must be present");
                     }
                     
-                    foreach (var kv in announcement.Geo)
+                    foreach (var kv in spatialdata.Geo)
                     {
                         if (!kv.Value.IsValidGeometry)
                         {
@@ -385,53 +373,53 @@ namespace OdhApiCore.Controllers
                         }
                     }
 
-                    if (announcement.Id == null)
+                    if (spatialdata.Id == null)
                         ModelState.AddModelError($"[{i}].Id", "Id is required");
 
-                    if (announcement.LicenseInfo == null)
-                        announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
+                    if (spatialdata.LicenseInfo == null)
+                        spatialdata.LicenseInfo = new LicenseInfo() { ClosedData = false };
                 }
 
                 // If there are validation errors, return them in standard format
                 if (!ModelState.IsValid)
                     return ValidationProblem(ModelState);
 
-                // Trim all strings for all announcements
-                foreach (var announcement in announcements)
+                // Trim all strings for all spatialdatas
+                foreach (var spatialdata in spatialdatas)
                 {
-                    announcement.TrimStringProperties();
+                    spatialdata.TrimStringProperties();
                 }
 
-                return await UpsertDataArray<Announcement>(
-                    announcements.Select(a => new UpsertableAnnouncement(a)),
-                    new DataInfo("announcements", CRUDOperation.CreateAndUpdate, true),
+                return await UpsertDataArray<SpatialData>(
+                    spatialdatas.Select(a => new UpsertableSpatialData(a)),
+                    new DataInfo("spatialdatas", CRUDOperation.CreateAndUpdate, true),
                     new CompareConfig(true, false), // Enable comparison to detect unchanged
                     new CRUDConstraints(createFilter, UserRolesToFilter),
                     new CRUDConstraints(updateFilter, UserRolesToFilter)
                 );
             });
         }
-        
+
         /// <summary>
-        /// PUT Modify existing Announcement
+        /// PUT Modify existing SpatialData
         /// </summary>
-        /// <param name="id">Announcement Id</param>
-        /// <param name="announcement">Announcement Object</param>
+        /// <param name="id">SpatialData Id</param>
+        /// <param name="spatialdata">SpatialData Object</param>
         /// <returns>Http Response</returns>
         [AuthorizeODH(PermissionAction.Update)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpPut, Route("Announcement/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] Announcement announcement)
+        [HttpPut, Route("SpatialData/{id}")]
+        public Task<IActionResult> Put(string id, [FromBody] SpatialData spatialdata)
         {
             return DoAsyncReturn(async () =>
             {
-                if (!announcement.Geo.GeoInfoIsValid())
+                if (!spatialdata.Geo.GeoInfoIsValid())
                 {
                     return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
                 }
-                foreach (var kvp in announcement.Geo)
+                foreach (var kvp in spatialdata.Geo)
                 {
                     if (!kvp.Value.IsValidGeometry)
                     {
@@ -442,14 +430,14 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
-                announcement.Id = Helper.IdGenerator.CheckIdFromType<Announcement>(id);
+                spatialdata.Id = Helper.IdGenerator.CheckIdFromType<SpatialData>(id);
 
                 //TRIM all strings
-                announcement.TrimStringProperties();
+                spatialdata.TrimStringProperties();
 
-                return await UpsertData<Announcement>(
-                    new UpsertableAnnouncement(announcement),
-                    new DataInfo("announcements", CRUDOperation.Update, true),
+                return await UpsertData<SpatialData>(
+                    new UpsertableSpatialData(spatialdata),
+                    new DataInfo("spatialdatas", CRUDOperation.Update, true),
                     new CompareConfig(true, false),
                     new CRUDConstraints(updateFilter, UserRolesToFilter)
                 );
@@ -457,16 +445,16 @@ namespace OdhApiCore.Controllers
         }
 
         /// <summary>
-        /// DELETE Announcement by Id
+        /// DELETE SpatialData by Id
         /// </summary>
-        /// <param name="id">Announcement Id</param>
+        /// <param name="id">SpatialData Id</param>
         /// <returns>Http Response</returns>
-        //[Authorize(Roles = "DataWriter,DataDelete,AnnouncementManager,AnnouncementDelete")]
+        //[Authorize(Roles = "DataWriter,DataDelete,SpatialDataManager,SpatialDataDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [HttpDelete, Route("Announcement/{id}")]
+        [HttpDelete, Route("SpatialData/{id}")]
         public Task<IActionResult> Delete(string id)
         {
             return DoAsyncReturn(async () =>
@@ -474,11 +462,11 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = Helper.IdGenerator.CheckIdFromType<Announcement>(id);
+                id = Helper.IdGenerator.CheckIdFromType<SpatialData>(id);
                 
-                return await DeleteData<Announcement>(
+                return await DeleteData<SpatialData>(
                     id,
-                    new DataInfo("announcements", CRUDOperation.Delete),
+                    new DataInfo("spatialdatas", CRUDOperation.Delete),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });

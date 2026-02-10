@@ -4,7 +4,6 @@
 
 using AspNetCore.CacheOutput;
 using DataModel;
-using Geo.Measure;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
@@ -15,19 +14,16 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using OdhApiCore.Controllers.api;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using Schema.NET;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
-using System.Drawing.Printing;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace OdhApiCore.Controllers
 {

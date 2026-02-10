@@ -1279,5 +1279,16 @@ namespace DataModel
     }
 
     
+    #endregion    
+
+    #region SpatialData
+
+    public class SpatialData : Generic, IActivateable, IGeoAware
+    {
+        public bool Active { get; set; }        
+        public IDictionary<string, DetailGeneric> Detail { get; set; }        
+        public IDictionary<string, GpsInfo> Geo { get; set; }
+    }
+
     #endregion
 }

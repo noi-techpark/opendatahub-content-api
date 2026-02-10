@@ -140,7 +140,7 @@ namespace DIGIWAY
             else
             {                
                 var reader = new GeoJsonFileReader();
-                var fileInfo = reader.GetFileInfo(serviceurl);
+                //var fileInfo = reader.GetFileInfo(serviceurl);
 
                 // Read the actual features
                 var featureCollection = await reader.ReadGeoJsonFileAsync(serviceurl);
@@ -153,12 +153,34 @@ namespace DIGIWAY
 
             // Read GeoJSON file asynchronously
             //var featureCollection = await converter.ReadGeoJsonFileAsync("path/to/file.geojson");
-
-
-            return null;
+            //return null;
         }
 
         #endregion
 
+        #region GeoJson
+
+        public static async Task<ICollection<GeoJsonFeature>?> GetDigiWayGeoJsonDataFromFileAsync(
+            string user,
+            string pass,
+            string serviceurl,
+            bool createfromurl = true
+        )
+        {            
+            var reader = new GeoJsonFileReader();
+
+            //var fileInfo = reader.GetFileInfo(serviceurl);
+
+            // Read the actual features
+            //var featureCollection = await reader.ReadGeoJsonFileAsync(serviceurl);
+            var featureCollection = await reader.ReadGeoJsonFileAsStreamAsync(serviceurl);
+
+            // Convert to simple features for easier access
+            var features = reader.GetFeatures(featureCollection);
+
+            return features;           
+        }
+
+        #endregion
     }
 }
