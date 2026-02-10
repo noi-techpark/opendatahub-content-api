@@ -2,20 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
-using Helper.Tagging;
 using Helper.Location;
+using Helper.Tagging;
 using LCS;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
@@ -26,9 +18,18 @@ using Newtonsoft.Json;
 using OdhApiCore.Filters;
 using OdhApiCore.Responses;
 using OdhNotifier;
+using ServiceReferenceLCS;
 using SIAG;
 using SIAG.Model;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers
 {
@@ -1735,7 +1736,7 @@ namespace OdhApiCore.Controllers
         [ApiExplorerSettings(IgnoreApi = true)]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Weather/Measuringpoint")]
-        public Task<IActionResult> Post([FromBody] MeasuringpointV2 measuringpoint)
+        public Task<IActionResult> Post([FromBody] MeasuringpointV2 measuringpoint, bool generateid = true)
         {
             measuringpoint.LicenseInfo = LicenseHelper.GetLicenseforMeasuringpoint(measuringpoint);
 
@@ -1744,8 +1745,11 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAddEndpoint("Weather/Measuringpoint")
                     .TryGetValue("Create", out var additionalfilter);
-
-                measuringpoint.Id = Helper.IdGenerator.GenerateIDFromType(measuringpoint);
+                
+                if (generateid)
+                    measuringpoint.Id = Helper.IdGenerator.GenerateIDFromType(measuringpoint);
+                else if (String.IsNullOrEmpty(measuringpoint.Id))
+                    throw new Exception("Id is null");
 
                 //POPULATE LocationInfo
                 measuringpoint.LocationInfo = await measuringpoint.UpdateLocationInfoExtension(QueryFactory);

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
+using Schema.NET;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -1654,14 +1655,17 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Accommodation")]
-        public Task<IActionResult> Post([FromBody] AccommodationV2 accommodation)
+        public Task<IActionResult> Post([FromBody] AccommodationV2 accommodation, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Filters on the Action Create
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
-
-                accommodation.Id = Helper.IdGenerator.GenerateIDFromType(accommodation);
+                
+                if (generateid)
+                    accommodation.Id = Helper.IdGenerator.GenerateIDFromType(accommodation);
+                else if (String.IsNullOrEmpty(accommodation.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 accommodation.CheckMyInsertedLanguages(

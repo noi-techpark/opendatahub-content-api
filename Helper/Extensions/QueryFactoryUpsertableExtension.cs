@@ -16,11 +16,9 @@ using Helper.Extensions;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.JsonHelpers;
-using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json;
 using SqlKata;
 using SqlKata.Execution;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helper
 {
@@ -203,10 +201,10 @@ namespace Helper
 
                 if (compareConfig.CompareData)
                 {
-                    equalityresult = EqualityHelper.CompareClassesTest<T>(
+                    equalityresult = EqualityHelper.CompareClassesExtended<T>(
                         existingData,
                         data.Data,
-                        new List<string>() { "LastChange", "_Meta", "FirstImport" },
+                        compareConfig.FieldsToIgnore,
                         true
                     );
                     if (equalityresult.isequal)

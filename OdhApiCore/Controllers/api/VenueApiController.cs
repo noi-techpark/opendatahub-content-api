@@ -2,11 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -20,7 +15,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
+using ServiceReferenceLCS;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers
 {
@@ -558,14 +559,19 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Venue")]
-        public Task<IActionResult> Post([FromBody] VenueV2 venue)
+        public Task<IActionResult> Post([FromBody] VenueV2 venue, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
+                
+                //Generate Id or use the assigned
+                if (generateid)
+                    venue.Id = Helper.IdGenerator.GenerateIDFromType(venue);
+                else if (String.IsNullOrEmpty(venue.Id))
+                    throw new Exception("Id is null");
 
-                venue.Id = Helper.IdGenerator.GenerateIDFromType(venue);
                 //GENERATE HasLanguage
                 venue.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo

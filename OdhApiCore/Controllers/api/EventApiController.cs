@@ -608,14 +608,19 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Event")]
-        public Task<IActionResult> Post([FromBody] EventLinked odhevent)
+        public Task<IActionResult> Post([FromBody] EventLinked odhevent, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Filters on the Action Create
-                AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
+                AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);                
 
-                odhevent.Id = Helper.IdGenerator.GenerateIDFromType(odhevent);
+                //Generate Id or use the assigned
+                if (generateid)
+                    odhevent.Id = Helper.IdGenerator.GenerateIDFromType(odhevent);
+                else if (String.IsNullOrEmpty(odhevent.Id))
+                    throw new Exception("Id is null");
+
                 //GENERATE HasLanguage
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo

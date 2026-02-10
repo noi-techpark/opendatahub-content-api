@@ -344,7 +344,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("UrbanGreen")]
-        public Task<IActionResult> Post([FromBody] UrbanGreen urbangreen)
+        public Task<IActionResult> Post([FromBody] UrbanGreen urbangreen, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -363,8 +363,12 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
 
-                urbangreen.Id = Helper.IdGenerator.GenerateIDFromType(urbangreen);
-
+                //Generate Id or use the assigned
+                if (generateid)
+                    urbangreen.Id = Helper.IdGenerator.GenerateIDFromType(urbangreen);
+                else if (String.IsNullOrEmpty(urbangreen.Id))
+                    throw new Exception("Id is null");
+                
                 if (urbangreen.LicenseInfo == null)
                     urbangreen.LicenseInfo = new LicenseInfo() { ClosedData = false };
 

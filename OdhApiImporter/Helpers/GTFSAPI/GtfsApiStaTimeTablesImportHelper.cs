@@ -60,14 +60,14 @@ namespace OdhApiImporter.Helpers
         }
 
         //Get Data from Source
-        private async Task<List<StaTimeTableStopsCsv>> GetData(CancellationToken cancellationToken)
+        private async Task<List<StopsCsv>> GetData(CancellationToken cancellationToken)
         {            
             return await GetTimeTablesData.GetTimeTablesDataAsync("", "", settings.GTFSApiConfig["StaTimetables"].ServiceUrl);
         }
 
         //Import the Data
         public async Task<UpdateDetail> ImportData(
-            List<StaTimeTableStopsCsv> datalist,
+            List<StopsCsv> datalist,
             CancellationToken cancellationToken
         )
         {
@@ -103,7 +103,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parsing the Data
-        public async Task<UpdateDetail> ImportDataSingle(StaTimeTableStopsCsv data)
+        public async Task<UpdateDetail> ImportDataSingle(StopsCsv data)
         {
             int updatecounter = 0;
             int newcounter = 0;
@@ -128,7 +128,7 @@ namespace OdhApiImporter.Helpers
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
                     parsedobject,
-                    new KeyValuePair<string, StaTimeTableStopsCsv>(returnid, data)
+                    new KeyValuePair<string, StopsCsv>(returnid, data)
                 );
 
                 newcounter = newcounter + pgcrudresult.created ?? 0;
@@ -177,7 +177,7 @@ namespace OdhApiImporter.Helpers
         //Inserting into DB
         private async Task<PGCRUDResult> InsertDataToDB(
             ODHActivityPoiLinked data,
-            KeyValuePair<string, StaTimeTableStopsCsv> stadata
+            KeyValuePair<string, StopsCsv> stadata
         )
         {
             var rawdataid = await InsertInRawDataDB(stadata);
@@ -224,7 +224,7 @@ namespace OdhApiImporter.Helpers
             return pgcrudresult;
         }
     
-        private async Task<int> InsertInRawDataDB(KeyValuePair<string, StaTimeTableStopsCsv> data)
+        private async Task<int> InsertInRawDataDB(KeyValuePair<string, StopsCsv> data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
@@ -245,7 +245,7 @@ namespace OdhApiImporter.Helpers
         //Parse the interface content
         public async Task<ODHActivityPoiLinked?> ParseStaTimeTableStopsDataToODHActivityPoi(
             string odhid,
-            StaTimeTableStopsCsv input
+            StopsCsv input
         )
         {
             //Get the ODH Item

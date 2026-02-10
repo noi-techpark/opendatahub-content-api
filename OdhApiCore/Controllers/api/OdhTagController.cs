@@ -2,11 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using AspNetCore.CacheOutput;
 using DataModel;
 using Helper;
@@ -19,7 +14,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
+using Schema.NET;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers
 {
@@ -318,14 +319,18 @@ namespace OdhApiCore.Controllers
         //[Authorize(Roles = "DataWriter,DataCreate,ODHTagManager,ODHTagCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("ODHTag")]
-        public Task<IActionResult> Post([FromBody] ODHTagLinked odhtag)
+        public Task<IActionResult> Post([FromBody] ODHTagLinked odhtag, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
-
-                odhtag.Id = Helper.IdGenerator.GenerateIDFromType(odhtag);
+                
+                //Generate Id or use the assigned
+                if (generateid)
+                    odhtag.Id = Helper.IdGenerator.GenerateIDFromType(odhtag);
+                else if (String.IsNullOrEmpty(odhtag.Id))
+                    throw new Exception("Id is null");
 
                 return await UpsertData<ODHTagLinked>(
                     odhtag,

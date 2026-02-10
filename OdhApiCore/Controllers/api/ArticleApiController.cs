@@ -532,15 +532,18 @@ namespace OdhApiCore.Controllers.api
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Article")]
-        public Task<IActionResult> Post([FromBody] ArticlesLinked article)
+        public Task<IActionResult> Post([FromBody] ArticlesLinked article, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Filters on the Action Create
                 AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
-
-                //GENERATE ID
-                article.Id = Helper.IdGenerator.GenerateIDFromType(article);
+                
+                //Generate Id or use the assigned
+                if (generateid)
+                    article.Id = Helper.IdGenerator.GenerateIDFromType(article);
+                else if (String.IsNullOrEmpty(article.Id))
+                    throw new Exception("Id is null");
 
                 if (String.IsNullOrEmpty(article.Source))
                     article.Source = "noi";

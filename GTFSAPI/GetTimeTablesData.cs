@@ -22,7 +22,7 @@ namespace GTFSAPI
             }
         }
 
-        public static async Task<List<StaTimeTableStopsCsv>?> GetTimeTablesDataAsync(
+        public static async Task<List<StopsCsv>?> GetTimeTablesDataAsync(
             string user,
             string pass,
             string serviceurl
@@ -32,7 +32,7 @@ namespace GTFSAPI
             HttpResponseMessage response = await GetDataFromService(user, pass, serviceurl);
             //Unzip File
 
-            List<StaTimeTableStopsCsv?> result = default(List<StaTimeTableStopsCsv?>);
+            List<StopsCsv?> result = default(List<StopsCsv?>);
 
             using (var zipstream = await response.Content.ReadAsStreamAsync())
             {

@@ -63,6 +63,7 @@ namespace OdhApiCore.Controllers
             string? enddate = null,
             string? objectidlist = null,
             string? objecttypelist = null,
+            bool? latest = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? rawfilter = null,
             string? rawsort = null,
@@ -79,6 +80,7 @@ namespace OdhApiCore.Controllers
                 enddate,
                 objectidlist,
                 objecttypelist,
+                latest,
                 fields: fields ?? Array.Empty<string>(),
                 rawfilter,
                 rawsort,
@@ -129,6 +131,7 @@ namespace OdhApiCore.Controllers
             string? enddate,
             string? objectidfilter,
             string? objecttypefilter,
+            bool? latest,
             string[] fields,
             string? rawfilter,
             string? rawsort,
@@ -158,9 +161,13 @@ namespace OdhApiCore.Controllers
                     if (enddate != "null")
                         end = Convert.ToDateTime(enddate);
 
-                var query = QueryFactory
+            SqlKata.Query query = default(SqlKata.Query);
+
+                if (latest != null && latest == true)
+                {
+                    query = QueryFactory
                     .Query()
-                    .SelectRaw("data")
+                    .SelectRaw("DISTINCT ON (gen_objectid) data")
                     .From("pushresults")
                     .PushResultWhereExpression(
                         idlist: idlist,
@@ -175,8 +182,31 @@ namespace OdhApiCore.Controllers
                     .ApplyOrdering(
                         new PGGeoSearchResult() { geosearch = false },
                         rawsort,
-                        "gen_lastchange DESC"
+                        "gen_objectid, gen_lastchange DESC"
                     );
+                }
+                else
+                {
+                    query = QueryFactory
+                        .Query()
+                        .SelectRaw("data")
+                        .From("pushresults")
+                        .PushResultWhereExpression(
+                            idlist: idlist,
+                            publisherlist: publisherlist,
+                            begin: begin,
+                            end: end,
+                            objectidlist: objectidlist,
+                            objecttypelist: objecttypelist,
+                            additionalfilter: additionalfilter
+                        )
+                        .ApplyRawFilter(rawfilter)
+                        .ApplyOrdering(
+                            new PGGeoSearchResult() { geosearch = false },
+                            rawsort,
+                            "gen_lastchange DESC"
+                        );
+                }
 
                 // Get paginated data
                 var data = await query.PaginateAsync<JsonRaw>(
