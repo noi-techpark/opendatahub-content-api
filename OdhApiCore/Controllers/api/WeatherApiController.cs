@@ -18,13 +18,11 @@ using Newtonsoft.Json;
 using OdhApiCore.Filters;
 using OdhApiCore.Responses;
 using OdhNotifier;
-using ServiceReferenceLCS;
 using SIAG;
 using SIAG.Model;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1733,7 +1731,7 @@ namespace OdhApiCore.Controllers
         /// </summary>
         /// <param name="measuringpoint">Measuringpoint Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Weather/Measuringpoint")]
         public Task<IActionResult> Post([FromBody] MeasuringpointV2 measuringpoint, bool generateid = true)
@@ -1777,7 +1775,7 @@ namespace OdhApiCore.Controllers
         /// <param name="id">Measuringpoint Id</param>
         /// <param name="measuringpoint">Measuringpoint Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("Weather/Measuringpoint/{id}")]
         public Task<IActionResult> Put(string id, [FromBody] MeasuringpointV2 measuringpoint)
@@ -1817,7 +1815,7 @@ namespace OdhApiCore.Controllers
         /// </summary>
         /// <param name="id">Measuringpoint Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("Weather/Measuringpoint/{id}")]
         public Task<IActionResult> Delete(string id)

@@ -326,7 +326,12 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
 
-                announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
+                //Generate Id or use the assigned
+                if (generateid)
+                    announcement.Id = Helper.IdGenerator.GenerateIDFromType(announcement);
+                else if (String.IsNullOrEmpty(announcement.Id))
+                    throw new Exception("Id is null");
+
 
                 if (announcement.LicenseInfo == null)
                     announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };

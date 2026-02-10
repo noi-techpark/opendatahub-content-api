@@ -2062,7 +2062,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">Region Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,RegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Region")]
@@ -2140,7 +2140,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">TourismAssociation Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,TourismAssociationCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("TourismAssociation")]
@@ -2179,7 +2179,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">Municipality Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,MunicipalityCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Municipality")]
@@ -2218,7 +2218,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">District Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,DistrictCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("District")]
@@ -2296,7 +2296,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">SkiRegion Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,SkiRegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("SkiRegion")]
@@ -2335,7 +2335,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">SkiArea Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,SkiAreaCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("SkiArea")]
@@ -2449,7 +2449,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">Region Id</param>
         /// <param name="data">Region Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,RegionUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("Region/{id}")]
@@ -2520,7 +2520,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">TourismAssociation Id</param>
         /// <param name="data">TourismAssociation Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,TourismAssociationUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("TourismAssociation/{id}")]
@@ -2556,7 +2556,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">Municipality Id</param>
         /// <param name="data">Municipality Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,MunicipalityUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("Municipality/{id}")]
@@ -2592,7 +2592,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">District Id</param>
         /// <param name="data">District Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,DistrictUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("District/{id}")]
@@ -2664,7 +2664,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">SkiRegion Id</param>
         /// <param name="data">SkiRegion Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,SkiRegionUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("SkiRegion/{id}")]
@@ -2700,7 +2700,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">SkiArea Id</param>
         /// <param name="data">SkiArea Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,SkiAreaUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("SkiArea/{id}")]
@@ -2953,7 +2953,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">SkiRegion Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,SkiRegionDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("SkiRegion/{id}")]
@@ -2979,7 +2979,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">SkiArea Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,SkiAreaDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("SkiArea/{id}")]

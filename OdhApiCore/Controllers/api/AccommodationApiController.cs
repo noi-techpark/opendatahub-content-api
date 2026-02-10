@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using AspNetCore.CacheOutput;
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -16,7 +15,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
-using Schema.NET;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;

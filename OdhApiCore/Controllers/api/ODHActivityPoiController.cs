@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AspNetCore.CacheOutput;
 using DataModel;
 using Helper;
 using Helper.AdditionalProperties;
@@ -22,7 +21,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
-using Schema.NET;
 using SqlKata.Execution;
 
 namespace OdhApiCore.Controllers.api
