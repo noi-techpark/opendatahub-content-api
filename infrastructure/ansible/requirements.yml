@@ -3,4 +3,4 @@ roles:
     version: "2.0"
 collections:
   - name: community.docker
-    version: 3.10.4
+    version: 3.11.0

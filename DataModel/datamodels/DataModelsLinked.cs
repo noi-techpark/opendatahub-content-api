@@ -173,7 +173,7 @@ namespace DataModel
     {
         public string? Self
         {
-            get { return String.IsNullOrEmpty(this.Id) ? null : "ODHTag/" + this.Id.ToLower(); }
+            get { return String.IsNullOrEmpty(this.Id) ? null : "Tag/" + this.LTSRID; }
         }
     }
 
@@ -2666,11 +2666,29 @@ namespace DataModel
 
         [SwaggerSchema("Tag Ids")]
         public ICollection<string>? TagIds { get; set; }
+
+        [SwaggerSchema("Coordiante source configuration")]
+        public CoordinateSource? CoordinateSource { get; set; }
     }
 
     #endregion
 }
 
+public static class CoordinateSourceType
+{
+    public const string GeoData = "GeoData";
+    public const string GpsInfo = "GpsInfo";
+}
+
+public class CoordinateSource
+{
+    [SwaggerSchema("Type of the coordinate source")]
+    [SwaggerEnum(new[] { "GeoData", "GpsInfo" })]
+    public string? Type { get; set; } = CoordinateSourceType.GpsInfo;
+
+    [SwaggerSchema("Field from which to extrapolate coordinate data")]
+    public string? Field { get; set; }
+}
 
 #region obsolete toremove
 

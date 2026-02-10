@@ -297,8 +297,8 @@ namespace HDS
             if (seasonality == "JÄHRLICH - ANNUALE")
             {
                 //SET Start and End to whole year
-                myoperationschedule.Start = new DateTime(2025, 01, 01);
-                myoperationschedule.Stop = new DateTime(2025, 12, 31);
+                myoperationschedule.Start = new DateTime(DateTime.Now.Year, 01, 01);
+                myoperationschedule.Stop = new DateTime(DateTime.Now.Year, 12, 31);
             }
             else if (seasonality == "SAISONAL - STAGIONALE")
             {
@@ -316,9 +316,9 @@ namespace HDS
                     var endmonth = GetMonthByName(parsedfrequencysplitted[1]);
 
                     if(startmonth > 0)
-                        myoperationschedule.Start = new DateTime(2025, startmonth, 01);
+                        myoperationschedule.Start = new DateTime(DateTime.Now.Year, startmonth, 01);
                     if (endmonth > 0)
-                        myoperationschedule.Stop = GetLastDateOfMonth(2025, endmonth);
+                        myoperationschedule.Stop = GetLastDateOfMonth(DateTime.Now.Year, endmonth);
                 }
             }
 

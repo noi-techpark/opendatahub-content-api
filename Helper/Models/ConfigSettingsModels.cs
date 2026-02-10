@@ -50,6 +50,7 @@ namespace Helper
         IDictionary<string, GTFSApiConfig> GTFSApiConfig { get; }
         LTSCredentials LtsCredentials { get; }
         LTSCredentials LtsCredentialsOpen { get; }
+        ZOHOConfig ZohoConfig { get; }
     }
 
     //Classes for Settings shared between Projects
@@ -552,6 +553,24 @@ namespace Helper
         public string Identifier { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+
+    public class ZOHOConfig
+    {
+        public ZOHOConfig(string clientid, string clientsecret, string serviceurl, string authurl, string scope)
+        {
+            this.ClientId = clientid;
+            this.ClientSecret = clientsecret;
+            this.ServiceUrl = serviceurl;
+            this.AuthUrl = authurl;
+            this.Scope = scope;
+        }
+
+        public string ClientId { get; private set; }
+        public string ClientSecret { get; private set; }
+        public string ServiceUrl { get; private set; }
+        public string AuthUrl { get; private set; }
+        public string Scope { get; private set; }
     }
 
 

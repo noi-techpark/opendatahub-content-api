@@ -182,13 +182,14 @@ namespace OdhApiCore.Controllers
                     if (chunks.Length < 2)
                         return self;
 
-                    //Hack if there is another / in the route to check if it is not generating side effects
-                    if (chunks[1].Split('/').Count() > 1)
+                    //Hack for the Weather Controller if there is another / in the route to check if it is not generating side effects
+                    //TODO find a better solution here
+                    if (chunks[0].StartsWith("Weather") && chunks[1].Split('/').Count() > 1)
                     {
                         var chunksadditional = chunks[1].Split('/');
                         chunks[0] = chunks[0] + chunksadditional[0];
                         chunks[1] = chunksadditional[1];
-                    }
+                    }                    
 
                     var (controller, id) = (chunks[0], chunks[1]);
 
@@ -315,7 +316,11 @@ namespace OdhApiCore.Controllers
             //push modified data to all published Channels
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
 
-            return ReturnCRUDResult(result);
+
+            //return ReturnCRUDResult(result);
+
+            //Use newer UpdateResult ?
+            return ReturnUpdateResult(result, editsource, "", true);
         }
         
         #endregion
@@ -539,8 +544,38 @@ namespace OdhApiCore.Controllers
             }
         }
 
+        protected IActionResult ReturnUpdateResult(PGCRUDResult pgcrudresult, string source, string message, bool createlog)
+        {
+            //Use UpdateResult here
+            var result = GenericResultsHelper.GetUpdateResultFromPGCRUDResult(source, message, pgcrudresult, createlog);
 
-    }   
+            ///Give shorter Error messages to display directly in the databrowser
+            ///TODO some optimizations
+            switch (result.exception)
+            {
+                case "":
+                case null:
+                    return Ok(result);
+                case "Not Allowed":
+                    return StatusCode(403, "Not enough permissions");
+                case "Not Found":
+                    return NotFound();
+                case "Bad Request":
+                    return BadRequest();
+                case "No Data":
+                    return BadRequest(result.exception);
+                case "Data exists already":
+                    return BadRequest(result.exception);
+                case "Data to update Not Found":
+                    return BadRequest(result.exception);
+                case "Internal Error":
+                    return StatusCode(500);
+                default:
+                    return BadRequest(result);
+            }
+        }
+
+    }
 
     public abstract class OdhControllerWithSearch : OdhController
     {

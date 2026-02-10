@@ -2,7 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Amazon.Runtime.Internal.Transform;
 using DataModel;
 using DataModel.helpers;
 using Helper;
@@ -10,15 +9,14 @@ using Helper.Generic;
 using Helper.IDM;
 using Helper.Location;
 using Helper.Tagging;
-using LTSAPI.Parser;
 using Newtonsoft.Json.Linq;
+using OdhNotifier;
 using SqlKata.Execution;
 using SuedtirolWein;
 using SuedtirolWein.Parser;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,13 +26,19 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 {
     public class SuedtirolWeinCompanyImportHelper : ImportHelper, IImportHelper
     {
+        private IOdhPushNotifier OdhPushnotifier;
+
         public SuedtirolWeinCompanyImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL) 
+        {
+            this.OdhPushnotifier = odhpushnotifier;
+        }
 
         public async Task<UpdateDetail> SaveDataToODH(
             DateTime? lastchanged = null,
@@ -247,6 +251,20 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     suedtirolweinpoi,
                     new KeyValuePair<string, XElement>(dataid, winedata)
                 );
+                
+                //Push Data if changed
+                //push modified data to all published Channels
+                //TODO adding the push status to the response
+                result.pushed = await ImportUtils.CheckIfObjectChangedAndPush(
+                    OdhPushnotifier,
+                    result,
+                    result.id,
+                    "poi",
+                    null,
+                    "suedtirolwein.update"
+                );
+
+
                 newcounter = newcounter + result.created ?? 0;
                 updatecounter = updatecounter + result.updated ?? 0;
 
@@ -322,10 +340,22 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
 
                 foreach (var idtodelete in idstodelete)
                 {
-                    var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
+                    var result = await DeleteOrDisableSuedtirolWeinData(idtodelete, false);
 
-                    updateresult = updateresult + result.Item1;
-                    deleteresult = deleteresult + result.Item2;
+                    //Push Data if changed
+                    //push modified data to all published Channels
+                    //TODO adding the push status to the response
+                    result.pushed = await ImportUtils.CheckIfObjectChangedAndPush(
+                        OdhPushnotifier,
+                        result,
+                        idtodelete,
+                        "poi",
+                        null,
+                        "suedtirolwein.update"
+                    );
+
+                    updateresult += result.updated ?? 0;
+                    deleteresult += result.deleted ?? 0;
                 }
             }
             catch (Exception ex)
@@ -416,6 +446,100 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 }
             );
         }
+
+        public async Task<UpdateDetail> DeleteOrDisableSuedtirolWeinData(string id, bool delete)
+        {
+            UpdateDetail deletedisableresult = default(UpdateDetail);
+
+            PGCRUDResult result = default(PGCRUDResult);
+
+            if (delete)
+            {
+                result = await QueryFactory.DeleteData<ODHActivityPoiLinked>(
+                    id,
+                    new DataInfo(table, CRUDOperation.Delete),
+                    new CRUDConstraints()
+                );
+
+                if (result.errorreason != "Data Not Found")
+                {
+                    deletedisableresult = new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    };
+                }
+            }
+            else
+            {
+                var query = QueryFactory.Query(table).Select("data").Where("id", id);
+
+                var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
+
+                if (data != null)
+                {
+                    if (
+                        data.Active != false
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                        || (data.PublishedOn != null && data.PublishedOn.Count > 0)
+                    )
+                    {
+                        data.Active = false;
+                        if (data is ISmgActive)
+                            ((ISmgActive)data).SmgActive = false;
+
+                        //Recreate PublishedOn Helper for not active Items                        
+                        data.CreatePublishedOnList(
+                            new List<AllowedTags>()
+                            {
+                                new AllowedTags()
+                                {
+                                    Id = "weinkellereien",
+                                    PublishDataWithTagOn = new Dictionary<string, bool>()
+                                    {
+                                        { "idm-marketplace", true },
+                                        { "suedtirolwein.com", true },
+                                    },
+                                },
+                                }
+                            );
+
+                        result = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
+                               data,
+                               new DataInfo(table, Helper.Generic.CRUDOperation.CreateAndUpdate),
+                               new EditInfo("suedtirolwein.companies.import.deactivate", importerURL),
+                               new CRUDConstraints(),
+                               new CompareConfig(true, false)
+                        );
+
+                        deletedisableresult = new UpdateDetail()
+                        {
+                            created = result.created,
+                            updated = result.updated,
+                            deleted = result.deleted,
+                            error = result.error,
+                            objectchanged = result.objectchanged,
+                            objectimagechanged = result.objectimagechanged,
+                            comparedobjects =
+                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            pushchannels = result.pushchannels,
+                            changes = result.changes,
+                        };
+                    }
+                }
+            }
+
+            return deletedisableresult;
+        }
+
 
         #region CompatibilityHelpers
 

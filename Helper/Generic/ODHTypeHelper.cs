@@ -547,6 +547,7 @@ namespace Helper
                 //"eventshort" => "eventeuracnoi",
                 //"area" => "areas",
                 //"wineaward" => "wines",
+                //TODO Geoshape
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -592,6 +593,7 @@ namespace Helper
                 "announcement" => "Announcement",
                 "trip" => "Trip",
                 "urbangreen" => "UrbanGreen",
+                "geoshape" => "GeoShape",
 
                 _ => throw new Exception("not known odh type"),
             };
