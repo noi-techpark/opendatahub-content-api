@@ -63,6 +63,8 @@ namespace OdhApiCore.Controllers
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
+        /// <param name="optimizefieldsdb">**DEV ONLY** When true, field extraction is performed at the database level using nested jsonb_build_object. (default:false)</param>
+        /// <param name="optimizefieldsdbv2">**DEV ONLY** When true, uses JSONB path queries with flat extraction and app-side tree rebuild. (default:false)</param>
         /// <returns>Collection of UrbanGreen Objects</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
@@ -92,6 +94,8 @@ namespace OdhApiCore.Controllers
             string? rawsort = null,
             bool removenullvalues = false,
             bool getasidarray = false,
+            bool optimizefieldsdb = false,
+            bool optimizefieldsdbv2 = false,
             CancellationToken cancellationToken = default
         )
         {
@@ -121,6 +125,8 @@ namespace OdhApiCore.Controllers
                 rawsort,
                 removenullvalues: removenullvalues,
                 getasidarray: getasidarray,
+                optimizefieldsdb: optimizefieldsdb,
+                optimizefieldsdbv2: optimizefieldsdbv2,
                 cancellationToken
             );
         }
@@ -182,6 +188,8 @@ namespace OdhApiCore.Controllers
             string? rawsort,
             bool removenullvalues,
             bool getasidarray,
+            bool optimizefieldsdb,
+            bool optimizefieldsdbv2,
             CancellationToken cancellationToken
         )
         {
@@ -213,8 +221,6 @@ namespace OdhApiCore.Controllers
 
                 var query = QueryFactory
                     .Query()
-                    .When(getasidarray, x => x.Select("id"))
-                    .When(!getasidarray, x => x.SelectRaw("data"))
                     .From("urbangreens")
                     .UrbanGreenWhereExpression(
                         languagelist: helper.languagelist,
@@ -248,6 +254,28 @@ namespace OdhApiCore.Controllers
                     .ApplyRawFilter(rawfilter)
                     .ApplyOrdering_GeneratedColumns(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort);
 
+                var dbFieldsOptimized = false;
+                if (optimizefieldsdbv2 && fields.Length != 0)
+                {
+                    // V2: Flat extraction with JSONB path queries, rebuild tree app-side
+                    var select = $"({BuildFlatJsonbPathSelect(fields)}) as data";
+                    query = query.SelectRaw(select);
+                    dbFieldsOptimized = true;
+                }
+                else if (optimizefieldsdb && fields.Length != 0)
+                {
+                    // V1: Nested jsonb_build_object in DB
+                    var select = $"({BuildNestedJsonbSelect(fields)}) as data";
+                    query = query.SelectRaw(select);
+                    dbFieldsOptimized = true;
+                }
+                else
+                {
+                    query = query
+                        .When(getasidarray, x => x.Select("id"))
+                        .When(!getasidarray, x => x.SelectRaw("data"));
+                }
+
                 long step2Time = sw.ElapsedMilliseconds - lastCheckpoint;
                 Console.WriteLine($"Query build took: {step2Time}ms");
                 lastCheckpoint = sw.ElapsedMilliseconds;
@@ -267,15 +295,34 @@ namespace OdhApiCore.Controllers
                 Console.WriteLine($"Query took: {step3Time}ms");
                 lastCheckpoint = sw.ElapsedMilliseconds;
 
-                var dataTransformed = data.List.Select(raw =>
-                    raw.TransformRawData(
-                        language,
-                        fields,
-                        filteroutNullValues: removenullvalues,
-                        urlGenerator: UrlGenerator,
-                        fieldstohide: null
-                    )
-                );
+                IEnumerable<object?> dataTransformed;
+                if (optimizefieldsdbv2 && fields.Length != 0)
+                {
+                    // V2: Rebuild nested structure from flat keys, then transform
+                    dataTransformed = data.List.Select(raw =>
+                    {
+                        var nested = RebuildNestedFromFlat(raw);
+                        return nested.TransformRawData(
+                            language,
+                            fields: Array.Empty<string>(),
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        );
+                    });
+                }
+                else
+                {
+                    dataTransformed = data.List.Select(raw =>
+                        raw.TransformRawData(
+                            language,
+                            fields: dbFieldsOptimized ? Array.Empty<string>() : fields,
+                            filteroutNullValues: removenullvalues,
+                            urlGenerator: UrlGenerator,
+                            fieldstohide: null
+                        )
+                    );
+                }
 
                 long step4Time = sw.ElapsedMilliseconds - lastCheckpoint;
                 Console.WriteLine($"Transform took: {step4Time}ms");
@@ -328,6 +375,119 @@ namespace OdhApiCore.Controllers
                     fieldstohide: null
                 );
             });
+        }
+
+        /// <summary>
+        /// Builds a nested jsonb_build_object SQL expression that preserves JSON structure.
+        /// For fields like ["Id", "Detail.en", "Detail.de"], produces:
+        /// jsonb_build_object('Id', data->'Id', 'Detail', jsonb_build_object('en', data->'Detail'->'en', 'de', data->'Detail'->'de'))
+        /// </summary>
+        private static string BuildNestedJsonbSelect(string[] fields)
+        {
+            // Always include Id
+            var allFields = fields.Contains("Id") ? fields : fields.Prepend("Id").ToArray();
+
+            // Build a tree structure from field paths
+            var root = new Dictionary<string, object>();
+            foreach (var field in allFields)
+            {
+                var parts = field.Split('.');
+                var current = root;
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    var part = parts[i];
+                    if (i == parts.Length - 1)
+                    {
+                        // Leaf node - store the full path for SQL generation
+                        current[part] = field;
+                    }
+                    else
+                    {
+                        // Intermediate node - create nested dictionary if needed
+                        if (!current.ContainsKey(part))
+                            current[part] = new Dictionary<string, object>();
+                        current = (Dictionary<string, object>)current[part];
+                    }
+                }
+            }
+
+            return BuildJsonbObjectFromTree(root, "data");
+        }
+
+        private static string BuildJsonbObjectFromTree(Dictionary<string, object> node, string basePath)
+        {
+            var args = new List<string>();
+            foreach (var kvp in node)
+            {
+                args.Add($"'{kvp.Key}'");
+                if (kvp.Value is Dictionary<string, object> nested)
+                {
+                    // Nested object - recurse
+                    args.Add(BuildJsonbObjectFromTree(nested, $"{basePath}->'{kvp.Key}'"));
+                }
+                else
+                {
+                    // Leaf - generate path accessor
+                    var fieldPath = (string)kvp.Value;
+                    var pathParts = fieldPath.Split('.');
+                    var sqlPath = basePath + string.Join("", pathParts.Select(p => $"->'{p}'"));
+                    args.Add(sqlPath);
+                }
+            }
+            return $"jsonb_build_object({string.Join(", ", args)})";
+        }
+
+        /// <summary>
+        /// Builds a flat jsonb_build_object using JSONB path queries.
+        /// For fields like ["Id", "Detail.en"], produces:
+        /// jsonb_build_object('Id', jsonb_path_query_first(data, '$.Id'), 'Detail.en', jsonb_path_query_first(data, '$.Detail.en'))
+        /// </summary>
+        private static string BuildFlatJsonbPathSelect(string[] fields)
+        {
+            // Always include Id
+            var allFields = fields.Contains("Id") ? fields : fields.Prepend("Id").ToArray();
+
+            var args = new List<string>();
+            foreach (var field in allFields)
+            {
+                args.Add($"'{field}'");
+                args.Add($"jsonb_path_query_first(data, '$.{field}')");
+            }
+            return $"jsonb_build_object({string.Join(", ", args)})";
+        }
+
+        /// <summary>
+        /// Rebuilds a nested JSON structure from flat dot-notation keys.
+        /// Converts {"Id": "...", "Detail.en": "..."} to {"Id": "...", "Detail": {"en": "..."}}
+        /// </summary>
+        private static JsonRaw RebuildNestedFromFlat(JsonRaw flatRaw)
+        {
+            var flatJson = Newtonsoft.Json.Linq.JObject.Parse(flatRaw.Value);
+            var nested = new Newtonsoft.Json.Linq.JObject();
+
+            foreach (var prop in flatJson.Properties())
+            {
+                var parts = prop.Name.Split('.');
+                if (parts.Length == 1)
+                {
+                    // Top-level field
+                    nested[prop.Name] = prop.Value;
+                }
+                else
+                {
+                    // Nested field - build the path
+                    var current = nested;
+                    for (int i = 0; i < parts.Length - 1; i++)
+                    {
+                        if (current[parts[i]] == null)
+                            current[parts[i]] = new Newtonsoft.Json.Linq.JObject();
+                        current = (Newtonsoft.Json.Linq.JObject)current[parts[i]]!;
+                    }
+                    current[parts[^1]] = prop.Value;
+                }
+            }
+
+            return new JsonRaw(nested.ToString(Newtonsoft.Json.Formatting.None));
         }
 
         #endregion
