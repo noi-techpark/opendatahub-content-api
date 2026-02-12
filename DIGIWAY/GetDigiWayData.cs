@@ -5,6 +5,7 @@
 using DataModel;
 using DIGIWAY.Model;
 using DIGIWAY.Model.GeoJsonReadModel;
+using MongoDB.Driver.GeoJsonObjectModel;
 using Newtonsoft.Json;
 using System;
 using System.IO.Compression;
@@ -30,7 +31,7 @@ namespace DIGIWAY
 
         #region CivisJsonResponse
 
-        public static async Task<IGeoserverCivisResult> GetDigiWayDataAsync(
+        public static async Task<IGeoserverCivisResult> GetCivisDataAsync(
             string user,
             string pass,
             string serviceurl,
@@ -44,15 +45,6 @@ namespace DIGIWAY
 
             if (responsetask != null && !String.IsNullOrEmpty(identifier))
             {
-                //IGeoserverCivisResult result = identifier switch
-                //{
-                //    "cyclewaystyrol" => JsonConvert.DeserializeObject<GeoserverCivisResultCycleWay>(responsetask),
-                //    "mountainbikeroutes" => JsonConvert.DeserializeObject<GeoserverCivisResultMountainbike>(responsetask),
-                //    "hikingtrails" => JsonConvert.DeserializeObject<GeoserverCivisResultHikingTrail>(responsetask),
-                //    "intermunicipalcyclingroutes" => JsonConvert.DeserializeObject<GeoserverCivisResultIntermunicipalPaths>(responsetask),
-                //    _ => null
-                //};
-
                 return JsonConvert.DeserializeObject<GeoserverCivisResult>(responsetask);
             }
             else
@@ -103,7 +95,32 @@ namespace DIGIWAY
 
         #endregion
 
-        #region SHPResponse        
+        #region GeoJsonFromUrl        
+
+        public static async Task<ICollection<GeoJsonFeature>?> GetDigiWayGeoJsonDataFromUrlAsync(
+            string user,
+            string pass,
+            string serviceurl
+        )
+        {
+            //Request
+            HttpResponseMessage response = await GetDigiwayDataFromService(user, pass, serviceurl);
+
+            var responsetask = await response.Content.ReadAsStringAsync();
+
+            var reader = new GeoJsonFileReader();
+
+            var featureCollection = reader.ReadGeoJsonString(responsetask);
+
+            // Convert to simple features for easier access
+            return reader.GetFeatures(featureCollection);
+
+            //return JsonConvert.DeserializeObject<GeoJsonFeatureCollection>(responsetask);                       
+        }
+
+        #endregion
+
+        #region GeoJsonFromSHPResponse        
 
         public static async Task<ICollection<GeoJsonFeature>?> GetDigiWayGeoJsonDataFromSHPAsync(
             string user,
@@ -158,7 +175,7 @@ namespace DIGIWAY
 
         #endregion
 
-        #region GeoJson
+        #region GeoJsonFromFile
 
         public static async Task<ICollection<GeoJsonFeature>?> GetDigiWayGeoJsonDataFromFileAsync(
             string user,

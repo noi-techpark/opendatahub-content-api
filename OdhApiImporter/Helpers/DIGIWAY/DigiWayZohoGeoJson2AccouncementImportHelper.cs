@@ -19,11 +19,11 @@ using ZOHO;
 
 namespace OdhApiImporter.Helpers
 {
-    public class DigiWayTrailClosuresImportHelper : ImportHelper, IImportHelper
+    public class DigiWayZohoGeoJson2AccouncementImportHelper : ImportHelper, IImportHelper
     {
         public List<string> idlistinterface { get; set; }
 
-        public DigiWayTrailClosuresImportHelper(
+        public DigiWayZohoGeoJson2AccouncementImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,

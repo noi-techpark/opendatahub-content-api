@@ -5,6 +5,7 @@
 using DataModel;
 using DIGIWAY;
 using DIGIWAY.Model;
+using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
 using Helper.Generic;
 using Helper.Tagging;
@@ -22,7 +23,7 @@ using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
-    public class DigiWayWFSXmlImportHelper : ImportHelper, IImportHelper
+    public class DigiWayEuregioGeoJsonSpatialDataImportHelper : ImportHelper, IImportHelper
     {
         public List<string> idlistinterface { get; set; }
         public string? identifier { get; set; }
@@ -30,7 +31,7 @@ namespace OdhApiImporter.Helpers
 
         public string? srid { get; set; }
 
-        public DigiWayWFSXmlImportHelper(
+        public DigiWayEuregioGeoJsonSpatialDataImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -55,23 +56,23 @@ namespace OdhApiImporter.Helpers
             ////UPDATE all data
             var updateresult = await ImportData(data, cancellationToken);
 
-            //Disable Data not in list
-            var deleteresult = await SetDataNotinListToInactive(cancellationToken);
+            //Disable Data not in list currently unavailable
+            //var deleteresult = await SetDataNotinListToInactive(cancellationToken);
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
+                new List<UpdateDetail>() { updateresult }
             );
         }
 
         //Get Data from Source
-        private async Task<WFSResult> GetData(CancellationToken cancellationToken)
+        private async Task<ICollection<GeoJsonFeature>> GetData(CancellationToken cancellationToken)
         {
-            return await GetDigiwayData.GetDigiWayWfsDataFromXmlAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
+            return await GetDigiwayData.GetDigiWayGeoJsonDataFromFileAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, false);
         }
 
         //Import the Data
         public async Task<UpdateDetail> ImportData(
-            WFSResult wfsresult,
+            ICollection<GeoJsonFeature> featurelist,
             CancellationToken cancellationToken
         )
         {
@@ -80,9 +81,9 @@ namespace OdhApiImporter.Helpers
             int deletecounter = 0;
             int errorcounter = 0;
 
-            if (wfsresult != null && wfsresult.Results != null)
+            if (featurelist != null)
             {                
-                foreach (var digiwaydata in wfsresult.Results)
+                foreach (var digiwaydata in featurelist)
                 {
                     var importresult = await ImportDataSingle(digiwaydata);
 
@@ -103,7 +104,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parsing the Data
-        public async Task<UpdateDetail> ImportDataSingle(IWFSRoute digiwaydata)
+        public async Task<UpdateDetail> ImportDataSingle(GeoJsonFeature digiwaydata)
         {
             int updatecounter = 0;
             int newcounter = 0;
@@ -114,44 +115,25 @@ namespace OdhApiImporter.Helpers
             string returnid = "";
 
             try
-            {
-                returnid = (identifier  + "_" + digiwaydata.ObjectId.ToString()).ToLower();
-
-                idlistinterface.Add(returnid);
-
+            {                             
                 //Parse  Data
-                var parsedobject = await ParseDigiWayDataToODHActivityPoi(
-                    returnid, 
+                var parsedobject = await ParseDigiWayDataToSpatialData(
+                    returnid,
                     digiwaydata
                 );
-                if (parsedobject.Item1 == null || parsedobject.Item2 == null)
+                if (parsedobject == null)
                     throw new Exception();
 
-                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, srid);
-
-                //Create GPX Info
-                GpsTrack gpstrack = new GpsTrack()
-                {
-                    Format = "geojson",
-                    GpxTrackUrl = "GeoShape/" + pgcrudshaperesult.id.ToLower(),
-                    Id = pgcrudshaperesult.id.ToLower(),
-                    Type = "Track",
-                    GpxTrackDesc = null
-                };
-
-                if (parsedobject.Item1.GpsTrack == null)
-                    parsedobject.Item1.GpsTrack = new List<GpsTrack>();
-
-                parsedobject.Item1.GpsTrack.Add(gpstrack);
+                returnid = parsedobject.Id;
+                idlistinterface.Add(returnid);
                 
                 //Create Tags
-                await parsedobject.Item1.UpdateTagsExtension(QueryFactory);
-
+                //await parsedobject.UpdateTagsExtension(QueryFactory);
 
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
-                    parsedobject.Item1,
-                    new KeyValuePair<string, IWFSRoute>(returnid, digiwaydata)
+                    parsedobject,
+                    new KeyValuePair<string, GeoJsonFeature>(returnid, digiwaydata)
                 );
 
                 newcounter = newcounter + pgcrudresult.created ?? 0;
@@ -199,64 +181,65 @@ namespace OdhApiImporter.Helpers
 
         //Inserting into DB
         private async Task<PGCRUDResult> InsertDataToDB(
-            ODHActivityPoiLinked data,
-            KeyValuePair<string, IWFSRoute> digiwaydata
+            SpatialData data,
+            KeyValuePair<string, GeoJsonFeature> digiwaydata
         )
         {
-            var rawdataid = await InsertInRawDataDB(digiwaydata);
+            //Deactivate Rawdatainsert for now
+            //var rawdataid = await InsertInRawDataDB(digiwaydata);
 
             data.Id = data.Id?.ToLower();
+            data._Meta = new Metadata() { Id = data.Id, Reduced = false, Source = data.Source, LastUpdate = DateTime.Now, Type = "spatialdata" };
 
             //Set LicenseInfo
-            data.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<ODHActivityPoiLinked>(
-                data,
-                Helper.LicenseHelper.GetLicenseforOdhActivityPoi
-            );
+            data.LicenseInfo = new LicenseInfo() { ClosedData = false, License = "CC0" };
+            //    Helper.LicenseHelper.GetLicenseInfoobject<SpatialData>(
+            //    data,
+            //    Helper.LicenseHelper.GetLicenseforSpatialData
+            //);
 
             //PublishedOnInfo?
 
-            var pgcrudresult = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
-                data,
+            var pgcrudresult = await QueryFactory.UpsertData<SpatialData>(
+                new UpsertableSpatialData(data),
                 new DataInfo(table, Helper.Generic.CRUDOperation.CreateAndUpdate),
                 new EditInfo("digiway." + identifier + ".import", importerURL),
                 new CRUDConstraints(),
-                new CompareConfig(true, false),
-                rawdataid
+                new CompareConfig(true, false)                
             );
 
             return pgcrudresult;
         }
   
-        private async Task<int> InsertInRawDataDB(KeyValuePair<string, IWFSRoute> data)
-        {
-            return await QueryFactory.InsertInRawtableAndGetIdAsync(
-                new RawDataStore()
-                {
-                    datasource = "digiway",
-                    rawformat = settings.DigiWayConfig[identifier].Format,
-                    importdate = DateTime.Now,
-                    license = "open",
-                    sourceinterface = identifier,
-                    sourceurl = settings.DigiWayConfig[identifier].ServiceUrl,
-                    type = "odhactivitypoi",
-                    sourceid = data.Key,
-                    raw = data.Value.ToString(),
-                }
-            );
-        }
+        //private async Task<int> InsertInRawDataDB(KeyValuePair<string, GeoJsonFeature> data)
+        //{
+        //    return await QueryFactory.InsertInRawtableAndGetIdAsync(
+        //        new RawDataStore()
+        //        {
+        //            datasource = "digiway",
+        //            rawformat = settings.DigiWayConfig[identifier].Format,
+        //            importdate = DateTime.Now,
+        //            license = "open",
+        //            sourceinterface = identifier,
+        //            sourceurl = settings.DigiWayConfig[identifier].ServiceUrl,
+        //            type = "odhactivitypoi",
+        //            sourceid = data.Key,
+        //            raw = data.Value.ToString(),
+        //        }
+        //    );
+        //}
 
         //Parse the interface content
-        public async Task<(ODHActivityPoiLinked?, GeoShapeJson?)> ParseDigiWayDataToODHActivityPoi(
+        public async Task<SpatialData?> ParseDigiWayDataToSpatialData(
             string odhid,
-            IWFSRoute input
+            GeoJsonFeature input
         )
         {
-            //Get the ODH Item
-            var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
+            //Get the ODH Item - Disable this since the Id is not easy to assign
+            //var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
+            //var dataindb = await query.GetObjectSingleAsync<SpatialData>();
 
-            var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
-
-            var result = ParseWFSServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, srid);
+            var result = ParseEuregioGeoJsonDataToSpatialData.ParseToSpatialData(null, input, identifier, source, srid);
 
             return result;
         }
