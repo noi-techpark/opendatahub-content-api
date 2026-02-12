@@ -115,7 +115,7 @@ namespace OdhApiImporter.Helpers
 
             try
             {
-                returnid = "urn:digiway:dservices3arcgiscom:" + digiwaydata.Attributes["GmlID"].ToString().ToLower(); ;
+                returnid = "urn:digiway:dservices3arcgiscom:" + identifier + ":" + digiwaydata.Attributes["OBJECTID"].ToString().ToLower();
 
                 idlistinterface.Add(returnid);
 
@@ -240,7 +240,7 @@ namespace OdhApiImporter.Helpers
                     sourceurl = settings.DigiWayConfig[identifier].ServiceUrl,
                     type = "odhactivitypoi",
                     sourceid = data.Key,
-                    raw = JsonConvert.SerializeObject(data.Value),
+                    raw = data.Value.ToString(), //JsonConvert.SerializeObject(data.Value) Causes Exception self reference looping
                 }
             );
         }

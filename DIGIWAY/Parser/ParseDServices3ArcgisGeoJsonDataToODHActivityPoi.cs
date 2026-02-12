@@ -44,7 +44,7 @@ namespace DIGIWAY
         private static (GeoShapeJson, GpsInfo) ParseGeoServerGeodataToGeoShapeJson(GeoJsonFeature digiwaydata, string name, string identifier, string geoshapetype, string source, int? altitude, string srid)
         {
             GeoShapeJson geoshape = new GeoShapeJson();
-            geoshape.Id = "urn:digiway:dservices3arcgiscom:" + digiwaydata.Attributes["GmlID"].ToString().ToLower();
+            geoshape.Id = "urn:digiway:dservices3arcgiscom:" + identifier + ":" + digiwaydata.Attributes["OBJECTID"].ToString().ToLower();
             geoshape.Name = name;
             geoshape.Type = geoshapetype;
             geoshape.Source = source;
@@ -79,7 +79,7 @@ namespace DIGIWAY
             if (odhactivitypoi == null)
                 odhactivitypoi = new ODHActivityPoiLinked();
 
-            odhactivitypoi.Id = "urn:digiway:dservices3arcgiscom:" + digiwaydata.Attributes["GmlID"].ToString().ToLower();
+            odhactivitypoi.Id = "urn:digiway:dservices3arcgiscom:" + identifier + ":" + digiwaydata.Attributes["OBJECTID"].ToString().ToLower();
 
             odhactivitypoi.Active = true;
             odhactivitypoi.FirstImport = digiwaydata.Attributes["UPDATETIMESTAMP"] != null ? Convert.ToDateTime(digiwaydata.Attributes["UPDATETIMESTAMP"].ToString()) : odhactivitypoi == null ? DateTime.Now : odhactivitypoi.FirstImport;
