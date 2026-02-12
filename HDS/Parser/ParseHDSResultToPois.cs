@@ -415,7 +415,7 @@ namespace HDS
                 Wednesday = false
             };
             //Parse Wochentag
-            switch(begindate.ToString("dddd"))
+            switch(begindate.ToString("dddd", CultureInfo.InvariantCulture))
             {
                 case "Monday": operationscheduletime.Monday = true;break;
                 case "Tuesday": operationscheduletime.Tuesday = true; break;
