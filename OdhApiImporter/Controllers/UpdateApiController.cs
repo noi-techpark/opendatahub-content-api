@@ -3136,9 +3136,9 @@ namespace OdhApiImporter.Controllers
                 if (digiwayconfig == null)
                     throw new Exception("unknown identifier");
                 
-                if (digiwayconfig.Source == "civis.geoserver")
+                if (digiwayconfig.Source == "civis.geoserver" )
                 {
-                    DigiWayImportHelper digiwayimporthelper = new DigiWayImportHelper(
+                    DigiWayCivisJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayCivisJson2ODHActivityPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -3153,9 +3153,9 @@ namespace OdhApiImporter.Controllers
                                             null,
                                             cancellationToken);
                 }
-                else if (digiwayconfig.Source == "dservices3.arcgis.com")
+                else if (digiwayconfig.Source == "dservices3.arcgis.com" && digiwayconfig.Format == "xml")
                 {
-                    DigiWayWFSXmlImportHelper digiwayimporthelper = new DigiWayWFSXmlImportHelper(
+                    DigiWayDServices3ArcgisWFSXml2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayDServices3ArcgisWFSXml2ODHActivityPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -3173,7 +3173,7 @@ namespace OdhApiImporter.Controllers
                 }
                 else if (digiwayconfig.Source == "siat.provincia.tn.it")
                 {
-                    DigiWayGeoJsonImportHelper digiwayimporthelper = new DigiWayGeoJsonImportHelper(
+                    DigiWaySiatTNShp2OdhActivityPoiImportHelper digiwayimporthelper = new DigiWaySiatTNShp2OdhActivityPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -3189,12 +3189,30 @@ namespace OdhApiImporter.Controllers
                                             null,
                                             cancellationToken);
                 }
-                else if (digiwayconfig.Source == "euregio" || digiwayconfig.Source == "euregio")
+                else if (digiwayconfig.Source == "euregio")
                 {
-                    DigiWayGeoJsonSpatialDataImportHelper digiwayimporthelper = new DigiWayGeoJsonSpatialDataImportHelper(
+                    DigiWayEuregioGeoJsonSpatialDataImportHelper digiwayimporthelper = new DigiWayEuregioGeoJsonSpatialDataImportHelper(
                         settings,
                         QueryFactory,
                         "spatialdatas",
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
+                else if (digiwayconfig.Source == "dservices3.arcgis.com" && digiwayconfig.Format == "geojson")
+                {
+                    DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
                         UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
                     );
 
@@ -3256,7 +3274,7 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-                DigiWayTrailClosuresImportHelper digiwaytrailclosuresimporthelper = new DigiWayTrailClosuresImportHelper(
+                DigiWayZohoGeoJson2AccouncementImportHelper digiwaytrailclosuresimporthelper = new DigiWayZohoGeoJson2AccouncementImportHelper(
                     settings,
                     QueryFactory,
                     "announcements",

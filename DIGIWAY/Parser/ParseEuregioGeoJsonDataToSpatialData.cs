@@ -26,7 +26,7 @@ using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
-    public class ParseGeoJsonDataToSpatialData
+    public class ParseEuregioGeoJsonDataToSpatialData
     {
         public static SpatialData ParseToSpatialData(
             SpatialData? spatialdata,
@@ -80,7 +80,6 @@ namespace DIGIWAY
             return gpsinfolist;
         }
 
-
         private static SpatialData ParseRoutesToSpatialData(
             SpatialData? spatialdata,
             GeoJsonFeature digiwaydata,
@@ -117,14 +116,6 @@ namespace DIGIWAY
 
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
-
-
-            ////Add Tags
-            //odhactivitypoi.TagIds = new List<string>();
-            //odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag
-            //odhactivitypoi.TagIds.Add("cycling");
-            //odhactivitypoi.TagIds.Add("mountain bike");
-            //odhactivitypoi.TagIds.Add("mountain bikes");
 
             //TODO Add each Geojson Featurecollection to Mapping
             spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();

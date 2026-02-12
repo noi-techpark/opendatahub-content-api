@@ -20,7 +20,7 @@ using CoordinateSharp;
 
 namespace DIGIWAY
 {
-    public class ParseGeoServerDataToODHActivityPoi
+    public class ParseCivisGeoServerDataToODHActivityPoi
     {
         public static (ODHActivityPoiLinked, GeoShapeJson) ParseToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
