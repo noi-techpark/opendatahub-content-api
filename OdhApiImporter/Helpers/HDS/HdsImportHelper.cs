@@ -574,7 +574,7 @@ namespace OdhApiImporter.Helpers
             var query = QueryFactory
                 .Query("smgpois")
                 .Select("id")
-                .SyncSourceInterfaceFilter_GeneratedColumn(new List<string>() { syncsourcedatabase })
+                .SyncSourceInterfaceFilter_GeneratedColumn(new List<string>() { "hds." + syncsourcedatabase })
                 .SourceFilter_GeneratedColumn(new List<string>() { "hds" })
                 .WhereLike("id", $"hds:{type}%");
 

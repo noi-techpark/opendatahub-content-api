@@ -2,29 +2,29 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
+using DataModel;
+using Helper;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using Amazon.Auth.AccessControlPolicy.ActionIdentifiers;
-using DataModel;
-using Helper;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HDS
 {
     public class ParseHDSPois
     {
+
+
         public static ODHActivityPoiLinked ParseHDSMarketToODHActivityPoi(
             HDSMarket market
         )
         {           
             var mypoi = new ODHActivityPoiLinked();
-
-            //ID
-            var id = "hds:market:" + System.Guid.NewGuid();
-            mypoi.Id = id;
 
             //GPSData
             var commaCulture = new CultureInfo("de")
@@ -110,6 +110,16 @@ namespace HDS
 
             ////END Openingtimes Parsing
 
+            //ID
+            var id = "hds:market:" + CreateReproducibleId(
+                namesplitted[0].Trim(), 
+                mypoi.OperationSchedule?.FirstOrDefault()?.Start ?? DateTime.Now,
+                market.Weekday,
+                market.Geoloc ?? "noinfo"
+                );
+            mypoi.Id = id;
+
+
             //TagIDs
             mypoi.TagIds = new List<string>();
             mypoi.TagIds.Add("hds:market");
@@ -136,8 +146,8 @@ namespace HDS
             var mypoi = new ODHActivityPoiLinked();
 
             //ID
-            var id = "hds:yearmarket:" + System.Guid.NewGuid();
-            mypoi.Id = id;
+            //var id = "hds:yearmarket:" + System.Guid.NewGuid();
+            //mypoi.Id = id;
             
             //GPSData
             var commaCulture = new CultureInfo("de")
@@ -266,6 +276,14 @@ namespace HDS
 
             ////END Openingtimes Parsing
 
+            //ID
+            var id = "hds:yearmarket:" + CreateReproducibleId(
+                namesplitted[0].Trim(), 
+                mypoi.OperationSchedule?.FirstOrDefault()?.Start ?? DateTime.Now,
+                market.Month + market.Modality + market.Weekday,
+                market.Geoloc ?? "noinfo");
+            mypoi.Id = id;
+
             //TagIDs
             mypoi.TagIds = new List<string>();
             mypoi.TagIds.Add("hds:yearmarket");
@@ -312,8 +330,8 @@ namespace HDS
 
                 if(parsedfrequencysplitted != null && parsedfrequencysplitted.Length > 1)
                 {
-                    var startmonth = GetMonthByName(parsedfrequencysplitted[0]);
-                    var endmonth = GetMonthByName(parsedfrequencysplitted[1]);
+                    var startmonth = GetMonthByName(parsedfrequencysplitted[0].Trim());
+                    var endmonth = GetMonthByName(parsedfrequencysplitted[1].Trim());
 
                     if(startmonth > 0)
                         myoperationschedule.Start = new DateTime(DateTime.Now.Year, startmonth, 01);
@@ -383,7 +401,45 @@ namespace HDS
             {
                 //SET Start and End to end of year           
                 myoperationschedule.Stop = new DateTime(begindate.Year, 12, 31);
-            }           
+            }
+
+            OperationScheduleTime operationscheduletime = new OperationScheduleTime() { 
+                Start = new TimeSpan(0, 0, 1), 
+                End = new TimeSpan(23, 59, 59),
+                Timecode = 1,
+                State = 2,
+                Monday =false,
+                Friday = false,
+                Saturday= false,
+                Sunday = false,
+                Thursday = false,
+                Tuesday = false,
+                Wednesday = false
+            };
+            //Parse Wochentag
+            switch(begindate.ToString("dddd"))
+            {
+                case "Monday": operationscheduletime.Monday = true;break;
+                case "Tuesday": operationscheduletime.Tuesday = true; break;
+                case "Wednesday": operationscheduletime.Wednesday = true; break;
+                case "Thuresday": operationscheduletime.Thursday = true; break;
+                case "Friday": operationscheduletime.Friday = true; break;
+                case "Saturday": operationscheduletime.Saturday = true; break;
+                case "Sunday": operationscheduletime.Sunday = true; break;
+            }
+
+            if (modality == "VIERZEHNTÄTIG - BISETTIMANALE" || modality == "MONATSMARKT - MENSILE")
+            {
+                operationscheduletime.Monday = true;
+                operationscheduletime.Tuesday = true;
+                operationscheduletime.Wednesday = true;
+                operationscheduletime.Thursday = true;
+                operationscheduletime.Friday = true;
+                operationscheduletime.Saturday = true;
+                operationscheduletime.Sunday = true;
+            }
+
+            myoperationschedule.OperationScheduleTime = new List<OperationScheduleTime>() { operationscheduletime };
 
             return myoperationschedule;
         }
@@ -418,6 +474,19 @@ namespace HDS
         {
             return new DateTime(date.Year, date.Month,
                 DateTime.DaysInMonth(date.Year, date.Month));
+        }
+
+        public static string CreateReproducibleId(string name, DateTime dateTime, string weekday, string gpslatitude)
+        {
+            // Combine name and datetime into a single string
+            string combined = $"{name}|{dateTime:O}|{weekday}|{gpslatitude}"; // ISO 8601 format for consistency
+
+            using (var md5 = MD5.Create())
+            {
+                byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(combined));
+                return BitConverter.ToString(hash).Replace("-", "").ToLower();
+                // Returns: "a1b2c3d4e5f6..."
+            }
         }
     }
 }
