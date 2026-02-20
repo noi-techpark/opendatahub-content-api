@@ -1230,6 +1230,7 @@ namespace DataModel
             public string Shortname { get; set; }
             public IDictionary<string, ContactInfos> ContactInfos { get; set; }
         }
+        public Agency Agency { get; set; }
 
         //Stops
         public IEnumerable<StopTime> StopTimes { get; set; }
