@@ -16,6 +16,7 @@ using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,8 +48,8 @@ namespace OdhApiCore.Controllers
         /// <param name="langfilter">Langfilter (returns only data available in the selected Language, Separator ',' possible values: 'de,it,en,nl,sc,pl,fr,ru', 'null': Filter disabled)</param>
         /// <param name="idlist">IDFilter (Separator ',' List of IDs, 'null' = No Filter), (default:'null')</param>
         /// <param name="source">Source Filter, (default:'null')</param>
-        /// <param name="begin">Begin Filter (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), if set only announcements intesecting with begin are returned. **INCLUSIVE** (default: 'null')</param>
-        /// <param name="end">End Filter (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), if set only announcements intesecting with end are returned. **INCLUSIVE**  (default: 'null')</param>
+        /// <param name="begin">Begin Filter (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), if set only trips intesecting with begin are returned. **INCLUSIVE** (default: 'null')</param>
+        /// <param name="end">End Filter (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), if set only trips intesecting with end are returned. **INCLUSIVE**  (default: 'null')</param>
         /// <param name="polygon">valid WKT (Well-known text representation of geometry) Format, Examples (POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))) / By Using the GeoShapes Api (v1/GeoShapes) and passing Country.Type.Id OR Country.Type.Name Example (it.municipality.3066) / Bounding Box Filter bbc: 'Bounding Box Contains', 'bbi': 'Bounding Box Intersects', followed by a List of Comma Separated Longitude Latitude Tuples, 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#polygon-filter-functionality' target="_blank">Wiki geosort</a></param>
         /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagId,TagId,TagId) example or(traffic-event:hindrance,traffic-event:mountain-pass) - Combining and/or is not supported at the moment. (default: 'null')</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
@@ -298,7 +299,7 @@ namespace OdhApiCore.Controllers
         /// <summary>
         /// POST Insert new Trip
         /// </summary>
-        /// <param name="announcement">Trip Object</param>
+        /// <param name="trip">Trip Object</param>
         /// <returns>Http Response</returns>
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -309,24 +310,43 @@ namespace OdhApiCore.Controllers
         {
             return DoAsyncReturn(async () =>
             {
-                //To check
+                if (!trip.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in trip.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
 
-                //if (!trip.Geo.GeoInfoIsValid())
-                //{
-                //    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
-                //}
-                //foreach (var kvp in trip.Geo)
-                //{
-                //    if (!kvp.Value.IsValidGeometry)
-                //    {
-                //        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
-                //    }
-                //}
+                //Validate StopTimes geo info
+                if (trip.StopTimes != null)
+                {
+                    foreach (var stopTime in trip.StopTimes)
+                    {
+                        if (stopTime.Geo != null)
+                        {
+                            if (!stopTime.Geo.GeoInfoIsValid())
+                            {
+                                return BadRequest(new { error = "Each StopTime Geo must have exactly one default GeoInfo" });
+                            }
+                            foreach (var kvp in stopTime.Geo)
+                            {
+                                if (!kvp.Value.IsValidGeometry)
+                                {
+                                    return BadRequest(new { error = $"StopTime Geo Info <{kvp.Key}> is invalid" });
+                                }
+                            }
+                        }
+                    }
+                }
 
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
 
-                
                 //Generate Id or use the assigned
                 if (generateid)
                     trip.Id = Helper.IdGenerator.GenerateIDFromType(trip);
@@ -340,8 +360,7 @@ namespace OdhApiCore.Controllers
                 trip.TrimStringProperties();
 
                 return await UpsertData<Trip>(
-                    //new UpsertableTrip(trip), //TO CHECK
-                    trip,
+                    new UpsertableTrip(trip),
                     new DataInfo("trips", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(createFilter, UserRolesToFilter)
@@ -352,77 +371,101 @@ namespace OdhApiCore.Controllers
         ///// <summary>
         ///// PUT Upsert array of Trips with well known ids
         ///// </summary>
-        ///// <param name="announcements">List of Trip Objects</param>
+        ///// <param name="trips">List of Trip Objects</param>
         ///// <returns>Http Response with batch results</returns>
-        //[ProducesResponseType(typeof(BatchCRUDResult), StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
-        //[ProducesResponseType(StatusCodes.Status403Forbidden)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[AuthorizeODH(new[] { PermissionAction.Create, PermissionAction.Update })]
-        //[HttpPut, Route("Trip")]
-        //public Task<IActionResult> Put(List<Trip> announcements)
-        //{
-        //    return DoAsync(async () =>
-        //    {
-        //        if (announcements == null || announcements.Count == 0)
-        //        {
-        //            ModelState.AddModelError("trips", "No trips provided");
-        //            return ValidationProblem(ModelState);
-        //        }
+        [ProducesResponseType(typeof(BatchCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [AuthorizeODH(new[] { PermissionAction.Create, PermissionAction.Update })]
+        [HttpPut, Route("Trip")]
+        public Task<IActionResult> Put(List<Trip> trips)
+        {
+           return DoAsync(async () =>
+           {
+               if (trips == null || trips.Count == 0)
+               {
+                   ModelState.AddModelError("trips", "No trips provided");
+                   return ValidationProblem(ModelState);
+               }
 
-        //        // Get both Create and Update filters for batch operation
-        //        AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
-        //        AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
+               // Get both Create and Update filters for batch operation
+               AdditionalFiltersToAdd.TryGetValue("Create", out var createFilter);
+               AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
 
-        //        // Validate all announcements and collect errors
-        //        for (int i = 0; i < announcements.Count; i++)
-        //        {
-        //            var announcement = announcements[i];
-        //            //if (!announcement.Geo.GeoInfoIsValid())
-        //            //{
-        //            //    ModelState.AddModelError($"[{i}].Geo", "Exactly one default GeoInfo must be present");
-        //            //}
-                    
-        //            //foreach (var kv in announcement.Geo)
-        //            //{
-        //            //    if (!kv.Value.IsValidGeometry)
-        //            //    {
-        //            //        ModelState.AddModelError($"[{i}].Geo[{kv.Key}].Geometry", "Invalid WKT geometry");
-        //            //    }
-        //            //}
+               // Validate all trips and collect errors
+               for (int i = 0; i < trips.Count; i++)
+               {
+                   var trip = trips[i];
 
-        //            if (announcement.Id == null)
-        //                ModelState.AddModelError($"[{i}].Id", "Id is required");
+                   if (trip.Id == null)
+                       ModelState.AddModelError($"[{i}].Id", "Id is required");
 
-        //            if (announcement.LicenseInfo == null)
-        //                announcement.LicenseInfo = new LicenseInfo() { ClosedData = false };
-        //        }
+                   if (trip.LicenseInfo == null)
+                       trip.LicenseInfo = new LicenseInfo() { ClosedData = false };
 
-        //        // If there are validation errors, return them in standard format
-        //        if (!ModelState.IsValid)
-        //            return ValidationProblem(ModelState);
+                    if (!trip.Geo.GeoInfoIsValid())
+                    {
+                        return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                    }
+                    foreach (var kvp in trip.Geo)
+                    {
+                        if (!kvp.Value.IsValidGeometry)
+                        {
+                            return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                        }
+                    }
 
-        //        // Trim all strings for all announcements
-        //        foreach (var announcement in announcements)
-        //        {
-        //            announcement.TrimStringProperties();
-        //        }
+                   //Validate StopTimes geo info
+                   if (trip.StopTimes != null)
+                   {
+                       int j = 0;
+                       foreach (var stopTime in trip.StopTimes)
+                       {
+                           if (stopTime.Geo != null)
+                           {
+                               if (!stopTime.Geo.GeoInfoIsValid())
+                               {
+                                   ModelState.AddModelError($"[{i}].StopTimes[{j}].Geo", "Exactly one default GeoInfo must be present");
+                               }
+                               foreach (var kvp in stopTime.Geo)
+                               {
+                                   if (!kvp.Value.IsValidGeometry)
+                                   {
+                                       ModelState.AddModelError($"[{i}].StopTimes[{j}].Geo[{kvp.Key}].Geometry", "Invalid WKT geometry");
+                                   }
+                               }
+                           }
+                           j++;
+                       }
+                   }
+               }
 
-        //        return await UpsertDataArray<Trip>(
-        //            announcements.Select(a => new UpsertableTrip(a)),
-        //            new DataInfo("announcements", CRUDOperation.CreateAndUpdate, true),
-        //            new CompareConfig(true, false), // Enable comparison to detect unchanged
-        //            new CRUDConstraints(createFilter, UserRolesToFilter),
-        //            new CRUDConstraints(updateFilter, UserRolesToFilter)
-        //        );
-        //    });
-        //}
+               // If there are validation errors, return them in standard format
+               if (!ModelState.IsValid)
+                   return ValidationProblem(ModelState);
+
+               // Trim all strings for all trips
+               foreach (var trip in trips)
+               {
+                   trip.TrimStringProperties();
+               }
+
+               return await UpsertDataArray<Trip>(
+                   trips.Select(a => new UpsertableTrip(a)),
+                   new DataInfo("trips", CRUDOperation.CreateAndUpdate, true),
+                   new CompareConfig(true, false), // Enable comparison to detect unchanged
+                   new CRUDConstraints(createFilter, UserRolesToFilter),
+                   new CRUDConstraints(updateFilter, UserRolesToFilter)
+               );
+           });
+        }
         
         /// <summary>
         /// PUT Modify existing Trip
         /// </summary>
         /// <param name="id">Trip Id</param>
-        /// <param name="announcement">Trip Object</param>
+        /// <param name="trip">Trip Object</param>
         /// <returns>Http Response</returns>
         [AuthorizeODH(PermissionAction.Update)]
         [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
@@ -433,17 +476,27 @@ namespace OdhApiCore.Controllers
         {
             return DoAsyncReturn(async () =>
             {
-                //if (!trip.Geo.GeoInfoIsValid())
-                //{
-                //    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
-                //}
-                //foreach (var kvp in trip.Geo)
-                //{
-                //    if (!kvp.Value.IsValidGeometry)
-                //    {
-                //        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
-                //    }
-                //}
+                //Validate StopTimes geo info
+                if (trip.StopTimes != null)
+                {
+                    foreach (var stopTime in trip.StopTimes)
+                    {
+                        if (stopTime.Geo != null)
+                        {
+                            if (!stopTime.Geo.GeoInfoIsValid())
+                            {
+                                return BadRequest(new { error = "Each StopTime Geo must have exactly one default GeoInfo" });
+                            }
+                            foreach (var kvp in stopTime.Geo)
+                            {
+                                if (!kvp.Value.IsValidGeometry)
+                                {
+                                    return BadRequest(new { error = $"StopTime Geo Info <{kvp.Key}> is invalid" });
+                                }
+                            }
+                        }
+                    }
+                }
 
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Update", out var updateFilter);
@@ -454,9 +507,8 @@ namespace OdhApiCore.Controllers
                 trip.TrimStringProperties();
 
                 return await UpsertData<Trip>(
-                    //new UpsertableTrip(announcement),
-                    trip,
-                    new DataInfo("announcements", CRUDOperation.Update, true),
+                    new UpsertableTrip(trip),
+                    new DataInfo("trips", CRUDOperation.Update, true),
                     new CompareConfig(true, false),
                     new CRUDConstraints(updateFilter, UserRolesToFilter)
                 );

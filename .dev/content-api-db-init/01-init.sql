@@ -294,3 +294,15 @@ BEGIN
 END;
 $function$
 ;
+
+-- DROP FUNCTION public.json_array_to_pg_array_lower(jsonb);
+ 
+CREATE OR REPLACE FUNCTION public.json_array_to_pg_array_lower(jsonarray jsonb)
+  RETURNS text[]
+  LANGUAGE plpgsql
+  IMMUTABLE STRICT
+AS $function$ 
+  begin if jsonarray <> 'null' then return (select array(select lower(jsonb_array_elements_text(jsonarray)))); else return null; end if; end; 
+$function$
+;
+ 

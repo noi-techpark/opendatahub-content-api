@@ -1219,24 +1219,25 @@ namespace DataModel
 
     #region Transport
 
-    public class Trip : Generic
-    {        
+    public class Trip : Generic, IGeoAware
+    {
         //Route
         public Route Route { get; set;}
 
         //Agency
-        public class Agency
+        public class TripAgency
         {
             public string Shortname { get; set; }
             public IDictionary<string, ContactInfos> ContactInfos { get; set; }
         }
-        public Agency Agency { get; set; }
+
+        public Trip.TripAgency Agency { get; set; }
 
         //Stops
         public IEnumerable<StopTime> StopTimes { get; set; }
 
-
-        //public IDictionary<string, GpsInfo> Geo { get; set; } todo Starting point 
+        //Computed from StopTimes: GEOMETRYCOLLECTION of all stop geometries + connecting LINESTRING, for visualization
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public class Route
@@ -1250,7 +1251,7 @@ namespace DataModel
         public ICollection<string>? TagIds { get; set; } //route_type
 
         //calendar.txt
-        public class Calendar
+        public class RouteCalendar
         {
             //calendar.txt
 
@@ -1258,10 +1259,11 @@ namespace DataModel
 
             //calendar_dates.txt
 
-            public IEnumerable<DateTime> AdditionalDates { get; set; }
-            public IEnumerable<DateTime> ExcludedDates { get; set; }
+            public IEnumerable<DateTime>? AdditionalDates { get; set; }
+            public IEnumerable<DateTime>? ExcludedDates { get; set; }
         }
 
+        public Route.RouteCalendar Calendar { get; set; }
     }
     public class StopTime
     {
