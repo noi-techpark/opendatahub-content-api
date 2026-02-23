@@ -1219,8 +1219,10 @@ namespace DataModel
 
     #region Transport
 
-    public class Trip : Generic, IGeoAware
+    public class Trip : Generic, IGeoAware, IActivateable
     {
+        public bool Active { get; set; }
+        
         //Route
         public Route Route { get; set;}
 
