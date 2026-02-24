@@ -554,45 +554,56 @@ namespace Helper
 
         public static void SetUpdateHistory(Metadata? oldmetadata, Metadata newmetadata)
         {
-            if (oldmetadata == null && newmetadata.UpdateInfo != null && !String.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
-            {
-                //New dataset
-                newmetadata.UpdateInfo.UpdateHistory =
-                [
-                    new UpdateHistory() { LastUpdate = newmetadata.LastUpdate, UpdateSource = newmetadata.UpdateInfo.UpdateSource, UpdatedBy = newmetadata.UpdateInfo.UpdatedBy },
-                ];
-            }
-            else if (oldmetadata != null)
-            {
-                //Compatibility Update Info not present
-                if (oldmetadata.UpdateInfo == null)
-                {
-                    oldmetadata.UpdateInfo = new UpdateInfo();
-                    newmetadata.UpdateInfo = new UpdateInfo();
-                }
+            // 1. Ensure newmetadata has UpdateInfo initialized so we can set the Revision
+            newmetadata.UpdateInfo ??= new UpdateInfo();
 
-                //Compatibility UpdateHistory not present
-                if (oldmetadata.UpdateInfo.UpdateHistory == null)
-                    newmetadata.UpdateInfo.UpdateHistory = new List<UpdateHistory>();
-                else
-                    newmetadata.UpdateInfo.UpdateHistory = oldmetadata.UpdateInfo.UpdateHistory;
+            // 2. Calculate the Next Revision
+            // If oldmetadata or its UpdateInfo is null, start at 1. Otherwise, increment.
+            int currentRevision = oldmetadata?.UpdateInfo?.Revision ?? 0;
+            newmetadata.UpdateInfo.Revision = currentRevision + 1;
 
-                if (!String.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
+            // 3. Handle Update History Logic
+            if (oldmetadata == null)
+            {
+                if (!string.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
                 {
-                    if(newmetadata.UpdateInfo.UpdateHistory.Any(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && x.UpdateSource.Equals(newmetadata.UpdateInfo.UpdateSource, StringComparison.OrdinalIgnoreCase)))
+                    newmetadata.UpdateInfo.UpdateHistory = new List<UpdateHistory>
                     {
-                        var updatehistorytoupdate = newmetadata.UpdateInfo.UpdateHistory.Where(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && x.UpdateSource.Equals(newmetadata.UpdateInfo.UpdateSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                        updatehistorytoupdate.LastUpdate = newmetadata.LastUpdate;
+                        new UpdateHistory 
+                        { 
+                            LastUpdate = newmetadata.LastUpdate, 
+                            UpdateSource = newmetadata.UpdateInfo.UpdateSource, 
+                            UpdatedBy = newmetadata.UpdateInfo.UpdatedBy
+                        }
+                    };
+                }
+            }
+            else
+            {
+                // Carry over history from old metadata
+                newmetadata.UpdateInfo.UpdateHistory = oldmetadata.UpdateInfo?.UpdateHistory ?? new List<UpdateHistory>();
+
+                if (!string.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
+                {
+                    var existingEntry = newmetadata.UpdateInfo.UpdateHistory
+                        .FirstOrDefault(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && 
+                                            x.UpdateSource.Equals(newmetadata.UpdateInfo.UpdateSource, StringComparison.OrdinalIgnoreCase));
+
+                    if (existingEntry != null)
+                    {
+                        existingEntry.LastUpdate = newmetadata.LastUpdate;
                     }
                     else
                     {
-                        newmetadata.UpdateInfo.UpdateHistory.Add(new UpdateHistory() { LastUpdate = newmetadata.LastUpdate, UpdateSource = newmetadata.UpdateInfo.UpdateSource, UpdatedBy = newmetadata.UpdateInfo.UpdatedBy });
+                        newmetadata.UpdateInfo.UpdateHistory.Add(new UpdateHistory 
+                        { 
+                            LastUpdate = newmetadata.LastUpdate, 
+                            UpdateSource = newmetadata.UpdateInfo.UpdateSource, 
+                            UpdatedBy = newmetadata.UpdateInfo.UpdatedBy 
+                        });
                     }
                 }
-                    //newmetadata.UpdateInfo.UpdateHistory.  TryAddOrUpdate(, );
             }
-            else
-                newmetadata.UpdateInfo.UpdateHistory = null;
         }
     }
 }

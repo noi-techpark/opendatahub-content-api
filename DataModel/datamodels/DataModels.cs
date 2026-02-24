@@ -3222,6 +3222,7 @@ namespace DataModel
     {
         public string? UpdatedBy { get; set; }
         public string? UpdateSource { get; set; }
+        public int Revision { get; set; }
 
         public ICollection<UpdateHistory>? UpdateHistory { get; set; }
     }
