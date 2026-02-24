@@ -671,6 +671,7 @@ namespace DataModel
     {
         public int? PriceFrom { get; set; }
         public int? PriceFromPerUnit { get; set; }
+        public string? PriceFromPerUnitType { get; set; }
     }
 
     public class AccoOverview
