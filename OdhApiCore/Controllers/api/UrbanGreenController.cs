@@ -56,6 +56,7 @@ namespace OdhApiCore.Controllers
         /// <param name="greencodesubtype">GreenCodeSubtype Filter (Separator ',' List of GreenCodeSubtypes), (default:'null')</param>
         /// <param name="activefilter">Active Filter (possible values: 'true' only Active data, 'false' only Disabled data), (default:'null')</param>
         /// <param name="polygon">valid WKT (Well-known text representation of geometry) Format, Examples (POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))) / By Using the GeoShapes Api (v1/GeoShapes) and passing Country.Type.Id OR Country.Type.Name Example (it.municipality.3066) / Bounding Box Filter bbc: 'Bounding Box Contains', 'bbi': 'Bounding Box Intersects', followed by a List of Comma Separated Longitude Latitude Tuples, 'null' = disabled, (default:'null') <a href='https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#polygon-filter-functionality' target="_blank">Wiki geosort</a></param>
+        /// <param name="updatefrom">Returns data changed after this date (Format: RFC3339 YYYY-MM-DDTHH:MM:SSZ), (default: 'null')</param>
         /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagId,TagId,TagId) example or(urbangreen:tree,urbangreen:bush) - Combining and/or is not supported at the moment. (default: 'null')</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
@@ -83,6 +84,7 @@ namespace OdhApiCore.Controllers
             string? greencodetype = null,
             string? greencodesubtype = null,
             LegacyBool activefilter = null!,
+            string? updatefrom = null,
             string? tagfilter = null,
             string? seed = null,
             string? polygon = null,
@@ -112,6 +114,7 @@ namespace OdhApiCore.Controllers
                 greencodetype,
                 greencodesubtype,
                 activefilter?.Value,
+                updatefrom,
                 tagfilter,
                 seed,
                 polygonsearchresult,
@@ -173,6 +176,7 @@ namespace OdhApiCore.Controllers
             string? greencodetype,
             string? greencodesubtype,
             bool? activefilter,
+            string? updatefrom,
             string? tagfilter,
             string? seed,
             GeoPolygonSearchResult? polygonsearchresult,
@@ -205,6 +209,7 @@ namespace OdhApiCore.Controllers
                                 greencodesubtypefilter: greencodesubtype,
                                 activefilter: activefilter,
                                 tagfilter: tagfilter,
+                                lastchange: updatefrom,
                                 cancellationToken
                             );
 
@@ -227,6 +232,7 @@ namespace OdhApiCore.Controllers
                         activefilter: helper.activefilter,
                         searchfilter: searchfilter,
                         language: language,
+                        lastchange: helper.lastchange,
                         tagdict: helper.tagdict,
                         additionalfilter: additionalfilter,
                         userroles: UserRolesToFilter

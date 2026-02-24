@@ -1554,6 +1554,20 @@ namespace Helper
                     )
             );
 
+        //Filter on Generated Field gen_lastchange with RFC3339 timestamp precision
+        public static Query LastChangedTimestampFilter_GeneratedColumn(
+            this Query query,
+            string? updatefrom
+        ) =>
+            query.When(
+                updatefrom != null,
+                query =>
+                    query.WhereRaw(
+                        "gen_lastchange > $$::timestamp",
+                        updatefrom
+                    )
+            );
+
         //Weatherhistory lastchangedBetween
         //Filter on Generated Field gen_lastchange
         public static Query LastChangedFilter_GeneratedColumn(
