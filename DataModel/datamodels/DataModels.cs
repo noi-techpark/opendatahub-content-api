@@ -190,7 +190,7 @@ namespace DataModel
         public int? AltitudeFrom { get; set; }
         public int? AltitudeTo { get; set; }
 
-        public IDictionary<string, string> SkiRegionName { get; set; }
+        public IDictionary<string, string>? SkiRegionName { get; set; }
 
         [SwaggerDeprecated("Deprecated use AreaIds")]
         public HashSet<string>? AreaId { get; set; }
@@ -212,8 +212,8 @@ namespace DataModel
         public ICollection<string>? RegionIds { get; set; }
 
         //New Municipality and District Ids
-        public ICollection<string> MunicipalityIds { get; set; }
-        public ICollection<string> DistrictIds { get; set; }
+        public ICollection<string>? MunicipalityIds { get; set; }
+        public ICollection<string>? DistrictIds { get; set; }
 
         public ICollection<GpsPolygon>? GpsPolygon { get; set; }
 
@@ -323,8 +323,8 @@ namespace DataModel
 
     public class AdditionalContact
     {
-        public string? Type { get; set; }
-        public ContactInfos ContactInfos { get; set; }
+        public string Type { get; set; }
+        public ContactInfos? ContactInfos { get; set; }
         public string? Description { get; set; }
     }
 
@@ -547,10 +547,6 @@ namespace DataModel
         public string? Vat { get; set; }
 
         public string? CountryCode { get; set; }
-
-        //New Fields 
-        public string? MetaTitle { get; set; }
-        public string? MetaDesc { get; set; }
     }
 
     public class AccoFeature
@@ -675,6 +671,7 @@ namespace DataModel
     {
         public int? PriceFrom { get; set; }
         public int? PriceFromPerUnit { get; set; }
+        public string? PriceFromPerUnitType { get; set; }
     }
 
     public class AccoOverview
@@ -3225,6 +3222,7 @@ namespace DataModel
     {
         public string? UpdatedBy { get; set; }
         public string? UpdateSource { get; set; }
+        public int Revision { get; set; }
 
         public ICollection<UpdateHistory>? UpdateHistory { get; set; }
     }
@@ -3661,14 +3659,11 @@ namespace DataModel
     {
         public string? Header { get; set; }
 
-        //public string SiteHeader { get; set; }
         public string? SubHeader { get; set; }
         public string? IntroText { get; set; }
         public string? BaseText { get; set; }
         public string? Title { get; set; }
 
-        //OLT
-        //public string Alttext { get; set; }
         public string? AdditionalText { get; set; }
 
         //NEW
