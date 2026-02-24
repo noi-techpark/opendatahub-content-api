@@ -98,7 +98,7 @@ namespace HDS
 
             ////OpeningTimes Parsing
 
-            var operationschedule = ParseOperationScheduleFromCSV(market.Weekday, market.Frequency, market.Seasonality);
+            var operationschedule = ParseMarketOperationScheduleFromCSV(market.Weekday, market.Frequency, market.Seasonality);
 
             if (operationschedule != null)
             {
@@ -264,7 +264,7 @@ namespace HDS
 
             ////OpeningTimes Parsing
 
-            var operationschedule = ParseOperationScheduleYearMarketFromCSV(market.Weekday, market.DateBegin, market.Modality);
+            var operationschedule = ParseYearMarketOperationScheduleFromCSV(market.Weekday, market.DateBegin, market.Modality);
 
             if (operationschedule != null)
             {
@@ -302,7 +302,7 @@ namespace HDS
         }
 
 
-        private static OperationSchedule? ParseOperationScheduleFromCSV(
+        private static OperationSchedule? ParseMarketOperationScheduleFromCSV(
             string weekday, string frequency, string seasonality
         )
         {
@@ -371,7 +371,7 @@ namespace HDS
             return myoperationschedule;
         }
 
-        private static OperationSchedule? ParseOperationScheduleYearMarketFromCSV(
+        private static OperationSchedule? ParseYearMarketOperationScheduleFromCSV(
             string weekday, string datebegin, string modality
         )
         {
@@ -387,18 +387,21 @@ namespace HDS
             //monthly
             if (modality == "MONATSMARKT - MENSILE")
             {
-                //SET Start and End to end of month           
-                myoperationschedule.Stop = EndOfMonth(begindate);
+                //SET Start and End to end of month
+                //Monthly Market takes place only one time all dates are inserted into sheet
+                // myoperationschedule.Stop = EndOfMonth(begindate);
             }
             else if (modality == "VIERZEHNTÄTIG - BISETTIMANALE")
             {
-                //SET Start and End to 14 days           
-                myoperationschedule.Stop = begindate.AddDays(14);
+                //SET Start and End to 14 days
+                //BiWeekly Market all dates are inserted into sheet
+                //myoperationschedule.Stop = begindate.AddDays(14);
             }
             else if (modality == "JAHRMARKT - FIERA")
             {
-                //SET Start and End to end of year           
-                myoperationschedule.Stop = new DateTime(begindate.Year, 12, 31);
+                //SET Start and End to end of year
+                //Year markets also all dates are inserted into sheet
+                //myoperationschedule.Stop = new DateTime(begindate.Year, 12, 31);
             }
 
             OperationScheduleTime operationscheduletime = new OperationScheduleTime() { 
@@ -426,16 +429,16 @@ namespace HDS
                 case "Sunday": operationscheduletime.Sunday = true; break;
             }
 
-            if (modality == "VIERZEHNTÄTIG - BISETTIMANALE" || modality == "MONATSMARKT - MENSILE")
-            {
-                operationscheduletime.Monday = true;
-                operationscheduletime.Tuesday = true;
-                operationscheduletime.Wednesday = true;
-                operationscheduletime.Thursday = true;
-                operationscheduletime.Friday = true;
-                operationscheduletime.Saturday = true;
-                operationscheduletime.Sunday = true;
-            }
+            //if (modality == "VIERZEHNTÄTIG - BISETTIMANALE" || modality == "MONATSMARKT - MENSILE")
+            //{
+            //    operationscheduletime.Monday = true;
+            //    operationscheduletime.Tuesday = true;
+            //    operationscheduletime.Wednesday = true;
+            //    operationscheduletime.Thursday = true;
+            //    operationscheduletime.Friday = true;
+            //    operationscheduletime.Saturday = true;
+            //    operationscheduletime.Sunday = true;
+            //}
 
             myoperationschedule.OperationScheduleTime = new List<OperationScheduleTime>() { operationscheduletime };
 
