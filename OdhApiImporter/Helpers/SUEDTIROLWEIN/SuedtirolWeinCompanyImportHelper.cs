@@ -79,9 +79,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             CancellationToken cancellationToken = default
         )
         {
-            int updatecounter = 0;
-            int newcounter = 0;
-            int errorcounter = 0;
+            List<UpdateDetail> updatedetails = new List<UpdateDetail>();
 
             //Load the json Data
             IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
@@ -118,18 +116,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     jsondata
                 );
 
-                newcounter = newcounter + importresult.created ?? newcounter;
-                updatecounter = updatecounter + importresult.updated ?? updatecounter;
-                errorcounter = errorcounter + importresult.error ?? errorcounter;
+                updatedetails.Add(importresult);
             }
 
-            return new UpdateDetail()
-            {
-                created = newcounter,
-                updated = updatecounter,
-                deleted = 0,
-                error = errorcounter,
-            };
+            return GenericResultsHelper.MergeUpdateDetail(updatedetails);
         }
 
         public async Task<UpdateDetail> ImportDataSingle(
@@ -139,12 +129,9 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             MetaInfosOdhActivityPoi metainfosidm,
             IDictionary<string, JArray> jsondata
         )
-        {
-            int updatecounter = 0;
-            int newcounter = 0;
-            int errorcounter = 0;
-
+        {            
             string dataid = winedata.Element("id").Value;
+            UpdateDetail updatedetail = new UpdateDetail();
 
             try
             {
@@ -251,7 +238,22 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     suedtirolweinpoi,
                     new KeyValuePair<string, XElement>(dataid, winedata)
                 );
-                
+
+                //Create UpdateDetail
+                updatedetail = new UpdateDetail()
+                {
+                    created = result.created,
+                    updated = result.updated,
+                    deleted = result.deleted,
+                    error = result.error,
+                    objectchanged = result.objectchanged,
+                    objectimagechanged = result.objectimagechanged,
+                    comparedobjects =
+                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                    pushchannels = result.pushchannels,
+                    changes = result.changes,
+                };
+
                 //Push Data if changed
                 //push modified data to all published Channels
                 //TODO adding the push status to the response
@@ -261,12 +263,8 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     result.id,
                     "poi",
                     null,
-                    "suedtirolwein.update"
+                    "suedtirolwein.companies.update"
                 );
-
-
-                newcounter = newcounter + result.created ?? 0;
-                updatecounter = updatecounter + result.updated ?? 0;
 
                 if (suedtirolweinpoi.Id is { })
                     WriteLog.LogToConsole(
@@ -284,6 +282,20 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             }
             catch (Exception ex)
             {
+                updatedetail = new UpdateDetail()
+                {
+                    created = 0,
+                    updated = 0,
+                    deleted = 0,
+                    error = 1,
+                    objectchanged = 0,
+                    objectimagechanged = 0,
+                    comparedobjects = 0,
+                    pushchannels = null,
+                    changes = null,
+                    exception = ex.Message
+                };
+
                 WriteLog.LogToConsole(
                     dataid,
                     "dataimport",
@@ -296,17 +308,9 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                         error = ex.Message,
                     }
                 );
-
-                errorcounter = errorcounter + 1;
             }
 
-            return new UpdateDetail()
-            {
-                created = newcounter,
-                updated = updatecounter,
-                deleted = 0,
-                error = errorcounter,
-            };
+            return updatedetail;
         }
 
         private async Task<UpdateDetail> SetDataNotinListToInactive(
@@ -324,13 +328,14 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 List<string?> winecompaniesonsource =
                     mywinecompanylist["de"]
                         .Root?.Elements("item")
-                        .Select(x => x.Attribute("id")?.Value)
+                        .Select(x => x.Element("id")?.Value)
                         .ToList() ?? new();
 
                 var myquery = QueryFactory
                     .Query("smgpois")
-                    .SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")
-                    .Where("gen_syncsourceinterface", "suedtirolwein");
+                    //.SelectRaw("data->'Mapping'->'suedtirolwein'->>'id'")
+                    .Select("id")
+                    .Where("gen_source", "suedtirolwein");
 
                 var winecompaniesondb = await myquery.GetAsync<string>();
 
