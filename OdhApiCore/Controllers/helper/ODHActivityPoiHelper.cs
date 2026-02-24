@@ -284,10 +284,9 @@ namespace OdhApiCore.Controllers.api
             {
                 if (int.TryParse(activitytypefilter, out int typeintegeractivity))
                 {
-                    if (typeintegeractivity != 1023)
-                        activitytypelist = Helper.ActivityPoiListCreator.CreateActivityTypefromFlag(
-                            activitytypefilter
-                        );
+                    activitytypelist = Helper.ActivityPoiListCreator.CreateActivityTypefromFlag(
+                        activitytypefilter
+                    );
                 }
                 else
                 {
@@ -308,10 +307,9 @@ namespace OdhApiCore.Controllers.api
             {
                 if (int.TryParse(poitypefilter, out int typeintegerpoi))
                 {
-                    if (typeintegerpoi != 2047)
-                        poitypelist = Helper.ActivityPoiListCreator.CreatePoiTypefromFlag(
-                            poitypefilter
-                        );
+                    poitypelist = Helper.ActivityPoiListCreator.CreatePoiTypefromFlag(
+                        poitypefilter
+                    );
                 }
                 else
                 {
