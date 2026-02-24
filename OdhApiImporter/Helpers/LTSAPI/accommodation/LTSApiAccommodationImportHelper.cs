@@ -771,6 +771,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             double? pricefrom = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFrom != null).OrderBy(x => x.PriceFrom).Select(x => x.PriceFrom).FirstOrDefault() : null;
             double? pricefromperunit = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFromPerUnit != null).OrderBy(x => x.PriceFromPerUnit).Select(x => x.PriceFromPerUnit).FirstOrDefault() : null;
+            string? pricefromperunittype = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFromPerUnit != null && x.Roomtype != null).OrderBy(x => x.PriceFromPerUnit).Select(x => x.Roomtype).FirstOrDefault() : null;
 
             //If lts info is null
             if (accommodation.AccoLTSInfo == null)
@@ -778,6 +779,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             accommodation.AccoLTSInfo.PriceFrom = (int?)pricefrom;
             accommodation.AccoLTSInfo.PriceFromPerUnit = (int?)pricefromperunit;
+            accommodation.AccoLTSInfo.PriceFromPerUnitType = pricefromperunittype;
+
         }
 
         #endregion
