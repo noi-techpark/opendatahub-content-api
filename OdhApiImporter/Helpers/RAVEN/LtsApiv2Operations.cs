@@ -177,12 +177,15 @@ namespace OdhApiImporter.Helpers.RAVEN
                 float? pricefrom = rooms != null ? rooms.Where(x => x.isActive == true && x.minAmountPerPersonPerDay != null).OrderBy(x => x.minAmountPerPersonPerDay).Select(x => x.minAmountPerPersonPerDay).FirstOrDefault() : null;
                 float? pricefromperunit = rooms != null ? rooms.Where(x => x.isActive == true && x.minAmountPerUnitPerDay != null).OrderBy(x => x.minAmountPerUnitPerDay).Select(x => x.minAmountPerUnitPerDay).FirstOrDefault() : null;
 
+                string? pricefromperunittype = rooms != null ? rooms.Where(x => x.isActive == true && x.minAmountPerUnitPerDay != null && x.classification != null).OrderBy(x => x.minAmountPerUnitPerDay).Select(x => x.classification).FirstOrDefault() : null;
+
                 //If lts info is null
                 if (accommodation.AccoLTSInfo == null)
                     accommodation.AccoLTSInfo = new AccoLTSInfo();
 
                 accommodation.AccoLTSInfo.PriceFrom = (int?)pricefrom;
                 accommodation.AccoLTSInfo.PriceFromPerUnit = (int?)pricefromperunit;
+                accommodation.AccoLTSInfo.PriceFromPerUnitType = pricefromperunittype;
 
                 GenericResultsHelper.GetSuccessUpdateResult(
                     accommodation.Id,

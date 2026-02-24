@@ -1922,7 +1922,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public SkiRegionLink SkiRegion
+        public SkiRegionLink? SkiRegion
         {
             get
             {
@@ -1982,7 +1982,7 @@ namespace DataModel
         public new LocationInfoLinked? LocationInfo { get; set; }
 
         //GpsInfo
-        public ICollection<GpsInfo> GpsInfo { get; set; }
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -2086,7 +2086,7 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo> GpsInfo { get; set; }
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -2666,11 +2666,29 @@ namespace DataModel
 
         [SwaggerSchema("Tag Ids")]
         public ICollection<string>? TagIds { get; set; }
+
+        [SwaggerSchema("Coordiante source configuration")]
+        public CoordinateSource? CoordinateSource { get; set; }
     }
 
     #endregion
 }
 
+public static class CoordinateSourceType
+{
+    public const string GeoData = "GeoData";
+    public const string GpsInfo = "GpsInfo";
+}
+
+public class CoordinateSource
+{
+    [SwaggerSchema("Type of the coordinate source")]
+    [SwaggerEnum(new[] { "GeoData", "GpsInfo" })]
+    public string? Type { get; set; } = CoordinateSourceType.GpsInfo;
+
+    [SwaggerSchema("Field from which to extrapolate coordinate data")]
+    public string? Field { get; set; }
+}
 
 #region obsolete toremove
 

@@ -14,20 +14,19 @@ using SqlKata.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Intrinsics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
-    public class DigiWayImportHelper : ImportHelper, IImportHelper
+    public class DigiWayCivisJson2ODHActivityPoiImportHelper : ImportHelper, IImportHelper
     {
         public List<string> idlistinterface { get; set; }
         public string? identifier { get; set; }
         public string? source { get; set; }        
         
-        public DigiWayImportHelper(
+        public DigiWayCivisJson2ODHActivityPoiImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -63,7 +62,7 @@ namespace OdhApiImporter.Helpers
         //Get Data from Source
         private async Task<IGeoserverCivisResult> GetData(CancellationToken cancellationToken)
         {
-            return await GetDigiwayData.GetDigiWayDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
+            return await GetDigiwayData.GetCivisDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
         }
 
         //Import the Data
@@ -253,7 +252,7 @@ namespace OdhApiImporter.Helpers
 
             var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
-            var result = ParseGeoServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, source);
+            var result = ParseCivisGeoServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, source);
 
             return result;
         }

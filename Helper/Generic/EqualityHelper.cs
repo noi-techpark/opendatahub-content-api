@@ -196,10 +196,6 @@ namespace Helper.Generic
             return equalityresult;
         }
 
-
-
-
-
         public static bool CompareImageGallery(
             ICollection<ImageGallery>? compareclass1,
             ICollection<ImageGallery>? compareclass2,

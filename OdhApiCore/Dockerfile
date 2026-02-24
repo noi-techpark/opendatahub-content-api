@@ -20,6 +20,7 @@ COPY NINJA/NINJA.csproj NINJA/
 COPY RAVEN/RAVEN.csproj RAVEN/
 COPY STA/STA.csproj STA/
 COPY HDS/HDS.csproj HDS/
+COPY ZOHO/ZOHO.csproj ZOHO/
 COPY LOOPTEC/LOOPTEC.csproj LOOPTEC/
 COPY OdhNotifier/OdhNotifier.csproj OdhNotifier/
 COPY PushServer/PushServer.csproj PushServer/

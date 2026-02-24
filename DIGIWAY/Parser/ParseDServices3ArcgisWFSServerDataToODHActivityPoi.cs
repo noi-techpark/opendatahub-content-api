@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
-    public class ParseWFSServerDataToODHActivityPoi
+    public class ParseDServices3ArcgisWFSServerDataToODHActivityPoi
     {
         public static (ODHActivityPoiLinked, GeoShapeJson) ParseToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,

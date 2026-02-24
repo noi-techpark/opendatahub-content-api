@@ -24,6 +24,7 @@ namespace OdhApiCore.Controllers.api
         public List<string> greencodesubtypelist;
         public bool? activefilter;
         public IDictionary<string, List<string>> tagdict;
+        public string? lastchange;
 
         public static async Task<UrbanGreenHelper> CreateAsync(
             QueryFactory queryFactory,
@@ -36,6 +37,7 @@ namespace OdhApiCore.Controllers.api
             string? greencodesubtypefilter,
             bool? activefilter,
             string? tagfilter,
+            string? lastchange,
             CancellationToken cancellationToken
         )
         {
@@ -48,7 +50,8 @@ namespace OdhApiCore.Controllers.api
                 greencodetypefilter,
                 greencodesubtypefilter,
                 activefilter,
-                tagfilter
+                tagfilter,
+                lastchange
             );
         }
 
@@ -61,9 +64,11 @@ namespace OdhApiCore.Controllers.api
             string? greencodetypefilter,
             string? greencodesubtypefilter,
             bool? activefilter,
-            string? tagfilter
+            string? tagfilter,
+            string? lastchange
         )
         {
+            this.lastchange = lastchange;
             // urbangreen id are forced to be lowercase
             idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToLower());
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);

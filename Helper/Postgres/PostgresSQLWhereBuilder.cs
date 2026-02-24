@@ -1389,6 +1389,7 @@ namespace Helper
             IDictionary<string, List<string>>? tagdict,
             DateTimeOffset? start,
             DateTimeOffset? end,
+            string? lastchange,
             string? additionalfilter,
             IEnumerable<string> userroles
         )
@@ -1410,6 +1411,7 @@ namespace Helper
                     q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
                 )
                 .DateWithTimezoneFilter_GeneratedColumn(start, end, true, true)
+                .LastChangedTimestampFilter_GeneratedColumn(lastchange)
                 .When(
                     tagdict != null && tagdict.Count > 0,
                     q => q.TaggingFilter_GeneratedColumn(tagdict)
@@ -1433,6 +1435,7 @@ namespace Helper
             bool? activefilter,
             string? searchfilter,
             string? language,
+            string? lastchange,
             IDictionary<string, List<string>>? tagdict,
             string? additionalfilter,
             IEnumerable<string> userroles
@@ -1449,6 +1452,7 @@ namespace Helper
             return query
                 .SearchFilter(TitleFieldsToSearchFor(language), searchfilter)
                 .SourceFilter_GeneratedColumn(sourcelist)
+                .LastChangedTimestampFilter_GeneratedColumn(lastchange)
                 .When(idlist != null && idlist.Count > 0, q => query.WhereIn("id", idlist))
                 .When(
                     languagelist.Count > 0,
@@ -1480,6 +1484,89 @@ namespace Helper
                     q => q.FilterAdditionalDataByCondition(additionalfilter)
                 )
                 .FilterDataByAccessRoles(userroles);
+        }
+
+        public static Query TripWhereExpression(
+            this Query query,
+            IReadOnlyCollection<string> languagelist,
+            IReadOnlyCollection<string> idlist,
+            IReadOnlyCollection<string> sourcelist,
+            string? searchfilter,
+            string? language,
+            IDictionary<string, List<string>>? tagdict,
+            DateTimeOffset? start,
+            DateTimeOffset? end,
+            string? lastchange,
+            string? additionalfilter,
+            IEnumerable<string> userroles
+        )
+        {
+            LogMethodInfo(
+                System.Reflection.MethodBase.GetCurrentMethod()!,
+                "<query>", // not interested in query
+                searchfilter,
+                language,
+                sourcelist
+            );
+
+            return query
+                .SearchFilter(TitleFieldsToSearchFor(language), searchfilter)
+                .SourceFilter_GeneratedColumn(sourcelist)
+                .When(idlist != null && idlist.Count > 0, q => query.WhereIn("id", idlist))
+                .When(
+                    languagelist.Count > 0,
+                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+                )
+                .LastChangedTimestampFilter_GeneratedColumn(lastchange)
+                .DateWithTimezoneFilter_GeneratedColumn(start, end, true, true)
+                .When(
+                    tagdict != null && tagdict.Count > 0,
+                    q => q.TaggingFilter_GeneratedColumn(tagdict)
+                )
+                .When(
+                    !String.IsNullOrEmpty(additionalfilter),
+                    q => q.FilterAdditionalDataByCondition(additionalfilter)
+                )
+                .FilterDataByAccessRoles(userroles);
+        }
+
+        public static Query SpatialDataWhereExpression(
+            this Query query,
+            IReadOnlyCollection<string> languagelist,
+            IReadOnlyCollection<string> idlist,
+            IReadOnlyCollection<string> sourcelist,
+            string? searchfilter,
+            string? language,
+            IDictionary<string, List<string>>? tagdict,
+            string? additionalfilter,
+            IEnumerable<string> userroles
+        )
+        {
+            LogMethodInfo(
+                System.Reflection.MethodBase.GetCurrentMethod()!,
+                "<query>", // not interested in query
+                searchfilter,
+                language,
+                sourcelist
+            );
+
+            return query
+                .SearchFilter(TitleFieldsToSearchFor(language), searchfilter)
+                .SourceFilter_GeneratedColumn(sourcelist)
+                .When(idlist != null && idlist.Count > 0, q => query.WhereIn("id", idlist))
+                .When(
+                    languagelist.Count > 0,
+                    q => q.HasLanguageFilterAnd_GeneratedColumn(languagelist)
+                )
+                .When(
+                    tagdict != null && tagdict.Count > 0,
+                    q => q.TaggingFilter_GeneratedColumn(tagdict)
+                )
+                .When(
+                    !String.IsNullOrEmpty(additionalfilter),
+                    q => q.FilterAdditionalDataByCondition(additionalfilter)
+                );
+                //.FilterDataByAccessRoles(userroles);
         }
     }
 }

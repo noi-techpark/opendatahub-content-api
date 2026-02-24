@@ -3136,9 +3136,9 @@ namespace OdhApiImporter.Controllers
                 if (digiwayconfig == null)
                     throw new Exception("unknown identifier");
                 
-                if (digiwayconfig.Source == "civis.geoserver")
+                if (digiwayconfig.Source == "civis.geoserver" )
                 {
-                    DigiWayImportHelper digiwayimporthelper = new DigiWayImportHelper(
+                    DigiWayCivisJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayCivisJson2ODHActivityPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -3153,9 +3153,9 @@ namespace OdhApiImporter.Controllers
                                             null,
                                             cancellationToken);
                 }
-                else if (digiwayconfig.Source == "dservices3.arcgis.com")
+                else if (digiwayconfig.Source == "dservices3.arcgis.com" && digiwayconfig.Format == "xml")
                 {
-                    DigiWayWFSXmlImportHelper digiwayimporthelper = new DigiWayWFSXmlImportHelper(
+                    DigiWayDServices3ArcgisWFSXml2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayDServices3ArcgisWFSXml2ODHActivityPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -3173,7 +3173,7 @@ namespace OdhApiImporter.Controllers
                 }
                 else if (digiwayconfig.Source == "siat.provincia.tn.it")
                 {
-                    DigiWayGeoJsonImportHelper digiwayimporthelper = new DigiWayGeoJsonImportHelper(
+                    DigiWaySiatTNShp2OdhActivityPoiImportHelper digiwayimporthelper = new DigiWaySiatTNShp2OdhActivityPoiImportHelper(
                         settings,
                         QueryFactory,
                         "smgpois",
@@ -3189,7 +3189,42 @@ namespace OdhApiImporter.Controllers
                                             null,
                                             cancellationToken);
                 }
+                else if (digiwayconfig.Source == "euregio")
+                {
+                    DigiWayEuregioGeoJsonSpatialDataImportHelper digiwayimporthelper = new DigiWayEuregioGeoJsonSpatialDataImportHelper(
+                        settings,
+                        QueryFactory,
+                        "spatialdatas",
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
 
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
+                else if (digiwayconfig.Source == "dservices3.arcgis.com" && digiwayconfig.Format == "geojson")
+                {
+                    DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper(
+                        settings,
+                        QueryFactory,
+                        "smgpois",
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                         null,
@@ -3218,6 +3253,68 @@ namespace OdhApiImporter.Controllers
                     true
                 );
                 return BadRequest(updateResult);
+            }
+        }
+
+        #endregion
+
+        #region ZOHO_DIGIWAY
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Zoho/TrailClosures/Update")]
+        public async Task<IActionResult> SaveZohoTrailClosuresDataToAnnouncements(
+            CancellationToken cancellationToken
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = $"Import Zoho TrailClosures";
+            string updatetype = GetUpdateType(null);
+            string source = "json";
+            string otherinfo = "digiway.zoho";
+
+            try
+            {
+                DigiWayZohoGeoJson2AccouncementImportHelper digiwaytrailclosuresimporthelper = new DigiWayZohoGeoJson2AccouncementImportHelper(
+                    settings,
+                    QueryFactory,
+                    "announcements",
+                    UrlGeneratorStatic("ZOHO/TrailClosures")
+                    );
+
+                updatedetail = await digiwaytrailclosuresimporthelper.SaveDataToODH(
+                    null,
+                    null,
+                    cancellationToken
+                );
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                        "",
+                        source,
+                        operation,
+                        updatetype,
+                        $"Import Zoho TrailClosures succeeded",
+                        otherinfo,
+                        updatedetail,
+                        true
+                    );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    $"Import Zoho TrailClosures failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
             }
         }
 

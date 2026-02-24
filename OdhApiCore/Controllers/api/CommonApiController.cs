@@ -58,8 +58,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of MetaRegion Objects</returns>
@@ -223,8 +223,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of ExperienceArea Objects</returns>
@@ -387,8 +387,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of Region Objects</returns>
@@ -550,8 +550,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of Tourismverein Objects</returns>
@@ -714,8 +714,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of Municipality Objects</returns>
@@ -879,8 +879,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of District Objects</returns>
@@ -1039,8 +1039,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of Area Objects</returns>
@@ -1188,8 +1188,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of SkiRegion Objects</returns>
@@ -1351,8 +1351,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of SkiArea Objects</returns>
@@ -1513,8 +1513,8 @@ namespace OdhApiCore.Controllers.api
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <param name="getasidarray">Get result only as Array of Ids, (default:false)  Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <response code="200">List created</response>
@@ -2027,7 +2027,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,MetaRegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("MetaRegion")]
-        public Task<IActionResult> Post([FromBody] MetaRegionLinked data)
+        public Task<IActionResult> Post([FromBody] MetaRegionLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2035,7 +2035,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("MetaRegion")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2043,8 +2047,6 @@ namespace OdhApiCore.Controllers.api
                 data.TrimStringProperties();
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
-
-
 
                 return await UpsertData<MetaRegionLinked>(
                     data,
@@ -2060,19 +2062,23 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">Region Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,RegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Region")]
-        public Task<IActionResult> Post([FromBody] RegionLinked data)
+        public Task<IActionResult> Post([FromBody] RegionLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Filters on the Action Create
                 AdditionalFiltersToAddEndpoint("Region")
                     .TryGetValue("Create", out var additionalfilter);
-
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2099,7 +2105,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,ExperienceAreaCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("ExperienceArea")]
-        public Task<IActionResult> Post([FromBody] ExperienceAreaLinked data)
+        public Task<IActionResult> Post([FromBody] ExperienceAreaLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2107,7 +2113,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("ExperienceArea")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2130,11 +2140,11 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">TourismAssociation Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,TourismAssociationCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("TourismAssociation")]
-        public Task<IActionResult> Post([FromBody] TourismvereinLinked data)
+        public Task<IActionResult> Post([FromBody] TourismvereinLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2142,7 +2152,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("TourismAssociation")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2165,11 +2179,11 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">Municipality Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,MunicipalityCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Municipality")]
-        public Task<IActionResult> Post([FromBody] MunicipalityLinked data)
+        public Task<IActionResult> Post([FromBody] MunicipalityLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2177,7 +2191,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("Municipality")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2200,11 +2218,11 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">District Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,DistrictCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("District")]
-        public Task<IActionResult> Post([FromBody] DistrictLinked data)
+        public Task<IActionResult> Post([FromBody] DistrictLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2212,7 +2230,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("District")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2239,7 +2261,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,AreaCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("Area")]
-        public Task<IActionResult> Post([FromBody] AreaLinked data)
+        public Task<IActionResult> Post([FromBody] AreaLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2247,7 +2269,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("Area")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 //data.CheckMyInsertedLanguages(null);
@@ -2270,11 +2296,11 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">SkiRegion Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,SkiRegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("SkiRegion")]
-        public Task<IActionResult> Post([FromBody] SkiRegionLinked data)
+        public Task<IActionResult> Post([FromBody] SkiRegionLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2282,7 +2308,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("SkiRegion")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2305,11 +2335,11 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">SkiArea Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,SkiAreaCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("SkiArea")]
-        public Task<IActionResult> Post([FromBody] SkiAreaLinked data)
+        public Task<IActionResult> Post([FromBody] SkiAreaLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2317,7 +2347,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("SkiArea")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2344,7 +2378,7 @@ namespace OdhApiCore.Controllers.api
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,WineAwardCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("WineAward")]
-        public Task<IActionResult> Post([FromBody] WineLinked data)
+        public Task<IActionResult> Post([FromBody] WineLinked data, bool generateid = true)
         {
             return DoAsyncReturn(async () =>
             {
@@ -2352,7 +2386,11 @@ namespace OdhApiCore.Controllers.api
                 AdditionalFiltersToAddEndpoint("WineAward")
                     .TryGetValue("Create", out var additionalfilter);
 
-                data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                //Allowing mixed id styles
+                if (generateid)
+                    data.Id = Helper.IdGenerator.GenerateIDFromType(data);
+                else if (String.IsNullOrEmpty(data.Id))
+                    throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 data.CheckMyInsertedLanguages(null);
@@ -2411,7 +2449,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">Region Id</param>
         /// <param name="data">Region Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,RegionUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("Region/{id}")]
@@ -2482,7 +2520,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">TourismAssociation Id</param>
         /// <param name="data">TourismAssociation Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,TourismAssociationUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("TourismAssociation/{id}")]
@@ -2518,7 +2556,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">Municipality Id</param>
         /// <param name="data">Municipality Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,MunicipalityUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("Municipality/{id}")]
@@ -2554,7 +2592,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">District Id</param>
         /// <param name="data">District Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,DistrictUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("District/{id}")]
@@ -2626,7 +2664,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">SkiRegion Id</param>
         /// <param name="data">SkiRegion Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,SkiRegionUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("SkiRegion/{id}")]
@@ -2662,7 +2700,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">SkiArea Id</param>
         /// <param name="data">SkiArea Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,SkiAreaUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("SkiArea/{id}")]
@@ -2915,7 +2953,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">SkiRegion Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,SkiRegionDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("SkiRegion/{id}")]
@@ -2941,7 +2979,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">SkiArea Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,SkiAreaDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("SkiArea/{id}")]

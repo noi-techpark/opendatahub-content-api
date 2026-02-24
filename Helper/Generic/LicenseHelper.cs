@@ -779,6 +779,18 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
+        public static LicenseInfo GetLicenseforAnnouncement(Announcement announcement)
+        {
+            var isopendata = true;
+            var licensetype = "CC0";
+            var licenseholder = "";
+
+            if (announcement.Source == "digiway.zoho")
+                licenseholder = "https://creatorapp.zoho.com/";
+
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
+        }
+
         public static void CheckLicenseInfoWithSource(
             LicenseInfo licenseinfo,
             string source,

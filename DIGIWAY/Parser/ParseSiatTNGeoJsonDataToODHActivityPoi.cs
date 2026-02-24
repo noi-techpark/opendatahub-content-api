@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
-    public class ParseGeoJsonDataToODHActivityPoi
+    public class ParseSiatTNGeoJsonDataToODHActivityPoi
     {
         public static (ODHActivityPoiLinked, GeoShapeJson) ParseToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,

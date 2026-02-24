@@ -23,7 +23,7 @@ using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
-    public class DigiWayGeoJsonImportHelper : ImportHelper, IImportHelper
+    public class DigiWaySiatTNShp2OdhActivityPoiImportHelper : ImportHelper, IImportHelper
     {
         public List<string> idlistinterface { get; set; }
         public string? identifier { get; set; }
@@ -31,7 +31,7 @@ namespace OdhApiImporter.Helpers
 
         public string? srid { get; set; }
 
-        public DigiWayGeoJsonImportHelper(
+        public DigiWaySiatTNShp2OdhActivityPoiImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -257,7 +257,7 @@ namespace OdhApiImporter.Helpers
 
             var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
-            var result = ParseGeoJsonDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, source, srid);
+            var result = ParseSiatTNGeoJsonDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, source, srid);
 
             return result;
         }
