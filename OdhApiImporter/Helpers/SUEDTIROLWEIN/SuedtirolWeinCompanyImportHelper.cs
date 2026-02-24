@@ -582,7 +582,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             //Kellereien und Winzer
             if (!poiNew.TagIds.Contains("6EFED925DF3B4EF5B69495E994F446AC"))
                 poiNew.TagIds.Add("6EFED925DF3B4EF5B69495E994F446AC");
-            //Produktionsst‰tten
+            //Produktionsst√§tten
             if (!poiNew.TagIds.Contains("28CDEF87206E464D9B179FBCAF506457"))
                 poiNew.TagIds.Add("28CDEF87206E464D9B179FBCAF506457");
         }
