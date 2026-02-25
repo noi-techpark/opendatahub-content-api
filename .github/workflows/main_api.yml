@@ -177,6 +177,10 @@ jobs:
           X_DIGIWAY_ZOHO_SERVICEURL: ${{ secrets.DIGIWAY_ZOHO_SERVICEURL }}
           X_DIGIWAY_ZOHO_AUTHURL: "https://accounts.zoho.com/oauth/v2/token"
           X_DIGIWAY_ZOHO_SCOPE: "ZohoCreator.report.READ"
+          X_DIGIWAY_ATACCESSIBLETRAIL_URL: ${{ secrets.DIGIWAY_ATACCESSIBLETRAIL_URL }}
+          X_DIGIWAY_ATACCESSIBLETRAIL_SOURCE: "dservices3.arcgis.com"
+          X_DIGIWAY_ATACCESSIBLETRAIL_FORMAT: "geojson"
+          X_DIGIWAY_ATACCESSIBLETRAIL_SRID: "4326"
 
       - name: Setup config
         run: |
@@ -358,6 +362,10 @@ jobs:
           X_DIGIWAY_ZOHO_SERVICEURL: ${{ secrets.DIGIWAY_ZOHO_SERVICEURL }}
           X_DIGIWAY_ZOHO_AUTHURL: "https://accounts.zoho.com/oauth/v2/token"
           X_DIGIWAY_ZOHO_SCOPE: "ZohoCreator.report.READ"
+          X_DIGIWAY_ATACCESSIBLETRAIL_URL: ${{ secrets.DIGIWAY_ATACCESSIBLETRAIL_URL }}
+          X_DIGIWAY_ATACCESSIBLETRAIL_SOURCE: "dservices3.arcgis.com"
+          X_DIGIWAY_ATACCESSIBLETRAIL_FORMAT: "geojson"
+          X_DIGIWAY_ATACCESSIBLETRAIL_SRID: "4326"
           
       - name: Setup config
         run: |
