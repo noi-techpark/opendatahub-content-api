@@ -45,6 +45,9 @@ namespace OdhApiCore.Controllers
         /// </summary>
         /// <param name="srid">Spatial Reference Identifier, Coordinate System of the geojson, available formats(epsg:4362,epsg:32632,epsg:3857)</param>
         /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>        
+        /// <param name="idlist">IDFilter (Separator ',' List of IDs, 'null' = No Filter), (default:'null')</param>
+        /// <param name="source">Filter by Source (Separator ','), (Get all Sources with the Distinct Api),(default: 'null')</param>
+        /// <param name="type">Filter by Type (Separator ','), (Get all Types with the Distinct Api),(default: 'null')</param>
         /// <param name="searchfilter">String to search for, Title in all languages are searched, (default: null) <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#searchfilter" target="_blank">Wiki searchfilter</a></param>
         /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
@@ -64,6 +67,7 @@ namespace OdhApiCore.Controllers
             uint? pagenumber = 1,
             PageSize pagesize = null!,
             string? srid = "epsg:4362",
+            string idlist = null,
             string source = null,
             string type = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
@@ -78,6 +82,7 @@ namespace OdhApiCore.Controllers
                 pagenumber,
                 pagesize,
                 srid,
+                idlist,
                 source,
                 type,
                 fields: fields ?? Array.Empty<string>(),
@@ -131,6 +136,7 @@ namespace OdhApiCore.Controllers
             uint? pagenumber,
             int? pagesize,
             string srid,
+            string ids,
             string source,
             string type,
             string[] fields,
@@ -154,14 +160,21 @@ namespace OdhApiCore.Controllers
                 if (srid.Contains("3857") || srid.ToLower().Contains("mercator"))
                     columntoretrieve = "data3857";
 
+                var idlist = Helper.CommonListCreator.CreateIdList(ids);
+                var typelist = Helper.CommonListCreator.CreateSourceList(type);
+                var sourcelist = Helper.CommonListCreator.CreateSourceList(source);
+
                 //TODO Add searchfilter
 
                 var query = QueryFactory
                     .Query()
                     .SelectRaw(columntoretrieve + " as data")
                     .From("geoshapes")
-                    .When(!String.IsNullOrEmpty(source), x => x.Where("source", source))
-                    .When(!String.IsNullOrEmpty(type), x => x.Where("type", type))
+                    .SourceFilter_GeoShapes(sourcelist)
+                    .TypeFilter_GeoShapes(typelist)
+                    .IdLowerFilter(idlist)
+                    //.When(!String.IsNullOrEmpty(source), x => x.Where("source", source))                    
+                    //.When(!String.IsNullOrEmpty(type), x => x.Where("type", type))
                     .SearchFilter(new List<string>() { "Name" }.ToArray(), searchfilter)
                     .ApplyRawFilter(rawfilter)
                     .ApplyOrdering(
