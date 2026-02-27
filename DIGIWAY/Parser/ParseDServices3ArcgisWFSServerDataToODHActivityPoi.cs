@@ -374,9 +374,7 @@ namespace DIGIWAY
         {
             //Convert Geometry from EPSG::31254 to WSG84
             var reader = new NetTopologySuite.IO.WKTReader();
-            var geom = reader.Read(digiwaydata.Geometry.AsText());
-
-            var temp = digiwaydata.Geometry.SRID;
+            var geom = reader.Read(digiwaydata.Geometry.AsText());            
 
             //DOES NOT WORK! USE POSTGIS QUERY TO TRANSFORM
             var wgs84Geom = GeometryProjectionHelper.Transform31254To4326(geom);
