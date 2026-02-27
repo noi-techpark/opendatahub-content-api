@@ -515,15 +515,14 @@ namespace DIGIWAY
             var result = identifier switch
             {
                 "cyclewaystyrol" => ParseCyclingRoutesTyrolToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
-                //"mountainbikeroutes" => ParseMTBRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
-                //"hikingtrails" => ParseHikingTrailsToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
-                //"intermunicipalcyclingroutes" => ParseInterMunicipalCyclingRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "mountainbikeroutes" => ParseMTBRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "hikingtrails" => ParseHikingTrailsToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "intermunicipalcyclingroutes" => ParseInterMunicipalCyclingRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
                 "_" => null
             };
 
             return result;
         }
-
 
         private static IDictionary<string, GpsInfo> ParseGeoServerGeodataToWKTAndPosition(IGeoServerCivisData digiwaydata, string srid)
         {
@@ -574,22 +573,22 @@ namespace DIGIWAY
             spatialdata.Active = true;
             spatialdata.FirstImport = digiwaydata.properties.CREATE_DATE != null ? Convert.ToDateTime(digiwaydata.properties.CREATE_DATE) : spatialdata == null ? DateTime.Now : spatialdata.FirstImport;
             spatialdata.LastChange = digiwaydata.properties.UPDATE_DATE != null ? Convert.ToDateTime(digiwaydata.properties.UPDATE_DATE) : DateTime.Now;
-            //odhactivitypoi.HasLanguage = new List<string>() { "it" };
-            //odhactivitypoi.Shortname = digiwaydata.Attributes["TYPE_E"] != null ? digiwaydata.Attributes["denominazi"].ToString() : null;
-            //odhactivitypoi.Detail = new Dictionary<string, Detail>();
-
-            //spatialdata.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
-            //{
-            //    Title = digiwaydata.Attributes["denominazi"].ToString() != null ? digiwaydata.Attributes["denominazi"].ToString() : null,
-            //    AdditionalText = digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null,
-            //    GetThereText = gettheretext,
-            //    Language = "it"
-            //});
+            spatialdata.HasLanguage = new List<string>() { "de" };
+            spatialdata.Shortname = digiwaydata.properties.ROUTE_NAME != null ? Convert.ToString(digiwaydata.properties.ROUTE_NAME) : null;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
+            {
+                Title = digiwaydata.properties.ROUTE_NAME != null ? Convert.ToString(digiwaydata.properties.ROUTE_NAME) : null,
+                BaseText = digiwaydata.properties.ROUTE_DESC != null ? Convert.ToString(digiwaydata.properties.ROUTE_DESC) : null,
+                Language = "de"
+            });
 
             spatialdata.Source = source;
 
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("cycling");
+            spatialdata.TagIds.Add("biking biking tours");
 
             //TODO Add each Geojson Featurecollection to Mapping
             spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
@@ -603,10 +602,182 @@ namespace DIGIWAY
 
             spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
 
+            return spatialdata;
+        }
+
+        private static SpatialData ParseMTBRoutesToSpatialData(
+            SpatialData? spatialdata,
+            IGeoServerCivisData digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            string name = digiwaydata.properties.MTB_NAME_DE != null ? Convert.ToString(digiwaydata.properties.MTB_NAME_DE) : digiwaydata.properties.MTB_CODE != null ? Convert.ToString(digiwaydata.properties.MTB_CODE) : "";
+
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.id.ToLower());
+            spatialdata.Active = true;
+            spatialdata.FirstImport = spatialdata != null ? spatialdata.FirstImport : DateTime.Now;
+            spatialdata.LastChange = DateTime.Now;
+            spatialdata.HasLanguage = new List<string>() { "de", "it" };
+            spatialdata.Shortname = name;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
+            {
+                Title = digiwaydata.properties.MTB_NAME_DE != null ? Convert.ToString(digiwaydata.properties.MTB_NAME_DE) : null,
+                BaseText = digiwaydata.properties.MTB_TEXT_DE != null ? Convert.ToString(digiwaydata.properties.MTB_TEXT_DE) : null,
+                Language = "de"
+            });
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("it", new DetailGeneric()
+            {
+                Title = digiwaydata.properties.MTB_NAME_IT != null ? Convert.ToString(digiwaydata.properties.MTB_NAME_IT) : null,
+                BaseText = digiwaydata.properties.MTB_TEXT_IT != null ? Convert.ToString(digiwaydata.properties.MTB_TEXT_IT) : null,
+                Language = "it"
+            });
+
+            spatialdata.Source = source;
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("cycling");
+            spatialdata.TagIds.Add("mountain bike");
+
+            //odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag
+            //odhactivitypoi.TagIds.Add("cycling");
+            //odhactivitypoi.TagIds.Add("mountain bike");
+            //odhactivitypoi.TagIds.Add("mountain bikes");
+
+            //TODO Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.properties)
+            {
+                additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
 
             return spatialdata;
         }
 
-        
+        private static SpatialData ParseHikingTrailsToSpatialData(
+            SpatialData? spatialdata,
+            IGeoServerCivisData digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            string name = digiwaydata.properties.NAME == null ? Convert.ToString(digiwaydata.properties.CODE_NAME) : Convert.ToString(digiwaydata.properties.NAME);
+
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.id.ToLower());
+            spatialdata.Active = true;
+            spatialdata.FirstImport = spatialdata != null ? spatialdata.FirstImport : DateTime.Now;
+            spatialdata.LastChange = DateTime.Now;
+            spatialdata.HasLanguage = new List<string>() { "de" };
+            spatialdata.Shortname = name;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
+            {
+                Title = name,
+                Language = "de"
+            });
+
+            spatialdata.Source = source;
+
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("hiking");
+
+            //spatialdata.TagIds.Add("978F89296ACB4DB4B6BD1C269341802F"); //LTS Hiking Tag
+            //spatialdata.TagIds.Add("hiking");
+            //spatialdata.TagIds.Add("B702CF3773CF4A47AFEBC291618A7B7E"); //LTS Other hikes Tag
+            //spatialdata.TagIds.Add("other hikes");
+
+
+            //TODO Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.properties)
+            {
+                additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+            return spatialdata;
+        }
+
+        private static SpatialData ParseInterMunicipalCyclingRoutesToSpatialData(
+            SpatialData? spatialdata,
+            IGeoServerCivisData digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            string name = digiwaydata.properties.NAME_DE != null ? Convert.ToString(digiwaydata.properties.NAME_DE) : digiwaydata.properties.CODE != null ? Convert.ToString(digiwaydata.properties.CODE) : "";
+
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.id.ToLower());
+            spatialdata.Active = true;
+            spatialdata.FirstImport = spatialdata != null ? spatialdata.FirstImport : DateTime.Now;
+            spatialdata.LastChange = DateTime.Now;
+            spatialdata.HasLanguage = new List<string>() { "de", "it" };
+            spatialdata.Shortname = digiwaydata.properties.NAME_DE != null ? Convert.ToString(digiwaydata.properties.NAME_DE) : null;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
+            {
+                Title = digiwaydata.properties.NAME_DE != null ? Convert.ToString(digiwaydata.properties.NAME_DE) : null,
+                Language = "de"
+            });
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("it", new DetailGeneric()
+            {
+                Title = digiwaydata.properties.NAME_IT != null ? Convert.ToString(digiwaydata.properties.NAME_IT) : null,
+                Language = "it"
+            });
+
+            spatialdata.Source = source;
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("cycling");
+
+            //spatialdata.TagIds.Add("9DE2F99EA67E4278A558755E093DB0ED"); //LTS Others bike Tag
+            //spatialdata.TagIds.Add("cycling");
+            //spatialdata.TagIds.Add("others bike");
+            //spatialdata.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");  //LTS RAdtouren Tag     
+            //TODO Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.properties)
+            {
+                additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+            return spatialdata;
+        }
+
+
     }
 }

@@ -433,11 +433,12 @@ namespace DIGIWAY
             });
 
 
-            spatialdata.Source = "dservices3.arcgis.com";
+            spatialdata.Source = source;
 
             //Add Tags
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("cycling");            
 
             //odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag
             //odhactivitypoi.TagIds.Add("cycling");
@@ -537,11 +538,13 @@ namespace DIGIWAY
                 Language = "es"
             });
 
-            spatialdata.Source = "dservices3.arcgis.com";
+            spatialdata.Source = source;
 
             //Add Tags
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("hiking");
+            spatialdata.TagIds.Add("longdistance hiking paths");
             //odhactivitypoi.TagIds.Add("978F89296ACB4DB4B6BD1C269341802F"); //LTS Hiking Tag
             //odhactivitypoi.TagIds.Add("hiking");
             //odhactivitypoi.TagIds.Add("C99701BC34C4659B4A82F320E48CFAE"); //LTS Long-distance hiking trails

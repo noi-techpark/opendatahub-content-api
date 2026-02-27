@@ -460,6 +460,8 @@ namespace DIGIWAY
             //Add Tags
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("cycling");
+            spatialdata.TagIds.Add("mountain bike");
 
             //odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag
             //odhactivitypoi.TagIds.Add("cycling");
@@ -515,6 +517,7 @@ namespace DIGIWAY
             //Add Tags
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("hiking");
 
             //odhactivitypoi.TagIds.Add("978F89296ACB4DB4B6BD1C269341802F"); //LTS Hiking Tag
             //odhactivitypoi.TagIds.Add("hiking");
@@ -567,6 +570,7 @@ namespace DIGIWAY
             //Add Tags
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("cycling");
 
             //odhactivitypoi.TagIds.Add("9DE2F99EA67E4278A558755E093DB0ED"); //LTS Others bike Tag
             //odhactivitypoi.TagIds.Add("cycling");

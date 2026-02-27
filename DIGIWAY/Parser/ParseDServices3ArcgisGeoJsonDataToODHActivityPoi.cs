@@ -215,6 +215,8 @@ namespace DIGIWAY
             //Add Tags
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("hiking");
+            spatialdata.TagIds.Add("barrier-free");
 
             //Add each Geojson Featurecollection to Mapping
             spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
