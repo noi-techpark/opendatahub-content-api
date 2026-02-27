@@ -570,7 +570,7 @@ namespace DIGIWAY
             if (spatialdata == null)
                 spatialdata = new SpatialData();
 
-            spatialdata.Id = ("urn:" + identifier + ":" + digiwaydata.id.ToLower());
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.id.ToLower());
             spatialdata.Active = true;
             spatialdata.FirstImport = digiwaydata.properties.CREATE_DATE != null ? Convert.ToDateTime(digiwaydata.properties.CREATE_DATE) : spatialdata == null ? DateTime.Now : spatialdata.FirstImport;
             spatialdata.LastChange = digiwaydata.properties.UPDATE_DATE != null ? Convert.ToDateTime(digiwaydata.properties.UPDATE_DATE) : DateTime.Now;

@@ -119,7 +119,7 @@ namespace OdhApiImporter.Helpers
             {
                 returnid = digiwaydata.id.ToLower();
                 if(importtospatialdata)
-                    returnid = ("urn:" + identifier + ":" + digiwaydata.id.ToLower());
+                    returnid = ("urn:" + source + ":" + identifier + ":" + digiwaydata.id.ToLower());
 
                 idlistinterface.Add(returnid);
 

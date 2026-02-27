@@ -4,22 +4,16 @@
 
 using DataModel;
 using DIGIWAY;
-using DIGIWAY.Model;
 using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
 using Helper.Generic;
 using Helper.Tagging;
-using Microsoft.AspNetCore.Http.Features;
-using Newtonsoft.Json;
-using SqlKata;
 using SqlKata.Execution;
-using SqlKata.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
@@ -31,6 +25,8 @@ namespace OdhApiImporter.Helpers
 
         public string? srid { get; set; }
 
+        public bool importtospatialdata { get; set; }
+
         public DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
@@ -40,6 +36,7 @@ namespace OdhApiImporter.Helpers
             : base(settings, queryfactory, table, importerURL)
         {
             idlistinterface = new List<string>();
+            importtospatialdata = false;
         }
 
         public async Task<UpdateDetail> SaveDataToODH(
@@ -57,7 +54,10 @@ namespace OdhApiImporter.Helpers
             var updateresult = await ImportData(data, cancellationToken);
 
             //Disable Data not in list
-            var deleteresult = await SetDataNotinListToInactive(cancellationToken);
+            var deleteresult = default(UpdateDetail);
+
+            if (!importtospatialdata)
+                deleteresult = await SetDataNotinListToInactive(cancellationToken);
 
             return GenericResultsHelper.MergeUpdateDetail(
                 new List<UpdateDetail>() { updateresult, deleteresult }
@@ -116,46 +116,69 @@ namespace OdhApiImporter.Helpers
             try
             {
                 returnid = "urn:digiway:dservices3arcgiscom:" + identifier + ":" + digiwaydata.Attributes["OBJECTID"].ToString().ToLower();
+                if (importtospatialdata)
+                    returnid = ("urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["OBJECTID"].ToString().ToLower());
 
                 idlistinterface.Add(returnid);
 
-                //Parse  Data
-                var parsedobject = await ParseDigiWayDataToODHActivityPoi(
-                    returnid, 
-                    digiwaydata
-                );
-                if (parsedobject.Item1 == null || parsedobject.Item2 == null)
-                    throw new Exception();
-
-                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, srid);
-
-                //Create GPX Info
-                GpsTrack gpstrack = new GpsTrack()
+                if (importtospatialdata)
                 {
-                    Format = "geojson",
-                    GpxTrackUrl = "GeoShape/" + pgcrudshaperesult.id.ToLower(),
-                    Id = pgcrudshaperesult.id.ToLower(),
-                    Type = "Track",
-                    GpxTrackDesc = null
-                };
+                    //Parse  Data
+                    var parsedobject = await ParseDigiWayDataToSpatialData(
+                        returnid,
+                        digiwaydata
+                    );
 
-                if (parsedobject.Item1.GpsTrack == null)
-                    parsedobject.Item1.GpsTrack = new List<GpsTrack>();
+                    if (parsedobject == null)
+                        throw new Exception();
 
-                parsedobject.Item1.GpsTrack.Add(gpstrack);
-                
-                //Create Tags
-                await parsedobject.Item1.UpdateTagsExtension(QueryFactory);
+                    //Save parsedobject to DB + Save Rawdata to DB
+                    var pgcrudresult = await InsertDataToSpatialDataDB(
+                        parsedobject
+                    );
 
+                    newcounter = newcounter + pgcrudresult.created ?? 0;
+                    updatecounter = updatecounter + pgcrudresult.updated ?? 0;
+                }
+                else
+                {
+                    //Parse  Data
+                    var parsedobject = await ParseDigiWayDataToODHActivityPoi(
+                        returnid,
+                        digiwaydata
+                    );
+                    if (parsedobject.Item1 == null || parsedobject.Item2 == null)
+                        throw new Exception();
 
-                //Save parsedobject to DB + Save Rawdata to DB
-                var pgcrudresult = await InsertDataToDB(
-                    parsedobject.Item1,
-                    new KeyValuePair<string, GeoJsonFeature>(returnid, digiwaydata)
-                );
+                    var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, srid);
 
-                newcounter = newcounter + pgcrudresult.created ?? 0;
-                updatecounter = updatecounter + pgcrudresult.updated ?? 0;
+                    //Create GPX Info
+                    GpsTrack gpstrack = new GpsTrack()
+                    {
+                        Format = "geojson",
+                        GpxTrackUrl = "GeoShape/" + pgcrudshaperesult.id.ToLower(),
+                        Id = pgcrudshaperesult.id.ToLower(),
+                        Type = "Track",
+                        GpxTrackDesc = null
+                    };
+
+                    if (parsedobject.Item1.GpsTrack == null)
+                        parsedobject.Item1.GpsTrack = new List<GpsTrack>();
+
+                    parsedobject.Item1.GpsTrack.Add(gpstrack);
+
+                    //Create Tags
+                    await parsedobject.Item1.UpdateTagsExtension(QueryFactory);
+
+                    //Save parsedobject to DB + Save Rawdata to DB
+                    var pgcrudresult = await InsertDataToDB(
+                        parsedobject.Item1,
+                        new KeyValuePair<string, GeoJsonFeature>(returnid, digiwaydata)
+                    );
+
+                    newcounter = newcounter + pgcrudresult.created ?? 0;
+                    updatecounter = updatecounter + pgcrudresult.updated ?? 0;
+                }
 
                 WriteLog.LogToConsole(
                     returnid,
@@ -226,7 +249,30 @@ namespace OdhApiImporter.Helpers
 
             return pgcrudresult;
         }
-  
+
+        //Inserting into DB
+        private async Task<PGCRUDResult> InsertDataToSpatialDataDB(
+            SpatialData data
+        )
+        {
+            data.Id = data.Id?.ToLower();
+
+            //Set LicenseInfo
+            data.LicenseInfo = new LicenseInfo() { ClosedData = false, License = "CC0" };
+
+            //PublishedOnInfo?
+
+            var pgcrudresult = await QueryFactory.UpsertData<SpatialData>(
+                 new UpsertableSpatialData(data),
+                 new DataInfo(table, Helper.Generic.CRUDOperation.CreateAndUpdate),
+                 new EditInfo("digiway." + identifier + ".import", importerURL),
+                 new CRUDConstraints(),
+                 new CompareConfig(true, false)
+             );
+
+            return pgcrudresult;
+        }
+
         private async Task<int> InsertInRawDataDB(KeyValuePair<string, GeoJsonFeature> data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
@@ -257,6 +303,22 @@ namespace OdhApiImporter.Helpers
             var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
             var result = ParseDServices3ArcgisGeoJsonDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, source,srid);
+
+            return result;
+        }
+
+        //Parse the interface content
+        public async Task<SpatialData> ParseDigiWayDataToSpatialData(
+            string odhid,
+            GeoJsonFeature input
+        )
+        {
+            //Get the ODH Item
+            var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
+
+            var dataindb = await query.GetObjectSingleAsync<SpatialData>();
+
+            var result = ParseDServices3ArcgisGeoJsonDataToSpatialData.ParseToSpatialData(dataindb, input, identifier, source, srid);
 
             return result;
         }

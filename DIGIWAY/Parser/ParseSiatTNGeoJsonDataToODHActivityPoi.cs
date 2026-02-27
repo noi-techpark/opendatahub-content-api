@@ -21,9 +21,9 @@ namespace DIGIWAY
         {
             var result = identifier switch
             {
-                "mtb_percorsi_v" => ParseMTBRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata, identifier, source, srid),
-                "elementi_cicloviari_v" => ParseCyclingRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata, identifier, source, srid),
-                "sentieri_della_sat" => ParseHikeRoutesTyrolToODHActivityPoi(odhactivitypoi, digiwaydata, identifier, source, srid),
+                "mtb_percorsi_v" => ParseMTBRoutesToODHActivityPoi(odhactivitypoi, digiwaydata, identifier, source, srid),
+                "elementi_cicloviari_v" => ParseCyclingRoutesToODHActivityPoi(odhactivitypoi, digiwaydata, identifier, source, srid),
+                "sentieri_della_sat" => ParseHikeRoutesToODHActivityPoi(odhactivitypoi, digiwaydata, identifier, source, srid),
                 "_" => (null, null)
             };
 
@@ -57,7 +57,7 @@ namespace DIGIWAY
         }
 
 
-        private static (ODHActivityPoiLinked, GeoShapeJson) ParseMTBRoutesTyrolToODHActivityPoi(
+        private static (ODHActivityPoiLinked, GeoShapeJson) ParseMTBRoutesToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
             GeoJsonFeature digiwaydata,
             string identifier,
@@ -132,7 +132,7 @@ namespace DIGIWAY
             return (odhactivitypoi, georesult.Item1);
         }
 
-        private static (ODHActivityPoiLinked, GeoShapeJson) ParseHikeRoutesTyrolToODHActivityPoi(
+        private static (ODHActivityPoiLinked, GeoShapeJson) ParseHikeRoutesToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
             GeoJsonFeature digiwaydata,
             string identifier,
@@ -257,7 +257,7 @@ namespace DIGIWAY
             return (odhactivitypoi, georesult.Item1);
         }
 
-        private static (ODHActivityPoiLinked, GeoShapeJson) ParseCyclingRoutesTyrolToODHActivityPoi(
+        private static (ODHActivityPoiLinked, GeoShapeJson) ParseCyclingRoutesToODHActivityPoi(
             ODHActivityPoiLinked? odhactivitypoi,
             GeoJsonFeature digiwaydata,
             string identifier,
@@ -384,6 +384,209 @@ namespace DIGIWAY
 
     public class ParseSiatTNGeoJsonDataToSpatialData
     {
+        public static SpatialData ParseToSpatialData(
+            SpatialData? spatialdata,
+            GeoJsonFeature digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            var result = identifier switch
+            {
+                "mtb_percorsi_v" => ParseMTBRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "elementi_cicloviari_v" => ParseCyclingRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "sentieri_della_sat" => ParseHikeRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "_" => null
+            };
 
+            return result;
+        }
+
+        private static IDictionary<string, GpsInfo> ParseGeoServerGeodataToWKTAndPosition(GeoJsonFeature digiwaydata, string srid)
+        {            
+            //get first point of geometry
+            var point = digiwaydata.Geometry.Coordinates.FirstOrDefault();
+
+            Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
+
+            gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
+            {
+                Default = true,
+                Geometry = digiwaydata.Geometry.AsText()
+            });
+
+            gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
+            {
+                Default = false,
+                Altitude = null,
+                AltitudeUnitofMeasure = "m",
+                Gpstype = "position",
+                //Use only first digits otherwise point and track will differ
+                Latitude = point.Y,
+                Longitude = point.X
+            });
+
+            return gpsinfolist;
+        }
+
+        private static SpatialData ParseMTBRoutesToSpatialData(
+            SpatialData? spatialdata,
+            GeoJsonFeature digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["classid"].ToString().ToLower());
+            spatialdata.Active = true;
+            spatialdata.FirstImport = digiwaydata.Attributes["dataagg"] != null ? Convert.ToDateTime(digiwaydata.Attributes["dataagg"].ToString()) : spatialdata == null ? DateTime.Now : spatialdata.FirstImport;
+            spatialdata.LastChange = digiwaydata.Attributes["dataagg"] != null ? Convert.ToDateTime(digiwaydata.Attributes["dataagg"].ToString()) : DateTime.Now;
+            spatialdata.HasLanguage = new List<string>() { "it" };
+            spatialdata.Shortname = digiwaydata.Attributes["denominazi"] != null ? digiwaydata.Attributes["denominazi"].ToString() : null;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+            
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("it", new DetailGeneric()
+            {
+                Title = digiwaydata.Attributes["denominazi"].ToString() != null ? digiwaydata.Attributes["denominazi"].ToString() : null,
+                Language = "it"
+            });
+
+            spatialdata.Source = source;
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+
+            //odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag
+            //odhactivitypoi.TagIds.Add("cycling");
+            //odhactivitypoi.TagIds.Add("mountain bike");
+            //odhactivitypoi.TagIds.Add("mountain bikes");
+
+            //Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.Attributes)
+            {
+                if(feature.Value != null)
+                    additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+            
+            return spatialdata;
+        }
+
+        private static SpatialData ParseHikeRoutesToSpatialData(
+            SpatialData? spatialdata,
+            GeoJsonFeature digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["classid"].ToString().ToLower());
+            spatialdata.Active = true;
+            spatialdata.FirstImport = digiwaydata.Attributes["dataagg"] != null ? Convert.ToDateTime(digiwaydata.Attributes["dataagg"].ToString()) : spatialdata == null ? DateTime.Now : spatialdata.FirstImport;
+            spatialdata.LastChange = digiwaydata.Attributes["dataagg"] != null ? Convert.ToDateTime(digiwaydata.Attributes["dataagg"].ToString()) : DateTime.Now;
+            spatialdata.HasLanguage = new List<string>() { "it" };
+
+            //if denominazione null use the way number
+            spatialdata.Shortname = digiwaydata.Attributes["denominaz"] != null ? digiwaydata.Attributes["denominaz"].ToString() : digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null;
+
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("it", new DetailGeneric()
+            {
+                Title = digiwaydata.Attributes["denominaz"] != null ? digiwaydata.Attributes["denominaz"].ToString() : digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null,
+                Language = "it"
+            });
+
+            spatialdata.Source = source;
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+
+            //odhactivitypoi.TagIds.Add("978F89296ACB4DB4B6BD1C269341802F"); //LTS Hiking Tag
+            //odhactivitypoi.TagIds.Add("hiking");
+            //odhactivitypoi.TagIds.Add("B702CF3773CF4A47AFEBC291618A7B7E"); //LTS Other hikes Tag
+            //odhactivitypoi.TagIds.Add("other hikes");
+
+            //Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.Attributes)
+            {
+                if (feature.Value != null)
+                    additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+            return spatialdata;
+        }
+
+        private static SpatialData ParseCyclingRoutesToSpatialData(
+            SpatialData? spatialdata,
+            GeoJsonFeature digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["classid"].ToString().ToLower());
+            spatialdata.Active = true;
+            spatialdata.FirstImport = digiwaydata.Attributes["dataagg"] != null ? Convert.ToDateTime(digiwaydata.Attributes["dataagg"].ToString()) : spatialdata == null ? DateTime.Now : spatialdata.FirstImport;
+            spatialdata.LastChange = digiwaydata.Attributes["dataagg"] != null ? Convert.ToDateTime(digiwaydata.Attributes["dataagg"].ToString()) : DateTime.Now;
+            spatialdata.HasLanguage = new List<string>() { "it" };
+            spatialdata.Shortname = digiwaydata.Attributes["tratto"] != null ? digiwaydata.Attributes["tratto"].ToString() : null;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("it", new DetailGeneric()
+            {
+                Title = digiwaydata.Attributes["tratto"].ToString() != null ? digiwaydata.Attributes["tratto"].ToString() : null,
+                Language = "it"
+            });
+
+            spatialdata.Source = source;
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+
+            //odhactivitypoi.TagIds.Add("9DE2F99EA67E4278A558755E093DB0ED"); //LTS Others bike Tag
+            //odhactivitypoi.TagIds.Add("cycling");
+            //odhactivitypoi.TagIds.Add("others bike");
+            //odhactivitypoi.TagIds.Add("B015F1EA92494EB1B6E32170269000B0");  //LTS RAdtouren Tag     
+
+            //Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.Attributes)
+            {
+                if (feature.Value != null)
+                    additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+            return spatialdata;
+        }
     }
 }

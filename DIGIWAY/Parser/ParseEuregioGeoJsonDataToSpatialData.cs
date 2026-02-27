@@ -2,27 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using CoordinateSharp;
 using DataModel;
 using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
-using Helper.Extensions;
 using Helper.Geo;
-using NetTopologySuite.Algorithm;
-using NetTopologySuite.Densify;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.Geometries.Utilities;
-using NetTopologySuite.IO;
-using Newtonsoft.Json;
-using ProjNet.CoordinateSystems;
-using ProjNet.CoordinateSystems.Transformations;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
@@ -91,7 +74,7 @@ namespace DIGIWAY
             if (spatialdata == null)
                 spatialdata = new SpatialData();
 
-            spatialdata.Id = ("urn:" + identifier + ":" + System.Guid.NewGuid()).ToLower();
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + System.Guid.NewGuid()).ToLower();
             spatialdata.Active = true;
             spatialdata.FirstImport = spatialdata.FirstImport == null ? DateTime.Now : spatialdata.FirstImport;
             spatialdata.LastChange =
@@ -144,7 +127,7 @@ namespace DIGIWAY
             if (spatialdata == null)
                 spatialdata = new SpatialData();
 
-            spatialdata.Id = ("urn:" + identifier + ":" + System.Guid.NewGuid()).ToLower();
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + System.Guid.NewGuid()).ToLower();
             spatialdata.Active = true;
             spatialdata.FirstImport = spatialdata.FirstImport == null ? DateTime.Now : spatialdata.FirstImport;
 

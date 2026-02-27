@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Amazon.Runtime.Internal.Transform;
 using DataModel;
 using DIGIWAY.Model;
 using Helper;
@@ -351,6 +352,231 @@ namespace DIGIWAY
 
     public class ParseDServices3ArcgisWFSServerDataToSpatialData
     {
+        public static SpatialData ParseToSpatialData(
+            SpatialData? spatialdata,
+            IWFSRoute digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            var result = identifier switch
+            {
+                "radrouten_tirol" or "Radrouten_Tirol:TN_WALD_Radrouten_Tirol_CDBD5BC5-8635-418A-BC13-52A99900D008" => ParseCyclingRoutesTyrolToSpatialData(spatialdata, digiwaydata as MountainBikeRoute, identifier, source, srid),
+                "hikintrail_e5" => ParseHikingRouteE5TSpatialData(spatialdata, digiwaydata as E5TrailRoute, identifier, source, srid),
+                "_" => null
+            };
 
+            return result;
+        }
+
+        //TO CHECK IF DATA CAN BE GOT IN ESPG4632
+        private static IDictionary<string, GpsInfo> ParseGeoServerGeodataToWKTAndPosition(IWFSRoute digiwaydata, string srid)
+        {
+            //get first point of geometry
+            var point = digiwaydata.Geometry.Coordinates.FirstOrDefault();
+
+            Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
+
+            gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
+            {
+                Default = true,
+                Geometry = digiwaydata.Geometry.AsText()
+            });
+
+            gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
+            {
+                Default = false,
+                Altitude = null,
+                AltitudeUnitofMeasure = "m",
+                Gpstype = "position",
+                //Use only first digits otherwise point and track will differ
+                Latitude = point.Y,
+                Longitude = point.X
+            });
+
+            return gpsinfolist;
+        }
+
+
+        private static SpatialData ParseCyclingRoutesTyrolToSpatialData(
+            SpatialData? spatialdata,
+            MountainBikeRoute digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.ObjectId.ToString().ToLower());
+            spatialdata.Active = true;
+            spatialdata.FirstImport = spatialdata.FirstImport != null ? digiwaydata.UpdateTimestamp : spatialdata.FirstImport;
+            spatialdata.LastChange = Convert.ToDateTime(digiwaydata.UpdateTimestamp);
+            spatialdata.HasLanguage = new List<string>() { "de", "en" };
+            spatialdata.Shortname = digiwaydata.RouteName != null ? digiwaydata.RouteName : null;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+            
+
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
+            {
+                Title = digiwaydata.RouteName != null ? digiwaydata.RouteName : null,
+                BaseText = digiwaydata.RouteDescription != null ? digiwaydata.RouteDescription : null,
+                Language = "de"
+            });
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("en", new DetailGeneric()
+            {
+                Title = digiwaydata.RouteName != null ? digiwaydata.RouteName : null,
+                BaseText = digiwaydata.RouteDescriptionEn != null ? digiwaydata.RouteDescriptionEn : null,
+                Language = "en"
+            });
+
+
+            spatialdata.Source = "dservices3.arcgis.com";
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+
+            //odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag
+            //odhactivitypoi.TagIds.Add("cycling");
+            //odhactivitypoi.TagIds.Add("mountain bike");
+            //odhactivitypoi.TagIds.Add("mountain bikes");
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            if (digiwaydata.ObjectId != null)
+                additionalvalues.Add("ObjectId", digiwaydata.ObjectId.ToString());
+            if (digiwaydata.Object != null)
+                additionalvalues.Add("Object", digiwaydata.Object);
+            if (digiwaydata.RouteType != null)
+                additionalvalues.Add("RouteType", digiwaydata.RouteType);
+            if (digiwaydata.RouteNumber != null)
+                additionalvalues.Add("RouteNumber", digiwaydata.RouteNumber);
+            if (digiwaydata.RouteName != null)
+                additionalvalues.Add("RouteName", digiwaydata.RouteName);
+            if (digiwaydata.RouteStart != null)
+                additionalvalues.Add("RouteStart", digiwaydata.RouteStart);
+            if (digiwaydata.RouteEnd != null)
+                additionalvalues.Add("RouteEnd", digiwaydata.RouteEnd);
+            if (digiwaydata.EndElevation != null)
+                additionalvalues.Add("EndElevation", digiwaydata.EndElevation.ToString());
+            if (digiwaydata.StartElevation != null)
+                additionalvalues.Add("StartElevation", digiwaydata.StartElevation.ToString());
+            if (digiwaydata.ElevationUp != null)
+                additionalvalues.Add("ElevationUp", digiwaydata.ElevationUp.ToString());
+            if (digiwaydata.ElevationDown != null)
+                additionalvalues.Add("ElevationDown", digiwaydata.ElevationDown.ToString());
+            if (digiwaydata.RidingTime != null)
+                additionalvalues.Add("RidingTime", digiwaydata.RidingTime);
+            if (digiwaydata.RouteDescription != null)
+                additionalvalues.Add("RouteDescription", digiwaydata.RouteDescription.ToString());
+            if (digiwaydata.Status != null)
+                additionalvalues.Add("Status", digiwaydata.Status);
+            if (digiwaydata.UpdateTimestamp != null)
+                additionalvalues.Add("UpdateTimestamp", digiwaydata.UpdateTimestamp.ToString());
+            if (digiwaydata.Difficulty != null)
+                additionalvalues.Add("Difficulty", digiwaydata.Difficulty);
+            if (digiwaydata.SectionType != null)
+                additionalvalues.Add("SectionType", digiwaydata.SectionType);
+            if (digiwaydata.RouteStartEn != null)
+                additionalvalues.Add("RouteStartEn", digiwaydata.RouteStartEn);
+            if (digiwaydata.RouteEndEn != null)
+                additionalvalues.Add("RouteEndEn", digiwaydata.RouteEndEn);
+            if (digiwaydata.LengthKm != null)
+                additionalvalues.Add("LengthKm", digiwaydata.LengthKm.ToString());
+            if (digiwaydata.RouteDescriptionEn != null)
+                additionalvalues.Add("RouteDescriptionEn", digiwaydata.RouteDescriptionEn);
+            if (digiwaydata.RouteType != null)
+                additionalvalues.Add("RouteType", digiwaydata.RouteType);
+
+
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+            return spatialdata;
+        }
+
+        private static SpatialData ParseHikingRouteE5TSpatialData(
+           SpatialData? spatialdata,
+           E5TrailRoute digiwaydata,
+           string identifier,
+           string source,
+           string srid
+       )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + digiwaydata.ObjectId.ToString().ToLower());
+
+            spatialdata.Active = true;
+            spatialdata.FirstImport = spatialdata.FirstImport != null ? DateTime.Now : spatialdata.FirstImport;
+            spatialdata.LastChange = DateTime.Now;
+            spatialdata.HasLanguage = new List<string>() { "de", "it", "es" };
+            spatialdata.Shortname = digiwaydata.PathDe != null ? digiwaydata.PathDe : null;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
+            {
+                Title = digiwaydata.PathDe != null ? digiwaydata.PathDe : null,
+                BaseText = digiwaydata.ResporgDigiwayDe != null ? digiwaydata.ResporgDigiwayDe : null,                
+                Language = "de"
+            });
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("it", new DetailGeneric()
+            {
+                Title = digiwaydata.PathIt != null ? digiwaydata.PathIt : null,
+                BaseText = digiwaydata.ResporgDigiwayIt != null ? digiwaydata.ResporgDigiwayIt : null,                
+                Language = "it"
+            });
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("es", new DetailGeneric()
+            {
+                Title = digiwaydata.PathEs != null ? digiwaydata.PathEs : null,
+                BaseText = digiwaydata.ResporgDigiwayEs != null ? digiwaydata.ResporgDigiwayEs : null,                
+                Language = "es"
+            });
+
+            spatialdata.Source = "dservices3.arcgis.com";
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+            //odhactivitypoi.TagIds.Add("978F89296ACB4DB4B6BD1C269341802F"); //LTS Hiking Tag
+            //odhactivitypoi.TagIds.Add("hiking");
+            //odhactivitypoi.TagIds.Add("C99701BC34C4659B4A82F320E48CFAE"); //LTS Long-distance hiking trails
+            //odhactivitypoi.TagIds.Add("longdistance hiking paths");
+
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            if (digiwaydata.ObjectId != null)
+                additionalvalues.Add("ObjectId", digiwaydata.ObjectId.ToString());
+            if (digiwaydata.PathCode != null)
+                additionalvalues.Add("PathCode", digiwaydata.PathCode);
+            if (digiwaydata.PathDe != null)
+                additionalvalues.Add("PathDe", digiwaydata.PathDe);
+            if (digiwaydata.PathIt != null)
+                additionalvalues.Add("PathIt", digiwaydata.PathIt);
+            if (digiwaydata.PathEs != null)
+                additionalvalues.Add("PathEs", digiwaydata.PathEs);
+            if (digiwaydata.ResporgDigiwayCode != null)
+                additionalvalues.Add("ResporgDigiwayCode", digiwaydata.ResporgDigiwayCode);
+            if (digiwaydata.ResporgDigiwayDe != null)
+                additionalvalues.Add("ResporgDigiwayDe", digiwaydata.ResporgDigiwayDe);
+            if (digiwaydata.ResporgDigiwayIt != null)
+                additionalvalues.Add("ResporgDigiwayIt", digiwaydata.ResporgDigiwayIt);
+            if (digiwaydata.ResporgDigiwayEs != null)
+                additionalvalues.Add("ResporgDigiwayEs", digiwaydata.ResporgDigiwayEs);
+            if (digiwaydata.ObjectIdGip != null)
+                additionalvalues.Add("ObjectIdGip", digiwaydata.ObjectIdGip.ToString());
+            if (digiwaydata.GlobalId != null)
+                additionalvalues.Add("GlobalId", digiwaydata.GlobalId);
+
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+            return spatialdata;
+        }
     }
 }
