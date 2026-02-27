@@ -5,19 +5,8 @@
 using CoordinateSharp;
 using DataModel;
 using Helper;
-using Helper.Extensions;
-using Helper.Geo;
-using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Geometries.Utilities;
-using NetTopologySuite.IO;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
@@ -541,31 +530,32 @@ namespace DIGIWAY
             Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
 
             //get first point of geometry
-            var point = digiwaydata.geometry.Coordinates.FirstOrDefault();
+            var geomfactory = new GeometryFactory();
+            var point = geomfactory.WithSRID(32632).CreatePoint(digiwaydata.geometry.Coordinates.FirstOrDefault());
 
-            if (srid == "3857")
+            UniversalTransverseMercator utm = new UniversalTransverseMercator("32N", point.X, point.Y);
+            CoordinateSharp.Coordinate latlong = UniversalTransverseMercator.ConvertUTMtoLatLong(utm);
+
+            //TODO Request Geoserver with 4326 and use this directly?
+            //var geom4326 = EPSG3857ToEPSG4326.ConvertEPSG3857ToEPSG4326(digiwaydata.geometry);
+
+            gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
             {
-                var wsg84coordinate = EPSG3857ToEPSG4326Converter.ConvertWebMercatorToWGS84(point.X, point.Y);
+                Default = true,
+                Geometry = digiwaydata.geometry.AsText()
+            });
 
-                var geom4326 = EPSG3857ToEPSG4326.ConvertEPSG3857ToEPSG4326(digiwaydata.geometry);
+            gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
+            {
+                Default = false,
+                Altitude = null,
+                AltitudeUnitofMeasure = "m",
+                Gpstype = "position",
+                //Use only first digits otherwise point and track will differ
+                Latitude = Math.Round(latlong.Latitude.DecimalDegree, 9),
+                Longitude = Math.Round(latlong.Longitude.DecimalDegree, 9)
+            });
 
-                gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
-                {
-                    Default = true,
-                    Geometry = geom4326.AsText()
-                });
-
-                gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
-                {
-                    Default = false,
-                    Altitude = null,
-                    AltitudeUnitofMeasure = "m",
-                    Gpstype = "position",
-                    //Use only first digits otherwise point and track will differ
-                    Latitude = wsg84coordinate.Latitude,
-                    Longitude = wsg84coordinate.Longitude,
-                });
-            }
             return gpsinfolist;
         }
 

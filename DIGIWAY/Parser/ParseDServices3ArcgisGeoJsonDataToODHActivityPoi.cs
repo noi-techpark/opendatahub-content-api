@@ -2,23 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using CoordinateSharp;
 using DataModel;
 using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
-using Helper.Extensions;
-using NetTopologySuite.Algorithm;
-using NetTopologySuite.Densify;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Geometries.Utilities;
-using NetTopologySuite.IO;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
@@ -149,5 +136,10 @@ namespace DIGIWAY
                 }
             }
         }
+    }
+
+    public class ParseDServices3ArcgisGeoJsonDataToSpatialData
+    {
+
     }
 }

@@ -27,7 +27,7 @@ namespace OdhApiImporter.Helpers
         public string? source { get; set; }
         public string? srid { get; set; }
 
-        bool importtospatialdata { get; set; }
+        public bool importtospatialdata { get; set; }
         
         public DigiWayCivisJson2ODHActivityPoiImportHelper(
             ISettings settings,
@@ -118,12 +118,28 @@ namespace OdhApiImporter.Helpers
             try
             {
                 returnid = digiwaydata.id.ToLower();
+                if(importtospatialdata)
+                    returnid = ("urn:" + identifier + ":" + digiwaydata.id.ToLower());
 
                 idlistinterface.Add(returnid);
 
                 if(importtospatialdata)
                 {
+                    //Parse  Data
+                    var parsedobject = await ParseDigiWayDataToSpatialData(
+                        returnid,
+                        digiwaydata
+                    );
+                    if (parsedobject == null)
+                        throw new Exception();
 
+                    //Save parsedobject to DB + Save Rawdata to DB
+                    var pgcrudresult = await InsertDataToSpatialDataDB(
+                        parsedobject
+                    );
+
+                    newcounter = newcounter + pgcrudresult.created ?? 0;
+                    updatecounter = updatecounter + pgcrudresult.updated ?? 0;
                 }
                 else
                 {
@@ -304,8 +320,8 @@ namespace OdhApiImporter.Helpers
         )
         {
             //Get the ODH Item - Disable this since the Id is not easy to assign
-            //var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
-            //var dataindb = await query.GetObjectSingleAsync<SpatialData>();
+            var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
+            var dataindb = await query.GetObjectSingleAsync<SpatialData>();
 
             var result = ParseCivisGeoServerDataToSpatialData.ParseToSpatialData(null, input, identifier, source, srid);
 

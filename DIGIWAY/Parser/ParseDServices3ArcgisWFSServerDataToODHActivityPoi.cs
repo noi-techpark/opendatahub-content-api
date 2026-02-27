@@ -2,28 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Amazon.Runtime.Internal.Transform;
-using CoordinateSharp;
 using DataModel;
 using DIGIWAY.Model;
 using Helper;
-using Helper.Extensions;
 using Helper.Geo;
-using MongoDB.Bson.Serialization.IdGenerators;
-using NetTopologySuite.Algorithm;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.Geometries.Utilities;
-using NetTopologySuite.IO;
-using Newtonsoft.Json;
-using Npgsql.Internal;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-//using ProjNet.CoordinateSystems;
-//using NetTopologySuite.CoordinateSystems.Transformations
 
 namespace DIGIWAY
 {
@@ -365,5 +347,10 @@ namespace DIGIWAY
                 }
             }
         }
+    }
+
+    public class ParseDServices3ArcgisWFSServerDataToSpatialData
+    {
+
     }
 }
