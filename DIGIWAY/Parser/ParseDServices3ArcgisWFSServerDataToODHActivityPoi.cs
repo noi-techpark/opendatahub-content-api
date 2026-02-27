@@ -369,19 +369,27 @@ namespace DIGIWAY
 
             return result;
         }
-
-        //TO CHECK IF DATA CAN BE GOT IN ESPG4632
+        
         private static IDictionary<string, GpsInfo> ParseGeoServerGeodataToWKTAndPosition(IWFSRoute digiwaydata, string srid)
         {
+            //Convert Geometry from EPSG::31254 to WSG84
+            var reader = new NetTopologySuite.IO.WKTReader();
+            var geom = reader.Read(digiwaydata.Geometry.AsText());
+
+            var temp = digiwaydata.Geometry.SRID;
+
+            //DOES NOT WORK! USE POSTGIS QUERY TO TRANSFORM
+            var wgs84Geom = GeometryProjectionHelper.Transform31254To4326(geom);
+
             //get first point of geometry
-            var point = digiwaydata.Geometry.Coordinates.FirstOrDefault();
+            var point = wgs84Geom.Coordinates.FirstOrDefault();
 
             Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
 
             gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
             {
                 Default = true,
-                Geometry = digiwaydata.Geometry.AsText()
+                Geometry = wgs84Geom.AsText()
             });
 
             gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
@@ -488,10 +496,8 @@ namespace DIGIWAY
                 additionalvalues.Add("LengthKm", digiwaydata.LengthKm.ToString());
             if (digiwaydata.RouteDescriptionEn != null)
                 additionalvalues.Add("RouteDescriptionEn", digiwaydata.RouteDescriptionEn);
-            if (digiwaydata.RouteType != null)
-                additionalvalues.Add("RouteType", digiwaydata.RouteType);
 
-
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
             spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
 
             spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
@@ -575,6 +581,7 @@ namespace DIGIWAY
             if (digiwaydata.GlobalId != null)
                 additionalvalues.Add("GlobalId", digiwaydata.GlobalId);
 
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
             spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
 
             spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);

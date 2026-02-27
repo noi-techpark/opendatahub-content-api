@@ -8,8 +8,6 @@ using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
 using System;
 
-
-
 namespace Helper.Geo
 {
     public class EPSG31254ToEPSG4326Converter
