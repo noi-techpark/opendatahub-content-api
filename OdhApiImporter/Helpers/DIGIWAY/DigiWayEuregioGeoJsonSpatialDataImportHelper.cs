@@ -28,7 +28,6 @@ namespace OdhApiImporter.Helpers
         public List<string> idlistinterface { get; set; }
         public string? identifier { get; set; }
         public string? source { get; set; }
-
         public string? srid { get; set; }
 
         public DigiWayEuregioGeoJsonSpatialDataImportHelper(

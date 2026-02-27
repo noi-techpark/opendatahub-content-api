@@ -2,21 +2,22 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using CoordinateSharp;
 using DataModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Helper.Extensions;
 using Helper;
-using System.Globalization;
+using Helper.Extensions;
+using Helper.Geo;
+using NetTopologySuite.Algorithm;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Utilities;
 using NetTopologySuite.IO;
-using NetTopologySuite.Algorithm;
 using Newtonsoft.Json;
-using CoordinateSharp;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
@@ -511,4 +512,111 @@ namespace DIGIWAY
             }
         }
     }   
+
+    public class ParseCivisGeoServerDataToSpatialData
+    {
+        public static SpatialData ParseToSpatialData(
+            SpatialData? spatialdata,
+            IGeoServerCivisData digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            var result = identifier switch
+            {
+                "cyclewaystyrol" => ParseCyclingRoutesTyrolToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                //"mountainbikeroutes" => ParseMTBRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                //"hikingtrails" => ParseHikingTrailsToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                //"intermunicipalcyclingroutes" => ParseInterMunicipalCyclingRoutesToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "_" => null
+            };
+
+            return result;
+        }
+
+
+        private static IDictionary<string, GpsInfo> ParseGeoServerGeodataToWKTAndPosition(IGeoServerCivisData digiwaydata, string srid)
+        {
+            Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
+
+            //get first point of geometry
+            var point = digiwaydata.geometry.Coordinates.FirstOrDefault();
+
+            if (srid == "3857")
+            {
+                var wsg84coordinate = EPSG3857ToEPSG4326Converter.ConvertWebMercatorToWGS84(point.X, point.Y);
+
+                var geom4326 = EPSG3857ToEPSG4326.ConvertEPSG3857ToEPSG4326(digiwaydata.geometry);
+
+                gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
+                {
+                    Default = true,
+                    Geometry = geom4326.AsText()
+                });
+
+                gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
+                {
+                    Default = false,
+                    Altitude = null,
+                    AltitudeUnitofMeasure = "m",
+                    Gpstype = "position",
+                    //Use only first digits otherwise point and track will differ
+                    Latitude = wsg84coordinate.Latitude,
+                    Longitude = wsg84coordinate.Longitude,
+                });
+            }
+            return gpsinfolist;
+        }
+
+        private static SpatialData ParseCyclingRoutesTyrolToSpatialData(
+            SpatialData? spatialdata,
+            IGeoServerCivisData digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            spatialdata.Id = ("urn:" + identifier + ":" + digiwaydata.id.ToLower());
+            spatialdata.Active = true;
+            spatialdata.FirstImport = digiwaydata.properties.CREATE_DATE != null ? Convert.ToDateTime(digiwaydata.properties.CREATE_DATE) : spatialdata == null ? DateTime.Now : spatialdata.FirstImport;
+            spatialdata.LastChange = digiwaydata.properties.UPDATE_DATE != null ? Convert.ToDateTime(digiwaydata.properties.UPDATE_DATE) : DateTime.Now;
+            //odhactivitypoi.HasLanguage = new List<string>() { "it" };
+            //odhactivitypoi.Shortname = digiwaydata.Attributes["TYPE_E"] != null ? digiwaydata.Attributes["denominazi"].ToString() : null;
+            //odhactivitypoi.Detail = new Dictionary<string, Detail>();
+
+            //spatialdata.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
+            //{
+            //    Title = digiwaydata.Attributes["denominazi"].ToString() != null ? digiwaydata.Attributes["denominazi"].ToString() : null,
+            //    AdditionalText = digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null,
+            //    GetThereText = gettheretext,
+            //    Language = "it"
+            //});
+
+            spatialdata.Source = source;
+
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+
+            //TODO Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.properties)
+            {
+                additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+
+            return spatialdata;
+        }
+
+        
+    }
 }
