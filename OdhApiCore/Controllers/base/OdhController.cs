@@ -281,7 +281,7 @@ namespace OdhApiCore.Controllers
             CRUDConstraints crudconstraints,
             string editsource = "api"
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             //TODO Username and provenance of the insert/edit
             //Get the Name Identifier TO CHECK what about service accounts?
@@ -332,7 +332,7 @@ namespace OdhApiCore.Controllers
             CRUDConstraints crudconstraints,
             string editsource = "api"
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             //TODO Username and provenance of the insert/edit
             //Get the Name Identifier TO CHECK what about service accounts?
@@ -372,7 +372,7 @@ namespace OdhApiCore.Controllers
             CRUDConstraints updateConstraints,
             string editsource = "api"
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             //Get the Name Identifier
             string editor =

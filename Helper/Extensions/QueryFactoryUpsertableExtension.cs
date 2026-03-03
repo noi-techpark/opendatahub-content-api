@@ -88,7 +88,7 @@ namespace Helper
             CRUDConstraints updateConstraints,
             CompareConfig compareConfig
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             var prepared = new PreparedDataItem<T>(data.Data);
             List<string> channelstopublish = new List<string>();
@@ -113,6 +113,9 @@ namespace Helper
                 data.Data.FirstImport = DateTime.Now;
             //New Data set last change to now
             data.Data.LastChange = DateTime.Now;
+
+            //Set default LicenseInfo if null
+            data.Data.ApplyDefaultLicenseIfNull();
 
             // Use the appropriate constraint based on whether this is a create or update
             var constraintToCheck = prepared.IsCreate ? createConstraints : updateConstraints;
@@ -287,7 +290,7 @@ namespace Helper
             CRUDConstraints updateConstraints,
             CompareConfig compareConfig
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             var batchResult = new BatchCRUDResult();
 
@@ -545,7 +548,7 @@ namespace Helper
             CRUDConstraints constraints,
             CompareConfig compareConfig
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             //TOCHECK: What if no id is passed? Generate ID?
             //TOCHECK: Id Uppercase or Lowercase depending on table

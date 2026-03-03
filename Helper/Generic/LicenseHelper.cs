@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -13,7 +14,8 @@ using DataModel;
 namespace Helper
 {
     public class LicenseHelper
-    {
+    {        
+
         public static LicenseInfo GetLicenseInfoobject(
             string licensetype,
             string author,
@@ -801,6 +803,18 @@ namespace Helper
             {
                 licenseinfo.ClosedData = setcloseddatato;
             }
+        }
+    }
+
+    public static class LicenseExtensions
+    {
+        public static void ApplyDefaultLicenseIfNull(this ILicenseInfo objectwithlicense)
+        {
+            if (objectwithlicense == null)
+                return;
+
+            if (objectwithlicense.LicenseInfo == null)
+                objectwithlicense.LicenseInfo = new LicenseInfo() { ClosedData = false, License = "CC0" };
         }
     }
 }

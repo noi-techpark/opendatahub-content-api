@@ -204,7 +204,7 @@ namespace Helper
             int? rawdataid = null,
             bool reduced = false
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             //TOCHECK: What if no id is passed? Generate ID?
             //TOCHECK: Id Uppercase or Lowercase depending on table
@@ -278,7 +278,8 @@ namespace Helper
             //New Data set last change to now
             data.LastChange = DateTime.Now;
 
-            //Todo setting Shortname
+            //Set default LicenseInfo if null
+            data.ApplyDefaultLicenseIfNull();
 
             //Check data condition return not allowed if it fails
             if (!CheckCRUDCondition.CRUDOperationAllowed(data, constraints.Condition))
@@ -727,100 +728,6 @@ namespace Helper
                 return 0;
             }
         }       
-
-        #endregion
-
-        #region RawDataStore
-
-        
-        //OBSOLETE INCLUDED IN UpsertData Generic Method
-
-        //public static async Task<PGCRUDResult> UpsertData<T>(
-        //    this QueryFactory QueryFactory,
-        //    T data,
-        //    string table,
-        //    int rawdataid,
-        //    string editor,
-        //    string editsource,
-        //    bool errorwhendataexists = false
-        //)
-        //    where T : IIdentifiable, IImportDateassigneable, IMetaData
-        //{
-        //    if (data == null)
-        //        throw new ArgumentNullException(nameof(data), "no data");
-
-        //    //Check if data exists
-        //    var queryresult = await QueryFactory.Query(table).Select("data").Where("id", data.Id)
-        //        .GetObjectSingleAsync<T>(); ;
-        
-        //    string operation = "";
-
-        //    int createresult = 0;
-        //    int updateresult = 0;
-        //    int errorresult = 0;
-
-        //    //Setting MetaInfo
-        //    data._Meta = MetadataHelper.GetMetadataobject<T>(data);
-
-        //    if (data.FirstImport == null)
-        //        data.FirstImport = DateTime.Now;
-        //    data.LastChange = DateTime.Now;
-
-        //    //Setting Editinfo
-        //    data._Meta.UpdateInfo = new UpdateInfo()
-        //    {
-        //        UpdatedBy = editor,
-        //        UpdateSource = editsource,
-        //    };
-        //    //Setting the MetaData UpdateInfo.UpdateHistory
-        //    MetadataHelper.SetUpdateHistory(queryresult != null ? queryresult._Meta : null, data._Meta);
-
-        //    if (queryresult == null)
-        //    {
-        //        createresult = await QueryFactory
-        //            .Query(table)
-        //            .InsertAsync(
-        //                new JsonBDataRaw()
-        //                {
-        //                    id = data.Id,
-        //                    data = new JsonRaw(data),
-        //                    rawdataid = rawdataid,
-        //                }
-        //            );
-        //        operation = "INSERT";
-        //    }
-        //    else
-        //    {
-        //        if (errorwhendataexists)
-        //            throw new ArgumentNullException(nameof(data), "Id exists already");
-
-        //        updateresult = await QueryFactory
-        //            .Query(table)
-        //            .Where("id", data.Id)
-        //            .UpdateAsync(
-        //                new JsonBDataRaw()
-        //                {
-        //                    id = data.Id,
-        //                    data = new JsonRaw(data),
-        //                    rawdataid = rawdataid,
-        //                }
-        //            );
-        //        operation = "UPDATE";
-        //    }
-
-        //    if (createresult == 0 && updateresult == 0)
-        //        errorresult = 1;
-
-        //    return new PGCRUDResult()
-        //    {
-        //        id = data.Id,
-        //        created = createresult,
-        //        updated = updateresult,
-        //        deleted = 0,
-        //        error = errorresult,
-        //        operation = operation,
-        //    };
-        //}
 
         #endregion
     }

@@ -135,7 +135,8 @@ namespace DataModel
             ISource,
             ISmgActive,
             IPublishedOn,
-            IShortName
+            IShortName,
+            ILicenseInfo
     {
         public Area()
         {
