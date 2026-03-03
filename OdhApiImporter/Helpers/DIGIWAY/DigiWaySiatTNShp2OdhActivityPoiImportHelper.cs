@@ -116,7 +116,7 @@ namespace OdhApiImporter.Helpers
 
             try
             {
-                returnid = (identifier + "_" + digiwaydata.Attributes["classid"].ToString()).ToLower();
+                 returnid = (identifier + "_" + digiwaydata.Attributes["classid"].ToString()).ToLower();
                 if (importtospatialdata)
                     returnid = ("urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["classid"].ToString().ToLower());
 
