@@ -133,17 +133,17 @@ namespace OdhApiImporter.Helpers
                 if (importtospatialdata)
                 {
                     //TODO
-                    ////GET SRID 4326
-                    //var wktquery = QueryFactory.Query()
-                    //    .Select($"ST_AsText(ST_Transform(ST_GeomFromText(@wkt, {srid}), 4326))", digiwaydata.Geometry.AsText());
-                    //    //.Select($"st_transform(ST_GeometryFromText('{ digiwaydata.Geometry.AsText() }', {srid}), 4326))");
+                    //GET SRID 4326
+                    var wktquery = QueryFactory.Query()
+                        .SelectRaw($"ST_AsText(ST_Transform(ST_GeomFromText('{digiwaydata.Geometry.AsText()}', {srid}), 4326), 8) as geom");
+                        //.SelectRaw($"ST_AsText(ST_Transform(ST_GeomFromText(?, {srid}), 4326)) as geom", digiwaydata.Geometry.AsText());                    
 
-                    //var wkttransformed = await wktquery.GetAsync<string>();
+                    var wkttransformed = await wktquery.GetAsync<string>();
 
-                    //var reader = new WKTReader();
-                    //var rawGeo = reader.Read(wkttransformed.FirstOrDefault());
+                    var reader = new WKTReader();
+                    var rawGeo = reader.Read(wkttransformed.FirstOrDefault());
 
-                    //digiwaydata.Geometry = rawGeo;
+                    digiwaydata.Geometry = rawGeo;
 
                     //Parse  Data
                     var parsedobject = await ParseDigiWayDataToSpatialData(
