@@ -50,16 +50,18 @@ namespace OdhApiImporter.Helpers
             if (identifier == null || source == null || srid == null)
                 throw new Exception("no identifier|source|srid defined");
 
+            List<UpdateDetail> resultlist = new List<UpdateDetail>();
+
             var data = await GetData(cancellationToken);
 
             ////UPDATE all data
-            var updateresult = await ImportData(data, cancellationToken);
+            resultlist.Add(await ImportData(data, cancellationToken));
 
             //Disable Data not in list currently unavailable
             //var deleteresult = await SetDataNotinListToInactive(cancellationToken);
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult }
+                resultlist
             );
         }
 

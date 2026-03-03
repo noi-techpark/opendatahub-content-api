@@ -528,15 +528,8 @@ namespace DIGIWAY
         {
             Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
 
-            //get first point of geometry
-            var geomfactory = new GeometryFactory();
-            var point = geomfactory.WithSRID(32632).CreatePoint(digiwaydata.geometry.Coordinates.FirstOrDefault());
-
-            UniversalTransverseMercator utm = new UniversalTransverseMercator("32N", point.X, point.Y);
-            CoordinateSharp.Coordinate latlong = UniversalTransverseMercator.ConvertUTMtoLatLong(utm);
-
-            //TODO Request Geoserver with 4326 and use this directly?
-            //var geom4326 = EPSG3857ToEPSG4326.ConvertEPSG3857ToEPSG4326(digiwaydata.geometry);
+            //Already Converted By PostGIS
+            var point = digiwaydata.geometry.Coordinates.FirstOrDefault();
 
             gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
             {
@@ -551,8 +544,8 @@ namespace DIGIWAY
                 AltitudeUnitofMeasure = "m",
                 Gpstype = "position",
                 //Use only first digits otherwise point and track will differ
-                Latitude = Math.Round(latlong.Latitude.DecimalDegree, 9),
-                Longitude = Math.Round(latlong.Longitude.DecimalDegree, 9)
+                Latitude = point.Y,
+                Longitude = point.X
             });
 
             return gpsinfolist;
@@ -596,7 +589,7 @@ namespace DIGIWAY
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             foreach (var feature in digiwaydata.properties)
             {
-                additionalvalues.Add(feature.Key, feature.Value?.ToString());
+                additionalvalues.Add(feature.Name, feature.Value?.ToString());
             }
             spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
 
@@ -657,7 +650,7 @@ namespace DIGIWAY
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             foreach (var feature in digiwaydata.properties)
             {
-                additionalvalues.Add(feature.Key, feature.Value?.ToString());
+                additionalvalues.Add(feature.Name, feature.Value?.ToString());
             }
             spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
 
@@ -712,7 +705,7 @@ namespace DIGIWAY
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             foreach (var feature in digiwaydata.properties)
             {
-                additionalvalues.Add(feature.Key, feature.Value?.ToString());
+                additionalvalues.Add(feature.Name, feature.Value?.ToString());
             }
             spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
 
@@ -769,7 +762,7 @@ namespace DIGIWAY
             Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
             foreach (var feature in digiwaydata.properties)
             {
-                additionalvalues.Add(feature.Key, feature.Value?.ToString());
+                additionalvalues.Add(feature.Name, feature.Value?.ToString());
             }
             spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
 

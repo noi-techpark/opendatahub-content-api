@@ -11,6 +11,7 @@ using Helper.Tagging;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
+using OdhApiImporter.Helpers.DIGIWAY;
 using SqlKata;
 using SqlKata.Execution;
 using SqlKata.Extensions;
@@ -55,19 +56,19 @@ namespace OdhApiImporter.Helpers
             if (identifier == null || source == null || srid == null)
                 throw new Exception("no identifier|source|srid defined");
 
+            List<UpdateDetail> resultlist = new List<UpdateDetail>();
+
             var data = await GetData(cancellationToken);
 
             ////UPDATE all data
-            var updateresult = await ImportData(data, cancellationToken);
+            resultlist.Add(await ImportData(data, cancellationToken));
 
-            //Disable Data not in list
-            var deleteresult = default(UpdateDetail);
-
+            //Disable Data not in list            
             if (!importtospatialdata)
-                deleteresult = await SetDataNotinListToInactive(cancellationToken);
+                resultlist.Add(await SetDataNotinListToInactive(cancellationToken));
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
+                resultlist
             );
         }
 
@@ -134,16 +135,17 @@ namespace OdhApiImporter.Helpers
                 {
                     //TODO
                     //GET SRID 4326
-                    var wktquery = QueryFactory.Query()
-                        .SelectRaw($"ST_AsText(ST_Transform(ST_GeomFromText('{digiwaydata.Geometry.AsText()}', {srid}), 4326), 8) as geom");
-                        //.SelectRaw($"ST_AsText(ST_Transform(ST_GeomFromText(?, {srid}), 4326)) as geom", digiwaydata.Geometry.AsText());                    
+                    //var wktquery = QueryFactory.Query()
+                    //    .SelectRaw($"ST_AsText(ST_Transform(ST_GeomFromText('{digiwaydata.Geometry.AsText()}', {srid}), 4326), 8) as geom");
+                    //    //.SelectRaw($"ST_AsText(ST_Transform(ST_GeomFromText(?, {srid}), 4326)) as geom", digiwaydata.Geometry.AsText());                    
 
-                    var wkttransformed = await wktquery.GetAsync<string>();
+                    //var wkttransformed = await wktquery.GetAsync<string>();
 
-                    var reader = new WKTReader();
-                    var rawGeo = reader.Read(wkttransformed.FirstOrDefault());
+                    //var reader = new WKTReader();
+                    //var rawGeo = reader.Read(wkttransformed.FirstOrDefault());
 
-                    digiwaydata.Geometry = rawGeo;
+                    //Transform Geometry to 4326
+                    digiwaydata.Geometry = await DigiWayConverter.ConvertGeometryWithPostGIS(QueryFactory, digiwaydata.Geometry, srid, "4326");
 
                     //Parse  Data
                     var parsedobject = await ParseDigiWayDataToSpatialData(

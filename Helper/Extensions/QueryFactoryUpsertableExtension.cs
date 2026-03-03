@@ -557,13 +557,13 @@ namespace Helper
             // No need to check data non-null since Upsertable already enforces that
 
             // Before processing data, we normalize the id, this way PrepareDataItem will deal witht he right metadatada and ID
-            data.Data._Meta.Id = IdGenerator.CheckIdFromType<T>(data.Data.Id);
+            data.Data.Id = IdGenerator.CheckIdFromType<T>(data.Data.Id);
 
             //Check if data exists already
             var queryresult = await QueryFactory
                 .Query(dataconfig.Table)
                 .Select("data")
-                .Where("id", data.Data._Meta.Id)
+                .Where("id", data.Data.Id)
                 .When(
                     constraints.AccessRole.Count() > 0,
                     q => q.FilterDataByAccessRoles(constraints.AccessRole)

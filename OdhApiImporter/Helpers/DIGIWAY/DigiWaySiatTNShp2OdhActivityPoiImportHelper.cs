@@ -48,19 +48,19 @@ namespace OdhApiImporter.Helpers
             if (identifier == null || source == null || srid == null)
                 throw new Exception("no identifier|source|srid defined");
 
+            var resultlist = new List<UpdateDetail>();
+
             var data = await GetData(cancellationToken);
 
             //UPDATE all data
-            var updateresult = await ImportData(data, cancellationToken);
+            resultlist.Add(await ImportData(data, cancellationToken));
 
             //Disable Data not in list
-            var deleteresult = default(UpdateDetail);
-
             if (!importtospatialdata)
-                deleteresult = await SetDataNotinListToInactive(cancellationToken);
+                resultlist.Add(await SetDataNotinListToInactive(cancellationToken));
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
+                resultlist
             );
         }
 
@@ -118,12 +118,14 @@ namespace OdhApiImporter.Helpers
             {
                 returnid = (identifier + "_" + digiwaydata.Attributes["classid"].ToString()).ToLower();
                 if (importtospatialdata)
-                    returnid = ("urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["OBJECTID"].ToString().ToLower());
+                    returnid = ("urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["classid"].ToString().ToLower());
 
                 idlistinterface.Add(returnid);
 
                 if (importtospatialdata)
                 {
+                    //No Conversion needed already 4326
+
                     //Parse  Data
                     var parsedobject = await ParseDigiWayDataToSpatialData(
                         returnid,

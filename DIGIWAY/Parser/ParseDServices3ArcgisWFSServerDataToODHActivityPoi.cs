@@ -371,23 +371,16 @@ namespace DIGIWAY
         }
         
         private static IDictionary<string, GpsInfo> ParseGeoServerGeodataToWKTAndPosition(IWFSRoute digiwaydata, string srid)
-        {
-            //Convert Geometry from EPSG::31254 to WSG84
-            var reader = new NetTopologySuite.IO.WKTReader();
-            var geom = reader.Read(digiwaydata.Geometry.AsText());            
-
-            //DOES NOT WORK! USE POSTGIS QUERY TO TRANSFORM
-            var wgs84Geom = GeometryProjectionHelper.Transform31254To4326(geom);
-
-            //get first point of geometry
-            var point = wgs84Geom.Coordinates.FirstOrDefault();
+        {            
+            //Already Converted By PostGIS
+            var point = digiwaydata.Geometry.Coordinates.FirstOrDefault();
 
             Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
 
             gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
             {
                 Default = true,
-                Geometry = wgs84Geom.AsText()
+                Geometry = digiwaydata.Geometry.AsText()
             });
 
             gpsinfolist.TryAddOrUpdate("position", new GpsInfo()

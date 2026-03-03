@@ -8,6 +8,7 @@ using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
 using Helper.Generic;
 using Helper.Tagging;
+using OdhApiImporter.Helpers.DIGIWAY;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -48,19 +49,19 @@ namespace OdhApiImporter.Helpers
             if (identifier == null || source == null || srid == null)
                 throw new Exception("no identifier|source|srid defined");
 
+            List<UpdateDetail> resultlist = new List<UpdateDetail>();
+
             var data = await GetData(cancellationToken);
 
             ////UPDATE all data
-            var updateresult = await ImportData(data, cancellationToken);
+            resultlist.Add(await ImportData(data, cancellationToken));
 
             //Disable Data not in list
-            var deleteresult = default(UpdateDetail);
-
             if (!importtospatialdata)
-                deleteresult = await SetDataNotinListToInactive(cancellationToken);
+                resultlist.Add(await SetDataNotinListToInactive(cancellationToken));
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
+                resultlist
             );
         }
 
@@ -123,6 +124,9 @@ namespace OdhApiImporter.Helpers
 
                 if (importtospatialdata)
                 {
+                    //Transform Geometry to 4326 not needed already in this format
+                    //digiwaydata.Geometry = await DigiWayConverter.ConvertGeometryWithPostGIS(QueryFactory, digiwaydata.Geometry, srid, "4326");
+
                     //Parse  Data
                     var parsedobject = await ParseDigiWayDataToSpatialData(
                         returnid,
