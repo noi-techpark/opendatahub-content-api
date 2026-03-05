@@ -135,7 +135,8 @@ namespace DataModel
             ISource,
             ISmgActive,
             IPublishedOn,
-            IShortName
+            IShortName,
+            ILicenseInfo
     {
         public Area()
         {
@@ -3236,11 +3237,13 @@ namespace DataModel
 
     public class LicenseInfo
     {
-        [SwaggerEnum(new[] { "CC0", "CC-BY", "Closed" })]
+        [SwaggerEnum(new[] { "CC0", "CC BY", "CC BY-SA", "CC BY-NC-SA", "CC BY-ND-SA", "Closed" })]
         public string? License { get; set; }
         public string? LicenseHolder { get; set; }
         public string? Author { get; set; }
 
+
+        //TODO PUT This as Getter only if License is equal to Closed
         [SwaggerSchema(Description = "readonly field", ReadOnly = true)]
         public bool ClosedData { get; set; }
     }

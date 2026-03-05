@@ -102,7 +102,7 @@ namespace DIGIWAY.Model
         public MountainBikeRoute()
         {
             Coordinates = new List<WFSCoordinate>();
-        }
+        }        
     }
 
     // Parser class

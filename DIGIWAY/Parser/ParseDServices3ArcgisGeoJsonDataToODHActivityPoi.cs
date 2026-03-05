@@ -2,23 +2,10 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using CoordinateSharp;
 using DataModel;
 using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
-using Helper.Extensions;
-using NetTopologySuite.Algorithm;
-using NetTopologySuite.Densify;
 using NetTopologySuite.Geometries;
-using NetTopologySuite.Geometries.Utilities;
-using NetTopologySuite.IO;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DIGIWAY
 {
@@ -148,6 +135,103 @@ namespace DIGIWAY
                     default: return null;
                 }
             }
+        }
+    }
+
+    public class ParseDServices3ArcgisGeoJsonDataToSpatialData
+    {
+        public static SpatialData ParseToSpatialData(
+            SpatialData? spatialdata,
+            GeoJsonFeature digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            var result = identifier switch
+            {
+                "accessibletrails_austria" => ParseAccessibleTrailsAustriaToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "_" => null
+            };
+
+            return result;
+        }
+
+        private static IDictionary<string, GpsInfo> ParseGeoServerGeodataToWKTAndPosition(GeoJsonFeature digiwaydata, string srid)
+        {
+            //get first point of geometry
+            var point = digiwaydata.Geometry.Coordinates.FirstOrDefault();
+
+            Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
+
+            gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
+            {
+                Default = true,
+                Geometry = digiwaydata.Geometry.AsText()
+            });
+
+            gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
+            {
+                Default = false,
+                Altitude = null,
+                AltitudeUnitofMeasure = "m",
+                Gpstype = "position",
+                //Use only first digits otherwise point and track will differ
+                Latitude = point.Y,
+                Longitude = point.X
+            });
+
+            return gpsinfolist;
+        }
+
+        private static SpatialData ParseAccessibleTrailsAustriaToSpatialData(
+            SpatialData? spatialdata,
+            GeoJsonFeature digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            spatialdata.Id = "urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["OBJECTID"].ToString().ToLower();
+
+            spatialdata.Active = true;
+            spatialdata.FirstImport = digiwaydata.Attributes["UPDATETIMESTAMP"] != null ? Convert.ToDateTime(digiwaydata.Attributes["UPDATETIMESTAMP"].ToString()) : spatialdata == null ? DateTime.Now : spatialdata.FirstImport;
+            spatialdata.LastChange = digiwaydata.Attributes["UPDATETIMESTAMP"] != null ? Convert.ToDateTime(digiwaydata.Attributes["UPDATETIMESTAMP"].ToString()) : DateTime.Now;
+            spatialdata.HasLanguage = new List<string>() { "de" };
+            spatialdata.Shortname = digiwaydata.Attributes["NAME"] != null ? digiwaydata.Attributes["NAME"].ToString() : null;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
+            {
+                Title = digiwaydata.Attributes["NAME"].ToString() != null ? digiwaydata.Attributes["NAME"].ToString() : null,                
+                Language = "it"
+            });
+
+            spatialdata.Source = source;
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("hiking");
+            spatialdata.TagIds.Add("barrier-free");
+
+            //Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.Attributes)
+            {
+                if (feature.Value != null)
+                    additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+            return spatialdata;
         }
     }
 }

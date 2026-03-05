@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#nullable disable
-
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -313,8 +311,7 @@ namespace OdhApiImporter.Controllers
 
         #region EBMS DATA SYNC (EventShort)
 
-        [HttpGet, Route("EBMS/EventShort/UpdateAll")]
-        [HttpGet, Route("EBMS/EventShort/Update")]
+        [HttpGet, Route("EBMS/EventShort/UpdateFull")]
         public async Task<IActionResult> UpdateAllEBMS(
             bool forceupdate = false,
             CancellationToken cancellationToken = default
@@ -3114,6 +3111,7 @@ namespace OdhApiImporter.Controllers
         [HttpGet, Route("DIGIWAY/{identifier}/Update")]
         public async Task<IActionResult> UpdateAllDigiwayData(
             string identifier,
+            bool forceimporttospatialdata = false,
             CancellationToken cancellationToken = default
     )
         {
@@ -3135,18 +3133,24 @@ namespace OdhApiImporter.Controllers
 
                 if (digiwayconfig == null)
                     throw new Exception("unknown identifier");
-                
-                if (digiwayconfig.Source == "civis.geoserver" )
-                {
-                    DigiWayCivisJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayCivisJson2ODHActivityPoiImportHelper(
-                        settings,
-                        QueryFactory,
-                        "smgpois",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
-                    );
 
-                    digiwayimporthelper.identifier = identifier.ToLower(); 
+                if (digiwayconfig.Source == "civis.geoserver")
+                {
+                    string tabletowrite = "smgpois";
+                    if (forceimporttospatialdata)
+                        tabletowrite = "spatialdatas";
+
+                    DigiWayCivisJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayCivisJson2ODHActivityPoiImportHelper(
+                          settings,
+                          QueryFactory,
+                          tabletowrite,
+                          UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                      );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.importtospatialdata = forceimporttospatialdata;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,
@@ -3155,16 +3159,21 @@ namespace OdhApiImporter.Controllers
                 }
                 else if (digiwayconfig.Source == "dservices3.arcgis.com" && digiwayconfig.Format == "xml")
                 {
+                    string tabletowrite = "smgpois";
+                    if (forceimporttospatialdata)
+                        tabletowrite = "spatialdatas";
+
                     DigiWayDServices3ArcgisWFSXml2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayDServices3ArcgisWFSXml2ODHActivityPoiImportHelper(
-                        settings,
-                        QueryFactory,
-                        "smgpois",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
-                    );
+                            settings,
+                            QueryFactory,
+                            tabletowrite,
+                            UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
                     digiwayimporthelper.srid = digiwayconfig.SRid;
+                    digiwayimporthelper.importtospatialdata = forceimporttospatialdata;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,
@@ -3173,16 +3182,21 @@ namespace OdhApiImporter.Controllers
                 }
                 else if (digiwayconfig.Source == "siat.provincia.tn.it")
                 {
+                    string tabletowrite = "smgpois";
+                    if (forceimporttospatialdata)
+                        tabletowrite = "spatialdatas";
+
                     DigiWaySiatTNShp2OdhActivityPoiImportHelper digiwayimporthelper = new DigiWaySiatTNShp2OdhActivityPoiImportHelper(
                         settings,
                         QueryFactory,
-                        "smgpois",
+                        tabletowrite,
                         UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
                     digiwayimporthelper.srid = digiwayconfig.SRid;
+                    digiwayimporthelper.importtospatialdata = forceimporttospatialdata;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,
@@ -3209,16 +3223,21 @@ namespace OdhApiImporter.Controllers
                 }
                 else if (digiwayconfig.Source == "dservices3.arcgis.com" && digiwayconfig.Format == "geojson")
                 {
+                    string tabletowrite = "smgpois";
+                    if (forceimporttospatialdata)
+                        tabletowrite = "spatialdatas";
+
                     DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper(
                         settings,
                         QueryFactory,
-                        "smgpois",
+                        tabletowrite,
                         UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
                     digiwayimporthelper.srid = digiwayconfig.SRid;
+                    digiwayimporthelper.importtospatialdata = forceimporttospatialdata;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,
@@ -3439,7 +3458,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        #endregion
+        #endregion        
 
         protected Func<string, string> UrlGeneratorStatic
         {

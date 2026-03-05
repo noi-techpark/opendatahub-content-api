@@ -47,14 +47,16 @@ namespace OdhApiImporter.Helpers
                 settings.ZohoConfig.AuthUrl,
                 settings.ZohoConfig.Scope
             );
-            
-            var updateresult = await ImportData(zohodata, cancellationToken);
+
+            var resultlist = new List<UpdateDetail>();
+
+            resultlist.Add(await ImportData(zohodata, cancellationToken));
 
             //Disable Data not in feratel list
-            var deleteresult = await SetDataNotinListToInactive(cancellationToken);
+            resultlist.Add(await SetDataNotinListToInactive(cancellationToken));
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
+                resultlist
             );
         }
 

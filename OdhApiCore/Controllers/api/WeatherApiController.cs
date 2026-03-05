@@ -1736,8 +1736,6 @@ namespace OdhApiCore.Controllers
         [HttpPost, Route("Weather/Measuringpoint")]
         public Task<IActionResult> Post([FromBody] MeasuringpointV2 measuringpoint, bool generateid = true)
         {
-            measuringpoint.LicenseInfo = LicenseHelper.GetLicenseforMeasuringpoint(measuringpoint);
-
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
@@ -1758,7 +1756,7 @@ namespace OdhApiCore.Controllers
                 measuringpoint.TrimStringProperties();
 
                 //Populate Tags (Id/Source/Type)
-                await measuringpoint.UpdateTagsExtension(QueryFactory);
+                await measuringpoint.UpdateTagsExtension(QueryFactory);                
 
                 return await UpsertData<MeasuringpointV2>(
                     measuringpoint,
@@ -1780,8 +1778,6 @@ namespace OdhApiCore.Controllers
         [HttpPut, Route("Weather/Measuringpoint/{id}")]
         public Task<IActionResult> Put(string id, [FromBody] MeasuringpointV2 measuringpoint)
         {
-            measuringpoint.LicenseInfo = LicenseHelper.GetLicenseforMeasuringpoint(measuringpoint);
-
             return DoAsyncReturn(async () =>
             {
                 //Additional Read Filters to Add Check
