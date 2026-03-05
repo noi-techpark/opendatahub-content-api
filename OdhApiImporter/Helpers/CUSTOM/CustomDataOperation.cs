@@ -11,7 +11,9 @@ using LTSAPI;
 using LTSAPI.Parser;
 using Microsoft.FSharp.Control;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using Newtonsoft.Json;
+using OdhNotifier;
 using SqlKata;
 using SqlKata.Execution;
 using System;
@@ -1458,6 +1460,68 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
+
+        public async Task<Tuple<int, List<IDictionary<string, NotifierResponse>>>> RemoveODHTagsFromEntity<T>(string type, string table, string tagname, IOdhPushNotifier odhpushnotifier) 
+            where T:IIdentifiable, IPublishedOn
+        {
+
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From(table)
+                .SmgTagFilterOr_GeneratedColumn(new List<string>() { tagname })
+                .FilterReducedDataByRoles(new List<string>() { "IDM" });
+
+            var list = await query.GetObjectListAsync<T>();
+
+            int i = 0;
+            List<IDictionary<string, NotifierResponse>> pushresults = new List<IDictionary<string, NotifierResponse>>();
+
+            foreach (var jdata in list)
+            {
+                if(jdata is ISmgTags)
+                {
+                    bool update = false;
+                    if((jdata as ISmgTags).SmgTags != null && (jdata as ISmgTags).SmgTags.Contains(tagname))
+                    {
+                        update = true;
+                        (jdata as ISmgTags).SmgTags.Remove(tagname);
+                    }
+
+                    if (update)
+                    {
+                        //Save tp DB                        
+                        var queryresult = await QueryFactory
+                            .Query(table)
+                            .Where("id", jdata.Id)
+                            .UpdateAsync(
+                                new JsonBData()
+                                {
+                                    id = jdata.Id,
+                                    data = new JsonRaw(jdata),
+                                }
+                            );
+                        
+                        //Push Data if changed
+                        //push modified data to all published Channels
+                        var pushed = await ImportUtils.CheckIfObjectChangedAndPush(
+                            odhpushnotifier,
+                            new PGCRUDResult() { id = jdata.Id, objectchanged = 1, compareobject = true, updated = 1, pushchannels = jdata.PublishedOn },
+                            jdata.Id,
+                            type,
+                            null,
+                            type + ".custommodify.update"
+                        );
+
+                        if(pushed != null)
+                            pushresults.Add(pushed);
+
+                        i++;
+                    }
+                }               
+            }
+
+            return Tuple.Create(i, pushresults);
+        }
+
 
         #endregion
 

@@ -311,8 +311,7 @@ namespace OdhApiImporter.Controllers
 
         #region EBMS DATA SYNC (EventShort)
 
-        [HttpGet, Route("EBMS/EventShort/UpdateAll")]
-        [HttpGet, Route("EBMS/EventShort/Update")]
+        [HttpGet, Route("EBMS/EventShort/UpdateFull")]
         public async Task<IActionResult> UpdateAllEBMS(
             bool forceupdate = false,
             CancellationToken cancellationToken = default
@@ -3459,7 +3458,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        #endregion
+        #endregion        
 
         protected Func<string, string> UrlGeneratorStatic
         {
