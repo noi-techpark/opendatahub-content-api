@@ -76,7 +76,6 @@ namespace Helper
                 EventLinked el => GetMetadataforEvent(el, reduced),
                 ODHActivityPoiLinked odhapl => GetMetadataforOdhActivityPoi(odhapl, reduced),
                 PackageLinked pl => GetMetadataforPackage(pl),
-                MeasuringpointLinked ml => GetMetadataforMeasuringpoint(ml),
                 WebcamInfoLinked wil => GetMetadataforWebcam(wil, reduced),
                 ArticlesLinked al => GetMetadataforArticle(al),
                 DDVenue ddv => GetMetadataforDDVenue(ddv),
@@ -261,17 +260,6 @@ namespace Helper
         public static Metadata GetMetadataforPackage(PackageLinked data)
         {
             return GetMetadata(data, "hgv", false);
-        }
-
-        public static Metadata GetMetadataforMeasuringpoint(MeasuringpointLinked data)
-        {
-            string? sourcemeta = data.Source?.ToLower();
-
-            bool reduced = false;
-            if (data._Meta != null)
-                reduced = (bool)data._Meta.Reduced;
-
-            return GetMetadata(data, sourcemeta, reduced);
         }
 
         public static Metadata GetMetadataforMeasuringpoint(MeasuringpointV2 data, bool reduced = false)
