@@ -2155,10 +2155,7 @@ namespace DataModel
         public DateTime LastUpdate { get; set; }
         public DateTime? LastChange { get; set; }
 
-        public bool Active { get; set; }
-
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
-        public bool SmgActive { get; set; }
+        public bool Active { get; set; }        
         public string? Shortname { get; set; }
 
         //GPS
@@ -2204,13 +2201,11 @@ namespace DataModel
         }
 
         public string? Id { get; set; }
-        //public string? Level { get; set; }
-        //public string? LevelId { get; set; }
         public Dictionary<string, string> WeatherStatus { get; set; }
-
         //New
         public string? IconID { get; set; }
         public DateTime? Date { get; set; }
+        public string? WeatherCode { get; set; }
     }
 
     //SnowReport Base Data
