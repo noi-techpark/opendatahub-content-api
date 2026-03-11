@@ -2,11 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using DataModel;
 using Helper;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
@@ -16,6 +12,12 @@ using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers
 {
@@ -44,6 +46,8 @@ namespace OdhApiCore.Controllers
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
         /// <param name="type">Mandatory search trough Entities (metadata, accommodation, odhactivitypoi, event, webcam, measuringpoint, ltsactivity, ltspoi, ltsgastronomy, article ..... ) <a href="https://github.com/noi-techpark/odh-docs/wiki/Dataset-Type" target="_blank">Wiki Dataset Type</a></param>
+        /// <param name="source">Source Filter, (default:'null')</param>
+        /// <param name="tagfilter">Filter on Tags. Syntax =and/or(TagId,TagId,TagId) example or(traffic-event:hindrance,traffic-event:mountain-pass) - Combining and/or is not supported at the moment. (default: 'null')</param>
         /// <param name="fields">Mandatory Select a field for the Distinct Query, example fields=Source, arrays are selected with a [*] example HasLanguage[*] / Features[*].Id  (Only one field supported). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawsort</a></param>
@@ -64,6 +68,8 @@ namespace OdhApiCore.Controllers
             PageSize pagesize = null!,
             string? odhtype = null,
             string? type = null,
+            string? source = null,
+            string? tagfilter = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? seed = null,
             string? rawfilter = null,
@@ -95,6 +101,8 @@ namespace OdhApiCore.Controllers
                 pagenumber,
                 pagesize,
                 odhtype ?? type,
+                source,
+                tagfilter,
                 fieldstodisplay,
                 seed,
                 rawfilter,
@@ -114,6 +122,8 @@ namespace OdhApiCore.Controllers
             uint? pagenumber,
             int? pagesize,
             string? odhtype,
+            string? source,
+            string? tagfilter,
             string[] fields,
             string? seed,
             string? rawfilter,
@@ -150,6 +160,18 @@ namespace OdhApiCore.Controllers
                     selects.Add(select);
                 }
 
+                //Add Sourcefilter only if passed odhtype is of type ISource
+                
+                var sourcelist = new List<string>();
+                if (source != null && typeof(ISource).IsAssignableFrom(ODHTypeHelper.TranslateTypeString2Type(odhtype)))
+                    sourcelist = source.Split(",").ToList();
+
+                //Add Tagfilter only if passed odhtype is of type IHasTagInfo
+                IDictionary<string, List<string>>? tagdict = null;
+                if(tagfilter != null && typeof(IHasTagInfo).IsAssignableFrom(ODHTypeHelper.TranslateTypeString2Type(odhtype)))
+                    tagdict = GenericHelper.RetrieveTagFilter(tagfilter);
+
+
                 string endpoint = ODHTypeHelper.TranslateTypeToEndPoint(odhtype);
 
                 var query = QueryFactory
@@ -158,6 +180,9 @@ namespace OdhApiCore.Controllers
                     .SelectRaw(String.Join(",", selects))
                     .From(table)
                     .ApplyRawFilter(rawfilter)
+                    .SourceFilter_GeneratedColumn(sourcelist)
+                    .When(tagdict != null && tagdict.Count > 0, q => q.TaggingFilter_GeneratedColumn(tagdict)
+                )
                     // .Anonymous_Logged_UserRule_GeneratedColumn(FilterClosedData, !ReducedData)
                     .OrderByRawIfNotNull(rawsort)
                     //.ApplyOrdering_GeneratedColumns(null, null, rawsort)
