@@ -201,7 +201,7 @@ namespace OdhApiImporter.Helpers
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
-                    datasource = "eurac",
+                    datasource = "zoho",
                     importdate = DateTime.Now,
                     raw = JsonConvert.SerializeObject(announcementraw),
                     sourceinterface = "sentieri_opendatahub",
@@ -232,7 +232,7 @@ namespace OdhApiImporter.Helpers
 
                 foreach (var idtodelete in idstodelete)
                 {
-                    var result = await DeleteOrDisableData<WebcamInfoLinked>(idtodelete, false);
+                    var result = await DeleteOrDisableData<Announcement>(idtodelete, false);
 
                     updateresult = updateresult + result.Item1;
                     deleteresult = deleteresult + result.Item2;

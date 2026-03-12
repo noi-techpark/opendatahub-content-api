@@ -131,6 +131,10 @@ services:
       ASPNETCORE_DigiWayConfig__accessibletrails_austria__Source: ${DIGIWAY_ATACCESSIBLETRAIL_SOURCE}
       ASPNETCORE_DigiWayConfig__accessibletrails_austria__Format: ${DIGIWAY_ATACCESSIBLETRAIL_FORMAT}
       ASPNETCORE_DigiWayConfig__accessibletrails_austria__SRid: ${DIGIWAY_ATACCESSIBLETRAIL_SRID}
+      ASPNETCORE_DigiWayConfig__trailclosures_austria__ServiceUrl: ${DIGIWAY_ATTRAILCLOSURE_URL}      
+      ASPNETCORE_DigiWayConfig__trailclosures_austria__Source: ${DIGIWAY_ATTRAILCLOSURE_SOURCE}
+      ASPNETCORE_DigiWayConfig__trailclosures_austria__Format: ${DIGIWAY_ATTRAILCLOSURE_FORMAT}
+      ASPNETCORE_DigiWayConfig__trailclosures_austria__SRid: ${DIGIWAY_ATTRAILCLOSURE_SRID}
       ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl: ${GTFSAPI_STATIMETABLES_URL}
     ports:
       - "8002:80"
