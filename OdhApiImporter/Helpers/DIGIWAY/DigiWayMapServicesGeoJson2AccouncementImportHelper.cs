@@ -67,7 +67,7 @@ namespace OdhApiImporter.Helpers
         //Get Data from Source
         private async Task<ICollection<GeoJsonFeature>?> GetData(CancellationToken cancellationToken)
         {
-            return await GetDigiwayData.GetDigiWayGeoJsonDataFromMapSercvicesAsync(settings.DigiWayConfig[identifier].ServiceUrl, settings.DigiWayConfig[identifier].Password);
+            return await GetDigiwayData.GetDigiWayGeoJsonDataFromMapSercvicesAsync("","", settings.DigiWayConfig[identifier].ServiceUrl);
         }
 
         private async Task<UpdateDetail> ImportData(

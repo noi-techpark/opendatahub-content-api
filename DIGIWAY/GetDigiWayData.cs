@@ -119,12 +119,13 @@ namespace DIGIWAY
         }
 
         public static async Task<ICollection<GeoJsonFeature>?> GetDigiWayGeoJsonDataFromMapSercvicesAsync(
-           string serviceurl,
-           string apitoken
+            string user,
+            string pass, 
+            string serviceurl
        )
         {
             //Request
-            HttpResponseMessage response = await GetDigiwayDataFromService("", "", serviceurl + "?" + apitoken);
+            HttpResponseMessage response = await GetDigiwayDataFromService("", "", serviceurl);
 
             var responsetask = await response.Content.ReadAsStringAsync();
 

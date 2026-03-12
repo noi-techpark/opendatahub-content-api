@@ -88,6 +88,8 @@ namespace DIGIWAY
 
             announcement.Detail.TryAddOrUpdate("de", detail);
 
+            announcement.TagIds = new List<string>();
+            announcement.TagIds.Add("announcement:trail-closure");
 
             Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
 

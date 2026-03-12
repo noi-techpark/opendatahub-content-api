@@ -77,6 +77,9 @@ namespace ZOHO
                 { "position", new GpsInfo() { Latitude = double.Parse(zohoobject.Posizione.latitude, CultureInfo.InvariantCulture), Longitude = double.Parse(zohoobject.Posizione.longitude, CultureInfo.InvariantCulture), Default = true, Gpstype = "position", Geometry = $"POINT ({zohoobject.Posizione.longitude} {zohoobject.Posizione.latitude})"  } }
             };
 
+            announcement.TagIds = new List<string>();
+            announcement.TagIds.Add("announcement:trail-closure");
+
             announcement.HasLanguage = new List<string>() { "it" };
 
             announcement._Meta = new Metadata() { Id = announcement.Id, Source = announcement.Source, Reduced = false, Type = "announcement" };
