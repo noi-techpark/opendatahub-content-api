@@ -3,11 +3,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using DIGIWAY;
+using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
 using Helper.Extensions;
 using Helper.Generic;
 using Helper.Tagging;
 using Microsoft.AspNetCore.Components.Forms;
+using NetTopologySuite.Densify;
 using Newtonsoft.Json;
 using SqlKata.Execution;
 using System;
@@ -15,15 +18,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ZOHO;
 
 namespace OdhApiImporter.Helpers
 {
-    public class DigiWayZohoGeoJson2AccouncementImportHelper : ImportHelper, IImportHelper
+    public class DigiWayMapServicesGeoJson2AccouncementImportHelper : ImportHelper, IImportHelper
     {
         public List<string> idlistinterface { get; set; }
+        public string? identifier { get; set; }
+        public string? source { get; set; }
 
-        public DigiWayZohoGeoJson2AccouncementImportHelper(
+        public string? srid { get; set; }
+
+        public DigiWayMapServicesGeoJson2AccouncementImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -40,19 +46,17 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken = default
         )
         {
-            var zohodata = await GetDataFromZoho.RequestDataFromZoho(
-                settings.ZohoConfig.ServiceUrl,
-                settings.ZohoConfig.ClientId,
-                settings.ZohoConfig.ClientSecret,
-                settings.ZohoConfig.AuthUrl,
-                settings.ZohoConfig.Scope
-            );
+            if (identifier == null || source == null || srid == null)
+                throw new Exception("no identifier|source|srid defined");
 
-            var resultlist = new List<UpdateDetail>();
+            List<UpdateDetail> resultlist = new List<UpdateDetail>();
 
-            resultlist.Add(await ImportData(zohodata, cancellationToken));
+            ////UPDATE all data
+            var data = await GetData(cancellationToken);            
+ 
+            resultlist.Add(await ImportData(data, cancellationToken));
 
-            //Disable Data not in feratel list
+            //Disable Data not in list
             resultlist.Add(await SetDataNotinListToInactive(cancellationToken));
 
             return GenericResultsHelper.MergeUpdateDetail(
@@ -60,8 +64,14 @@ namespace OdhApiImporter.Helpers
             );
         }
 
+        //Get Data from Source
+        private async Task<GeoJsonFeatureCollectionMapServices?> GetData(CancellationToken cancellationToken)
+        {
+            return await GetDigiwayData.GetDigiWayGeoJsonDataFromMapSercvicesAsync(settings.DigiWayConfig[identifier].ServiceUrl, settings.DigiWayConfig[identifier].Password);
+        }
+
         private async Task<UpdateDetail> ImportData(
-            IEnumerable<ZohoRootobject> hikingtrailclosureszoho,
+            GeoJsonFeatureCollectionMapServices datacollection,
             CancellationToken cancellationToken            
         )
         {
@@ -69,7 +79,7 @@ namespace OdhApiImporter.Helpers
             int newcounter = 0;
             int errorcounter = 0;
             
-            foreach (var hikingtrailclosure in hikingtrailclosureszoho)
+            foreach (var hikingtrailclosure in datacollection.features)
             {
                 var importresult = await ImportDataSingle(hikingtrailclosure);
 
@@ -88,7 +98,7 @@ namespace OdhApiImporter.Helpers
         }
 
         private async Task<UpdateDetail> ImportDataSingle(
-            ZohoRootobject hikingtrailclosure
+            GeoJsonFeatureMapServices digiwaydata
         )
         {
             string idtoreturn = "";
@@ -98,23 +108,23 @@ namespace OdhApiImporter.Helpers
 
             try
             {
-                idtoreturn = "urn:announcements:zoho:" + hikingtrailclosure.ID;
+                idtoreturn = "urn:announcements:tirol.mapservices.eu:" + digiwaydata.id;
 
                 idlistinterface.Add(idtoreturn);
 
                 //var query = QueryFactory
                 //    .Query("announcements")
                 //    .Select("data")
-                //    .Where("id", "urn:announcements:zoho:" + hikingtrailclosure.ID);
+                //    .Where("id", "urn:announcements:tirol.mapservices.eu:" + digiwaydata.id);
 
                 //var announcementindb = await query.GetObjectSingleAsync<Announcement>();
 
-                var announcementparsed = ParseZohoDataToAnnouncement.Parse(hikingtrailclosure);
+                var announcementparsed = ParseMapServicesDataToAnnouncement.Parse(digiwaydata);
 
 
                 var queryresult = await InsertDataToDB(
                     announcementparsed,
-                    hikingtrailclosure
+                    digiwaydata
                 );
 
                 newcounter = newcounter + queryresult.created ?? 0;
@@ -127,7 +137,7 @@ namespace OdhApiImporter.Helpers
                     new ImportLog()
                     {
                         sourceid = idtoreturn,
-                        sourceinterface = "zoho.announcement",
+                        sourceinterface = "digiway." + identifier,
                         success = true,
                         error = "",
                     }
@@ -143,7 +153,7 @@ namespace OdhApiImporter.Helpers
                     new ImportLog()
                     {
                         sourceid = idtoreturn,
-                        sourceinterface = "zoho.announcement",
+                        sourceinterface = "digiway." + identifier,
                         success = false,
                         error = ex.Message,
                     }
@@ -163,7 +173,7 @@ namespace OdhApiImporter.Helpers
 
         private async Task<PGCRUDResult> InsertDataToDB(
             Announcement announcement,
-            ZohoRootobject announcementraw
+            GeoJsonFeatureMapServices digiwaydata
         )
         {
             try
@@ -173,21 +183,21 @@ namespace OdhApiImporter.Helpers
                     announcement,
                     Helper.LicenseHelper.GetLicenseforAnnouncement
                 );
-                
+
                 //Remove Set PublishedOn not set automatically
                 //eventshort.CreatePublishedOnList();
 
-                var rawdataid = await InsertInRawDataDB(announcementraw);
+                var rawdataid = await InsertInRawDataDB(digiwaydata);
 
                 //TO CHECK rawdataid is not there!
 
                 return await QueryFactory.UpsertData<Announcement>(
                     new UpsertableAnnouncement(announcement),
                     new DataInfo("announcements", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
-                    new EditInfo("zoho.announcement.import", importerURL),
+                    new EditInfo("tirol.mapservices.eu.announcement.import", importerURL),
                     new CRUDConstraints(),
-                    new CompareConfig(true, false)                    
-                );     
+                    new CompareConfig(true, false)
+                );
 
             }
             catch (Exception ex)
@@ -196,17 +206,17 @@ namespace OdhApiImporter.Helpers
             }
         }
 
-        private async Task<int> InsertInRawDataDB(ZohoRootobject announcementraw)
+        private async Task<int> InsertInRawDataDB(GeoJsonFeatureMapServices announcementraw)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
-                    datasource = "eurac",
+                    datasource = "tirol.mapservices.eu",
                     importdate = DateTime.Now,
                     raw = JsonConvert.SerializeObject(announcementraw),
-                    sourceinterface = "sentieri_opendatahub",
-                    sourceid = announcementraw.ID,
-                    sourceurl = "https://creatorapp.zoho.com/",
+                    sourceinterface = "trailclosures",
+                    sourceid = announcementraw.id,
+                    sourceurl = "https://tirol.mapservices.eu/nefos_app/web/api/closures",
                     type = "announcement",
                     license = "open",
                     rawformat = "json",
@@ -226,13 +236,13 @@ namespace OdhApiImporter.Helpers
             try
             {
                 //Begin SetDataNotinListToInactive
-                var idlistdb = await GetAllDataBySource(new List<string>() { "digiway.zoho" });
+                var idlistdb = await GetAllDataBySource(new List<string>() { "tirol.mapservices.eu" });
 
                 var idstodelete = idlistdb.Where(p => !idlistinterface.Any(p2 => p2 == p));
 
                 foreach (var idtodelete in idstodelete)
                 {
-                    var result = await DeleteOrDisableData<WebcamInfoLinked>(idtodelete, false);
+                    var result = await DeleteOrDisableData<Announcement>(idtodelete, false);
 
                     updateresult = updateresult + result.Item1;
                     deleteresult = deleteresult + result.Item2;
@@ -243,11 +253,11 @@ namespace OdhApiImporter.Helpers
                 WriteLog.LogToConsole(
                     "",
                     "dataimport",
-                    "deactivate.zoho.announcement",
+                    "deactivate.tirol.mapservices.eu.announcement",
                     new ImportLog()
                     {
                         sourceid = "",
-                        sourceinterface = "zoho.announcement",
+                        sourceinterface = "digiway." + identifier,
                         success = false,
                         error = ex.Message,
                     }

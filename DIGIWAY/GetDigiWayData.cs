@@ -118,6 +118,19 @@ namespace DIGIWAY
             //return JsonConvert.DeserializeObject<GeoJsonFeatureCollection>(responsetask);                       
         }
 
+        public static async Task<GeoJsonFeatureCollectionMapServices?> GetDigiWayGeoJsonDataFromMapSercvicesAsync(
+           string serviceurl,
+           string apitoken
+       )
+        {
+            //Request
+            HttpResponseMessage response = await GetDigiwayDataFromService("", "", serviceurl + "?" + apitoken);
+
+            var responsetask = await response.Content.ReadAsStringAsync();
+
+            return JsonConvert.DeserializeObject<GeoJsonFeatureCollectionMapServices>(responsetask);                       
+        }
+
         #endregion
 
         #region GeoJsonFromSHPResponse        

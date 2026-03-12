@@ -3244,6 +3244,26 @@ namespace OdhApiImporter.Controllers
                                             null,
                                             cancellationToken);
                 }
+                else if (digiwayconfig.Source == "tirol.mapservices.eu" && digiwayconfig.Format == "geojson")
+                {
+                    string tabletowrite = "announcements";                    
+
+                    DigiWayMapServicesGeoJson2AccouncementImportHelper digiwayimporthelper = new DigiWayMapServicesGeoJson2AccouncementImportHelper(
+                        settings,
+                        QueryFactory,
+                        tabletowrite,
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+                    
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                         null,

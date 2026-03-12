@@ -304,4 +304,18 @@ namespace DIGIWAY.Model.GeoJsonReadModel
         public string GeometryType { get; set; }
         public Dictionary<string, object> Attributes { get; set; } = new Dictionary<string, object>();
     }
+
+    public class GeoJsonFeatureCollectionMapServices
+    {
+        public string type { get; set; }
+        public ICollection<GeoJsonFeatureMapServices> features { get; set; }
+    }
+
+    public class GeoJsonFeatureMapServices
+    {
+        public Geometry geometry { get; set; }
+        public string type { get; set; }
+        public string id { get; set; }
+        public Dictionary<string, object> properties { get; set; } = new Dictionary<string, object>();
+    }
 }
