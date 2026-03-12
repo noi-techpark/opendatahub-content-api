@@ -65,13 +65,13 @@ namespace OdhApiImporter.Helpers
         }
 
         //Get Data from Source
-        private async Task<GeoJsonFeatureCollectionMapServices?> GetData(CancellationToken cancellationToken)
+        private async Task<ICollection<GeoJsonFeature>?> GetData(CancellationToken cancellationToken)
         {
             return await GetDigiwayData.GetDigiWayGeoJsonDataFromMapSercvicesAsync(settings.DigiWayConfig[identifier].ServiceUrl, settings.DigiWayConfig[identifier].Password);
         }
 
         private async Task<UpdateDetail> ImportData(
-            GeoJsonFeatureCollectionMapServices datacollection,
+            ICollection<GeoJsonFeature> datacollection,
             CancellationToken cancellationToken            
         )
         {
@@ -79,9 +79,9 @@ namespace OdhApiImporter.Helpers
             int newcounter = 0;
             int errorcounter = 0;
             
-            foreach (var hikingtrailclosure in datacollection.features)
+            foreach (var data in datacollection)
             {
-                var importresult = await ImportDataSingle(hikingtrailclosure);
+                var importresult = await ImportDataSingle(data);
 
                 newcounter = newcounter + importresult.created ?? newcounter;
                 updatecounter = updatecounter + importresult.updated ?? updatecounter;
@@ -98,7 +98,7 @@ namespace OdhApiImporter.Helpers
         }
 
         private async Task<UpdateDetail> ImportDataSingle(
-            GeoJsonFeatureMapServices digiwaydata
+            GeoJsonFeature digiwaydata
         )
         {
             string idtoreturn = "";
@@ -108,40 +108,36 @@ namespace OdhApiImporter.Helpers
 
             try
             {
-                idtoreturn = "urn:announcements:tirol.mapservices.eu:" + digiwaydata.id;
+                idtoreturn = "urn:announcements:tirol.mapservices.eu:" + digiwaydata.Attributes["id"].ToString();
 
                 idlistinterface.Add(idtoreturn);
 
-                //var query = QueryFactory
-                //    .Query("announcements")
-                //    .Select("data")
-                //    .Where("id", "urn:announcements:tirol.mapservices.eu:" + digiwaydata.id);
+                //Import only data with Geometries (To chek)
+                if (digiwaydata.Geometry != null && digiwaydata.Geometry.Length > 0)
+                {
+                    var announcementparsed = ParseMapServicesDataToAnnouncement.Parse(digiwaydata);
 
-                //var announcementindb = await query.GetObjectSingleAsync<Announcement>();
+                    var queryresult = await InsertDataToDB(
+                        announcementparsed,
+                        digiwaydata
+                    );
 
-                var announcementparsed = ParseMapServicesDataToAnnouncement.Parse(digiwaydata);
+                    newcounter = newcounter + queryresult.created ?? 0;
+                    updatecounter = updatecounter + queryresult.updated ?? 0;
 
-
-                var queryresult = await InsertDataToDB(
-                    announcementparsed,
-                    digiwaydata
-                );
-
-                newcounter = newcounter + queryresult.created ?? 0;
-                updatecounter = updatecounter + queryresult.updated ?? 0;
-
-                WriteLog.LogToConsole(
-                    idtoreturn,
-                    "dataimport",
-                    "single.announcement",
-                    new ImportLog()
-                    {
-                        sourceid = idtoreturn,
-                        sourceinterface = "digiway." + identifier,
-                        success = true,
-                        error = "",
-                    }
-                );
+                    WriteLog.LogToConsole(
+                        idtoreturn,
+                        "dataimport",
+                        "single.announcement",
+                        new ImportLog()
+                        {
+                            sourceid = idtoreturn,
+                            sourceinterface = "digiway." + identifier,
+                            success = true,
+                            error = "",
+                        }
+                    );
+                }
 
             }
             catch (Exception ex)
@@ -173,7 +169,7 @@ namespace OdhApiImporter.Helpers
 
         private async Task<PGCRUDResult> InsertDataToDB(
             Announcement announcement,
-            GeoJsonFeatureMapServices digiwaydata
+            GeoJsonFeature digiwaydata
         )
         {
             try
@@ -206,16 +202,21 @@ namespace OdhApiImporter.Helpers
             }
         }
 
-        private async Task<int> InsertInRawDataDB(GeoJsonFeatureMapServices announcementraw)
+        private async Task<int> InsertInRawDataDB(GeoJsonFeature announcementraw)
         {
+            var serializer = NetTopologySuite.IO.GeoJsonSerializer.Create();
+            var settings = new JsonSerializerSettings();
+            foreach (var converter in serializer.Converters)
+                settings.Converters.Add(converter);            
+
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
                 {
                     datasource = "tirol.mapservices.eu",
                     importdate = DateTime.Now,
-                    raw = JsonConvert.SerializeObject(announcementraw),
+                    raw = JsonConvert.SerializeObject(announcementraw, settings),
                     sourceinterface = "trailclosures",
-                    sourceid = announcementraw.id,
+                    sourceid = announcementraw.Attributes["id"].ToString(),
                     sourceurl = "https://tirol.mapservices.eu/nefos_app/web/api/closures",
                     type = "announcement",
                     license = "open",
@@ -274,7 +275,5 @@ namespace OdhApiImporter.Helpers
                 error = errorresult,
             };
         }
-
-
     }
 }

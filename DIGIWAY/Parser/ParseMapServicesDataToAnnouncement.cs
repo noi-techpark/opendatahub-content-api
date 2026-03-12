@@ -2,18 +2,19 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Amazon.Runtime.Internal.Transform;
 using DataModel;
+using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using DIGIWAY.Model.GeoJsonReadModel;
 
 namespace DIGIWAY
 {
     public class ParseMapServicesDataToAnnouncement
     {
-        public static IEnumerable<Announcement> ParseList(IEnumerable<GeoJsonFeatureMapServices> objectlist)
+        public static IEnumerable<Announcement> ParseList(ICollection<GeoJsonFeature> objectlist)
         {
             List<Announcement> announcementlist = new List<Announcement>();
 
@@ -28,7 +29,7 @@ namespace DIGIWAY
             return announcementlist;
         }
 
-        public static Announcement Parse(GeoJsonFeatureMapServices data)
+        public static Announcement Parse(GeoJsonFeature data)
         {
             if (data == null)
                 return null;
@@ -38,44 +39,88 @@ namespace DIGIWAY
             //Mapping Object
             announcement.Mapping = new Dictionary<string, IDictionary<string,string>>();
             var mapping = new Dictionary<string, string>();
-            mapping.Add("id", data.id);
-            //if (String.IsNullOrEmpty(data.Note))
-            //    mapping.Add("note", data.Note);
-            //if (String.IsNullOrEmpty(data.Numero_sentiero))
-            //    mapping.Add("numero_sentiero", data.Numero_sentiero);
-            //if (String.IsNullOrEmpty(data.Denominazione_sentiero))
-            //    mapping.Add("denominazione_sentiero", data.Denominazione_sentiero);
-            //if (String.IsNullOrEmpty(data.Posizione.display_value))
-            //    mapping.Add("display_value", data.Posizione.display_value);
-            //if (String.IsNullOrEmpty(data.Posizione.country))
-            //    mapping.Add("country", data.Posizione.country);
-            //if (String.IsNullOrEmpty(data.Posizione.district_city))
-            //    mapping.Add("district_city", data.Posizione.district_city);
-            //if (String.IsNullOrEmpty(data.Stato))
-            //    mapping.Add("stato_stato.stato", data.Stato);
-
-            //announcement.Mapping.TryAddOrUpdate("zoho", mapping);
+            
+            //Go trough all Attributes ensure id is on first place
+            foreach(var value in data.Attributes.OrderBy(a => a.Key == "id" ? 0 : 1)) 
+            {
+                if (value.Value != null)
+                {
+                    //Check if data is nested and create .
+                    if (value.Value is NetTopologySuite.Features.AttributesTable nestedTable)
+                    {
+                        foreach (var nestedKey in nestedTable.GetNames())
+                        {
+                            var nestedValue = nestedTable[nestedKey];
+                            if (nestedValue != null)
+                            {
+                                mapping.Add($"{value.Key}.{nestedKey}", nestedValue.ToString());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        mapping.Add(value.Key, value.Value.ToString());
+                    }
+                        
+                }
+            }
+          
+            announcement.Mapping.TryAddOrUpdate("tirol.mapservices.eu", mapping);
 
             ////TO Check add ContactInfos?
 
-            //announcement.Id = "urn:announcements:zoho:" + data.ID;
-            //announcement.Source = "digiway.zoho";            
+            announcement.Id = "urn:announcements:tirol.mapservices.eu:" + data.Attributes["id"].ToString();
+            announcement.Source = "tirol.mapservices.eu";            
 
-            //announcement.Active = true;
-            //announcement.Detail = new Dictionary<string, DetailGeneric>();
+            announcement.Active = true;
+            announcement.Shortname = data.Attributes["name"].ToString();
 
-            //DetailGeneric detail = new DetailGeneric() { Language = "it", Title = data.Codice_sentiero, BaseText = $"Stato: {data.Stato}"};
+            announcement.StartTime = data.Attributes.ContainsKey("startDate") && data.Attributes["startDate"] != null ? Convert.ToDateTime(data.Attributes["startDate"].ToString()) : null;
+             
+            announcement.EndTime = data.Attributes.ContainsKey("endDate") && data.Attributes["endDate"]!= null ? Convert.ToDateTime(data.Attributes["endDate"].ToString()) : null;
 
-            //announcement.Detail.TryAddOrUpdate("it", detail);
+            announcement.Detail = new Dictionary<string, DetailGeneric>();
 
-            //announcement.Shortname = data.Codice_sentiero;
+            DetailGeneric detail = new DetailGeneric() { 
+                Language = "de", 
+                Title = data.Attributes["name"].ToString(), 
+                BaseText = data.Attributes["description"].ToString() + data.Attributes["diversionDescription"] != null ? " " + data.Attributes["diversionDescription"].ToString() : "" };
 
-            //announcement.Geo = new Dictionary<string, GpsInfo>()
-            //{
-            //    { "position", new GpsInfo() { Latitude = double.Parse(data.Posizione.latitude, CultureInfo.InvariantCulture), Longitude = double.Parse(data.Posizione.longitude, CultureInfo.InvariantCulture), Default = true, Gpstype = "position", Geometry = $"POINT ({data.Posizione.longitude} {data.Posizione.latitude})"  } }
-            //};
+            announcement.Detail.TryAddOrUpdate("de", detail);
 
-            //announcement.HasLanguage = new List<string>() { "it" };
+
+            Dictionary<string, GpsInfo> gpsinfolist = new Dictionary<string, GpsInfo>();
+
+            if (data.Geometry != null && data.Geometry.Length > 0)
+            {              
+                gpsinfolist.TryAddOrUpdate("track", new GpsInfo()
+                {
+                    Default = true,
+                    Geometry = data.Geometry.AsText()
+                });
+
+                //IS this needed?
+
+                //get first point of geometry
+                var point = data.Geometry.Coordinates.FirstOrDefault();
+                if (point != null)
+                {
+                    gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
+                    {
+                        Default = false,
+                        Altitude = null,
+                        AltitudeUnitofMeasure = "m",
+                        Gpstype = "position",
+                        //Use only first digits otherwise point and track will differ
+                        Latitude = point.Y,
+                        Longitude = point.X
+                    });
+                }
+            }
+
+            announcement.Geo = gpsinfolist;
+
+            announcement.HasLanguage = new List<string>() { "de" };
 
             announcement._Meta = new Metadata() { Id = announcement.Id, Source = announcement.Source, Reduced = false, Type = "announcement" };
 

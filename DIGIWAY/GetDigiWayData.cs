@@ -118,7 +118,7 @@ namespace DIGIWAY
             //return JsonConvert.DeserializeObject<GeoJsonFeatureCollection>(responsetask);                       
         }
 
-        public static async Task<GeoJsonFeatureCollectionMapServices?> GetDigiWayGeoJsonDataFromMapSercvicesAsync(
+        public static async Task<ICollection<GeoJsonFeature>?> GetDigiWayGeoJsonDataFromMapSercvicesAsync(
            string serviceurl,
            string apitoken
        )
@@ -128,7 +128,13 @@ namespace DIGIWAY
 
             var responsetask = await response.Content.ReadAsStringAsync();
 
-            return JsonConvert.DeserializeObject<GeoJsonFeatureCollectionMapServices>(responsetask);                       
+
+            var reader = new GeoJsonFileReader();
+
+            var featureCollection = reader.ReadGeoJsonString(responsetask);
+
+            // Convert to simple features for easier access
+            return reader.GetFeatures(featureCollection);                   
         }
 
         #endregion
