@@ -751,7 +751,7 @@ namespace OdhApiCore.Controllers.api
                             userroles: UserRolesToFilterEndpoint("ODHTag")
                         )
                         .ApplyRawFilter(rawfilter)
-                        .ApplyOrdering(
+                        .ApplyOrdering_GeneratedColumns(
                             new PGGeoSearchResult() { geosearch = false },
                             rawsort,
                             "data #>>'\\{MainEntity\\}', data#>>'\\{Shortname\\}'"
@@ -1371,7 +1371,7 @@ namespace OdhApiCore.Controllers.api
                             userroles: UserRolesToFilterEndpoint("Article")
                         )
                         .ApplyRawFilter(rawfilter)
-                        .ApplyOrdering(new PGGeoSearchResult() { geosearch = false }, rawsort);
+                        .ApplyOrdering_GeneratedColumns(new PGGeoSearchResult() { geosearch = false }, rawsort);
 
                 var compiled = query.Compiler.Compile(query);
 
@@ -1787,7 +1787,7 @@ namespace OdhApiCore.Controllers.api
                             getbyrooms: false
                         )
                         .ApplyRawFilter(rawfilter)
-                        .ApplyOrdering(
+                        .ApplyOrdering_GeneratedColumns(
                             new PGGeoSearchResult() { geosearch = false },
                             rawsort,
                             orderby

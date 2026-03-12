@@ -993,7 +993,7 @@ namespace OdhApiCore.Filters
                     userroles: new List<string>() { "IDM" }
                 ) //Availability Search only for IDM Users therefore no filter Closed Data, no reduced data
                 .OrderBySeed(ref seed, "data #>>'\\{Shortname\\}' ASC")
-                .GeoSearchFilterAndOrderby(geosearchresult);
+                .GeoSearchFilterAndOrderby_GeneratedColumns(geosearchresult);
 
             return await query.GetAsync<AccoBookListRaw>();
         }

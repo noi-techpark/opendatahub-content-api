@@ -266,7 +266,7 @@ namespace OdhApiCore.Controllers
                     q => q.FilterAdditionalDataByCondition(additionalfilter)
                 )
                 .ApplyRawFilter(rawfilter)
-                .ApplyOrdering(
+                .ApplyOrdering_GeneratedColumns(
                     new PGGeoSearchResult() { geosearch = false },
                     rawsort,
                     "data#>>'\\{Shortname\\}'"

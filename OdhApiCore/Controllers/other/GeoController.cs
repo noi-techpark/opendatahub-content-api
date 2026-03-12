@@ -177,7 +177,7 @@ namespace OdhApiCore.Controllers
                     //.When(!String.IsNullOrEmpty(type), x => x.Where("type", type))
                     .SearchFilter(new List<string>() { "Name" }.ToArray(), searchfilter)
                     .ApplyRawFilter(rawfilter)
-                    .ApplyOrdering(
+                    .ApplyOrdering_GeneratedColumns(
                         new PGGeoSearchResult() { geosearch = false },
                         rawsort,
                         "data #>>'\\{Type\\}', data#>>'\\{Name\\}'"

@@ -1865,7 +1865,7 @@ namespace OdhApiCore.Controllers.api
                         userroles: UserRolesToFilterEndpoint(endpoint)
                     )
                     .ApplyRawFilter(rawfilter)
-                    .ApplyOrdering(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort)
+                    .ApplyOrdering_GeneratedColumns(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort)
                     .FilterDataByAccessRoles(UserRolesToFilterEndpoint(endpoint));
 
                 //IF getasidarray set simply return array of ids
@@ -1933,7 +1933,7 @@ namespace OdhApiCore.Controllers.api
                         userroles: UserRolesToFilterEndpoint(endpoint)
                     )
                     .ApplyRawFilter(rawfilter)
-                    .ApplyOrdering(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort)
+                    .ApplyOrdering_GeneratedColumns(ref seed, new PGGeoSearchResult() { geosearch = false }, rawsort)
                     .FilterDataByAccessRoles(UserRolesToFilterEndpoint(endpoint));
 
                 //IF getasidarray set simply return array of ids

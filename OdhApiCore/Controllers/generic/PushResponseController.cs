@@ -179,7 +179,7 @@ namespace OdhApiCore.Controllers
                         additionalfilter: additionalfilter
                     )
                     .ApplyRawFilter(rawfilter)
-                    .ApplyOrdering(
+                    .ApplyOrdering_GeneratedColumns(
                         new PGGeoSearchResult() { geosearch = false },
                         rawsort,
                         "gen_objectid, gen_lastchange DESC"
@@ -201,7 +201,7 @@ namespace OdhApiCore.Controllers
                             additionalfilter: additionalfilter
                         )
                         .ApplyRawFilter(rawfilter)
-                        .ApplyOrdering(
+                        .ApplyOrdering_GeneratedColumns(
                             new PGGeoSearchResult() { geosearch = false },
                             rawsort,
                             "gen_lastchange DESC"

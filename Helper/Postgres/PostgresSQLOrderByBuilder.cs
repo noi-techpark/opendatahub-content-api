@@ -82,26 +82,6 @@ namespace Helper
                 return query;
         }
 
-        public static Query ApplyOrdering(
-            this Query query,
-            ref string? seed,
-            PGGeoSearchResult geosearchresult,
-            string? rawsort,
-            string? overwritestandardorder = null
-        ) =>
-            (geosearchresult, rawsort) switch
-            {
-                (PGGeoSearchResult geosr, _) when geosr.geosearch =>
-                    query.GeoSearchFilterAndOrderby(geosr),
-                (_, string raw) => query.OrderByRaw(RawQueryParser.Transformer.TransformSort(raw)),
-                _ => query.OrderBySeed(
-                    ref seed,
-                    overwritestandardorder != null
-                        ? overwritestandardorder
-                        : "data#>>'\\{Shortname\\}' ASC"
-                ),
-            };
-
         public static Query ApplyOrdering_GeneratedColumns(
             this Query query,
             ref string? seed,
@@ -117,24 +97,6 @@ namespace Helper
                 _ => query.OrderBySeed(
                     ref seed,
                     overwritestandardorder != null ? overwritestandardorder : "gen_shortname ASC"
-                ),
-            };
-
-        public static Query ApplyOrdering(
-            this Query query,
-            PGGeoSearchResult geosearchresult,
-            string? rawsort,
-            string? overwritestandardorder = null
-        ) =>
-            (geosearchresult, rawsort) switch
-            {
-                (PGGeoSearchResult geosr, _) when geosr.geosearch =>
-                    query.GeoSearchFilterAndOrderby(geosr),
-                (_, string raw) => query.OrderByRaw(RawQueryParser.Transformer.TransformSort(raw)),
-                _ => query.OrderByRaw(
-                    overwritestandardorder != null
-                        ? overwritestandardorder
-                        : "data#>>'\\{Shortname\\}' ASC"
                 ),
             };
 

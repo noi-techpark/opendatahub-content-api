@@ -482,7 +482,7 @@ namespace OdhApiCore.Controllers.api
                     .ApplyRawFilter(rawfilter)
                     //.ApplyOrdering_GeneratedColumns(ref seed, geosearchresult, rawsort, sortifseednull);
                     //.When(polygonsearchresult != null, x => x.WhereRaw(PostgresSQLHelper.GetGeoWhereInPolygon_GeneratedColumns(polygonsearchresult.wktstring, polygonsearchresult.polygon, polygonsearchresult.srid, polygonsearchresult.operation)))
-                    .ApplyOrdering(
+                    .ApplyOrdering_GeneratedColumns(
                         ref seed,
                         new PGGeoSearchResult() { geosearch = false },
                         rawsort,

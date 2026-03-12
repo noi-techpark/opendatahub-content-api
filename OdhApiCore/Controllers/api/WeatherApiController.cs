@@ -1375,7 +1375,7 @@ namespace OdhApiCore.Controllers
                                 )
                             )
                     )
-                    .ApplyOrdering(ref seed, geosearchresult, rawsort);
+                    .ApplyOrdering_GeneratedColumns(ref seed, geosearchresult, rawsort);
                 //.ApplyOrdering_GeneratedColumns(ref seed, geosearchresult, rawsort);//
 
                 //IF getasidarray set simply return array of ids
