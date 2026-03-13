@@ -103,22 +103,22 @@ namespace DIGIWAY
 
                 //IS this needed?
 
-                //DO not create points
-                ////get first point of geometry
-                //var point = data.Geometry.Coordinates.FirstOrDefault();
-                //if (point != null)
-                //{
-                //    gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
-                //    {
-                //        Default = false,
-                //        Altitude = null,
-                //        AltitudeUnitofMeasure = "m",
-                //        Gpstype = "position",
-                //        //Use only first digits otherwise point and track will differ
-                //        Latitude = point.Y,
-                //        Longitude = point.X
-                //    });
-                //}
+                //DO not create points ? LET this for webcomponent
+                //get first point of geometry
+                var point = data.Geometry.Coordinates.FirstOrDefault();
+                if (point != null)
+                {
+                    gpsinfolist.TryAddOrUpdate("position", new GpsInfo()
+                    {
+                        Default = false,
+                        Altitude = null,
+                        AltitudeUnitofMeasure = "m",
+                        Gpstype = "position",
+                        //Use only first digits otherwise point and track will differ
+                        Latitude = point.Y,
+                        Longitude = point.X
+                    });
+                }
             }
 
             announcement.Geo = gpsinfolist;
