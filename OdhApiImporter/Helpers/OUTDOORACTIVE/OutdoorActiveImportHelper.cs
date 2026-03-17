@@ -6,6 +6,7 @@ using DataModel;
 using Helper;
 using Helper.Generic;
 using LTSAPI;
+using OdhNotifier;
 using OUTDOORACTIVE;
 using OUTDOORACTIVE.Parser;
 using SqlKata.Execution;
@@ -27,14 +28,18 @@ namespace OdhApiImporter.Helpers
 
         public bool syncelevation { get; set; }
 
+        private IOdhPushNotifier OdhPushnotifier;
+
         public OutdoorActiveImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
             : base(settings, queryfactory, table, importerURL)
         {
+            this.OdhPushnotifier = odhpushnotifier;
             updatefrom = DateTime.Now.AddDays(-1);
             syncelevation = false;
         }
@@ -124,6 +129,7 @@ namespace OdhApiImporter.Helpers
             int newcounter = 0;
             int deletecounter = 0;
             int errorcounter = 0;
+            IDictionary<string, NotifierResponse>? pushresponse = null;
 
             //id
             string returnid = "";
@@ -201,6 +207,19 @@ namespace OdhApiImporter.Helpers
                             newcounter = newcounter + pgcrudresult.created ?? 0;
                             updatecounter = updatecounter + pgcrudresult.updated ?? 0;
 
+                            //Push to MP
+                            //Push Data if changed
+                            //push modified data to all published Channels
+                            //TODO adding the push status to the response
+                            pushresponse = await ImportUtils.CheckIfObjectChangedAndPush(
+                                OdhPushnotifier,
+                                pgcrudresult,
+                                pgcrudresult.id,
+                                "poi",
+                                null,
+                                "outdooractive." + type + ".update"
+                            );
+
                             WriteLog.LogToConsole(
                                 odhactivitypoiindb.Id,
                                 "dataimport",
@@ -256,6 +275,7 @@ namespace OdhApiImporter.Helpers
                 updated = updatecounter,
                 deleted = 0,
                 error = errorcounter,
+                pushed = pushresponse
             };
         }
 
