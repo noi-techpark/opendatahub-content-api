@@ -14,37 +14,7 @@ services:
       ASPNETCORE_LcsConfig__ServiceUrl: ${LCS_SERVICEURL}
       ASPNETCORE_SiagConfig__Username: ${SIAG_USER}
       ASPNETCORE_SiagConfig__Password: ${SIAG_PSWD}
-      ASPNETCORE_SiagConfig__ServiceUrl: ${SIAG_SERVICEURL}
-      ASPNETCORE_EBMSConfig__Username: ${EBMS_USER}
-      ASPNETCORE_EBMSConfig__Password: ${EBMS_PASS}
-      ASPNETCORE_EBMSConfig__ServiceUrl: ${EBMS_SERVICEURL}
-      ASPNETCORE_DSSConfig__Username: ${DSS_USER}
-      ASPNETCORE_DSSConfig__Password: ${DSS_PSWD}
-      ASPNETCORE_DSSConfig__ServiceUrl: ${DSS_SERVICEURL}
-      ASPNETCORE_A22Config__Username: ${A22_USER}
-      ASPNETCORE_A22Config__Password: ${A22_PSWD}
-      ASPNETCORE_A22Config__ServiceUrl: ${A22_SERVICEURL}
-      ASPNETCORE_FeratelConfig__Username: ${FERATEL_USER}
-      ASPNETCORE_FeratelConfig__Password: ${FERATEL_PSWD}
-      ASPNETCORE_FeratelConfig__ServiceUrl: ${FERATEL_SERVICEURL}
-      ASPNETCORE_PanocloudConfig__Username: ${PANOCLOUD_USER}
-      ASPNETCORE_PanocloudConfig__Password: ${PANOCLOUD_PSWD}
-      ASPNETCORE_PanocloudConfig__ServiceUrl: ${PANOCLOUD_SERVICEURL}
-      ASPNETCORE_PanomaxConfig__Username: ${PANOMAX_USER}
-      ASPNETCORE_PanomaxConfig__Password: ${PANOMAX_PSWD}
-      ASPNETCORE_PanomaxConfig__ServiceUrl: ${PANOMAX_SERVICEURL}
-      ASPNETCORE_SuedtirolWeinConfig__Username: ${SUEDTIROLWEIN_USER}
-      ASPNETCORE_SuedtirolWeinConfig__Password: ${SUEDTIROLWEIN_PSWD}
-      ASPNETCORE_SuedtirolWeinConfig__ServiceUrl: ${SUEDTIROLWEIN_SERVICEURL}
-      ASPNETCORE_MusportConfig__Username: ${MUSPORT_USER}
-      ASPNETCORE_MusportConfig__Password: ${MUSPORT_PSWD}
-      ASPNETCORE_MusportConfig__ServiceUrl: ${MUSPORT_SERVICEURL}
-      ASPNETCORE_NinjaConfig__Username: ${NINJA_USER}
-      ASPNETCORE_NinjaConfig__Password: ${NINJA_PSWD}
-      ASPNETCORE_NinjaConfig__ServiceUrl: ${NINJA_SERVICEURL}
-      ASPNETCORE_LoopTecConfig__Username: ${LOOPTEC_USER}
-      ASPNETCORE_LoopTecConfig__Password: ${LOOPTEC_PSWD}
-      ASPNETCORE_LoopTecConfig__ServiceUrl: ${LOOPTEC_SERVICEURL}
+      ASPNETCORE_SiagConfig__ServiceUrl: ${SIAG_SERVICEURL}      
       ASPNETCORE_XmlConfig__Xmldir: ${XMLDIR}
       ASPNETCORE_XmlConfig__XmldirWeather: ${XMLDIR}
       ASPNETCORE_S3ImageresizerConfig__Url: ${IMG_URL}
@@ -84,56 +54,6 @@ services:
       ASPNETCORE_LTSApiOpen__Password: ${LTSAPI_OPENDATA_PASSWORD}
       ASPNETCORE_LTSApiOpen__XLSClientid: ${LTSAPI_OPENDATA_XLTSCLIENTID}
       ASPNETCORE_LTSApiOpen__Opendata: ${LTSAPI_OPENDATA_OPENDATA}
-      ASPNETCORE_DigiWayConfig__cyclewaystyrol__ServiceUrl: ${DIGIWAY_CYCLEWAYSTIROL_URL}
-      ASPNETCORE_DigiWayConfig__cyclewaystyrol__Source: ${DIGIWAY_CYCLEWAYSTIROL_SOURCE}
-      ASPNETCORE_DigiWayConfig__cyclewaystyrol__Format: ${DIGIWAY_CYCLEWAYSTIROL_FORMAT}
-      ASPNETCORE_DigiWayConfig__cyclewaystyrol__SRid: ${DIGIWAY_CYCLEWAYSTIROL_SRID}
-      ASPNETCORE_DigiWayConfig__mountainbikeroutes__ServiceUrl: ${DIGIWAY_MTBROUTES_URL}
-      ASPNETCORE_DigiWayConfig__mountainbikeroutes__Source: ${DIGIWAY_MTBROUTES_SOURCE}
-      ASPNETCORE_DigiWayConfig__mountainbikeroutes__Format: ${DIGIWAY_MTBROUTES_FORMAT}
-      ASPNETCORE_DigiWayConfig__mountainbikeroutes__SRid: ${DIGIWAY_MTBROUTES_SRID}
-      ASPNETCORE_DigiWayConfig__hikingtrails__ServiceUrl: ${DIGIWAY_HIKINGTRAILS_URL}
-      ASPNETCORE_DigiWayConfig__hikingtrails__Source: ${DIGIWAY_HIKINGTRAILS_SOURCE}
-      ASPNETCORE_DigiWayConfig__hikingtrails__Format: ${DIGIWAY_HIKINGTRAILS_FORMAT}
-      ASPNETCORE_DigiWayConfig__hikingtrails__SRid: ${DIGIWAY_HIKINGTRAILS_SRID}
-      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__ServiceUrl: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_URL}
-      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__Source: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_SOURCE}
-      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__Format: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_FORMAT}
-      ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__SRid: ${DIGIWAY_INTERMUNICIPALCYCLINGROUTES_SRID}
-      ASPNETCORE_DigiWayConfig__radrouten_tirol__ServiceUrl: ${DIGIWAY_RADROUTENTYROL_URL}
-      ASPNETCORE_DigiWayConfig__radrouten_tirol__Source: ${DIGIWAY_RADROUTENTYROL_SOURCE}
-      ASPNETCORE_DigiWayConfig__radrouten_tirol__Format: ${DIGIWAY_RADROUTENTYROL_FORMAT}
-      ASPNETCORE_DigiWayConfig__radrouten_tirol__SRid: ${DIGIWAY_RADROUTENTYROL_SRID}
-      ASPNETCORE_DigiWayConfig__hikintrail_e5__ServiceUrl: ${DIGIWAY_HIKINGTRAILE5_URL}
-      ASPNETCORE_DigiWayConfig__hikintrail_e5__Source: ${DIGIWAY_HIKINGTRAILE5_SOURCE}
-      ASPNETCORE_DigiWayConfig__hikintrail_e5__Format: ${DIGIWAY_HIKINGTRAILE5_FORMAT}
-      ASPNETCORE_DigiWayConfig__hikintrail_e5__SRid: ${DIGIWAY_HIKINGTRAILE5_SRID}
-      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__ServiceUrl: ${DIGIWAY_TNMTB_URL}
-      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__Source: ${DIGIWAY_TNMTB_SOURCE}
-      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__Format: ${DIGIWAY_TNMTB_FORMAT}
-      ASPNETCORE_DigiWayConfig__mtb_percorsi_v__SRid: ${DIGIWAY_TNMTB_SRID}
-      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__ServiceUrl: ${DIGIWAY_TNCYCLINGROUTE_URL}
-      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__Source: ${DIGIWAY_TNCYCLINGROUTE_SOURCE}
-      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__Format: ${DIGIWAY_TNCYCLINGROUTE_FORMAT}
-      ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__SRid: ${DIGIWAY_TNCYCLINGROUTE_SRID}
-      ASPNETCORE_DigiWayConfig__sentieri_della_sat__ServiceUrl: ${DIGIWAY_TNHIKINGTRAIL_URL}
-      ASPNETCORE_DigiWayConfig__sentieri_della_sat__Source: ${DIGIWAY_TNHIKINGTRAIL_SOURCE}
-      ASPNETCORE_DigiWayConfig__sentieri_della_sat__Format: ${DIGIWAY_TNHIKINGTRAIL_FORMAT}
-      ASPNETCORE_DigiWayConfig__sentieri_della_sat__SRid: ${DIGIWAY_TNHIKINGTRAIL_SRID}
-      ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl: ${GTFSAPI_STATIMETABLES_URL}
-      ASPNETCORE_ZOHOConfig__ClientId: ${DIGIWAY_ZOHO_CLIENTID}
-      ASPNETCORE_ZOHOConfig__ClientSecret: ${DIGIWAY_ZOHO_CLIENTSECRET}
-      ASPNETCORE_ZOHOConfig__ServiceUrl: ${DIGIWAY_ZOHO_SERVICEURL}
-      ASPNETCORE_ZOHOConfig__AuthUrl: ${DIGIWAY_ZOHO_AUTHURL}
-      ASPNETCORE_ZOHOConfig__Scope: ${DIGIWAY_ZOHO_SCOPE}
-      ASPNETCORE_DigiWayConfig__accessibletrails_austria__ServiceUrl: ${DIGIWAY_ATACCESSIBLETRAIL_URL}
-      ASPNETCORE_DigiWayConfig__accessibletrails_austria__Source: ${DIGIWAY_ATACCESSIBLETRAIL_SOURCE}
-      ASPNETCORE_DigiWayConfig__accessibletrails_austria__Format: ${DIGIWAY_ATACCESSIBLETRAIL_FORMAT}
-      ASPNETCORE_DigiWayConfig__accessibletrails_austria__SRid: ${DIGIWAY_ATACCESSIBLETRAIL_SRID}
-      ASPNETCORE_DigiWayConfig__trailclosures_austria__ServiceUrl: ${DIGIWAY_ATTRAILCLOSURE_URL}      
-      ASPNETCORE_DigiWayConfig__trailclosures_austria__Source: ${DIGIWAY_ATTRAILCLOSURE_SOURCE}
-      ASPNETCORE_DigiWayConfig__trailclosures_austria__Format: ${DIGIWAY_ATTRAILCLOSURE_FORMAT}
-      ASPNETCORE_DigiWayConfig__trailclosures_austria__SRid: ${DIGIWAY_ATTRAILCLOSURE_SRID}
     restart: unless-stopped
     ports:
       - "${SERVER_PORT}:80"
