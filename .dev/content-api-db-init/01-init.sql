@@ -152,7 +152,7 @@ end if;
 if source = 'hgv' then return (array['IDM']);
 end if;
 -- If data is from source a22 only access A22 --
-if source = 'a22' then return (array['A22']);
+if source = 'a22' and closeddata then return (array['A22']);
 end if;
 -- If data is from source LTS and reduced give access to all others --
 if source = 'lts' and reduced and not closeddata then return (array['A22','ANONYMOUS','STA']);
@@ -177,7 +177,7 @@ end if;
 if source = 'hgv' then return (array['IDM']);
 end if;
 -- If data is from source a22 only access A22 --
-if source = 'a22' then return (array['A22']);
+if source = 'a22' and closeddata then return (array['A22']);
 end if;
 -- If data is not from source lts and a22 and not closed data give all access --
 if source <> 'lts' and source <> 'a22' then return (array['A22','ANONYMOUS','IDM','STA']);
