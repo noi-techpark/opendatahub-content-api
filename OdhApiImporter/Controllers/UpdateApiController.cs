@@ -3058,7 +3058,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "smgpois",
-                    UrlGeneratorStatic("OUTDOORACTIVE/" + datatype)
+                    UrlGeneratorStatic("OUTDOORACTIVE/" + datatype),
+                    OdhPushnotifier
                 );
 
                 //supported '2h', '3d', '15m', or '1w'

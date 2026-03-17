@@ -134,6 +134,9 @@ services:
       ASPNETCORE_DigiWayConfig__trailclosures_austria__Source: ${DIGIWAY_ATTRAILCLOSURE_SOURCE}
       ASPNETCORE_DigiWayConfig__trailclosures_austria__Format: ${DIGIWAY_ATTRAILCLOSURE_FORMAT}
       ASPNETCORE_DigiWayConfig__trailclosures_austria__SRid: ${DIGIWAY_ATTRAILCLOSURE_SRID}
+      ASPNETCORE_OutdooractiveConfig__ServiceUrl: ${OUTDOORACTIVE_SERVICE_URL}
+      ASPNETCORE_OutdooractiveConfig__ServiceUrlDetail: ${OUTDOORACTIVE_SERVICE_URL_DETAIL}
+      ASPNETCORE_OutdooractiveConfig__Password: ${OUTDOORACTIVE_PSWD}
     restart: unless-stopped
     ports:
       - "${SERVER_PORT}:80"
