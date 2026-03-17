@@ -209,13 +209,12 @@ namespace OdhApiImporter.Helpers
 
                             //Push to MP
                             //Push Data if changed
-                            //push modified data to all published Channels
-                            //TODO adding the push status to the response
+                            //push modified data to all published Channels                            
                             pushresponse = await ImportUtils.CheckIfObjectChangedAndPush(
                                 OdhPushnotifier,
                                 pgcrudresult,
                                 pgcrudresult.id,
-                                "poi",
+                                "odhactivitypoi",
                                 null,
                                 "outdooractive." + type + ".update"
                             );

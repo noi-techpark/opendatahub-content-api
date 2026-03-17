@@ -122,19 +122,40 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     objecttosave.Description = data.description;
 
                     objecttosave.MainEntity = "odhactivitypoi";
-                    objecttosave.ValidForEntity = new List<string>()
+
+                    //objecttosave.ValidForEntity = new List<string>()
+                    //{
+                    //    "odhactivitypoi",
+                    //    "gastronomy",
+                    //};
+                    if (objecttosave.ValidForEntity == null)
+                        objecttosave.ValidForEntity = new List<string>() { "odhactivitypoi", "gastronomy" };
+                    else
                     {
-                        "odhactivitypoi",
-                        "gastronomy",
-                    };
+                        if (!objecttosave.ValidForEntity.Contains("odhactivitypoi"))
+                            objecttosave.ValidForEntity.Add("odhactivitypoi");
+                        if (!objecttosave.ValidForEntity.Contains("gastronomy"))
+                            objecttosave.ValidForEntity.Add("gastronomy");
+                    }
+
                     objecttosave.Shortname = objecttosave.TagName.ContainsKey("en")
                         ? objecttosave.TagName["en"]
                         : objecttosave.TagName.FirstOrDefault().Value;
-                    objecttosave.Types = new List<string>()
+                    
+                    //objecttosave.Types = new List<string>()
+                    //{
+                    //    "gastronomycategory",
+                    //    "categorycodes",
+                    //};
+                    if (objecttosave.Types == null)
+                        objecttosave.Types = new List<string>() { "gastronomycategory", "categorycodes" };
+                    else
                     {
-                        "gastronomycategory",
-                        "categorycodes",
-                    };
+                        if (!objecttosave.Types.Contains("categorycodes"))
+                            objecttosave.Types.Add("categorycodes");
+                        if (!objecttosave.Types.Contains("gastronomycategory"))
+                            objecttosave.Types.Add("gastronomycategory");
+                    }
 
                     //objecttosave.IDMCategoryMapping = null;
                     objecttosave.PublishDataWithTagOn = null;

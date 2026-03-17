@@ -121,11 +121,28 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     objecttosave.Description = data.description;
 
                     objecttosave.MainEntity = "odhactivitypoi";
-                    objecttosave.ValidForEntity = new List<string>() { "odhactivitypoi" };
+
+                    //objecttosave.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    if (objecttosave.ValidForEntity == null)
+                        objecttosave.ValidForEntity = new List<string>() { "odhactivitypoi" };
+                    else
+                    {
+                        if (!objecttosave.ValidForEntity.Contains("odhactivitypoi"))
+                            objecttosave.ValidForEntity.Add("odhactivitypoi");
+                    }
+
                     objecttosave.Shortname = objecttosave.TagName.ContainsKey("en")
                         ? objecttosave.TagName["en"]
                         : objecttosave.TagName.FirstOrDefault().Value;
-                    objecttosave.Types = new List<string>() { "tags" + data.entityType.ToLower() };
+
+                    //objecttosave.Types = new List<string>() { "tags" + data.entityType.ToLower() };
+                    if (objecttosave.Types == null)
+                        objecttosave.Types = new List<string>() { "tags" + data.entityType.ToLower() };
+                    else
+                    {
+                        if (!objecttosave.Types.Contains("tags" + data.entityType.ToLower()))
+                            objecttosave.Types.Add("tags" + data.entityType.ToLower());
+                    }
 
                     if (!typelistlts.Contains("ltstags"))
                         typelistlts.Add("ltstags");
