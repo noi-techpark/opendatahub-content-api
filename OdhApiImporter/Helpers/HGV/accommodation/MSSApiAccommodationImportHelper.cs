@@ -167,6 +167,7 @@ namespace OdhApiImporter.Helpers.HGV
                     //Add Cincode and id to mapping
                     await AddHGVMappingToAccommodation(data, accommodation);
 
+                    //TODO here error occurs
                     await accommodation.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "hgv" }, null);
 
                     var result = await InsertDataToDB(accommodation, data);

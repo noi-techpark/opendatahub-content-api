@@ -149,7 +149,13 @@ namespace OdhApiImporter.Helpers.HGV
 
                 foreach (var data in rooms)
                 {
-                    var result = await InsertDataToDB(data, hgvdata["de"]);
+                    //Pick xml of room where rawdata corresponds
+                    var rawdata = new List<XElement>();
+                    rawdata.Add(hgvdata["de"].Elements("result").Elements("hotel").Elements("channel").Elements("room_description").Elements("room").Where(x => x.Element("room_id").Value == data.HGVId).FirstOrDefault());
+                    rawdata.Add(hgvdata["it"].Elements("result").Elements("hotel").Elements("channel").Elements("room_description").Elements("room").Where(x => x.Element("room_id").Value == data.HGVId).FirstOrDefault());
+                    rawdata.Add(hgvdata["en"].Elements("result").Elements("hotel").Elements("channel").Elements("room_description").Elements("room").Where(x => x.Element("room_id").Value == data.HGVId).FirstOrDefault());
+
+                    var result = await InsertDataToDB(data, rawdata);
 
                     updatedetails.Add(new UpdateDetail()
                     {
@@ -207,7 +213,7 @@ namespace OdhApiImporter.Helpers.HGV
 
         private async Task<PGCRUDResult> InsertDataToDB(
             AccommodationRoomLinked objecttosave,
-            XElement hgvdata
+            IEnumerable<XElement> hgvdata
         )
         {
             try
@@ -227,7 +233,7 @@ namespace OdhApiImporter.Helpers.HGV
                 //Populate Tags (Id/Source/Type)
                 //await objecttosave.UpdateTagsExtension(QueryFactory);
 
-                var rawdataid = await InsertInRawDataDB(hgvdata);
+                var rawdataid = await InsertInRawDataDB(objecttosave.HGVId, hgvdata);
 
                 return await QueryFactory.UpsertData<AccommodationRoomLinked>(
                     objecttosave,
@@ -244,7 +250,7 @@ namespace OdhApiImporter.Helpers.HGV
             }
         }
 
-        private async Task<int> InsertInRawDataDB(XElement data)
+        private async Task<int> InsertInRawDataDB(string id, IEnumerable<XElement> data)
         {
             return await QueryFactory.InsertInRawtableAndGetIdAsync(
                 new RawDataStore()
@@ -253,7 +259,7 @@ namespace OdhApiImporter.Helpers.HGV
                     importdate = DateTime.Now,
                     raw = data.ToString(),
                     sourceinterface = "accommodations.rooms",
-                    sourceid = data.Element("room_id").Value,
+                    sourceid = id,
                     sourceurl = "http://www.easymailing.eu/mss/mss_service_test.php",
                     type = "accommodations.rooms",
                     license = "closed",

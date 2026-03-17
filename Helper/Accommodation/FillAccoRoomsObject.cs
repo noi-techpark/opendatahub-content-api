@@ -85,7 +85,8 @@ namespace Helper.AccommodationRoomsExtension
             //To check
             var roomids = roomdict.SelectMany(x => x.Value).ToList();
 
-            var roomidstoremove = data.AccoRoomInfo.Select(x => x.Id).Except(roomids);
+            //remove only from source we are checking
+            var roomidstoremove = data.AccoRoomInfo.Where(x => sourcestosync.Contains(x.Source)).Select(x => x.Id).Except(roomids).ToList();
 
             foreach (var roomidtoremove in roomidstoremove)
             {
