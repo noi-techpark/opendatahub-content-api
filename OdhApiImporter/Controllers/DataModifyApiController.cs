@@ -1412,43 +1412,6 @@ namespace OdhApiImporter.Controllers
             );
         }
 
-        #endregion
-
-        #region Measuringpoint
-
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("MeasuringpointToMeasuringpointV2")]
-        public async Task<IActionResult> MeasuringpointToMeasuringpointV2(
-            string? id,
-            bool? forceupdate,
-            int? takethefirst,
-            CancellationToken cancellationToken
-        )
-        {
-            CustomDataOperation customdataoperation = new CustomDataOperation(
-                settings,
-                QueryFactory
-            );
-            var objectscount = await customdataoperation.MeasuringpointToMeasuringpointV2();        
-
-            return Ok(
-                new UpdateResult
-                {
-                    operation = "Modify Measuringpoint",
-                    updatetype = "custom",
-                    otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount.Item1,
-                    exception = objectscount.Item2,
-                    created = 0,
-                    deleted = 0,
-                    id = "",
-                    updated = 0,
-                    success = true,
-                }
-            );
-        }
-
-        #endregion
+        #endregion        
     }
 }

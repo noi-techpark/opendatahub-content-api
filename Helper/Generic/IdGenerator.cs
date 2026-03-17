@@ -72,7 +72,7 @@ namespace Helper
                 Event or EventLinked or EventFlattened => IDStyle.uppercase,
                 ODHActivityPoi or ODHActivityPoiLinked => IDStyle.lowercase,
                 Package or PackageLinked => IDStyle.uppercase,
-                Measuringpoint or MeasuringpointLinked or MeasuringpointV2 => IDStyle.uppercase,
+                MeasuringpointV2 => IDStyle.uppercase,
                 WebcamInfo or WebcamInfoLinked => IDStyle.uppercase,
                 Article or ArticlesLinked => IDStyle.uppercase,
                 DDVenue => IDStyle.uppercase,
@@ -124,8 +124,7 @@ namespace Helper
                 Type _ when odhtype == typeof(Package) || odhtype == typeof(PackageLinked) =>
                     IDStyle.uppercase,
                 Type _
-                    when odhtype == typeof(Measuringpoint) || odhtype == typeof(MeasuringpointLinked)
-                        || odhtype == typeof(MeasuringpointV2) => IDStyle.uppercase,
+                    when odhtype == typeof(MeasuringpointV2) => IDStyle.uppercase,
                 Type _ when odhtype == typeof(WebcamInfo) || odhtype == typeof(WebcamInfoLinked) =>
                     IDStyle.uppercase,
                 Type _ when odhtype == typeof(Article) || odhtype == typeof(ArticlesLinked) =>

@@ -409,20 +409,7 @@ namespace Helper
             var licenseholder = @"https://www.hgv.it";
 
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
-        }
-
-        public static LicenseInfo GetLicenseforMeasuringpoint(Measuringpoint data, bool opendata = false)
-        {
-            var licensetype = "Closed";
-            var licenseholder = @"https://www.lts.it";
-
-            if (opendata)
-            {                
-                licensetype = "CC0";
-            }
-
-            return GetLicenseInfoobject(licensetype, "", licenseholder, !opendata);
-        }
+        }        
 
         public static LicenseInfo GetLicenseforMeasuringpoint(MeasuringpointV2 data, bool opendata = false)
         {
