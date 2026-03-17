@@ -35,7 +35,7 @@ namespace OUTDOORACTIVE
         {
             try
             {
-                string requesturl = serviceurl + ltstype + "-new-template";
+                string requesturl = serviceurl + ltstype;
 
                 GetData getdata = new GetData(
                     requesturl,

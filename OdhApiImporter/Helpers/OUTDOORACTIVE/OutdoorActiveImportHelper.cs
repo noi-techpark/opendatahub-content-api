@@ -42,9 +42,9 @@ namespace OdhApiImporter.Helpers
         public void SetType(string typepassed)
         {
             if (typepassed == "activity")
-                this.type = "lts-tours";
+                this.type = "lts-tours-new-template";
             else if (typepassed == "poi")
-                this.type = "lts-points";
+                this.type = "lts-poi-new-template";
             else
                 throw new Exception("invalid type passed");
         }
