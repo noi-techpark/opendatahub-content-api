@@ -3357,7 +3357,8 @@ namespace OdhApiImporter.Controllers
                           settings,
                           QueryFactory,
                           tabletowrite,
-                          UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                          UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                          OdhPushnotifier
                       );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3380,7 +3381,8 @@ namespace OdhApiImporter.Controllers
                             settings,
                             QueryFactory,
                             tabletowrite,
-                            UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                            UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                            OdhPushnotifier
                         );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3403,7 +3405,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         tabletowrite,
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                        OdhPushnotifier
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3422,7 +3425,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "spatialdatas",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                        OdhPushnotifier
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3444,7 +3448,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         tabletowrite,
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                        OdhPushnotifier
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3465,7 +3470,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         tabletowrite,
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                        OdhPushnotifier
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3530,7 +3536,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "announcements",
-                    UrlGeneratorStatic("ZOHO/TrailClosures")
+                    UrlGeneratorStatic("ZOHO/TrailClosures"),
+                    OdhPushnotifier
                     );
 
                 updatedetail = await digiwaytrailclosuresimporthelper.SaveDataToODH(

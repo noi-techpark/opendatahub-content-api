@@ -210,12 +210,10 @@ namespace OdhApiImporter.Helpers
                             //Push to MP
                             //Push Data if changed
                             //push modified data to all published Channels                            
-                            pushresponse = await ImportUtils.CheckIfObjectChangedAndPush(
-                                OdhPushnotifier,
+                            pushresponse = await CheckIfObjectChangedAndPush(                                
                                 pgcrudresult,
                                 pgcrudresult.id,
-                                "odhactivitypoi",
-                                null,
+                                "odhactivitypoi",                                
                                 "outdooractive." + type + ".update"
                             );
 
@@ -279,12 +277,10 @@ namespace OdhApiImporter.Helpers
                                 //Push to MP
                                 //Push Data if changed
                                 //push modified data to all published Channels                            
-                                pushresponse = await ImportUtils.CheckIfObjectChangedAndPush(
-                                    OdhPushnotifier,
+                                pushresponse = await CheckIfObjectChangedAndPush(                                    
                                     pgcrudresult,
                                     pgcrudresult.id,
-                                    "odhactivitypoi",
-                                    null,
+                                    "odhactivitypoi",                                    
                                     "outdooractive." + type + ".update"
                                 );
 

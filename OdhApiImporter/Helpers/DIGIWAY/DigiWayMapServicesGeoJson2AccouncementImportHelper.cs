@@ -12,6 +12,7 @@ using Helper.Tagging;
 using Microsoft.AspNetCore.Components.Forms;
 using NetTopologySuite.Densify;
 using Newtonsoft.Json;
+using OdhNotifier;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -33,9 +34,10 @@ namespace OdhApiImporter.Helpers
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) 
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) 
         {
             idlistinterface = new List<string>();
         }        

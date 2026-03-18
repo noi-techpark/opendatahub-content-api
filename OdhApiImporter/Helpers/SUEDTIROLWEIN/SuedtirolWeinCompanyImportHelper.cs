@@ -9,6 +9,7 @@ using Helper.Generic;
 using Helper.IDM;
 using Helper.Location;
 using Helper.Tagging;
+using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -35,7 +36,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             string importerURL,
             IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) 
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) 
         {
             this.OdhPushnotifier = odhpushnotifier;
         }
@@ -257,12 +258,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 //Push Data if changed
                 //push modified data to all published Channels
                 //TODO adding the push status to the response
-                result.pushed = await ImportUtils.CheckIfObjectChangedAndPush(
-                    OdhPushnotifier,
+                result.pushed = await CheckIfObjectChangedAndPush(                    
                     result,
                     result.id,
                     "poi",
-                    null,
                     "suedtirolwein.companies.update"
                 );
 
@@ -352,17 +351,14 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     //Push Data if changed
                     //push modified data to all published Channels
                     //TODO adding the push status to the response
-                    result.pushed = await ImportUtils.CheckIfObjectChangedAndPush(
-                        OdhPushnotifier,
+                    result.pushed = await CheckIfObjectChangedAndPush(                        
                         result,
                         idtodelete,
-                        "poi",
-                        null,
+                        "poi",                        
                         "suedtirolwein.update"
                     );
 
-                    updateresult += result.updated ?? 0;
-                    deleteresult += result.deleted ?? 0;
+                    updatedetaillist.Add(result);
                 }
             }
             catch (Exception ex)
