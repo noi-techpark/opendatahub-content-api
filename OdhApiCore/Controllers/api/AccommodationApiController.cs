@@ -1126,7 +1126,7 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("accommodations")
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    .Where("gen_id", id.ToUpper())
                     .FilterDataByAccessRoles(UserRolesToFilter)
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
