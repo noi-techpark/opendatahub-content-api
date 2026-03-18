@@ -271,10 +271,10 @@ namespace DataModel
         string? Webcamurl { get; set; }
     }
 
-    public interface IWebcamAware
-    {
-        ICollection<Webcam>? Webcam { get; set; }
-    }
+    //public interface IWebcamAware
+    //{
+    //    ICollection<Webcam>? Webcam { get; set; }
+    //}
 
     public interface IOperationSchedules
     {

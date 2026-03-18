@@ -21,6 +21,7 @@ namespace OdhApiCore.Controllers.api
         public DateTimeOffset? begin;
         public DateTimeOffset? end;
         public IDictionary<string, List<string>> tagdict;
+        public string? lastchange;
 
         //New Publishedonlist
 
@@ -32,16 +33,18 @@ namespace OdhApiCore.Controllers.api
             string? tagfilter,
             string? begindate,
             string? enddate,
+            string? lastchange,
             CancellationToken cancellationToken
         )
-        {            
+        {
             return new AnnouncementHelper(
                 idfilter,
                 languagefilter,
                 sourcefilter,
                 tagfilter,
                 begindate,
-                enddate
+                enddate,
+                lastchange
             );
         }
 
@@ -51,9 +54,11 @@ namespace OdhApiCore.Controllers.api
             string? sourcefilter,
             string? tagfilter,
             string? begindate,
-            string? enddate
+            string? enddate,
+            string? lastchange
         )
-        {   
+        {
+            this.lastchange = lastchange;   
             // announcements id are forced to be lowercase
             idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToLower());
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);

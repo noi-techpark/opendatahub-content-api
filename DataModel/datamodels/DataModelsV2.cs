@@ -1215,5 +1215,85 @@ namespace DataModel
         public IDictionary<string, string> Taxonomy { get; set; }
     }
 
-    #endregion        
+    #endregion
+
+    #region Transport
+
+    public class Trip : Generic, IGeoAware, IActivateable
+    {
+        public bool Active { get; set; }
+        
+        //Route
+        public Route Route { get; set;}
+
+        //Agency
+        public class TripAgency
+        {
+            public string Shortname { get; set; }
+            public IDictionary<string, ContactInfos> ContactInfos { get; set; }
+        }
+
+        public Trip.TripAgency Agency { get; set; }
+
+        //Stops
+        public IEnumerable<StopTime> StopTimes { get; set; }
+
+        //Computed from StopTimes: GEOMETRYCOLLECTION of all stop geometries + connecting LINESTRING, for visualization
+        public IDictionary<string, GpsInfo> Geo { get; set; }
+    }
+
+    public class Route
+    {
+        //route.txt
+
+        //https://gtfs.org/documentation/schedule/reference/#routestxt
+        public string Shortname { get; set; }
+        public IDictionary<string, DetailGeneric> Detail { get; set; } //route_long_name route_desc
+
+        public ICollection<string>? TagIds { get; set; } //route_type
+
+        //calendar.txt
+        public class RouteCalendar
+        {
+            //calendar.txt
+
+            public OperationSchedule OperationSchedule { get; set; }
+
+            //calendar_dates.txt
+
+            public IEnumerable<DateTime>? AdditionalDates { get; set; }
+            public IEnumerable<DateTime>? ExcludedDates { get; set; }
+        }
+
+        public Route.RouteCalendar Calendar { get; set; }
+    }
+    public class StopTime
+    {
+        //stops.txt
+        public string Shortname { get; set; } //stop_code
+
+        public IDictionary<string, DetailGeneric> Detail { get; set; } //route_long_name route_desc
+
+        public IDictionary<string, GpsInfo> Geo { get; set; }
+
+        //public ICollection<string>? TagIds { get; set; } //location_type 
+
+        //stoptimes.txt
+        public DateTime ArrivalTime { get; set; }
+        public DateTime DepartureTime { get; set; }
+    }
+
+    
+    #endregion    
+
+    #region SpatialData
+
+    public class SpatialData : Generic, IActivateable, IGeoAware
+    {
+        public bool Active { get; set; }        
+        public IDictionary<string, DetailGeneric> Detail { get; set; }        
+        public IDictionary<string, GpsInfo> Geo { get; set; }
+    }
+
+    #endregion
 }

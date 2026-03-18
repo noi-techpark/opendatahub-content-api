@@ -456,14 +456,7 @@ namespace Helper
                         break;
 
                     case "measuringpoint":
-                        if (mydata is MeasuringpointLinked)
-                        {
-                            if ((mydata as MeasuringpointLinked).Active)
-                            {
-                                publishedonlist.TryAddOrUpdateOnList("idm-marketplace");
-                            }
-                        }
-                        else if (mydata is MeasuringpointV2)
+                        if (mydata is MeasuringpointV2)
                         { 
                             if ((mydata as MeasuringpointV2).Active)
                             {

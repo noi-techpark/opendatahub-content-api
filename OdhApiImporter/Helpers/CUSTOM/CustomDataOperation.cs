@@ -11,7 +11,9 @@ using LTSAPI;
 using LTSAPI.Parser;
 using Microsoft.FSharp.Control;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using Newtonsoft.Json;
+using OdhNotifier;
 using SqlKata;
 using SqlKata.Execution;
 using System;
@@ -736,7 +738,7 @@ namespace OdhApiImporter.Helpers
 
             var data = await query.GetObjectListAsync<ODHActivityPoiLinked>();
             int i = 0;
-            
+
             foreach (var stapoi in data)
             {
                 bool save = false;
@@ -749,11 +751,11 @@ namespace OdhApiImporter.Helpers
                         save = true;
                     }
 
-                   
-                    if(save)
-                    { 
+
+                    if (save)
+                    {
                         //Save tp DB
-                      //TODO CHECK IF THIS WORKS
+                        //TODO CHECK IF THIS WORKS
                         var queryresult = await QueryFactory
                             .Query("smgpois")
                             .Where("id", stapoi.Id)
@@ -768,7 +770,7 @@ namespace OdhApiImporter.Helpers
                         i++;
 
                     }
-                   
+
                 }
             }
 
@@ -1347,7 +1349,7 @@ namespace OdhApiImporter.Helpers
 
                 eventshort.Detail = new Dictionary<string, Detail>();
 
-                foreach(var eventtitle in eventshort.EventTitle)
+                foreach (var eventtitle in eventshort.EventTitle)
                 {
                     Detail detail = new Detail();
                     detail.Language = eventtitle.Key;
@@ -1360,7 +1362,7 @@ namespace OdhApiImporter.Helpers
                     Detail detail = new Detail();
                     if (eventshort.Detail.ContainsKey(eventtext.Key))
                         detail = eventshort.Detail[eventtext.Key];
-                    
+
                     detail.Language = eventtext.Key;
                     detail.BaseText = eventtext.Value;
                     eventshort.Detail.TryAddOrUpdate(eventtext.Key, detail);
@@ -1459,6 +1461,68 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        public async Task<Tuple<int, List<IDictionary<string, NotifierResponse>>>> RemoveODHTagsFromEntity<T>(string type, string table, string tagname, IOdhPushNotifier odhpushnotifier)
+            where T : IIdentifiable, IPublishedOn
+        {
+
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From(table)
+                .SmgTagFilterOr_GeneratedColumn(new List<string>() { tagname })
+                .FilterReducedDataByRoles(new List<string>() { "IDM" });
+
+            var list = await query.GetObjectListAsync<T>();
+
+            int i = 0;
+            List<IDictionary<string, NotifierResponse>> pushresults = new List<IDictionary<string, NotifierResponse>>();
+
+            foreach (var jdata in list)
+            {
+                if (jdata is ISmgTags)
+                {
+                    bool update = false;
+                    if ((jdata as ISmgTags).SmgTags != null && (jdata as ISmgTags).SmgTags.Contains(tagname))
+                    {
+                        update = true;
+                        (jdata as ISmgTags).SmgTags.Remove(tagname);
+                    }
+
+                    if (update)
+                    {
+                        //Save tp DB                        
+                        var queryresult = await QueryFactory
+                            .Query(table)
+                            .Where("id", jdata.Id)
+                            .UpdateAsync(
+                                new JsonBData()
+                                {
+                                    id = jdata.Id,
+                                    data = new JsonRaw(jdata),
+                                }
+                            );
+
+                        //Push Data if changed
+                        //push modified data to all published Channels
+                        var pushed = await ImportUtils.CheckIfObjectChangedAndPush(
+                            odhpushnotifier,
+                            new PGCRUDResult() { id = jdata.Id, objectchanged = 1, compareobject = true, updated = 1, pushchannels = jdata.PublishedOn },
+                            jdata.Id,
+                            type,
+                            null,
+                            type + ".custommodify.update"
+                        );
+
+                        if (pushed != null)
+                            pushresults.Add(pushed);
+
+                        i++;
+                    }
+                }
+            }
+
+            return Tuple.Create(i, pushresults);
+        }
+
+
         #endregion
 
         #region Tags
@@ -1554,7 +1618,7 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
-        
+
         public async Task<int> TagParentIdFix()
         {
             //Load all data from PG and resave
@@ -1571,7 +1635,7 @@ namespace OdhApiImporter.Helpers
                 {
                     if (tag.Mapping["lts"].ContainsKey("parent_id"))
                     {
-                        if(tag.LTSTaggingInfo != null &&  tag.LTSTaggingInfo.ParentLTSRID != null)
+                        if (tag.LTSTaggingInfo != null && tag.LTSTaggingInfo.ParentLTSRID != null)
                         {
                             tag.Mapping["lts"]["parent_id"] = tag.LTSTaggingInfo.ParentLTSRID;
 
@@ -1589,10 +1653,10 @@ namespace OdhApiImporter.Helpers
 
                             i++;
                         }
-                        
+
                     }
 
-                    
+
                 }
             }
 
@@ -2008,58 +2072,58 @@ namespace OdhApiImporter.Helpers
 
             foreach (var odhtag in data)
             {
-                
-                    var tagquery = QueryFactory
-                        .Query("tags")
-                        .Select("data")
-                        .WhereInJsonb(new List<string>() { odhtag.Id }, tag => new { ODHTagIds = new[] { tag.ToLower() } });
 
-                    var taglist = await tagquery.GetObjectListAsync<TagLinked>();
+                var tagquery = QueryFactory
+                    .Query("tags")
+                    .Select("data")
+                    .WhereInJsonb(new List<string>() { odhtag.Id }, tag => new { ODHTagIds = new[] { tag.ToLower() } });
 
-                    var tag = taglist.FirstOrDefault();
+                var taglist = await tagquery.GetObjectListAsync<TagLinked>();
 
-                    if (tag != null)
+                var tag = taglist.FirstOrDefault();
+
+                if (tag != null)
+                {
+                    bool save = false;
+                    if (odhtag.TagName.ContainsKey("cs") || odhtag.TagName.ContainsKey("fr") || odhtag.TagName.ContainsKey("nl") || odhtag.TagName.ContainsKey("pl"))
+                        save = true;
+
+                    //Update Translations in FR/CS/PL/NL                                            
+                    if (odhtag.TagName.ContainsKey("cs"))
+                        tag.TagName.TryAddOrUpdate("cs", odhtag.TagName["cs"]);
+
+                    if (odhtag.TagName.ContainsKey("fr"))
+                        tag.TagName.TryAddOrUpdate("fr", odhtag.TagName["fr"]);
+
+                    if (odhtag.TagName.ContainsKey("nl"))
+                        tag.TagName.TryAddOrUpdate("nl", odhtag.TagName["nl"]);
+
+                    if (odhtag.TagName.ContainsKey("pl"))
+                        tag.TagName.TryAddOrUpdate("pl", odhtag.TagName["pl"]);
+
+
+                    if (save)
                     {
-                        bool save = false;
-                        if (odhtag.TagName.ContainsKey("cs") || odhtag.TagName.ContainsKey("fr") || odhtag.TagName.ContainsKey("nl") || odhtag.TagName.ContainsKey("pl"))
-                            save = true;
+                        var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                           tag,
+                           new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                           new EditInfo("tag.modify", "importer"),
+                           new CRUDConstraints(),
+                           new CompareConfig(false, false)
+                       );
 
-                        //Update Translations in FR/CS/PL/NL                                            
-                        if (odhtag.TagName.ContainsKey("cs"))
-                            tag.TagName.TryAddOrUpdate("cs", odhtag.TagName["cs"]);
-
-                        if (odhtag.TagName.ContainsKey("fr"))
-                            tag.TagName.TryAddOrUpdate("fr", odhtag.TagName["fr"]);
-
-                        if (odhtag.TagName.ContainsKey("nl"))
-                            tag.TagName.TryAddOrUpdate("nl", odhtag.TagName["nl"]);
-
-                        if (odhtag.TagName.ContainsKey("pl"))
-                            tag.TagName.TryAddOrUpdate("pl", odhtag.TagName["pl"]);
-
-
-                        if (save)
-                        {
-                            var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
-                               tag,
-                               new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
-                               new EditInfo("tag.modify", "importer"),
-                               new CRUDConstraints(),
-                               new CompareConfig(false, false)
-                           );
-
-                        if(pgcrudresult.updated != null && pgcrudresult.updated > 0)
+                        if (pgcrudresult.updated != null && pgcrudresult.updated > 0)
                             i++;
                     }
 
 
-                    }
-                    else
-                    {
+                }
+                else
+                {
                     //cannot find tag
-                        notfoundtags.Add(odhtag.Id);
-                    }                
-            }            
+                    notfoundtags.Add(odhtag.Id);
+                }
+            }
 
             return i;
         }
@@ -2125,7 +2189,7 @@ namespace OdhApiImporter.Helpers
                 });
 
                 shape.meta = new JsonRaw(metainfo);
-               
+
                 //Save tp DB
                 var queryresult = await QueryFactory.Query("geoshapes").Where("id", shape.id)
                      .UpdateAsync(shape);
@@ -2156,7 +2220,7 @@ namespace OdhApiImporter.Helpers
                 {
                     string originalid = data.Id;
 
-                    if(Helper.IdGenerator.GetIDStyle(data) == IDStyle.lowercase)
+                    if (Helper.IdGenerator.GetIDStyle(data) == IDStyle.lowercase)
                         data.Id = data.Id.Replace("_reduced", "");
                     else
                         data.Id = data.Id.Replace("_REDUCED", "");
@@ -2180,7 +2244,7 @@ namespace OdhApiImporter.Helpers
 
                 return i;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return 0;
             }
@@ -2188,7 +2252,7 @@ namespace OdhApiImporter.Helpers
 
 
         #endregion
-   
+
         #region WineAward
 
         public async Task<int> UpdateAllWineAwardIds()
@@ -2196,7 +2260,7 @@ namespace OdhApiImporter.Helpers
             //Load all data from PG and resave
             var query = QueryFactory.Query()
                 .SelectRaw("data")
-                .From("wines");                
+                .From("wines");
 
             var data = await query.GetObjectListAsync<WineLinked>();
             int i = 0;
@@ -2222,7 +2286,7 @@ namespace OdhApiImporter.Helpers
                     .Where("id", oldwineid)
                     .DeleteAsync();
             }
-            
+
             return i;
         }
 
@@ -2394,116 +2458,6 @@ namespace OdhApiImporter.Helpers
         }
 
 
-        #endregion       
-
-        #region Measuringpoint
-
-        public async Task<Tuple<int, string>> MeasuringpointToMeasuringpointV2()
-        {
-            //Load all data from PG and resave
-            var query = QueryFactory.Query().SelectRaw("data").From("measuringpoints");
-
-            var data = await query.GetObjectListAsync<MeasuringpointLinked>();
-            int i = 0;
-
-            List<Tuple<int, string>> results = new List<Tuple<int, string>>();
-
-            foreach (var measuringpoint in data)
-            {
-                results.Add(await UpdateMeasuringpointToNewDataModel(measuringpoint));
-            }
-
-            var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
-            var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
-
-            return Tuple.Create(updatedcount, String.Join(",", failed));
-        }
-
-        public async Task<Tuple<int, string>> UpdateMeasuringpointToNewDataModel(MeasuringpointLinked measuringpoint)
-        {
-            try
-            {
-                string reduced = "";
-                //If it is a reduced object
-                if (measuringpoint._Meta.Reduced)
-                    reduced = "_REDUCED";
-
-                //Save tp DB
-                //TODO Add all missing values
-                var measuringpoint2 = new MeasuringpointV2();
-                measuringpoint2.Id = measuringpoint.Id;
-                measuringpoint2.Active = measuringpoint.Active;
-
-                measuringpoint2.AreaIds = measuringpoint.AreaIds;
-                measuringpoint2.DistanceInfo = measuringpoint.DistanceInfo;
-                measuringpoint2.FirstImport = measuringpoint.FirstImport;
-                measuringpoint2.GpsInfo = measuringpoint.GpsInfo;
-                measuringpoint2.LastChange = measuringpoint.LastChange;
-                measuringpoint2.LastSnowDate = measuringpoint.LastSnowDate;
-                measuringpoint2.LastUpdate = measuringpoint.LastUpdate;
-                measuringpoint2.LicenseInfo = measuringpoint.LicenseInfo;
-                measuringpoint2.LocationInfo = measuringpoint.LocationInfo;
-                measuringpoint2.Mapping = measuringpoint.Mapping;
-                measuringpoint2.newSnowHeight = measuringpoint.newSnowHeight;
-                measuringpoint2.PublishedOn = measuringpoint.PublishedOn;
-                measuringpoint2.Shortname = measuringpoint.Shortname;
-                measuringpoint2.SkiAreaIds = measuringpoint.SkiAreaIds;
-                measuringpoint2._Meta = measuringpoint._Meta;
-                measuringpoint2.SnowHeight = measuringpoint.SnowHeight;
-                measuringpoint2.Source = measuringpoint.Source;
-                measuringpoint2.Temperature = measuringpoint.Temperature;
-                measuringpoint2.WeatherObservation = measuringpoint.WeatherObservation;
-
-                measuringpoint2.Detail = new Dictionary<string, DetailGeneric>()
-                {
-                    { "de", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "de" } },
-                    { "it", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "it" } },
-                    { "en", new DetailGeneric(){ Title = measuringpoint.Shortname, Language = "en" } }
-                };
-
-                measuringpoint2.HasLanguage = measuringpoint2.Detail.Keys.ToList();
-
-                //not needed at the moment
-                //measuringpoint2.Tags
-                //measuringpoint2.TagIds
-                //measuringpoint2.AdditionalProperties
-
-
-
-                //If Reduced use the ID without reduced
-                if (measuringpoint._Meta.Reduced)
-                {
-                    measuringpoint2.Id = measuringpoint2.Id.Replace("_REDUCED", "");
-                    measuringpoint2._Meta.Id = measuringpoint2.Id.Replace("_REDUCED", "");
-                }
-
-
-                var idtoupdate = measuringpoint2.Id;
-                if (!measuringpoint2.Id.Contains("_REDUCED"))
-                    idtoupdate = measuringpoint2.Id + reduced;
-
-
-                var queryresult = await QueryFactory
-                    .Query("measuringpoints")
-                    .Where("id", idtoupdate)
-                    //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
-                    .UpdateAsync(
-                        new JsonBData()
-                        {
-                            id = idtoupdate,
-                            data = new JsonRaw(measuringpoint2),
-                        }
-                    );
-
-                return Tuple.Create<int, string>(queryresult, measuringpoint2.Id);
-            }
-            catch (Exception ex)
-            {
-                return Tuple.Create<int, string>(0, measuringpoint.Id);
-            }
-        }
-
-
         #endregion
 
         #region Municipality
@@ -2555,299 +2509,4 @@ namespace OdhApiImporter.Helpers
 
         #endregion
     }
-
-    //public class ODHActivityPoiOld : ODHActivityPoiLinked
-    //{
-    //    public new IDictionary<string, List<Tags>> Tags { get; set; }
-    //}
-
-    #region obsolete
-
-    //public async Task<int> UpdateGeoshapeCreateMapping()
-    //{
-    //    //Load all data from PG and resave
-    //    var query = QueryFactory
-    //        .Query()
-    //        .SelectRaw("id,country,code_rip,code_reg,code_prov,code_cm,code_uts,istatnumber,abbrev,type_uts,name,name_alternative,shape_leng,shape_area,type,licenseinfo,meta,source,data,mapping,idstring")
-    //        .From("shapes");
-
-    //    //ST_AsText(geometry) as geometry,
-    //    var shapes = await query.GetAsync<GeoShapeDB>();
-
-    //    int i = 0;
-
-    //    foreach (var shape in shapes)
-    //    {
-    //        Dictionary<string, Dictionary<string, string>> Mapping = new Dictionary<string, Dictionary<string, string>>();
-    //        Dictionary<string, string> astatdict = new Dictionary<string, string>();
-    //        astatdict.Add("id", shape.id.ToString());
-    //        if (shape.code_rip != null)
-    //            astatdict.Add("code_rip", shape.code_rip.ToString());
-    //        if (shape.code_reg != null)
-    //            astatdict.Add("code_reg", shape.code_reg.ToString());
-    //        if (shape.code_cm != null)
-    //            astatdict.Add("code_cm", shape.code_cm.ToString());
-    //        if (shape.code_prov != null)
-    //            astatdict.Add("code_prov", shape.code_prov.ToString());
-    //        if (shape.type_uts != null)
-    //            astatdict.Add("type_uts", shape.type_uts);
-    //        if (shape.istatnumber != null)
-    //            astatdict.Add("istatnumber", shape.istatnumber);
-    //        if (shape.abbrev != null)
-    //            astatdict.Add("abbrev", shape.abbrev);
-    //        if (shape.name_alternative != null && shape.name_alternative != "0")
-    //            astatdict.Add("name_alternative", shape.name_alternative);
-    //        if (shape.shape_leng != null)
-    //            astatdict.Add("shape_leng", shape.shape_leng.ToString());
-    //        if (shape.shape_area != null)
-    //            astatdict.Add("shape_area", shape.shape_area.ToString());
-
-
-    //        Mapping.Add("istat", astatdict);
-
-    //        shape.mapping = new JsonRaw(Mapping);
-    //        shape.srid = "32632";
-    //        shape.idstring = shape.id + "_istat";
-
-    //        //Save tp DB
-    //        var queryresult = await QueryFactory.Query("shapes").Where("id", shape.id)
-    //             .UpdateAsync(shape);
-
-    //        i++;
-    //    }
-
-    //    return i;
-    //}
-
-    #endregion
-
-    #region Event Datamodel change
-
-        //public async Task<Tuple<int, string>> UpdateAllEventstonewDataModel(string? id)
-        //{
-        //    //Load all data from PG and resave
-        //    var query = QueryFactory.Query().SelectRaw("data").From("events")
-        //        .When(!String.IsNullOrEmpty(id), x => x.WhereRaw("gen_id ILIKE $$", id + "%"));
-
-        //    var data = await query.GetObjectListAsync<EventDBLinked>();
-        //    int i = 0;
-
-        //    List<Tuple<int, string>> results = new List<Tuple<int, string>>();
-
-        //    foreach (var myevent in data)
-        //    {
-        //        results.Add(await UpdateEventToNewDataModel(myevent));
-        //    }
-
-        //    var failed = results.Where(x => x.Item1 == 0).Select(x => x.Item2);
-        //    var updatedcount = results.Where(x => x.Item1 > 0).Sum(x => x.Item1);
-
-        //    return Tuple.Create(updatedcount, String.Join(",", failed));
-        //}
-
-        //public async Task<Tuple<int, string>> UpdateEventToNewDataModel(EventDBLinked myevent)
-        //{
-        //    string reduced = "";
-        //    //If it is a reduced object
-        //    if (myevent._Meta.Reduced)
-        //        reduced = "_REDUCED";
-
-        //    try
-        //    {
-        //        //Save tp DB
-        //        //TODO Add all missing values
-        //        var event2 = new EventLinked();
-        //        //event2.Altitude = myevent.Altitude;
-        //        event2.Active = myevent.Active;
-        //        event2.TagIds = myevent.TagIds;
-
-        //        if (event2.TagIds == null)
-        //            event2.TagIds = new List<string>();
-
-        //        //
-        //        event2.EventDate = myevent.EventDate;
-        //        event2.ContactInfos = myevent.ContactInfos;
-        //        event2.DateBegin = myevent.DateBegin;
-        //        event2.DateEnd = myevent.DateEnd;
-        //        event2.Detail = myevent.Detail;
-        //        event2.DistanceInfo = myevent.DistanceInfo;
-        //        event2.DistrictId = myevent.DistrictId;
-        //        event2.DistrictIds = myevent.DistrictIds;
-
-        //        if (myevent.EventAdditionalInfos != null)
-        //        {
-        //            event2.EventAdditionalInfos = new Dictionary<string, EventAdditionalInfos>();
-
-        //            foreach (var kvp in myevent.EventAdditionalInfos)
-        //            {
-        //                event2.EventAdditionalInfos.TryAddOrUpdate(kvp.Key, new EventAdditionalInfos()
-        //                {
-        //                    Language = kvp.Value.Language,
-        //                    Registration = kvp.Value.Reg,
-        //                    CancellationModality = kvp.Value.CancellationModality,
-        //                    Location = kvp.Value.Location,
-        //                    MeetingPoint = kvp.Value.Mplace,
-        //                    ServiceDescription = kvp.Value.ServiceDescription,
-        //                    WhatToBring = kvp.Value.WhatToBring
-        //                });
-        //            }
-        //        }
-
-
-        //        event2.EventBooking = myevent.EventBooking;
-        //        event2.EventDate = myevent.EventDate;
-        //        //event2.EventDateCounter = myevent.EventDateCounter;
-        //        //event2.EventDatesBegin = myevent.EventDatesBegin;
-        //        //event2.EventDatesEnd = myevent.EventDatesEnd;
-        //        event2.EventPrice = myevent.EventPrice;
-        //        event2.EventProperty = new EventProperty();
-        //        event2.EventPublisher = myevent.EventPublisher;
-
-        //        if (event2.EventPublisher != null)
-        //        {
-        //            foreach (var publisher in event2.EventPublisher)
-        //            {
-        //                if (publisher.Publish == 1)
-        //                    publisher.PublicationStatus = "suggestedForPublication";
-        //                if (publisher.Publish == 2)
-        //                    publisher.PublicationStatus = "approved";
-        //                if (publisher.Publish == 3)
-        //                    publisher.PublicationStatus = "rejected";
-        //            }
-        //        }
-
-        //        event2.EventUrls = myevent.EventUrls;
-        //        event2.EventVariants = myevent.EventVariants;
-
-        //        if (myevent.EventVariants == null && myevent.EventPrice != null)
-        //        {
-        //            //Transform EventPrice to Variant not needed
-        //        }
-
-
-        //        event2.FirstImport = myevent.FirstImport;
-
-        //        if (myevent.GpsInfo == null && myevent.GpsPoints != null)
-        //        {
-        //            event2.GpsInfo = new List<GpsInfo>();
-        //            foreach (var kvp in myevent.GpsPoints)
-        //            {
-        //                event2.GpsInfo.Add(new GpsInfo() { Altitude = kvp.Value.Altitude, AltitudeUnitofMeasure = kvp.Value.AltitudeUnitofMeasure, Gpstype = kvp.Value.Gpstype, Latitude = kvp.Value.Latitude, Longitude = kvp.Value.Longitude });
-        //            }
-        //        }
-        //        else
-        //            event2.GpsInfo = myevent.GpsInfo;
-
-
-        //        //event2.GpsPoints = myevent.GpsPoints;
-        //        //event2.Gpstype = myevent.Gpstype;
-        //        event2.HasLanguage = myevent.HasLanguage;
-        //        event2.Id = myevent.Id;
-        //        event2.ImageGallery = myevent.ImageGallery;
-        //        event2.LastChange = myevent.LastChange;
-        //        //event2.Latitude = myevent.Latitude;                
-        //        event2.LicenseInfo = myevent.LicenseInfo;
-        //        event2.LocationInfo = myevent.LocationInfo;
-        //        //event2.Longitude = myevent.Longitude;
-        //        event2.Mapping = myevent.Mapping;
-        //        //event2.OdhActive = myevent.OdhActive;
-        //        //event2.ODHTags = myevent.ODHTags; 
-        //        event2.OrganizerInfos = myevent.OrganizerInfos;
-        //        event2.EventProperty.EventOrganizerId = myevent.OrgRID;
-        //        event2.EventProperty.EventClassificationId = myevent.ClassificationRID;
-        //        event2.EventProperty.RegistrationRequired = myevent.SignOn != null ? myevent.SignOn == "1" ? true : false : null;
-        //        event2.EventProperty.TicketRequired = myevent.Ticket != null ? myevent.Ticket == "1" ? true : false : null;
-
-        //        event2.PublishedOn = myevent.PublishedOn;
-        //        event2.Shortname = myevent.Shortname;
-
-        //        event2.SmgActive = myevent.SmgActive;
-        //        event2.SmgTags = myevent.SmgTags;
-        //        event2.Source = myevent.Source;
-
-        //        event2.Tags = myevent.Tags;
-
-        //        event2.TopicRIDs = myevent.TopicRIDs;
-        //        event2.Topics = myevent.Topics;
-        //        event2._Meta = myevent._Meta;
-
-        //        //Adding EventClassification to Tags
-        //        if (!String.IsNullOrEmpty(myevent.ClassificationRID) && !event2.TagIds.Contains(myevent.ClassificationRID))
-        //            event2.TagIds.Add(myevent.ClassificationRID);
-        //        //Adding EventTopics to TAgs
-        //        if (myevent.TopicRIDs != null)
-        //        {
-        //            foreach (var topic in myevent.TopicRIDs)
-        //                if (!event2.TagIds.Contains(topic))
-        //                    event2.TagIds.Add(topic);
-        //        }
-
-        //        //Adding LTSTags to Tags
-        //        if (myevent.LTSTags != null)
-        //        {
-        //            foreach (var ltstag in myevent.LTSTags)
-        //            {
-        //                if (!String.IsNullOrEmpty(ltstag.LTSRID))
-        //                    if (!event2.TagIds.Contains(ltstag.LTSRID))
-        //                        event2.TagIds.Add(ltstag.LTSRID);
-        //            }
-        //        }
-
-        //        //LicenseInfo Fix
-        //        if (event2.LicenseInfo != null)
-        //        {
-        //            if (myevent.Source == "lts")
-        //            {
-        //                if (myevent._Meta.Reduced)
-        //                {
-        //                    event2.LicenseInfo.License = "CC0";
-        //                    event2.LicenseInfo.ClosedData = false;
-        //                    event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
-        //                }
-        //                else
-        //                {
-        //                    event2.LicenseInfo.License = "Closed";
-        //                    event2.LicenseInfo.ClosedData = false;
-        //                    event2.LicenseInfo.LicenseHolder = "https://www.lts.it";
-        //                }
-        //            }
-        //        }
-
-        //        //Recalculate Tags                
-        //        await event2.UpdateTagsExtension(QueryFactory);
-
-        //        //If Reduced use the ID without reduced
-        //        if (myevent._Meta.Reduced)
-        //        {
-        //            event2.Id = event2.Id.Replace("_REDUCED", "");
-        //            event2._Meta.Id = event2.Id.Replace("_REDUCED", "");
-        //        }
-
-
-        //        var idtoupdate = event2.Id;
-        //        if (!event2.Id.Contains("_REDUCED"))
-        //            idtoupdate = event2.Id + reduced;
-
-        //        var queryresult = await QueryFactory
-        //            .Query("events")
-        //            .Where("id", idtoupdate)
-        //            //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
-        //            .UpdateAsync(
-        //                new JsonBData()
-        //                {
-        //                    id = idtoupdate,
-        //                    data = new JsonRaw(event2),
-        //                }
-        //            );
-
-        //        return Tuple.Create<int, string>(queryresult, event2.Id + reduced);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return Tuple.Create<int, string>(0, myevent.Id + reduced);
-        //    }
-        //}
-
-        #endregion
-
-    }
+}

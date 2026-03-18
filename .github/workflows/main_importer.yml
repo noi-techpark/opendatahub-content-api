@@ -200,6 +200,22 @@ jobs:
           X_DIGIWAY_TNHIKINGTRAIL_FORMAT: "geojson"
           X_DIGIWAY_TNHIKINGTRAIL_SRID: "4326"
           X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
+          X_DIGIWAY_ZOHO_CLIENTID: ${{ secrets.DIGIWAY_ZOHO_CLIENTID }}
+          X_DIGIWAY_ZOHO_CLIENTSECRET: ${{ secrets.DIGIWAY_ZOHO_CLIENTSECRET }}
+          X_DIGIWAY_ZOHO_SERVICEURL: ${{ secrets.DIGIWAY_ZOHO_SERVICEURL }}
+          X_DIGIWAY_ZOHO_AUTHURL: "https://accounts.zoho.com/oauth/v2/token"
+          X_DIGIWAY_ZOHO_SCOPE: "ZohoCreator.report.READ"
+          X_DIGIWAY_ATACCESSIBLETRAIL_URL: ${{ secrets.DIGIWAY_ATACCESSIBLETRAIL_URL }}
+          X_DIGIWAY_ATACCESSIBLETRAIL_SOURCE: "dservices3.arcgis.com"
+          X_DIGIWAY_ATACCESSIBLETRAIL_FORMAT: "geojson"
+          X_DIGIWAY_ATACCESSIBLETRAIL_SRID: "4326"
+          X_DIGIWAY_ATTRAILCLOSURE_URL: ${{ secrets.DIGIWAY_ATTRAILCLOSURE_URL }}
+          X_DIGIWAY_ATTRAILCLOSURE_SOURCE: "tirol.mapservices.eu"
+          X_DIGIWAY_ATTRAILCLOSURE_FORMAT: "geojson"
+          X_DIGIWAY_ATTRAILCLOSURE_SRID: "4326"
+          X_OUTDOORACTIVE_SERVICE_URL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL }}
+          X_OUTDOORACTIVE_SERVICE_URL_DETAIL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL_DETAIL }}
+          X_OUTDOORACTIVE_PSWD: ${{ secrets.OUTDOORACTIVE_PSWD }}
 
       - name: Build and push 
         uses: noi-techpark/github-actions/docker-build-and-push@v2
@@ -377,8 +393,24 @@ jobs:
           X_DIGIWAY_TNHIKINGTRAIL_SOURCE: "siat.provincia.tn.it"
           X_DIGIWAY_TNHIKINGTRAIL_FORMAT: "geojson"
           X_DIGIWAY_TNHIKINGTRAIL_SRID: "4326"
-
+          X_DIGIWAY_ZOHO_CLIENTID: ${{ secrets.DIGIWAY_ZOHO_CLIENTID }}
+          X_DIGIWAY_ZOHO_CLIENTSECRET: ${{ secrets.DIGIWAY_ZOHO_CLIENTSECRET }}
+          X_DIGIWAY_ZOHO_SERVICEURL: ${{ secrets.DIGIWAY_ZOHO_SERVICEURL }}
+          X_DIGIWAY_ZOHO_AUTHURL: "https://accounts.zoho.com/oauth/v2/token"
+          X_DIGIWAY_ZOHO_SCOPE: "ZohoCreator.report.READ"
+          X_DIGIWAY_ATACCESSIBLETRAIL_URL: ${{ secrets.DIGIWAY_ATACCESSIBLETRAIL_URL }}
+          X_DIGIWAY_ATACCESSIBLETRAIL_SOURCE: "dservices3.arcgis.com"
+          X_DIGIWAY_ATACCESSIBLETRAIL_FORMAT: "geojson"
+          X_DIGIWAY_ATACCESSIBLETRAIL_SRID: "4326"
+          X_DIGIWAY_ATTRAILCLOSURE_URL: ${{ secrets.DIGIWAY_ATTRAILCLOSURE_URL }}
+          X_DIGIWAY_ATTRAILCLOSURE_SOURCE: "tirol.mapservices.eu"
+          X_DIGIWAY_ATTRAILCLOSURE_FORMAT: "geojson"
+          X_DIGIWAY_ATTRAILCLOSURE_SRID: "4326"
           X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
+
+          X_OUTDOORACTIVE_SERVICE_URL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL }}
+          X_OUTDOORACTIVE_SERVICE_URL_DETAIL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL_DETAIL }}
+          X_OUTDOORACTIVE_PSWD: ${{ secrets.OUTDOORACTIVE_PSWD }}
 
       - name: Build and push 
         uses: noi-techpark/github-actions/docker-build-and-push@v2

@@ -123,11 +123,30 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     objecttosave.Description = data.description;
 
                     objecttosave.MainEntity = "event";
-                    objecttosave.ValidForEntity = new List<string>() { "event" };
+
+                    //objecttosave.ValidForEntity = new List<string>() { "event" };
+                    if (objecttosave.ValidForEntity == null)
+                        objecttosave.ValidForEntity = new List<string>() { "event" };
+                    else
+                    {
+                        if (!objecttosave.ValidForEntity.Contains("event"))
+                            objecttosave.ValidForEntity.Add("event");
+                    }
+
                     objecttosave.Shortname = objecttosave.TagName.ContainsKey("en")
                         ? objecttosave.TagName["en"]
                         : objecttosave.TagName.FirstOrDefault().Value;
-                    objecttosave.Types = new List<string>() { "eventcategory", "eventtopic" };
+
+                    //objecttosave.Types = new List<string>() { "eventcategory", "eventtopic" };
+                    if (objecttosave.Types == null)
+                        objecttosave.Types = new List<string>() { "eventcategory","eventtopic" };
+                    else
+                    {
+                        if (!objecttosave.Types.Contains("eventcategory"))
+                            objecttosave.Types.Add("eventcategory");
+                        if (!objecttosave.Types.Contains("eventtopic"))
+                            objecttosave.Types.Add("eventtopic");
+                    }
 
                     objecttosave.IDMCategoryMapping = null;
                     objecttosave.PublishDataWithTagOn = null;

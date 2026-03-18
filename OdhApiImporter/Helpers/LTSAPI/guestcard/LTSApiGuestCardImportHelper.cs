@@ -135,11 +135,30 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     objecttosave.Source = data.rid == "guestcard" ? "idm" : "lts";
                     objecttosave.TagName = data.name;
                     objecttosave.MainEntity = "accommodation";
-                    objecttosave.ValidForEntity = new List<string>() { "accommodation" };
+
+                    //objecttosave.ValidForEntity = new List<string>() { "accommodation" };
+                    if (objecttosave.ValidForEntity == null)
+                        objecttosave.ValidForEntity = new List<string>() { "accommodation" };
+                    else
+                    {
+                        if (!objecttosave.ValidForEntity.Contains("accommodation"))
+                            objecttosave.ValidForEntity.Add("accommodation");
+                    }
+
+
                     objecttosave.Shortname = objecttosave.TagName.ContainsKey("en")
                         ? objecttosave.TagName["en"]
                         : objecttosave.TagName.FirstOrDefault().Value;
-                    objecttosave.Types = new List<string>() { "cardtype" };
+
+                    //objecttosave.Types = new List<string>() { "cardtype" };
+                    if (objecttosave.Types == null)
+                        objecttosave.Types = new List<string>() { "cardtype" };
+                    else
+                    {
+                        if (!objecttosave.Types.Contains("cardtype"))
+                            objecttosave.Types.Add("cardtype");
+                    }
+
 
                     objecttosave.IDMCategoryMapping = null;
                     objecttosave.PublishDataWithTagOn = null;

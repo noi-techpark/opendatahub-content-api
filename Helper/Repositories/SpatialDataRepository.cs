@@ -1,15 +1,15 @@
-// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+﻿// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Collections.Generic;
 using DataModel;
 
-namespace OdhApiCore.Repositories
+namespace Helper
 {
-    class UpsertableUrbanGreen: Helper.QueryFactoryExtension.Upsertable<UrbanGreen>
+    public class UpsertableSpatialData : QueryFactoryExtension.Upsertable<SpatialData>
     {
-        public UpsertableUrbanGreen(UrbanGreen data)
+        public UpsertableSpatialData(SpatialData data)
         : base(
             data,
             new Dictionary<string, object>
@@ -22,6 +22,7 @@ namespace OdhApiCore.Repositories
                     )
                 }
             }
-        ) {}
+        )
+        { }
     }
 }

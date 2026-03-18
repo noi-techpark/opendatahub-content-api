@@ -851,6 +851,7 @@ namespace OdhNotifier
                     "municipality" => "MUNICIPALITY",
                     "tvs" => "TOURISM_ASSOCIATION",
                     "tv" => "TOURISM_ASSOCIATION",
+                    "tourismassociation" => "TOURISM_ASSOCIATION",
                     "district" => "DISTRICT",
                     "skiregion" => "NOT SUPPORTED", //to check
                     "skiarea" => "SKI_AREA",

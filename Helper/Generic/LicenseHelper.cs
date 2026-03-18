@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -13,7 +14,8 @@ using DataModel;
 namespace Helper
 {
     public class LicenseHelper
-    {
+    {        
+
         public static LicenseInfo GetLicenseInfoobject(
             string licensetype,
             string author,
@@ -403,20 +405,7 @@ namespace Helper
             var licenseholder = @"https://www.hgv.it";
 
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
-        }
-
-        public static LicenseInfo GetLicenseforMeasuringpoint(Measuringpoint data, bool opendata = false)
-        {
-            var licensetype = "Closed";
-            var licenseholder = @"https://www.lts.it";
-
-            if (opendata)
-            {                
-                licensetype = "CC0";
-            }
-
-            return GetLicenseInfoobject(licensetype, "", licenseholder, !opendata);
-        }
+        }        
 
         public static LicenseInfo GetLicenseforMeasuringpoint(MeasuringpointV2 data, bool opendata = false)
         {
@@ -773,6 +762,18 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
         }
 
+        public static LicenseInfo GetLicenseforAnnouncement(Announcement announcement)
+        {
+            var isopendata = true;
+            var licensetype = "CC0";
+            var licenseholder = "";
+
+            if (announcement.Source == "digiway.zoho")
+                licenseholder = "https://creatorapp.zoho.com/";
+
+            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
+        }
+
         public static void CheckLicenseInfoWithSource(
             LicenseInfo licenseinfo,
             string source,
@@ -783,6 +784,18 @@ namespace Helper
             {
                 licenseinfo.ClosedData = setcloseddatato;
             }
+        }
+    }
+
+    public static class LicenseExtensions
+    {
+        public static void ApplyDefaultLicenseIfNull(this ILicenseInfo objectwithlicense)
+        {
+            if (objectwithlicense == null)
+                return;
+
+            if (objectwithlicense.LicenseInfo == null)
+                objectwithlicense.LicenseInfo = new LicenseInfo() { ClosedData = false, License = "CC0" };
         }
     }
 }

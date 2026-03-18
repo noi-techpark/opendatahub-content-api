@@ -4,6 +4,8 @@
 
 using DataModel;
 using DIGIWAY;
+using DIGIWAY.Model;
+using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
 using Helper.Generic;
 using Helper.Tagging;
@@ -22,13 +24,14 @@ using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
-    public class DigiWayImportHelper : ImportHelper, IImportHelper
+    public class DigiWayEuregioGeoJsonSpatialDataImportHelper : ImportHelper, IImportHelper
     {
         public List<string> idlistinterface { get; set; }
         public string? identifier { get; set; }
-        public string? source { get; set; }        
-        
-        public DigiWayImportHelper(
+        public string? source { get; set; }
+        public string? srid { get; set; }
+
+        public DigiWayEuregioGeoJsonSpatialDataImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
@@ -46,31 +49,33 @@ namespace OdhApiImporter.Helpers
             CancellationToken cancellationToken = default
         )
         {
-            if (identifier == null || source == null)
-                throw new Exception("no identifier|source defined");
-            
+            if (identifier == null || source == null || srid == null)
+                throw new Exception("no identifier|source|srid defined");
+
+            List<UpdateDetail> resultlist = new List<UpdateDetail>();
+
             var data = await GetData(cancellationToken);
 
             ////UPDATE all data
-            var updateresult = await ImportData(data, cancellationToken);
+            resultlist.Add(await ImportData(data, cancellationToken));
 
-            //Disable Data not in list
-            var deleteresult = await SetDataNotinListToInactive(cancellationToken);
+            //Disable Data not in list currently unavailable
+            //var deleteresult = await SetDataNotinListToInactive(cancellationToken);
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
+                resultlist
             );
         }
 
         //Get Data from Source
-        private async Task<IGeoserverCivisResult> GetData(CancellationToken cancellationToken)
+        private async Task<ICollection<GeoJsonFeature>> GetData(CancellationToken cancellationToken)
         {
-            return await GetDigiwayData.GetDigiWayDataAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, identifier);
+            return await GetDigiwayData.GetDigiWayGeoJsonDataFromFileAsync("", "", settings.DigiWayConfig[identifier].ServiceUrl, false);
         }
 
         //Import the Data
         public async Task<UpdateDetail> ImportData(
-            IGeoserverCivisResult digiwaydatalist,
+            ICollection<GeoJsonFeature> featurelist,
             CancellationToken cancellationToken
         )
         {
@@ -79,17 +84,18 @@ namespace OdhApiImporter.Helpers
             int deletecounter = 0;
             int errorcounter = 0;
 
-            if (digiwaydatalist != null && digiwaydatalist.features != null)
+            if (featurelist != null)
             {                
-                foreach (var digiwaydata in digiwaydatalist.features)
+                foreach (var digiwaydata in featurelist)
                 {
                     var importresult = await ImportDataSingle(digiwaydata);
 
                     newcounter = newcounter + importresult.created ?? newcounter;
                     updatecounter = updatecounter + importresult.updated ?? updatecounter;
                     errorcounter = errorcounter + importresult.error ?? errorcounter;
-                }
+                }              
             }
+
 
             return new UpdateDetail()
             {
@@ -101,7 +107,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Parsing the Data
-        public async Task<UpdateDetail> ImportDataSingle(IGeoServerCivisData digiwaydata)
+        public async Task<UpdateDetail> ImportDataSingle(GeoJsonFeature digiwaydata)
         {
             int updatecounter = 0;
             int newcounter = 0;
@@ -112,46 +118,25 @@ namespace OdhApiImporter.Helpers
             string returnid = "";
 
             try
-            {
-                returnid = digiwaydata.id.ToLower();
-
-                idlistinterface.Add(returnid);
-
+            {                             
                 //Parse  Data
-                var parsedobject = await ParseDigiWayDataToODHActivityPoi(
-                    returnid, 
+                var parsedobject = await ParseDigiWayDataToSpatialData(
+                    returnid,
                     digiwaydata
                 );
-                if (parsedobject.Item1 == null || parsedobject.Item2 == null)
+                if (parsedobject == null)
                     throw new Exception();
 
-                //var pgcrudshaperesult = await InsertDataInShapesDB(parsedobject.Item2);
-                var pgcrudshaperesult = await GeoShapeInsertHelper.InsertDataInShapesDB(QueryFactory, parsedobject.Item2, source, "32632");
-
-
-                //Create GPX Info
-                GpsTrack gpstrack = new GpsTrack()
-                {
-                    Format = "geojson",
-                    GpxTrackUrl = "GeoShape/" + pgcrudshaperesult.id.ToLower(),
-                    Id = pgcrudshaperesult.id.ToLower(),
-                    Type = "Track",
-                    GpxTrackDesc = null
-                };
-
-                if (parsedobject.Item1.GpsTrack == null)
-                    parsedobject.Item1.GpsTrack = new List<GpsTrack>();
-
-                parsedobject.Item1.GpsTrack.Add(gpstrack);
+                returnid = parsedobject.Id;
+                idlistinterface.Add(returnid);
                 
                 //Create Tags
-                await parsedobject.Item1.UpdateTagsExtension(QueryFactory);
-
+                //await parsedobject.UpdateTagsExtension(QueryFactory);
 
                 //Save parsedobject to DB + Save Rawdata to DB
                 var pgcrudresult = await InsertDataToDB(
-                    parsedobject.Item1,
-                    new KeyValuePair<string, IGeoServerCivisData>(returnid, digiwaydata)
+                    parsedobject,
+                    new KeyValuePair<string, GeoJsonFeature>(returnid, digiwaydata)
                 );
 
                 newcounter = newcounter + pgcrudresult.created ?? 0;
@@ -199,63 +184,65 @@ namespace OdhApiImporter.Helpers
 
         //Inserting into DB
         private async Task<PGCRUDResult> InsertDataToDB(
-            ODHActivityPoiLinked data,
-            KeyValuePair<string, IGeoServerCivisData> digiwaydata
+            SpatialData data,
+            KeyValuePair<string, GeoJsonFeature> digiwaydata
         )
         {
-            var rawdataid = await InsertInRawDataDB(digiwaydata);
+            //Deactivate Rawdatainsert for now
+            //var rawdataid = await InsertInRawDataDB(digiwaydata);
 
             data.Id = data.Id?.ToLower();
+            data._Meta = new Metadata() { Id = data.Id, Reduced = false, Source = data.Source, LastUpdate = DateTime.Now, Type = "spatialdata" };
 
             //Set LicenseInfo
-            data.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<ODHActivityPoiLinked>(
-                data,
-                Helper.LicenseHelper.GetLicenseforOdhActivityPoi
-            );
+            data.LicenseInfo = new LicenseInfo() { ClosedData = false, License = "CC0" };
+            //    Helper.LicenseHelper.GetLicenseInfoobject<SpatialData>(
+            //    data,
+            //    Helper.LicenseHelper.GetLicenseforSpatialData
+            //);
 
             //PublishedOnInfo?
 
-            var pgcrudresult = await QueryFactory.UpsertData<ODHActivityPoiLinked>(
-                data,
+            var pgcrudresult = await QueryFactory.UpsertData<SpatialData>(
+                new UpsertableSpatialData(data),
                 new DataInfo(table, Helper.Generic.CRUDOperation.CreateAndUpdate),
                 new EditInfo("digiway." + identifier + ".import", importerURL),
                 new CRUDConstraints(),
-                new CompareConfig(true, false),
-                rawdataid
+                new CompareConfig(true, false)                
             );
 
             return pgcrudresult;
-        }     
-        private async Task<int> InsertInRawDataDB(KeyValuePair<string, IGeoServerCivisData> data)
-        {
-            return await QueryFactory.InsertInRawtableAndGetIdAsync(
-                new RawDataStore()
-                {
-                    datasource = "digiway",
-                    rawformat = settings.DigiWayConfig[identifier].Format,
-                    importdate = DateTime.Now,
-                    license = "open",
-                    sourceinterface = source + "." + identifier,
-                    sourceurl = settings.DigiWayConfig[identifier].ServiceUrl,
-                    type = "odhactivitypoi",
-                    sourceid = data.Key,
-                    raw = data.Value.ToString(),
-                }
-            );
         }
+  
+        //private async Task<int> InsertInRawDataDB(KeyValuePair<string, GeoJsonFeature> data)
+        //{
+        //    return await QueryFactory.InsertInRawtableAndGetIdAsync(
+        //        new RawDataStore()
+        //        {
+        //            datasource = "digiway",
+        //            rawformat = settings.DigiWayConfig[identifier].Format,
+        //            importdate = DateTime.Now,
+        //            license = "open",
+        //            sourceinterface = identifier,
+        //            sourceurl = settings.DigiWayConfig[identifier].ServiceUrl,
+        //            type = "odhactivitypoi",
+        //            sourceid = data.Key,
+        //            raw = data.Value.ToString(),
+        //        }
+        //    );
+        //}
 
         //Parse the interface content
-        public async Task<(ODHActivityPoiLinked?, GeoShapeJson?)> ParseDigiWayDataToODHActivityPoi(
+        public async Task<SpatialData?> ParseDigiWayDataToSpatialData(
             string odhid,
-             IGeoServerCivisData input
+            GeoJsonFeature input
         )
         {
-            //Get the ODH Item
-            var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
+            //Get the ODH Item - Disable this since the Id is not easy to assign
+            //var query = QueryFactory.Query(table).Select("data").Where("id", odhid);
+            //var dataindb = await query.GetObjectSingleAsync<SpatialData>();
 
-            var dataindb = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
-
-            var result = ParseGeoServerDataToODHActivityPoi.ParseToODHActivityPoi(dataindb, input, identifier, source);
+            var result = ParseEuregioGeoJsonDataToSpatialData.ParseToSpatialData(null, input, identifier, source, srid);
 
             return result;
         }
@@ -278,24 +265,10 @@ namespace OdhApiImporter.Helpers
 
                 foreach (var idtodelete in idstodelete)
                 {
-                    //since the id is not the same delete all old 
-                    if (source == "civis.geoserver")
-                    {
-                        //Delete Data
-                        var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, true);
-                        //Delete Gps Data
-                        var result2 = await GeoShapeInsertHelper.DeleteFromShapesDB(QueryFactory, idtodelete);
+                    var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
 
-                        deleteresult = deleteresult + result.Item2 + result2;
-                    }
-                    //else simply deactivate
-                    else
-                    {
-                        var result = await DeleteOrDisableData<ODHActivityPoiLinked>(idtodelete, false);
-
-                        updateresult = updateresult + result.Item1;
-                        deleteresult = deleteresult + result.Item2;
-                    }
+                    updateresult = updateresult + result.Item1;
+                    deleteresult = deleteresult + result.Item2;
                 }
             }
             catch (Exception ex)

@@ -152,7 +152,7 @@ end if;
 if source = 'hgv' then return (array['IDM']);
 end if;
 -- If data is from source a22 only access A22 --
-if source = 'a22' then return (array['A22']);
+if source = 'a22' and closeddata then return (array['A22']);
 end if;
 -- If data is from source LTS and reduced give access to all others --
 if source = 'lts' and reduced and not closeddata then return (array['A22','ANONYMOUS','STA']);
@@ -294,3 +294,15 @@ BEGIN
 END;
 $function$
 ;
+
+-- DROP FUNCTION public.json_array_to_pg_array_lower(jsonb);
+ 
+CREATE OR REPLACE FUNCTION public.json_array_to_pg_array_lower(jsonarray jsonb)
+  RETURNS text[]
+  LANGUAGE plpgsql
+  IMMUTABLE STRICT
+AS $function$ 
+  begin if jsonarray <> 'null' then return (select array(select lower(jsonb_array_elements_text(jsonarray)))); else return null; end if; end; 
+$function$
+;
+ 

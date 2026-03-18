@@ -16,11 +16,9 @@ using Helper.Extensions;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.JsonHelpers;
-using Microsoft.AspNetCore.Components.Forms;
 using Newtonsoft.Json;
 using SqlKata;
 using SqlKata.Execution;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helper
 {
@@ -90,7 +88,7 @@ namespace Helper
             CRUDConstraints updateConstraints,
             CompareConfig compareConfig
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             var prepared = new PreparedDataItem<T>(data.Data);
             List<string> channelstopublish = new List<string>();
@@ -115,6 +113,9 @@ namespace Helper
                 data.Data.FirstImport = DateTime.Now;
             //New Data set last change to now
             data.Data.LastChange = DateTime.Now;
+
+            //Set default LicenseInfo if null
+            data.Data.ApplyDefaultLicenseIfNull();
 
             // Use the appropriate constraint based on whether this is a create or update
             var constraintToCheck = prepared.IsCreate ? createConstraints : updateConstraints;
@@ -203,10 +204,10 @@ namespace Helper
 
                 if (compareConfig.CompareData)
                 {
-                    equalityresult = EqualityHelper.CompareClassesTest<T>(
+                    equalityresult = EqualityHelper.CompareClassesExtended<T>(
                         existingData,
                         data.Data,
-                        new List<string>() { "LastChange", "_Meta", "FirstImport" },
+                        compareConfig.FieldsToIgnore,
                         true
                     );
                     if (equalityresult.isequal)
@@ -289,7 +290,7 @@ namespace Helper
             CRUDConstraints updateConstraints,
             CompareConfig compareConfig
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             var batchResult = new BatchCRUDResult();
 
@@ -547,7 +548,7 @@ namespace Helper
             CRUDConstraints constraints,
             CompareConfig compareConfig
         )
-            where T : IIdentifiable, IImportDateassigneable, IMetaData, new()
+            where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             //TOCHECK: What if no id is passed? Generate ID?
             //TOCHECK: Id Uppercase or Lowercase depending on table
@@ -556,13 +557,13 @@ namespace Helper
             // No need to check data non-null since Upsertable already enforces that
 
             // Before processing data, we normalize the id, this way PrepareDataItem will deal witht he right metadatada and ID
-            data.Data._Meta.Id = IdGenerator.CheckIdFromType<T>(data.Data.Id);
+            data.Data.Id = IdGenerator.CheckIdFromType<T>(data.Data.Id);
 
             //Check if data exists already
             var queryresult = await QueryFactory
                 .Query(dataconfig.Table)
                 .Select("data")
-                .Where("id", data.Data._Meta.Id)
+                .Where("id", data.Data.Id)
                 .When(
                     constraints.AccessRole.Count() > 0,
                     q => q.FilterDataByAccessRoles(constraints.AccessRole)

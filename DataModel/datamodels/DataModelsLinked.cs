@@ -173,7 +173,7 @@ namespace DataModel
     {
         public string? Self
         {
-            get { return String.IsNullOrEmpty(this.Id) ? null : "ODHTag/" + this.Id.ToLower(); }
+            get { return String.IsNullOrEmpty(this.Id) ? null : "Tag/" + this.LTSRID; }
         }
     }
 
@@ -1922,7 +1922,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public SkiRegionLink SkiRegion
+        public SkiRegionLink? SkiRegion
         {
             get
             {
@@ -1982,7 +1982,7 @@ namespace DataModel
         public new LocationInfoLinked? LocationInfo { get; set; }
 
         //GpsInfo
-        public ICollection<GpsInfo> GpsInfo { get; set; }
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -2086,7 +2086,7 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo> GpsInfo { get; set; }
+        public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -2212,122 +2212,7 @@ namespace DataModel
         //Related Content
         public ICollection<RelatedContent>? RelatedContent { get; set; }
 
-    }
-
-    public class MeasuringpointLinked
-        : Measuringpoint,
-            IMetaData,
-            IGPSPointsAware,
-            IGPSInfoAware,
-            IHasLocationInfoLinked
-    {
-        public Metadata? _Meta { get; set; }
-
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public string? Self
-        {
-            get
-            {
-                return this.Id != null
-                    ? "Weather/Measuringpoint/" + Uri.EscapeDataString(this.Id)
-                    : null;
-            }
-        }
-
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public bool OdhActive
-        {
-            get { return (bool)this.SmgActive; }
-        }
-
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public ICollection<AreaLink> Areas
-        {
-            get
-            {
-                return this.AreaIds != null
-                    ? this
-                        .AreaIds.Select(x => new AreaLink() { Id = x, Self = "Area/" + x })
-                        .ToList()
-                    : new List<AreaLink>();
-            }
-        }
-
-        //Overwrites The LocationInfo
-        public new LocationInfoLinked? LocationInfo { get; set; }
-
-        //GpsInfo
-        public ICollection<GpsInfo> GpsInfo { get; set; }
-
-        //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public new string? Gpstype
-        {
-            get
-            {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Gpstype
-                    : null;
-            }
-        }
-
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public new double Latitude
-        {
-            get
-            {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0 
-                    ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
-                    : 0;
-            }
-        }
-
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public new double Longitude
-        {
-            get
-            {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0 
-                    ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
-                    : 0;
-            }
-        }
-
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public new Nullable<double> Altitude
-        {
-            get
-            {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().Altitude
-                    : null;
-            }
-        }
-
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public new string? AltitudeUnitofMeasure
-        {
-            get
-            {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0
-                    ? this.GpsInfo.FirstOrDefault().AltitudeUnitofMeasure
-                    : null;
-            }
-        }
-
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public IDictionary<string, GpsInfo> GpsPoints
-        {
-            get { return this.GpsInfo.ToGpsPointsDictionary(); }
-        }
-    }
-
+    }  
     public class WineLinked : Wine, IMetaData, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
@@ -2666,11 +2551,29 @@ namespace DataModel
 
         [SwaggerSchema("Tag Ids")]
         public ICollection<string>? TagIds { get; set; }
+
+        [SwaggerSchema("Coordiante source configuration")]
+        public CoordinateSource? CoordinateSource { get; set; }
     }
 
     #endregion
 }
 
+public static class CoordinateSourceType
+{
+    public const string GeoData = "GeoData";
+    public const string GpsInfo = "GpsInfo";
+}
+
+public class CoordinateSource
+{
+    [SwaggerSchema("Type of the coordinate source")]
+    [SwaggerEnum(new[] { "GeoData", "GpsInfo" })]
+    public string? Type { get; set; } = CoordinateSourceType.GpsInfo;
+
+    [SwaggerSchema("Field from which to extrapolate coordinate data")]
+    public string? Field { get; set; }
+}
 
 #region obsolete toremove
 

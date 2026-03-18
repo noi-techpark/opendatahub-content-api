@@ -786,33 +786,31 @@ namespace SuedtirolWein.Parser
             if (
                 companydata["de"].Element("latidude") != null
                 && companydata["de"].Element("longitude") != null
+                && companydata["de"].Element("latidude").Value != null
+                && companydata["de"].Element("longitude").Value != null
+                && !companydata["de"].Element("latidude").Value.Contains("°")
+                && !companydata["de"].Element("longitude").Value.Contains("°")
+                && companydata["de"].Element("latidude").Value != "0"
+                && companydata["de"].Element("longitude").Value != "0"
             )
             {
-                if (
-                    !companydata["de"].Element("latidude").Value.Contains("°")
-                    && !companydata["de"].Element("longitude").Value.Contains("°")
-                )
-                {
-                    if (
-                        companydata["de"].Element("latidude").Value != "0"
-                        && companydata["de"].Element("longitude").Value != "0"
-                    )
-                    {
-                        List<GpsInfo> gpsinfolist = new List<GpsInfo>();
-                        GpsInfo mygps = new GpsInfo();
-                        mygps.Latitude = Convert.ToDouble(
-                            companydata["de"].Element("latidude").Value,
-                            CultureInfo.CurrentCulture
-                        );
-                        mygps.Longitude = Convert.ToDouble(
-                            companydata["de"].Element("longitude").Value,
-                            CultureInfo.CurrentCulture
-                        );
-                        mygps.Gpstype = "position";
-                        gpsinfolist.Add(mygps);
-                        mywinecompany.GpsInfo = gpsinfolist;
-                    }
-                }
+                List<GpsInfo> gpsinfolist = new List<GpsInfo>();
+                GpsInfo mygps = new GpsInfo();
+                mygps.Latitude = Convert.ToDouble(
+                    companydata["de"].Element("latidude").Value.Replace(",", "."),
+                    CultureInfo.InvariantCulture
+                );
+                mygps.Longitude = Convert.ToDouble(
+                    companydata["de"].Element("longitude").Value.Replace(",", "."),
+                    CultureInfo.InvariantCulture
+                );
+                mygps.Gpstype = "position";
+                gpsinfolist.Add(mygps);
+                mywinecompany.GpsInfo = gpsinfolist;
+            }
+            else
+            {
+                mywinecompany.GpsInfo = null;
             }
 
             //WineImporters for all languages

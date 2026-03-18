@@ -124,18 +124,38 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     objecttosave.Description = data.description;
 
                     objecttosave.MainEntity = "odhactivitypoi";
-                    objecttosave.ValidForEntity = new List<string>()
+                    
+                    //objecttosave.ValidForEntity = new List<string>()
+                    //{
+                    //    "odhactivitypoi",
+                    //    "gastronomy",
+                    //};
+                    if (objecttosave.ValidForEntity == null)
+                        objecttosave.ValidForEntity = new List<string>() { "odhactivitypoi", "gastronomy" };
+                    else
                     {
-                        "odhactivitypoi",
-                        "gastronomy",
-                    };
+                        if (!objecttosave.ValidForEntity.Contains("odhactivitypoi"))
+                            objecttosave.ValidForEntity.Add("odhactivitypoi");
+                        if (!objecttosave.ValidForEntity.Contains("gastronomy"))
+                            objecttosave.ValidForEntity.Add("gastronomy");
+                    }
+
                     objecttosave.Shortname = objecttosave.TagName.ContainsKey("en")
                         ? objecttosave.TagName["en"]
                         : objecttosave.TagName.FirstOrDefault().Value;
 
                     string matchedtype = GetTypeFromFacilityGroup(data.group);
 
-                    objecttosave.Types = new List<string>() { matchedtype, "gastronomyfacilities" };
+                    //objecttosave.Types = new List<string>() { matchedtype, "gastronomyfacilities" };
+                    if (objecttosave.Types == null)
+                        objecttosave.Types = new List<string>() { matchedtype, "gastronomyfacilities" };
+                    else
+                    {
+                        if (!objecttosave.Types.Contains(matchedtype))
+                            objecttosave.Types.Add(matchedtype);
+                        if (!objecttosave.Types.Contains("gastronomyfacilities"))
+                            objecttosave.Types.Add("gastronomyfacilities");
+                    }
 
                     objecttosave.IDMCategoryMapping = null;
                     objecttosave.PublishDataWithTagOn = null;

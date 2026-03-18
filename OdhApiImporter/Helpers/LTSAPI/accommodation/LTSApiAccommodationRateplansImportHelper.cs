@@ -127,11 +127,29 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     objecttosave.Description = data.description;
 
                     objecttosave.MainEntity = "accommodation";
-                    objecttosave.ValidForEntity = new List<string>() { "accommodation" };
+
+                    //objecttosave.ValidForEntity = new List<string>() { "accommodation" };
+                    if (objecttosave.ValidForEntity == null)
+                        objecttosave.ValidForEntity = new List<string>() { "accommodation" };
+                    else
+                    {
+                        if (!objecttosave.ValidForEntity.Contains("accommodation"))
+                            objecttosave.ValidForEntity.Add("accommodation");
+                    }
+
+
                     objecttosave.Shortname = objecttosave.TagName.ContainsKey("en")
                         ? objecttosave.TagName["en"]
                         : objecttosave.TagName.FirstOrDefault().Value;
-                    objecttosave.Types = new List<string>() { "accommodationrateplans" };
+
+                    //objecttosave.Types = new List<string>() { "accommodationrateplans" };
+                    if (objecttosave.Types == null)
+                        objecttosave.Types = new List<string>() { "accommodationrateplans" };
+                    else
+                    {
+                        if (!objecttosave.Types.Contains("accommodationrateplans"))
+                            objecttosave.Types.Add("accommodationrateplans");
+                    }
 
                     if (!typelistlts.Contains("accommodationrateplans"))
                         typelistlts.Add("accommodationrateplans");

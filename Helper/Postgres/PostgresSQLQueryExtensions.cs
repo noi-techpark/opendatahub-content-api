@@ -1554,6 +1554,20 @@ namespace Helper
                     )
             );
 
+        //Filter on Generated Field gen_lastchange with RFC3339 timestamp precision
+        public static Query LastChangedTimestampFilter_GeneratedColumn(
+            this Query query,
+            string? updatefrom
+        ) =>
+            query.When(
+                updatefrom != null,
+                query =>
+                    query.WhereRaw(
+                        "gen_lastchange > $$::timestamp",
+                        updatefrom
+                    )
+            );
+
         //Weatherhistory lastchangedBetween
         //Filter on Generated Field gen_lastchange
         public static Query LastChangedFilter_GeneratedColumn(
@@ -1614,20 +1628,7 @@ namespace Helper
                 return q;
             });
 
-        //public static Query ODHTagSourcesFilter_GeneratedColumnOLD(
-        //    this Query query,
-        //    IReadOnlyCollection<string> sourcelist
-        //) =>
-        //    query.Where(q =>
-        //    {
-        //        foreach (var item in sourcelist)
-        //        {
-        //            q = q.OrWhereRaw("gen_sources @> array\\[$$\\]", item)
-        //                .OrWhere("gen_source", "ILIKE", item);
-        //        }
-        //        return q;
-        //    });
-
+        
         public static Query ODHTagSourcesFilter_GeneratedColumn(
             this Query query,
             IReadOnlyCollection<string> sourcelist
@@ -1707,6 +1708,38 @@ namespace Helper
         //    query.Where(q =>
         //        tagdict.Aggregate(q, (q, tag) =>
         //            q.WhereRaw(@$"(data->>'Tags')::jsonb @? '$.{tag.Value}\[*\] ? (@.Id == ""{tag.Key}"")'")));
+
+        //GeoShapes
+
+        //Source Filter (GeoShape)
+        public static Query SourceFilter_GeoShapes(
+            this Query query,
+            IReadOnlyCollection<string> sourcelist
+        ) =>
+            query.Where(q =>
+            {
+                foreach (var source in sourcelist)
+                {
+                    q = q.OrWhere("source", source);
+                }
+                return q;
+            });
+
+
+        //Type Filter (GeoShape)
+        public static Query TypeFilter_GeoShapes(
+            this Query query,
+            IReadOnlyCollection<string> typelist
+        ) =>
+            query.Where(q =>
+            {
+                foreach (var type in typelist)
+                {
+                    q = q.OrWhere("type", type);
+                }
+                return q;
+            });
+
 
         #endregion
 

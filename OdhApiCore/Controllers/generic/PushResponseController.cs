@@ -43,8 +43,8 @@ namespace OdhApiCore.Controllers
         /// <param name="publisher">publisher Filter (Separator ',' List of IDs, 'null' = No Filter), (default:'null')</param>
         /// <param name="begindate">BeginDate of Events (Format: yyyy-MM-dd), (default: 'null')</param>
         /// <param name="enddate">EndDate of Events (Format: yyyy-MM-dd), (default: 'null')</param>
-        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
-        /// <param name="rawsort"><a href="https://github.com/noi-techpark/odh-docs/wiki/Using-rawfilter-and-rawsort-on-the-Tourism-Api#rawsort" target="_blank">Wiki rawsort</a></param>
+        /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
+        /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawsort" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
         /// <returns>Collection of PushResponse Objects</returns>
         /// <response code="200">List created</response>
@@ -63,6 +63,7 @@ namespace OdhApiCore.Controllers
             string? enddate = null,
             string? objectidlist = null,
             string? objecttypelist = null,
+            bool? latest = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             string? rawfilter = null,
             string? rawsort = null,
@@ -79,6 +80,7 @@ namespace OdhApiCore.Controllers
                 enddate,
                 objectidlist,
                 objecttypelist,
+                latest,
                 fields: fields ?? Array.Empty<string>(),
                 rawfilter,
                 rawsort,
@@ -129,6 +131,7 @@ namespace OdhApiCore.Controllers
             string? enddate,
             string? objectidfilter,
             string? objecttypefilter,
+            bool? latest,
             string[] fields,
             string? rawfilter,
             string? rawsort,
@@ -158,9 +161,13 @@ namespace OdhApiCore.Controllers
                     if (enddate != "null")
                         end = Convert.ToDateTime(enddate);
 
-                var query = QueryFactory
+            SqlKata.Query query = default(SqlKata.Query);
+
+                if (latest != null && latest == true)
+                {
+                    query = QueryFactory
                     .Query()
-                    .SelectRaw("data")
+                    .SelectRaw("DISTINCT ON (gen_objectid) data")
                     .From("pushresults")
                     .PushResultWhereExpression(
                         idlist: idlist,
@@ -175,8 +182,31 @@ namespace OdhApiCore.Controllers
                     .ApplyOrdering(
                         new PGGeoSearchResult() { geosearch = false },
                         rawsort,
-                        "gen_lastchange DESC"
+                        "gen_objectid, gen_lastchange DESC"
                     );
+                }
+                else
+                {
+                    query = QueryFactory
+                        .Query()
+                        .SelectRaw("data")
+                        .From("pushresults")
+                        .PushResultWhereExpression(
+                            idlist: idlist,
+                            publisherlist: publisherlist,
+                            begin: begin,
+                            end: end,
+                            objectidlist: objectidlist,
+                            objecttypelist: objecttypelist,
+                            additionalfilter: additionalfilter
+                        )
+                        .ApplyRawFilter(rawfilter)
+                        .ApplyOrdering(
+                            new PGGeoSearchResult() { geosearch = false },
+                            rawsort,
+                            "gen_lastchange DESC"
+                        );
+                }
 
                 // Get paginated data
                 var data = await query.PaginateAsync<JsonRaw>(

@@ -41,6 +41,8 @@ namespace OdhApiCore
         private readonly LTSCredentials ltsCredentials;
         private readonly LTSCredentials ltsCredentialsOpen;
 
+        private readonly ZOHOConfig zohoConfig;
+
         public Settings(IConfiguration configuration)
         {
             this.configuration = configuration;
@@ -284,6 +286,15 @@ namespace OdhApiCore
                 ltsapiopen.GetValue<string>("XLSClientid", ""),
                 ltsapiopen.GetValue<bool>("Opendata", true)
             );
+
+            var zoho = this.configuration.GetSection("ZohoConfig");
+            this.zohoConfig = new ZOHOConfig(
+                zoho.GetValue<string>("ClientId", ""),
+                zoho.GetValue<string>("ClientSecret", ""),
+                zoho.GetValue<string>("ServiceUrl", ""),
+                zoho.GetValue<string>("AuthUrl", ""),
+                zoho.GetValue<string>("Scope", "")
+            );
         }
 
         public string PostgresConnectionString => this.connectionString.Value;
@@ -322,7 +333,8 @@ namespace OdhApiCore
         public IDictionary<string, GTFSApiConfig> GTFSApiConfig => this.gtfsapiConfig;
 
         public LTSCredentials LtsCredentials => this.ltsCredentials;
-
         public LTSCredentials LtsCredentialsOpen => this.ltsCredentialsOpen;
+
+        public ZOHOConfig ZohoConfig => this.zohoConfig;
     }
 }

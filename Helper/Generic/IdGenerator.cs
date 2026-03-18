@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DataModel;
 
 namespace Helper
 {
@@ -72,7 +72,7 @@ namespace Helper
                 Event or EventLinked or EventFlattened => IDStyle.uppercase,
                 ODHActivityPoi or ODHActivityPoiLinked => IDStyle.lowercase,
                 Package or PackageLinked => IDStyle.uppercase,
-                Measuringpoint or MeasuringpointLinked or MeasuringpointV2 => IDStyle.uppercase,
+                MeasuringpointV2 => IDStyle.uppercase,
                 WebcamInfo or WebcamInfoLinked => IDStyle.uppercase,
                 Article or ArticlesLinked => IDStyle.uppercase,
                 DDVenue => IDStyle.uppercase,
@@ -96,6 +96,8 @@ namespace Helper
                 WeatherHistoryLinked => IDStyle.mixed,
                 Announcement => IDStyle.lowercase,
                 UrbanGreen => IDStyle.lowercase,
+                Trip => IDStyle.lowercase,
+                SpatialData => IDStyle.lowercase,
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -123,8 +125,7 @@ namespace Helper
                 Type _ when odhtype == typeof(Package) || odhtype == typeof(PackageLinked) =>
                     IDStyle.uppercase,
                 Type _
-                    when odhtype == typeof(Measuringpoint) || odhtype == typeof(MeasuringpointLinked)
-                        || odhtype == typeof(MeasuringpointV2) => IDStyle.uppercase,
+                    when odhtype == typeof(MeasuringpointV2) => IDStyle.uppercase,
                 Type _ when odhtype == typeof(WebcamInfo) || odhtype == typeof(WebcamInfoLinked) =>
                     IDStyle.uppercase,
                 Type _ when odhtype == typeof(Article) || odhtype == typeof(ArticlesLinked) =>
@@ -167,6 +168,8 @@ namespace Helper
                 Type _ when odhtype == typeof(WeatherHistoryLinked) => IDStyle.mixed,
                 Type _ when odhtype == typeof(Announcement) => IDStyle.lowercase,
                 Type _ when odhtype == typeof(UrbanGreen) => IDStyle.lowercase,
+                Type _ when odhtype == typeof(Trip) => IDStyle.lowercase,
+                Type _ when odhtype == typeof(SpatialData) => IDStyle.lowercase,
                 _ => throw new Exception("not known odh type"),
             };
         }

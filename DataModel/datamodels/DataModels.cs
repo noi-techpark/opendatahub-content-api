@@ -131,7 +131,8 @@ namespace DataModel
             ISource,
             ISmgActive,
             IPublishedOn,
-            IShortName
+            IShortName,
+            ILicenseInfo
     {
         public Area()
         {
@@ -2129,72 +2130,6 @@ namespace DataModel
 
     #region Measuringpoints
 
-    public class Measuringpoint
-        : IIdentifiable,
-            IShortName,
-            IActivateable,
-            ISmgActive,            
-            ILicenseInfo,
-            IImportDateassigneable,
-            ISource,
-            IMappingAware,
-            IDistanceInfoAware,
-            IPublishedOn
-    {
-        public Measuringpoint()
-        {
-            Mapping = new Dictionary<string, IDictionary<string, string>>();
-        }
-
-        public LicenseInfo? LicenseInfo { get; set; }
-
-        public string? Id { get; set; }
-
-        public DateTime? FirstImport { get; set; }
-        public DateTime LastUpdate { get; set; }
-        public DateTime? LastChange { get; set; }
-
-        public bool Active { get; set; }
-
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
-        public bool SmgActive { get; set; }
-        public string? Shortname { get; set; }
-
-        //GPS
-        public string? Gpstype { get; set; }
-        public double? Latitude { get; set; }
-        public double? Longitude { get; set; }
-        public Nullable<double> Altitude { get; set; }
-        public string? AltitudeUnitofMeasure { get; set; }
-        public DistanceInfo? DistanceInfo { get; set; }
-
-        //Observation
-        public string? SnowHeight { get; set; }
-        public string? newSnowHeight { get; set; }
-        public string? Temperature { get; set; }
-        public DateTime LastSnowDate { get; set; }
-        public List<WeatherObservation>? WeatherObservation { get; set; }
-
-        //Location
-        public LocationInfo? LocationInfo { get; set; }
-        public string? OwnerId { get; set; }
-
-        public List<string>? AreaIds { get; set; }
-
-        public ICollection<string>? PublishedOn { get; set; }
-
-        public string Source { get; set; }
-
-        public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
-
-        public IEnumerable<string>? SkiAreaIds { get; set; }
-    }
-
-    public class MeasuringpointRaven : Measuringpoint
-    {
-        public new LocationInfoLinked? LocationInfo { get; set; }
-    }
-
     public class WeatherObservation
     {
         public WeatherObservation()
@@ -2203,13 +2138,11 @@ namespace DataModel
         }
 
         public string? Id { get; set; }
-        //public string? Level { get; set; }
-        //public string? LevelId { get; set; }
         public Dictionary<string, string> WeatherStatus { get; set; }
-
         //New
         public string? IconID { get; set; }
         public DateTime? Date { get; set; }
+        public string? WeatherCode { get; set; }
     }
 
     //SnowReport Base Data
@@ -2831,21 +2764,11 @@ namespace DataModel
         public string? Previewurl { get; set; }
 
         public string Source { get; set; }
-
-        ////NEW Webcam Properties
-        //public string Streamurl { get; set; }
-        //public string Previewurl { get; set; }
-        //public DateTime? LastChange { get; set; }
-        //public DateTime? FirstImport { get; set; }
-
-        //public bool? Active { get; set; }
-
-        //public string Source { get; set; }
     }
 
-    public class WebcamInfoRaven
+    public class WebcamInfo
         : Webcam,
-            IIdentifiable,
+        IIdentifiable,
             IShortName,
             IImportDateassigneable,
             ISource,
@@ -2854,11 +2777,22 @@ namespace DataModel
             IPublishedOn,
             IGPSPointsAware,
             IActivateable,
-            ISmgActive
+            ISmgActive,
+            IHasLanguage,
+            IImageGalleryAware,
+            IContactInfosAware,
+            IDetailInfosAware,
+            IGPSInfoAware,
+            ISmgTags,
+            IVideoItemsAware
     {
-        public WebcamInfoRaven()
+        public WebcamInfo()
         {
             Mapping = new Dictionary<string, IDictionary<string, string>>();
+            WebCamProperties = new WebcamProperties();
+            Detail = new Dictionary<string, Detail>();
+            ContactInfos = new Dictionary<string, ContactInfos>();
+            VideoItems = new Dictionary<string, ICollection<VideoItems>>();
         }
 
         public LicenseInfo? LicenseInfo { get; set; }
@@ -2881,57 +2815,11 @@ namespace DataModel
         public ICollection<string>? AreaIds { get; set; }
 
         public ICollection<string>? SmgTags { get; set; }
-
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public IDictionary<string, GpsInfo> GpsPoints
-        {
-            get
-            {
-                if (this.GpsInfo != null)
-                {
-                    return new Dictionary<string, GpsInfo>
-                    {
-                        { this.GpsInfo.Gpstype, this.GpsInfo },
-                    };
-                }
-                else
-                {
-                    return new Dictionary<string, GpsInfo> { };
-                }
-            }
-        }
-
+       
         public ICollection<string>? PublishedOn { get; set; }
 
         public IDictionary<string, IDictionary<string, string>> Mapping { get; set; }
 
-        ////Temporary Hack because GpsInfo here is a object instead of object list
-        //public ICollection<GpsInfo> GpsInfos
-        //{
-        //    get
-        //    {
-        //        return this.GpsInfo != null ? new List<GpsInfo> { this.GpsInfo } : new List<GpsInfo>();
-        //    }
-        //}
-    }
-
-    public class WebcamInfo
-        : WebcamInfoRaven,
-            IHasLanguage,
-            IImageGalleryAware,
-            IContactInfosAware,
-            IDetailInfosAware,
-            IGPSInfoAware,
-            ISmgTags,
-            IVideoItemsAware
-    {
-        public WebcamInfo()
-        {
-            WebCamProperties = new WebcamProperties();
-            Detail = new Dictionary<string, Detail>();
-            ContactInfos = new Dictionary<string, ContactInfos>();
-            VideoItems = new Dictionary<string, ICollection<VideoItems>>();
-        }
 
         public new ICollection<GpsInfo> GpsInfo { get; set; }
 
@@ -2952,7 +2840,6 @@ namespace DataModel
         }
 
         //New Webcam fields Feratel, Panomax, Panocloud Integration
-
         public IDictionary<string, ContactInfos> ContactInfos { get; set; }
 
         public ICollection<ImageGallery> ImageGallery { get; set; }
@@ -3236,11 +3123,13 @@ namespace DataModel
 
     public class LicenseInfo
     {
-        [SwaggerEnum(new[] { "CC0", "CC-BY", "Closed" })]
+        [SwaggerEnum(new[] { "CC0", "CC BY", "CC BY-SA", "CC BY-NC-SA", "CC BY-ND-SA", "Closed" })]
         public string? License { get; set; }
         public string? LicenseHolder { get; set; }
         public string? Author { get; set; }
 
+
+        //TODO PUT This as Getter only if License is equal to Closed
         [SwaggerSchema(Description = "readonly field", ReadOnly = true)]
         public bool ClosedData { get; set; }
     }

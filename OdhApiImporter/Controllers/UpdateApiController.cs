@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-#nullable disable
-
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -314,8 +312,7 @@ namespace OdhApiImporter.Controllers
 
         #region EBMS DATA SYNC (EventShort)
 
-        [HttpGet, Route("EBMS/EventShort/UpdateAll")]
-        [HttpGet, Route("EBMS/EventShort/Update")]
+        [HttpGet, Route("EBMS/EventShort/UpdateFull")]
         public async Task<IActionResult> UpdateAllEBMS(
             bool forceupdate = false,
             CancellationToken cancellationToken = default
@@ -3327,6 +3324,7 @@ namespace OdhApiImporter.Controllers
         [HttpGet, Route("DIGIWAY/{identifier}/Update")]
         public async Task<IActionResult> UpdateAllDigiwayData(
             string identifier,
+            bool forceimporttospatialdata = false,
             CancellationToken cancellationToken = default
     )
         {
@@ -3348,38 +3346,47 @@ namespace OdhApiImporter.Controllers
 
                 if (digiwayconfig == null)
                     throw new Exception("unknown identifier");
-                
+
                 if (digiwayconfig.Source == "civis.geoserver")
                 {
-                    DigiWayImportHelper digiwayimporthelper = new DigiWayImportHelper(
-                        settings,
-                        QueryFactory,
-                        "smgpois",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
-                        OdhPushnotifier
-                    );
+                    string tabletowrite = "smgpois";
+                    if (forceimporttospatialdata)
+                        tabletowrite = "spatialdatas";
 
-                    digiwayimporthelper.identifier = identifier.ToLower(); 
+                    DigiWayCivisJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayCivisJson2ODHActivityPoiImportHelper(
+                          settings,
+                          QueryFactory,
+                          tabletowrite,
+                          UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                      );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.importtospatialdata = forceimporttospatialdata;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,
                                             null,
                                             cancellationToken);
                 }
-                else if (digiwayconfig.Source == "dservices3.arcgis.com")
+                else if (digiwayconfig.Source == "dservices3.arcgis.com" && digiwayconfig.Format == "xml")
                 {
-                    DigiWayWFSXmlImportHelper digiwayimporthelper = new DigiWayWFSXmlImportHelper(
-                        settings,
-                        QueryFactory,
-                        "smgpois",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
-                        OdhPushnotifier
-                    );
+                    string tabletowrite = "smgpois";
+                    if (forceimporttospatialdata)
+                        tabletowrite = "spatialdatas";
+
+                    DigiWayDServices3ArcgisWFSXml2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayDServices3ArcgisWFSXml2ODHActivityPoiImportHelper(
+                            settings,
+                            QueryFactory,
+                            tabletowrite,
+                            UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
                     digiwayimporthelper.srid = digiwayconfig.SRid;
+                    digiwayimporthelper.importtospatialdata = forceimporttospatialdata;
 
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,
@@ -3388,12 +3395,34 @@ namespace OdhApiImporter.Controllers
                 }
                 else if (digiwayconfig.Source == "siat.provincia.tn.it")
                 {
-                    DigiWayGeoJsonImportHelper digiwayimporthelper = new DigiWayGeoJsonImportHelper(
+                    string tabletowrite = "smgpois";
+                    if (forceimporttospatialdata)
+                        tabletowrite = "spatialdatas";
+
+                    DigiWaySiatTNShp2OdhActivityPoiImportHelper digiwayimporthelper = new DigiWaySiatTNShp2OdhActivityPoiImportHelper(
                         settings,
                         QueryFactory,
-                        "smgpois",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
-                        OdhPushnotifier
+                        tabletowrite,
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+                    digiwayimporthelper.importtospatialdata = forceimporttospatialdata;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
+                else if (digiwayconfig.Source == "euregio")
+                {
+                    DigiWayEuregioGeoJsonSpatialDataImportHelper digiwayimporthelper = new DigiWayEuregioGeoJsonSpatialDataImportHelper(
+                        settings,
+                        QueryFactory,
+                        "spatialdatas",
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3405,7 +3434,49 @@ namespace OdhApiImporter.Controllers
                                             null,
                                             cancellationToken);
                 }
+                else if (digiwayconfig.Source == "dservices3.arcgis.com" && digiwayconfig.Format == "geojson")
+                {
+                    string tabletowrite = "smgpois";
+                    if (forceimporttospatialdata)
+                        tabletowrite = "spatialdatas";
 
+                    DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper digiwayimporthelper = new DigiWayDServices3ArcgisGeoJson2ODHActivityPoiImportHelper(
+                        settings,
+                        QueryFactory,
+                        tabletowrite,
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+                    digiwayimporthelper.importtospatialdata = forceimporttospatialdata;
+
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
+                else if (digiwayconfig.Source == "tirol.mapservices.eu" && digiwayconfig.Format == "geojson")
+                {
+                    string tabletowrite = "announcements";                    
+
+                    DigiWayMapServicesGeoJson2AccouncementImportHelper digiwayimporthelper = new DigiWayMapServicesGeoJson2AccouncementImportHelper(
+                        settings,
+                        QueryFactory,
+                        tabletowrite,
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                    );
+
+                    digiwayimporthelper.identifier = identifier.ToLower();
+                    digiwayimporthelper.source = digiwayconfig.Source;
+                    digiwayimporthelper.srid = digiwayconfig.SRid;
+                    
+                    updatedetail = await digiwayimporthelper.SaveDataToODH(
+                                            null,
+                                            null,
+                                            cancellationToken);
+                }
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                         null,
@@ -3434,6 +3505,68 @@ namespace OdhApiImporter.Controllers
                     true
                 );
                 return BadRequest(updateResult);
+            }
+        }
+
+        #endregion
+
+        #region ZOHO_DIGIWAY
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("Zoho/TrailClosures/Update")]
+        public async Task<IActionResult> SaveZohoTrailClosuresDataToAnnouncements(
+            CancellationToken cancellationToken
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = $"Import Zoho TrailClosures";
+            string updatetype = GetUpdateType(null);
+            string source = "json";
+            string otherinfo = "digiway.zoho";
+
+            try
+            {
+                DigiWayZohoGeoJson2AccouncementImportHelper digiwaytrailclosuresimporthelper = new DigiWayZohoGeoJson2AccouncementImportHelper(
+                    settings,
+                    QueryFactory,
+                    "announcements",
+                    UrlGeneratorStatic("ZOHO/TrailClosures")
+                    );
+
+                updatedetail = await digiwaytrailclosuresimporthelper.SaveDataToODH(
+                    null,
+                    null,
+                    cancellationToken
+                );
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                        "",
+                        source,
+                        operation,
+                        updatetype,
+                        $"Import Zoho TrailClosures succeeded",
+                        otherinfo,
+                        updatedetail,
+                        true
+                    );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    $"Import Zoho TrailClosures failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
             }
         }
 
@@ -3559,7 +3692,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        #endregion
+        #endregion        
 
         protected Func<string, string> UrlGeneratorStatic
         {

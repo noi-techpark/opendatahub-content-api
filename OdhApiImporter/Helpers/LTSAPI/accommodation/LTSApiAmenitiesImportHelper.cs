@@ -113,8 +113,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     if (objecttosave == null)
                         objecttosave = new TagLinked();
-                    else
-                        Console.WriteLine("Amenities here");
 
                     //TODO Some Accommodation Amenities are also Gastronomy facilitycodes_equipment facilitycodes_cuisinecodes
                     //TODO this on all tag imports

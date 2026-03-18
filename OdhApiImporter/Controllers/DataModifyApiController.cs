@@ -2,27 +2,20 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
-using EBMS;
 using Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NINJA;
-using NINJA.Parser;
+using MongoDB.Bson.IO;
 using OdhApiImporter.Helpers;
-using RAVEN;
+using OdhNotifier;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiImporter.Controllers
 {
@@ -34,18 +27,21 @@ namespace OdhApiImporter.Controllers
         private readonly QueryFactory QueryFactory;
         private readonly ILogger<DataModifyApiController> logger;
         private readonly IWebHostEnvironment env;
+        private IOdhPushNotifier OdhPushnotifier;
 
         public DataModifyApiController(
             IWebHostEnvironment env,
             ISettings settings,
             ILogger<DataModifyApiController> logger,
-            QueryFactory queryFactory
+            QueryFactory queryFactory,
+            IOdhPushNotifier odhpushnotifier
         )
         {
             this.env = env;
             this.settings = settings;
             this.logger = logger;
             this.QueryFactory = queryFactory;
+            this.OdhPushnotifier = odhpushnotifier;
         }
 
         #region EventShort
@@ -750,6 +746,81 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("RemoveTagFromEntity/{type}/{tagname}")]
+        public async Task<IActionResult> RemoveTagFromEntity(
+            string type,
+            string tagname,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                CustomDataOperation customdataoperation = new CustomDataOperation(
+               settings,
+               QueryFactory
+           );
+
+                //Support only this Types
+                var supportedtypelists = new List<string>() { "accommodation", "odhactivitypoi", "event", "article" };
+                if (!supportedtypelists.Contains(type))
+                    throw new Exception("unsupported Type");
+
+                //Get the right table
+                var table = ODHTypeHelper.TranslateTypeString2Table(type);
+
+
+                var result = default(Tuple<int, List<IDictionary<string, NotifierResponse>>>);
+                
+                if(type == "accommodation")
+                    result = await customdataoperation.RemoveODHTagsFromEntity<AccommodationV2>(type, table, tagname, OdhPushnotifier);
+                if (type == "odhactivitypoi")
+                    result = await customdataoperation.RemoveODHTagsFromEntity<ODHActivityPoiLinked>(type, table, tagname, OdhPushnotifier);
+                if (type == "event")
+                    result = await customdataoperation.RemoveODHTagsFromEntity<EventLinked>(type, table, tagname, OdhPushnotifier);
+                if (type == "article")
+                    result = await customdataoperation.RemoveODHTagsFromEntity<ArticlesLinked>(type, table, tagname, OdhPushnotifier);
+                
+
+                return Ok(
+                    new
+                    {
+                        operation = "RemoveTagFromEntity " + type,
+                        updatetype = "custom",
+                        otherinfo = tagname,
+                        message = "Done",
+                        recordsmodified = result.Item1,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = result.Item1,
+                        success = true,
+                        pushed = result.Item2,
+                    }
+                );
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(
+                new UpdateResult
+                {
+                    operation = "RemoveTagFromEntity " + type,
+                    updatetype = "custom",
+                    otherinfo = tagname,
+                    message = "Done",
+                    recordsmodified = 0,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = false,
+                    error = 1,
+                    exception = ex.Message
+                }
+            );
+            }           
+        }
+
+
         #endregion
 
         #region Haslanguage
@@ -1341,43 +1412,6 @@ namespace OdhApiImporter.Controllers
             );
         }
 
-        #endregion
-
-        #region Measuringpoint
-
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("MeasuringpointToMeasuringpointV2")]
-        public async Task<IActionResult> MeasuringpointToMeasuringpointV2(
-            string? id,
-            bool? forceupdate,
-            int? takethefirst,
-            CancellationToken cancellationToken
-        )
-        {
-            CustomDataOperation customdataoperation = new CustomDataOperation(
-                settings,
-                QueryFactory
-            );
-            var objectscount = await customdataoperation.MeasuringpointToMeasuringpointV2();        
-
-            return Ok(
-                new UpdateResult
-                {
-                    operation = "Modify Measuringpoint",
-                    updatetype = "custom",
-                    otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount.Item1,
-                    exception = objectscount.Item2,
-                    created = 0,
-                    deleted = 0,
-                    id = "",
-                    updated = 0,
-                    success = true,
-                }
-            );
-        }
-
-        #endregion
+        #endregion        
     }
 }

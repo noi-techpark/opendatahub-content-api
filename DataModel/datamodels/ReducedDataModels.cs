@@ -24,7 +24,7 @@ namespace DataModel
 
     //public class GastronomyLinkedReduced : GastronomyLinked { }
 
-    public class MeasuringpointLinkedReduced : MeasuringpointLinked { }
+    //public class MeasuringpointLinkedReduced : MeasuringpointLinked { }
 
     public class WebcamInfoLinkedReduced : WebcamInfoLinked { }
 

@@ -76,7 +76,6 @@ namespace Helper
                 EventLinked el => GetMetadataforEvent(el, reduced),
                 ODHActivityPoiLinked odhapl => GetMetadataforOdhActivityPoi(odhapl, reduced),
                 PackageLinked pl => GetMetadataforPackage(pl),
-                MeasuringpointLinked ml => GetMetadataforMeasuringpoint(ml),
                 WebcamInfoLinked wil => GetMetadataforWebcam(wil, reduced),
                 ArticlesLinked al => GetMetadataforArticle(al),
                 DDVenue ddv => GetMetadataforDDVenue(ddv),
@@ -110,6 +109,8 @@ namespace Helper
                 GeoShapeJson gj => GetMetadataForGeoShapeJson(gj),
                 Announcement ri => GetMetadataforAnnouncement(ri),
                 UrbanGreen ug => GetMetadataforUrbanGreen(ug),
+                Trip ri => GetMetadataforTrip(ri),
+                SpatialData sp => GetMetadataforSpatialData(sp),
                 _ => throw new Exception("not known odh type"),
             };
         }
@@ -281,17 +282,6 @@ namespace Helper
             return GetMetadata(data, "hgv", false);
         }
 
-        public static Metadata GetMetadataforMeasuringpoint(MeasuringpointLinked data)
-        {
-            string? sourcemeta = data.Source?.ToLower();
-
-            bool reduced = false;
-            if (data._Meta != null)
-                reduced = (bool)data._Meta.Reduced;
-
-            return GetMetadata(data, sourcemeta, reduced);
-        }
-
         public static Metadata GetMetadataforMeasuringpoint(MeasuringpointV2 data, bool reduced = false)
         {
             string? sourcemeta = data.Source?.ToLower();
@@ -388,42 +378,58 @@ namespace Helper
 
         public static Metadata GetMetadataforExperienceArea(ExperienceAreaLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforMetaRegion(MetaRegionLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforRegion(RegionLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforTourismverein(TourismvereinLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforMunicipality(MunicipalityLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforDistrict(DistrictLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforSkiArea(SkiAreaLinked data)
         {
-            return GetMetadata(data, "idm", false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforSkiRegion(SkiRegionLinked data)
         {
-            return GetMetadata(data, "idm",  false);
+            string sourcemeta = data.Source != null ? data.Source.ToLower() : "idm";
+
+            return GetMetadata(data, sourcemeta, false);
         }
 
         public static Metadata GetMetadataforArea(AreaLinked data)
@@ -539,53 +545,73 @@ namespace Helper
             return GetMetadata(data, data.Source ?? "noi");
         }
 
+        public static Metadata GetMetadataforTrip(Trip data)
+        {
+            //TODO Add special cases here
+            return GetMetadata(data, data.Source ?? "noi");
+        }
         public static Metadata GetMetadataforUrbanGreen(UrbanGreen data)
         {
             return GetMetadata(data, data.Source ?? "noi");
         }
 
+        public static Metadata GetMetadataforSpatialData(SpatialData data)
+        {
+            return GetMetadata(data, data.Source ?? "unknown");
+        }
 
         public static void SetUpdateHistory(Metadata? oldmetadata, Metadata newmetadata)
         {
-            if (oldmetadata == null && newmetadata.UpdateInfo != null && !String.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
-            {
-                //New dataset
-                newmetadata.UpdateInfo.UpdateHistory =
-                [
-                    new UpdateHistory() { LastUpdate = newmetadata.LastUpdate, UpdateSource = newmetadata.UpdateInfo.UpdateSource, UpdatedBy = newmetadata.UpdateInfo.UpdatedBy },
-                ];
-            }
-            else if (oldmetadata != null)
-            {
-                //Compatibility Update Info not present
-                if (oldmetadata.UpdateInfo == null)
-                {
-                    oldmetadata.UpdateInfo = new UpdateInfo();
-                    newmetadata.UpdateInfo = new UpdateInfo();
-                }
+            // 1. Ensure newmetadata has UpdateInfo initialized so we can set the Revision
+            newmetadata.UpdateInfo ??= new UpdateInfo();
 
-                //Compatibility UpdateHistory not present
-                if (oldmetadata.UpdateInfo.UpdateHistory == null)
-                    newmetadata.UpdateInfo.UpdateHistory = new List<UpdateHistory>();
-                else
-                    newmetadata.UpdateInfo.UpdateHistory = oldmetadata.UpdateInfo.UpdateHistory;
+            // 2. Calculate the Next Revision
+            // If oldmetadata or its UpdateInfo is null, start at 1. Otherwise, increment.
+            int currentRevision = oldmetadata?.UpdateInfo?.Revision ?? 0;
+            newmetadata.UpdateInfo.Revision = currentRevision + 1;
 
-                if (!String.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
+            // 3. Handle Update History Logic
+            if (oldmetadata == null)
+            {
+                if (!string.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
                 {
-                    if(newmetadata.UpdateInfo.UpdateHistory.Any(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && x.UpdateSource.Equals(newmetadata.UpdateInfo.UpdateSource, StringComparison.OrdinalIgnoreCase)))
+                    newmetadata.UpdateInfo.UpdateHistory = new List<UpdateHistory>
                     {
-                        var updatehistorytoupdate = newmetadata.UpdateInfo.UpdateHistory.Where(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && x.UpdateSource.Equals(newmetadata.UpdateInfo.UpdateSource, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                        updatehistorytoupdate.LastUpdate = newmetadata.LastUpdate;
+                        new UpdateHistory 
+                        { 
+                            LastUpdate = newmetadata.LastUpdate, 
+                            UpdateSource = newmetadata.UpdateInfo.UpdateSource, 
+                            UpdatedBy = newmetadata.UpdateInfo.UpdatedBy
+                        }
+                    };
+                }
+            }
+            else
+            {
+                // Carry over history from old metadata
+                newmetadata.UpdateInfo.UpdateHistory = oldmetadata.UpdateInfo?.UpdateHistory ?? new List<UpdateHistory>();
+
+                if (!string.IsNullOrEmpty(newmetadata.UpdateInfo.UpdatedBy))
+                {
+                    var existingEntry = newmetadata.UpdateInfo.UpdateHistory
+                        .FirstOrDefault(x => x.UpdatedBy == newmetadata.UpdateInfo.UpdatedBy && 
+                                            x.UpdateSource.Equals(newmetadata.UpdateInfo.UpdateSource, StringComparison.OrdinalIgnoreCase));
+
+                    if (existingEntry != null)
+                    {
+                        existingEntry.LastUpdate = newmetadata.LastUpdate;
                     }
                     else
                     {
-                        newmetadata.UpdateInfo.UpdateHistory.Add(new UpdateHistory() { LastUpdate = newmetadata.LastUpdate, UpdateSource = newmetadata.UpdateInfo.UpdateSource, UpdatedBy = newmetadata.UpdateInfo.UpdatedBy });
+                        newmetadata.UpdateInfo.UpdateHistory.Add(new UpdateHistory 
+                        { 
+                            LastUpdate = newmetadata.LastUpdate, 
+                            UpdateSource = newmetadata.UpdateInfo.UpdateSource, 
+                            UpdatedBy = newmetadata.UpdateInfo.UpdatedBy 
+                        });
                     }
                 }
-                    //newmetadata.UpdateInfo.UpdateHistory.  TryAddOrUpdate(, );
             }
-            else
-                newmetadata.UpdateInfo.UpdateHistory = null;
         }
     }
 }
