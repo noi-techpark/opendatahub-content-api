@@ -249,6 +249,62 @@ namespace OdhApiImporter.Helpers
                         }
                     }
                 }
+                else if(state == "rejected" || state == "incomplete")
+                {
+                    if (lastchanged > updatefrom)
+                    {
+                        //GET OLD Activity
+                        var odhactivitypoiindb = await LoadDataFromDB<ODHActivityPoiLinked>(returnid, IDStyle.lowercase);
+
+                        if (odhactivitypoiindb != null)
+                        {
+                            if(!String.IsNullOrEmpty(odhactivitypoiindb.OutdooractiveID) || odhactivitypoiindb.Mapping.ContainsKey("outdooractive"))
+                            {
+                                odhactivitypoiindb.OutdooractiveID = null;
+
+                                if (odhactivitypoiindb.Mapping != null && odhactivitypoiindb.Mapping.ContainsKey("outdooractive"))
+                                {                                    
+                                    odhactivitypoiindb.Mapping.Remove("outdooractive");
+                                }
+
+                                //Save parsedobject to DB + Save Rawdata to DB
+                                var pgcrudresult = await InsertDataToDB(
+                                    odhactivitypoiindb,
+                                    new KeyValuePair<string, XElement>(returnid, oadata)
+                                );
+
+                                newcounter = newcounter + pgcrudresult.created ?? 0;
+                                updatecounter = updatecounter + pgcrudresult.updated ?? 0;
+
+                                //Push to MP
+                                //Push Data if changed
+                                //push modified data to all published Channels                            
+                                pushresponse = await ImportUtils.CheckIfObjectChangedAndPush(
+                                    OdhPushnotifier,
+                                    pgcrudresult,
+                                    pgcrudresult.id,
+                                    "odhactivitypoi",
+                                    null,
+                                    "outdooractive." + type + ".update"
+                                );
+
+                                WriteLog.LogToConsole(
+                                    odhactivitypoiindb.Id,
+                                    "dataimport",
+                                    "single.outdooractive",
+                                    new ImportLog()
+                                    {
+                                        sourceid = odhactivitypoiindb.Id,
+                                        sourceinterface = "outdooractive." + type,
+                                        success = true,
+                                        error = "",
+                                    }
+                                );
+                            }                            
+                        }                        
+                    }
+                }
+
             }
             catch (Exception ex)
             {
