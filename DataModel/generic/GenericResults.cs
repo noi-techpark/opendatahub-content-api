@@ -240,6 +240,84 @@ namespace DataModel
             };
         }
 
+        public static UpdateDetail MergeUpdateDetail(IDictionary<string, UpdateDetail> updatedetaildict)
+        {
+            int? updated = 0;
+            int? created = 0;
+            int? deleted = 0;
+            int? error = 0;
+            int? objectscompared = 0;
+            int? objectchanged = 0;
+            int? objectimagechanged = 0;
+            List<string>? channelstopush = new List<string>();
+            string? exception = null;
+
+            JToken? changes = null;
+
+            IDictionary<string, NotifierResponse> pushed =
+                new Dictionary<string, NotifierResponse>();
+
+            foreach (var updatedetail in updatedetaildict)
+            {
+                objectscompared = updatedetail.Value.comparedobjects + objectscompared;
+
+                created = updatedetail.Value.created + created;
+                updated = updatedetail.Value.updated + updated;
+                deleted = updatedetail.Value.deleted + deleted;
+                error = updatedetail.Value.error + error;
+                if (updatedetail.Value.objectchanged != null)
+                    objectchanged = updatedetail.Value.objectchanged + objectchanged;
+                if (updatedetail.Value.objectimagechanged != null)
+                    objectimagechanged = updatedetail.Value.objectimagechanged + objectimagechanged;
+
+                if (updatedetail.Value.changes != null)
+                {
+                    if (changes == null)
+                        changes = updatedetail.Value.changes;
+                    else
+                        changes.Append(updatedetail.Value.changes);
+                }
+
+                if (updatedetail.Value.pushchannels != null)
+                {
+                    foreach (var pushchannel in updatedetail.Value.pushchannels)
+                    {
+                        if (!channelstopush.Contains(pushchannel))
+                            channelstopush.Add(pushchannel);
+                    }
+                }
+
+                if (updatedetail.Value.pushed != null)
+                {
+                    foreach (var updatedetailpushed in updatedetail.Value.pushed)
+                        pushed.TryAdd(updatedetailpushed.Key, updatedetailpushed.Value);
+                }
+
+                if (!String.IsNullOrEmpty(updatedetail.Value.exception))
+                {
+                    exception = updatedetail.Value.exception + exception;
+                }
+            }
+
+
+
+            return new UpdateDetail()
+            {
+                created = created,
+                updated = updated,
+                deleted = deleted,
+                error = error,
+                comparedobjects = objectscompared,
+                objectchanged = objectchanged,
+                objectimagechanged = objectimagechanged,
+                pushchannels = channelstopush,
+                pushed = MergeNotifierResponse(updatedetaildict),
+                changes = changes,
+                exception = exception
+            };
+        }
+
+
         public static IDictionary<string, NotifierResponse>? MergeNotifierResponse(IEnumerable<UpdateDetail> updatedetails)
         {
             IDictionary<string, NotifierResponse> response = new Dictionary<string, NotifierResponse>();
@@ -268,6 +346,36 @@ namespace DataModel
 
             return response;
         }
+
+        public static IDictionary<string, NotifierResponse>? MergeNotifierResponse(IDictionary<string, UpdateDetail> updatedetaildict)
+        {
+            IDictionary<string, NotifierResponse> response = new Dictionary<string, NotifierResponse>();
+
+            foreach (var updatedetail in updatedetaildict)
+            {
+                if (updatedetail.Value.pushed != null)
+                {
+                    foreach (var pushed in updatedetail.Value.pushed)
+                    {
+                        if (response.Keys.Contains(pushed.Key))
+                        {
+                            response[pushed.Key].ObjectId = response[pushed.Key].ObjectId + "," + pushed.Value.ObjectId;
+                            response[pushed.Key].Service = response[pushed.Key].Service + "," + pushed.Value.Service;
+                            //response[pushed.Key].Response
+                        }
+                        else
+                        {
+                            response.Add(pushed.Key, pushed.Value);
+                        }
+                    }
+                }
+                else
+                    return null;
+            }
+
+            return response;
+        }
+
 
         public static UpdateResult GetSuccessUpdateResult(
             string id,

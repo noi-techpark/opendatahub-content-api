@@ -253,20 +253,29 @@ namespace OdhApiImporter.Helpers
                         importerURL,
                         OdhPushnotifier
                     );
+                    
                     //Disable the datapush because it is done one push after all updates
                     hgvapiimporthelper.pushdata = false;
                     var hgvupdateresult = await hgvapiimporthelper.SaveDataToODH(new List<string>() { id }, cancellationToken);
                     updateresultdict.Add("accommodation_hgv", hgvupdateresult);
 
-                    //TODO MERGE the UpdateResults updateresultdict
+                    //MERGE the UpdateResults updateresultdict
+                    updateresult = GenericResultsHelper.MergeUpdateDetail(updateresultdict);
 
-
+                    //Check if rooms have changed
+                    bool roomschanged = false;
+                    foreach(var kvp in updateresultdict.Where(x => x.Key.StartsWith("accommodationroom_lts") || x.Key == "accommodationroom_hgv"))
+                    {
+                        if (kvp.Value.objectchanged != null && kvp.Value.objectchanged > 0)
+                            roomschanged = true;
+                    }
 
                     //TO Test if every special Case is present in the objectchanged
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
                                 id,
-                                datatype
+                                datatype,
+                                new Dictionary<string, bool>() { { "roomschanged", roomschanged } }
                             );
 
                     break;
