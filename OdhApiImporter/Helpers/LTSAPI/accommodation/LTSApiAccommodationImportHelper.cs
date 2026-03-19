@@ -428,19 +428,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Add MetaInfo
                         await AddIDMMetaTitleAndDescription(accommodationparsed, metainfosidm);
-                    }
-
-                    //Preserve SmgTags (preserve all not automatically assigned Tags)
-                    
-                    //Add Meta Info, etc.... all custom logic
-
-                    //Custom language sync
-
+                    }                                       
 
                     //FINALLY UPDATE ACCOMMODATION ROOT OBJECT
 
                     //Create Tags and preserve the old TagEntries
                     await accommodationparsed.UpdateTagsExtension(QueryFactory);
+
+                    //TODO Add the Amenities as Tags without the need to recreate the TagEntries
+
+
 
                     var result = await InsertDataToDB(accommodationparsed, data.data, jsondata);
 
