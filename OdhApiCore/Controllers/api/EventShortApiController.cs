@@ -763,7 +763,7 @@ namespace OdhApiCore.Controllers.api
                             myeventshortbyroom.RoomStartDateUTC = room.StartDateUTC;
                             myeventshortbyroom.SpaceDesc = room.SpaceDesc;
                             myeventshortbyroom.SpaceType = room.SpaceType;
-                            myeventshortbyroom.Subtitle = room.Subtitle;
+                            myeventshortbyroom.Subtitle = room.Subtitle != null ? room.Subtitle : "";
 
                             string roomname = room.SpaceDesc ?? "";
                             if (
