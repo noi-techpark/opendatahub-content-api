@@ -364,7 +364,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var accommodationparsed = AccommodationParser.ParseLTSAccommodation(data.data, false, xmlfiles, jsondata);
 
-                    //POPULATE LocationInfo TO CHECK if this works for new activities...
+                    //POPULATE LocationInfo TO CHECK if this works for new accommodations...
                     accommodationparsed.LocationInfo = await accommodationparsed.UpdateLocationInfoExtension(
                         QueryFactory
                     );
@@ -404,7 +404,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Get rooms to delete
                         var ltsrooms = accommodationsroomparsed.Select(x => x.Id).ToList();
-                        var ltsroomsondb = accommodationindb.AccoRoomInfo.Where(x => x.Source == "lts").Select(x => x.Id).ToList();
+                        var ltsroomsondb = accommodationindb.AccoRoomInfo != null ? accommodationindb.AccoRoomInfo.Where(x => x.Source == "lts").Select(x => x.Id).ToList() : new List<string>();
                         var ltsroomstodelete = ltsroomsondb.Except(ltsrooms);
 
                         //Delete Deleted ROOMS
@@ -421,7 +421,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         ReAddAccoHGVInfo(accommodationparsed, accommodationindb);
 
                         //Regenerated AccoRooms List LTS on Accommodation object without DB Calls
-                        await accommodationparsed.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "lts" }, new Dictionary<string, List<string>>() { { "lts", accommodationsroomparsed.Select(x => x.Id).ToList() } });                        
+                        await accommodationparsed.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "lts" }, new Dictionary<string, List<string>>() { { "lts", accommodationsroomparsed.Select(x => x.Id).ToList() } });
+
+                        ReAddAccoHGVRooms(accommodationparsed, accommodationindb);
 
                         //Preserve SmgTags
                         await AssignODHTags(accommodationparsed, accommodationindb);
@@ -436,8 +438,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     await accommodationparsed.UpdateTagsExtension(QueryFactory);
 
                     //TODO Add the Amenities as Tags without the need to recreate the TagEntries
-
-
 
                     var result = await InsertDataToDB(accommodationparsed, data.data, jsondata);
 
@@ -520,7 +520,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.accommodations.import", importerURL),
                     new CRUDConstraints(),
-                    new CompareConfig(true, false),
+                    new CompareConfig(true, true),
                     rawdataid,
                     opendata
                 );
@@ -761,6 +761,20 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     if (!accommodation.Mapping["hgv"].ContainsKey(item.Key))
                         accommodation.Mapping["hgv"].TryAddOrUpdate(item.Key, item.Value);
                 }
+            }            
+        }
+
+        public void ReAddAccoHGVRooms(AccommodationV2 accommodation, AccommodationV2 accommodationInDB)
+        {
+            //Read the Rooms from hgv            
+            var hgvroomstopreserve = accommodationInDB.AccoRoomInfo != null ? accommodationInDB.AccoRoomInfo.Where(x => x.Source == "hgv").ToList() : null;
+            if (hgvroomstopreserve != null)
+            {
+                if (accommodation.AccoRoomInfo == null)
+                    accommodation.AccoRoomInfo = new List<AccoRoomInfoLinked>();
+
+                foreach (var hgvroom in hgvroomstopreserve)
+                    accommodation.AccoRoomInfo.Add(hgvroom);
             }
         }
 
@@ -776,8 +790,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
             accommodation.AccoLTSInfo.PriceFrom = (int?)pricefrom;
             accommodation.AccoLTSInfo.PriceFromPerUnit = (int?)pricefromperunit;
-            accommodation.AccoLTSInfo.PriceFromPerUnitType = pricefromperunittype;
-
+            accommodation.AccoLTSInfo.PriceFromPerUnitType = pricefromperunittype;            
         }
 
         #endregion
