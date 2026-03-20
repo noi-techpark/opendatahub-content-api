@@ -767,37 +767,43 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return false;
         }
 
-        public void ReAddAccoHGVInfo(AccommodationV2 accommodation, AccommodationV2 accommodationInDB)
+        public void ReAddAccoHGVInfo(AccommodationV2 accommodation, AccommodationV2? accommodationInDB)
         {
-            //Readd AccoHGVInfo
-            if(accommodationInDB.AccoHGVInfo != null)
-                accommodation.AccoHGVInfo = accommodationInDB.AccoHGVInfo;
-
-            //Readd Mapping HGV
-            if(accommodationInDB.Mapping != null && accommodationInDB.Mapping.ContainsKey("hgv"))
+            if (accommodationInDB != null)
             {
-                foreach(var item in accommodationInDB.Mapping["hgv"])
-                {
-                    if (!accommodation.Mapping.ContainsKey("hgv"))
-                        accommodation.Mapping.TryAddOrUpdate("hgv", new Dictionary<string, string>());
+                //Readd AccoHGVInfo
+                if (accommodationInDB.AccoHGVInfo != null)
+                    accommodation.AccoHGVInfo = accommodationInDB.AccoHGVInfo;
 
-                    if (!accommodation.Mapping["hgv"].ContainsKey(item.Key))
-                        accommodation.Mapping["hgv"].TryAddOrUpdate(item.Key, item.Value);
+                //Readd Mapping HGV
+                if (accommodationInDB.Mapping != null && accommodationInDB.Mapping.ContainsKey("hgv"))
+                {
+                    foreach (var item in accommodationInDB.Mapping["hgv"])
+                    {
+                        if (!accommodation.Mapping.ContainsKey("hgv"))
+                            accommodation.Mapping.TryAddOrUpdate("hgv", new Dictionary<string, string>());
+
+                        if (!accommodation.Mapping["hgv"].ContainsKey(item.Key))
+                            accommodation.Mapping["hgv"].TryAddOrUpdate(item.Key, item.Value);
+                    }
                 }
-            }            
+            }
         }
 
-        public void ReAddAccoHGVRooms(AccommodationV2 accommodation, AccommodationV2 accommodationInDB)
+        public void ReAddAccoHGVRooms(AccommodationV2 accommodation, AccommodationV2? accommodationInDB)
         {
-            //Read the Rooms from hgv            
-            var hgvroomstopreserve = accommodationInDB.AccoRoomInfo != null ? accommodationInDB.AccoRoomInfo.Where(x => x.Source == "hgv").ToList() : null;
-            if (hgvroomstopreserve != null)
+            if (accommodationInDB != null)
             {
-                if (accommodation.AccoRoomInfo == null)
-                    accommodation.AccoRoomInfo = new List<AccoRoomInfoLinked>();
+                //Read the Rooms from hgv            
+                var hgvroomstopreserve = accommodationInDB.AccoRoomInfo != null ? accommodationInDB.AccoRoomInfo.Where(x => x.Source == "hgv").ToList() : null;
+                if (hgvroomstopreserve != null)
+                {
+                    if (accommodation.AccoRoomInfo == null)
+                        accommodation.AccoRoomInfo = new List<AccoRoomInfoLinked>();
 
-                foreach (var hgvroom in hgvroomstopreserve)
-                    accommodation.AccoRoomInfo.Add(hgvroom);
+                    foreach (var hgvroom in hgvroomstopreserve)
+                        accommodation.AccoRoomInfo.Add(hgvroom);
+                }
             }
         }
 
