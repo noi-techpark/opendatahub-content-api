@@ -86,14 +86,18 @@ namespace Helper.AccommodationRoomsExtension
             var roomids = roomdict.SelectMany(x => x.Value).ToList();
 
             //remove only from source we are checking
-            var roomidstoremove = data.AccoRoomInfo.Where(x => sourcestosync.Contains(x.Source)).Select(x => x.Id).Except(roomids).ToList();
-
-            foreach (var roomidtoremove in roomidstoremove)
+            if (data.AccoRoomInfo != null)
             {
-                var acccoroominfolinkedtoremoe = data.AccoRoomInfo.Where(x => x.Id == roomidtoremove).FirstOrDefault();
-                if (acccoroominfolinkedtoremoe != null)
-                    data.AccoRoomInfo.Remove(acccoroominfolinkedtoremoe);
-            }            
+                var roomidstoremove = data.AccoRoomInfo.Where(x => sourcestosync.Contains(x.Source)).Select(x => x.Id).Except(roomids).ToList();
+
+                foreach (var roomidtoremove in roomidstoremove)
+                {
+
+                    var acccoroominfolinkedtoremove = data.AccoRoomInfo.Where(x => x.Id == roomidtoremove).FirstOrDefault();
+                    if (acccoroominfolinkedtoremove != null)
+                        data.AccoRoomInfo.Remove(acccoroominfolinkedtoremove);
+                }
+            }
         }        
     }
 }

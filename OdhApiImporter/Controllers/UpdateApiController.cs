@@ -2855,37 +2855,37 @@ namespace OdhApiImporter.Controllers
 
                 Tuple<string,UpdateDetail> resulttuple = default(Tuple<string,UpdateDetail>);
 
-                if (datatype == "accommodation")
-                {
-                    RavenImportHelper ravenimporthelper = new RavenImportHelper(
-                        settings,
-                        QueryFactory,
-                        UrlGeneratorStatic("Raven/" + datatype),
-                        OdhPushnotifier
-                    );
-                    resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
-                        id,
-                        datatype,
-                        cancellationToken
-                    );
-                    updatedetail = resulttuple.Item2;
-                }
-                else
-                {
-                    LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
-                       settings,
-                       QueryFactory,
-                       UrlGeneratorStatic("LTS/" + datatypecalculated),
-                       OdhPushnotifier
-                   );
+                //if (datatype == "accommodation")
+                //{
+                //    RavenImportHelper ravenimporthelper = new RavenImportHelper(
+                //        settings,
+                //        QueryFactory,
+                //        UrlGeneratorStatic("Raven/" + datatype),
+                //        OdhPushnotifier
+                //    );
+                //    resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
+                //        id,
+                //        datatype,
+                //        cancellationToken
+                //    );
+                //    updatedetail = resulttuple.Item2;
+                //}
+                //else
+                //{
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatypecalculated),
+                    OdhPushnotifier
+                );
 
-                    resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
-                        idtopass,
-                        datatypecalculated,
-                        cancellationToken
-                    );
-                    updatedetail = resulttuple.Item2;
-                }
+                resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
+                    idtopass,
+                    datatypecalculated,
+                    cancellationToken
+                );
+                updatedetail = resulttuple.Item2;
+                //}
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     resulttuple.Item1,
