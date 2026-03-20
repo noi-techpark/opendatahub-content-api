@@ -412,12 +412,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         var ltsrooms = accommodationsroomparsed.Select(x => x.Id).ToList();
                         var ltsroomsondb = accommodationindb != null && accommodationindb.AccoRoomInfo != null ? accommodationindb.AccoRoomInfo.Where(x => x.Source == "lts").Select(x => x.Id).ToList() : new List<string>();
                         var ltsroomstodelete = ltsroomsondb.Except(ltsrooms);
+                        int roomdeletecounter = 0;
 
                         //Delete Deleted ROOMS
                         foreach (var deletedroom in ltsroomstodelete)
                         {
                             var accommodationroomdeleteresult = await DeleteOrDisableAccommodationRoomsData(deletedroom, true, false);
-                            updatedetails.Add("accommodationroom_lts_delete", accommodationroomdeleteresult);
+                            updatedetails.Add($"accommodationroom_lts_delete_{roomdeletecounter}", accommodationroomdeleteresult);
+                            roomdeletecounter++;
                         }
 
                         //Add the AccoLTSInfo
