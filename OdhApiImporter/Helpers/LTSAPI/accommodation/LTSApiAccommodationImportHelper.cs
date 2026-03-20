@@ -28,6 +28,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
     public class LTSApiAccommodationImportHelper : ImportHelper, IImportHelper
     {
         public bool opendata = false;
+
+        public bool isdatapresentonhgv = false;
         
         public LTSApiAccommodationImportHelper(
             ISettings settings,
@@ -364,6 +366,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var accommodationparsed = AccommodationParser.ParseLTSAccommodation(data.data, false, xmlfiles, jsondata);
 
+                    //Check if Accommodation is available on HGV!
+                    if (CheckIfDataIsPresentOnHgv(accommodationparsed))
+                        isdatapresentonhgv = true;
+
                     //POPULATE LocationInfo TO CHECK if this works for new accommodations...
                     accommodationparsed.LocationInfo = await accommodationparsed.UpdateLocationInfoExtension(
                         QueryFactory
@@ -418,12 +424,14 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         AssignAccoLTSInfo(accommodationsroomparsed, accommodationparsed);
 
                         //Readd AccoHGVInfo
-                        ReAddAccoHGVInfo(accommodationparsed, accommodationindb);
+                        if(isdatapresentonhgv)
+                            ReAddAccoHGVInfo(accommodationparsed, accommodationindb);
 
                         //Regenerated AccoRooms List LTS on Accommodation object without DB Calls
                         await accommodationparsed.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "lts" }, new Dictionary<string, List<string>>() { { "lts", accommodationsroomparsed.Select(x => x.Id).ToList() } });
 
-                        ReAddAccoHGVRooms(accommodationparsed, accommodationindb);
+                        if (isdatapresentonhgv)
+                            ReAddAccoHGVRooms(accommodationparsed, accommodationindb);
 
                         //Preserve SmgTags
                         await AssignODHTags(accommodationparsed, accommodationindb);
@@ -743,6 +751,19 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
         #region Custom Stuff
 
+        private bool CheckIfDataIsPresentOnHgv(AccommodationV2 accommodation)
+        {
+            if (accommodation.AccoBookingChannel != null)
+            {
+                if (accommodation.AccoBookingChannel.Count > 0)
+                {
+                    if (accommodation.AccoBookingChannel.Where(x => x.Id == "hgv").Count() > 0)
+                        return true;
+                }
+            }
+
+            return false;
+        }
 
         public void ReAddAccoHGVInfo(AccommodationV2 accommodation, AccommodationV2 accommodationInDB)
         {
@@ -791,7 +812,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             accommodation.AccoLTSInfo.PriceFrom = (int?)pricefrom;
             accommodation.AccoLTSInfo.PriceFromPerUnit = (int?)pricefromperunit;
             accommodation.AccoLTSInfo.PriceFromPerUnitType = pricefromperunittype;            
-        }
+        }        
 
         #endregion
 
