@@ -410,7 +410,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                         //Get rooms to delete
                         var ltsrooms = accommodationsroomparsed.Select(x => x.Id).ToList();
-                        var ltsroomsondb = accommodationindb.AccoRoomInfo != null ? accommodationindb.AccoRoomInfo.Where(x => x.Source == "lts").Select(x => x.Id).ToList() : new List<string>();
+                        var ltsroomsondb = accommodationindb != null && accommodationindb.AccoRoomInfo != null ? accommodationindb.AccoRoomInfo.Where(x => x.Source == "lts").Select(x => x.Id).ToList() : new List<string>();
                         var ltsroomstodelete = ltsroomsondb.Except(ltsrooms);
 
                         //Delete Deleted ROOMS
