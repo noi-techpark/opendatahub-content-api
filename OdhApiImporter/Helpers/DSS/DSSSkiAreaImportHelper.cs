@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using DataModel;
+using DataModel.helpers;
 using DSS;
 using Helper;
 using Helper.Generic;
@@ -128,10 +129,10 @@ namespace OdhApiImporter.Helpers.DSS
                         double.TryParse(seasonwinterend, out double seasonwinterenddb);
 
                         OperationSchedule operationSchedule = new OperationSchedule();
-                        operationSchedule.Start = Helper.DateTimeHelper.UnixTimeStampToDateTime(
+                        operationSchedule.Start = DateTimeHelper.UnixTimeStampToDateTime(
                             seasonwinterstartdb
                         );
-                        operationSchedule.Stop = Helper.DateTimeHelper.UnixTimeStampToDateTime(
+                        operationSchedule.Stop = DateTimeHelper.UnixTimeStampToDateTime(
                             seasonwinterenddb
                         );
                         operationSchedule.OperationscheduleName = new Dictionary<string, string>()

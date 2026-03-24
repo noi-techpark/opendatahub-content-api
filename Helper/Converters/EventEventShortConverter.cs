@@ -3,12 +3,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -17,18 +20,18 @@ namespace Helper.Converters
     public class EventEventShortConverter
     {
         //Convert Event to EventV2
-        private static EventShortLinked ConvertEventToEventShort(
+        public static EventShortLinked ConvertEventToEventShort(
             EventLinked eventv1
         )
         {
             EventShortLinked eventshort = new EventShortLinked();
 
-            eventshort.PublishedOn = eventv1.PublishedOn;
             eventshort.Id = eventv1.Id;
             eventshort.ImageGallery = eventv1.ImageGallery;
             eventshort.TagIds = eventv1.TagIds;
             eventshort.Tags = eventv1.Tags;
             eventshort.Active = eventv1.Active;
+            eventshort.PublishedOn = eventv1.PublishedOn;
 
             eventshort.Detail = eventv1.Detail;
             eventshort.Source = eventv1.Source;
@@ -57,7 +60,7 @@ namespace Helper.Converters
 
 
             //Fields to map
-            //EventId
+            //EventId               --> Mapping
             //SoldOut
             //Display1 - Display9            
             //ActiveWeb
@@ -114,7 +117,10 @@ namespace Helper.Converters
             eventshort.ContactFirstName = contactinfo.Givenname;
             eventshort.ContactAddressLine2 = contactinfo.Area;
             eventshort.ContactAddressLine3 = contactinfo.Region;
-            
+
+            eventshort.WebAddress = contactinfo.Url;
+
+
             //CompanyFax
             //CompanyUrl
             //CompanyCity
@@ -125,21 +131,22 @@ namespace Helper.Converters
             //CompanyAddressLine1
             //CompanyAddressLine2
             //CompanyAddressLine3
-            var organizerinfo = eventv1.OrganizerInfos.FirstOrDefault().Value;
-            eventshort.CompanyFax = organizerinfo.Faxnumber;
-            eventshort.CompanyCity = organizerinfo.City;
-            eventshort.CompanyAddressLine1 = organizerinfo.ZipCode + " " + organizerinfo.Address;
-            eventshort.CompanyMail = organizerinfo.Email;
-            eventshort.CompanyCountry = organizerinfo.CountryName;
-            eventshort.CompanyPhone = organizerinfo.Phonenumber;
-            eventshort.CompanyName = organizerinfo.CompanyName;            
-            eventshort.CompanyAddressLine2 = organizerinfo.Area;
-            eventshort.CompanyAddressLine3 = organizerinfo.Region;
-            eventshort.CompanyUrl = organizerinfo.Url;
+            if (eventv1.OrganizerInfos != null)
+            {
+                var organizerinfo = eventv1.OrganizerInfos.FirstOrDefault().Value;
+                eventshort.CompanyFax = organizerinfo.Faxnumber;
+                eventshort.CompanyCity = organizerinfo.City;
+                eventshort.CompanyAddressLine1 = organizerinfo.ZipCode + " " + organizerinfo.Address;
+                eventshort.CompanyMail = organizerinfo.Email;
+                eventshort.CompanyCountry = organizerinfo.CountryName;
+                eventshort.CompanyPhone = organizerinfo.Phonenumber;
+                eventshort.CompanyName = organizerinfo.CompanyName;
+                eventshort.CompanyAddressLine2 = organizerinfo.Area;
+                eventshort.CompanyAddressLine3 = organizerinfo.Region;
+                eventshort.CompanyUrl = organizerinfo.Url;
+            }
 
-
-            eventshort.WebAddress = contactinfo.Url;
-
+            
 
             foreach (var eventdate in eventv1.EventDate)
             {
@@ -161,13 +168,227 @@ namespace Helper.Converters
         }
 
         //Convert EventShort to EventV2
-        private static EventLinked ConvertEventShortToEvent(
-            EventShortLinked eventvshort
+        public static EventLinked ConvertEventShortToEvent(
+            EventShortLinked eventshort
         )
         {
             EventLinked eventv1 = new EventLinked();
 
-            eventv1.Id = eventvshort.Id;
+            eventv1.Id = eventshort.Id;
+            eventv1.ImageGallery = eventshort.ImageGallery;
+            eventv1.TagIds = eventshort.TagIds;
+            eventv1.Tags = eventshort.Tags;
+            eventv1.Active = eventshort.Active != null ? eventshort.Active.Value : false;
+            eventv1.PublishedOn = eventshort.PublishedOn;
+
+            eventv1.Detail = eventshort.Detail;
+            eventv1.Source = eventshort.Source;
+
+            eventv1.GpsInfo = eventshort.GpsInfo;
+            eventv1.Mapping = eventshort.Mapping;
+
+            eventv1.DateBegin = eventshort.StartDate;
+            eventv1.DateEnd = eventshort.EndDate;
+
+            eventv1.FirstImport = eventshort.FirstImport;
+            eventv1.LastChange = eventshort.LastChange;
+            eventv1.Shortname = eventshort.Shortname;
+
+            eventv1.HasLanguage = eventshort.HasLanguage;
+
+            eventv1.LicenseInfo = eventshort.LicenseInfo;
+
+            eventv1.RelatedContent = eventshort.RelatedContent;
+
+            eventv1.Id = eventshort.Id;
+
+            eventv1.Mapping = eventshort.Mapping;
+
+            if (eventv1.Mapping == null)
+                eventv1.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            var mappingtoadd = eventv1.Mapping.ContainsKey("ebms") ? eventv1.Mapping["ebms"] : new Dictionary<string, string>();
+            if(eventshort.EventId != null)
+                mappingtoadd.Add("eventid", eventshort.EventId.ToString());
+
+            if (eventshort.CompanyId != null)
+                mappingtoadd.Add("companyid", eventshort.CompanyId.ToString());
+
+            eventv1.Mapping.TryAddOrUpdate("ebms", mappingtoadd);
+
+            eventv1.TagIds = new List<string>();
+
+            if(eventshort.CustomTagging != null)
+            {
+                foreach (var tag in eventshort.CustomTagging)
+                {
+                    eventv1.TagIds.Add(tag);
+                }
+            }            
+
+            //Add Location as Tag
+            if(!String.IsNullOrEmpty(eventshort.EventLocation))
+                eventv1.TagIds.Add("eventlocation:" + eventshort.EventLocation.ToLower());
+
+            //Add each Room as Tag?
+
+            eventv1.Documents = eventshort.Documents;
+            eventv1.VideoItems = eventshort.VideoItems;
+
+            if(eventshort.WebAddress != null)
+                eventv1.EventUrls = new List<EventUrls>() { new EventUrls() { Active = true, Type = "default", Url = new Dictionary<string, string>() { { "en", eventshort.WebAddress } } } };
+
+            //Fields to map
+            //EventId               --> Mapping
+            //CompanyId             --> Mapping            
+            //Display1 - Display9   --> Dismiss         
+            //ActiveWeb             --> Dismiss
+            //ActiveToday           --> Dismiss            
+            //EventText             --> in Detail.Basetext
+            //EventTitle            --> in Detail.Title
+            //EventDescription      --> in Detail
+            //EventDescriptionDE    --> in Detail
+            //EventDescriptionEN    --> in Detail
+            //EventDescriptionIT    --> in Detail
+            //EventTextDE           --> in Detail
+            //EventTextEN           --> in Detail
+            //EventTextIT           --> in Detail
+            //GpsPoints             --> Autogenerated
+            //CustomTagging         --> Migrated to Tags
+
+
+            //Documents             
+            //VideoUrl
+            //VideoItems
+            //WebAddress            --> EventUrls
+            //AnchorVenue           --> EventAdditionalInfos.Location
+            //AnchorVenueShort
+            //AnchorVenueRoomMapping
+            //EventDocument
+            //EventLocation         --> Tag!
+            //AdditionalProperties
+
+            //RoomBooked.SpaceDesc  -->
+            //RoomBooked.SpaceType
+            //RoomBooked.SpaceAbbrev
+            
+
+            EventEuracNoiDataProperties additionalprops = new EventEuracNoiDataProperties();
+            additionalprops.ExternalOrganizer = eventshort.ExternalOrganizer;
+            additionalprops.SoldOut = eventshort.SoldOut;
+            additionalprops.TypicalAgeRange = eventshort.TypicalAgeRange;
+            additionalprops.EventLocation = eventshort.EventLocation;
+
+            //find a better key here
+            eventv1.AdditionalProperties = new Dictionary<string, dynamic>();
+            eventv1.AdditionalProperties.Add("eventeuracnoidataproperties", additionalprops);
+
+
+            if (eventshort.RoomBooked != null)
+            {
+                foreach (var roombooked in eventshort.RoomBooked)
+                {
+                    if (eventv1.EventDate == null)
+                        eventv1.EventDate = new List<EventDate>();
+
+                    EventDate eventdate = new EventDate();
+
+
+
+                    //Comment
+                    if (roombooked.Comment != null && roombooked.Comment.ToLower() == "x")
+                        eventdate.Active = false;
+                    else
+                        eventdate.Active = true;
+
+                    //StartDate
+                    eventdate.From = roombooked.StartDate;
+                    eventdate.To = roombooked.EndDate;
+
+                    //StartDateUTC
+                    //EndDateUTC
+
+                    eventdate.Begin = roombooked.StartDate.TimeOfDay;
+                    eventdate.End = roombooked.EndDate.TimeOfDay;
+
+                    //Subtitle
+                    if (!String.IsNullOrEmpty(roombooked.Subtitle))
+                    {
+                        if (eventdate.EventDateAdditionalInfo == null)
+                            eventdate.EventDateAdditionalInfo = new Dictionary<string, EventDateAdditionalInfo>();
+
+                        eventdate.EventDateAdditionalInfo.Add("en", new EventDateAdditionalInfo() { Language = "en", Description = roombooked.Subtitle });
+                    }
+
+                    //Space
+                    //SpaceDesc
+                    //SpaceType                    
+                    //SpaceAbbrev
+
+                    //Venue
+                    if (eventdate.VenueIds == null)
+                        eventdate.VenueIds = new List<string>();
+
+                    if (!String.IsNullOrEmpty(roombooked.SpaceDesc))
+                        eventdate.VenueIds.Add("venue:" + roombooked.SpaceDesc.ToLower().Replace(" ", ":"));
+
+                    eventv1.EventDate.Add(eventdate);
+                }
+            }
+
+            var contactinfo = new ContactInfos();
+            contactinfo.Faxnumber = eventshort.ContactFax;
+            contactinfo.City = eventshort.ContactCity;
+
+            contactinfo.Address = eventshort.ContactAddressLine1;
+            contactinfo.Email = eventshort.ContactEmail;
+            contactinfo.CountryName = eventshort.ContactCountry;
+            contactinfo.Phonenumber = eventshort.ContactPhone;
+            contactinfo.Surname = eventshort.ContactLastName;
+            contactinfo.Givenname = eventshort.ContactFirstName;
+            contactinfo.Area = eventshort.ContactAddressLine2;
+            contactinfo.Region = eventshort.ContactAddressLine3;
+            contactinfo.Url = eventshort.WebAddress;
+
+            eventv1.ContactInfos = new Dictionary<string, ContactInfos>();
+            eventv1.ContactInfos.Add("en", contactinfo);
+
+            //OrganizerInfos
+            if(!String.IsNullOrEmpty(eventshort.CompanyName) &&
+                !String.IsNullOrEmpty(eventshort.CompanyAddressLine1) &&
+                !String.IsNullOrEmpty(eventshort.CompanyUrl)
+                )
+            {
+                var organizerinfo = new ContactInfos();
+                organizerinfo.Faxnumber = eventshort.CompanyFax;
+                organizerinfo.City = eventshort.CompanyCity;
+
+                // Split ZipCode and Address from "ZipCode Address"            
+                organizerinfo.Address = eventshort.CompanyAddressLine1;
+
+                organizerinfo.Email = eventshort.CompanyMail;
+                organizerinfo.CountryName = eventshort.CompanyCountry;
+                organizerinfo.Phonenumber = eventshort.CompanyPhone;
+                organizerinfo.CompanyName = eventshort.CompanyName;
+                organizerinfo.Area = eventshort.CompanyAddressLine2;
+                organizerinfo.Region = eventshort.CompanyAddressLine3;
+                organizerinfo.Url = eventshort.CompanyUrl;
+
+                eventv1.OrganizerInfos = new Dictionary<string, ContactInfos>();
+                eventv1.OrganizerInfos.Add("en", organizerinfo);
+            }
+
+
+            //Venue
+            if (eventv1.VenueIds == null)
+                eventv1.VenueIds = new List<string>();
+
+            if (!String.IsNullOrEmpty(eventshort.AnchorVenue))
+                eventv1.VenueIds.Add("venue:" + eventshort.AnchorVenue.ToLower().Replace(" ", ":"));
+
+            //_Meta generation
+
+
 
             return eventv1;
         }

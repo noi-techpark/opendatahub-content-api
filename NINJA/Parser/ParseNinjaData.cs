@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Text;
 using Amazon.Auth.AccessControlPolicy;
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.FSharp.Control;
@@ -804,10 +805,10 @@ namespace NINJA.Parser
                 );
                 myevent.End = TryParsingToDateTime(ninjaevent.end_date + " " + ninjaevent.end_time);
 
-                myevent.BeginUTC = Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                myevent.BeginUTC = DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                     myevent.Begin
                 );
-                myevent.EndUTC = Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                myevent.EndUTC = DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                     myevent.End
                 );
 
@@ -825,7 +826,7 @@ namespace NINJA.Parser
 
                 //AdditionalProps
 
-                AdditionalInfosCentroTrevi additionalinfos = new AdditionalInfosCentroTrevi();
+                EventCentroTreviDataProperties additionalinfos = new EventCentroTreviDataProperties();
 
                 bool ticket = false;
 
@@ -846,7 +847,7 @@ namespace NINJA.Parser
                 }
 
                 myevent.AdditionalProperties.Add(
-                    typeof(AdditionalInfosCentroTrevi).Name,
+                    typeof(EventCentroTreviDataProperties).Name,
                     additionalinfos
                 );
 

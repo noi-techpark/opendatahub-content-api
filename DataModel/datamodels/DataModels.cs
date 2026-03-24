@@ -3,7 +3,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel.Annotations;
+using DataModel.helpers;
 using DataModel.validation;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries.Utilities;
+using NetTopologySuite.IO;
+using Newtonsoft.Json;
+// using System.Text.Json.Serialization; // this is not the package used to serialize
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Swashbuckle.AspNetCore.Annotations;
@@ -16,11 +22,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
-using NetTopologySuite.Geometries.Utilities;
-// using System.Text.Json.Serialization; // this is not the package used to serialize
-using Newtonsoft.Json;
 
 namespace DataModel
 {
@@ -1072,6 +1073,30 @@ namespace DataModel
         //startDate, endDate
         public DateTime From { get; set; }
         public DateTime To { get; set; }
+
+        //Begindate UTC
+        public double? FromUTC
+        {
+            get
+            {
+                return this.From != null
+                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.From)
+                    : null;
+            }
+        }
+
+        //Enddate UTC
+        public double? ToUTC
+        {
+            get
+            {
+                return this.To != null
+                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.To)
+                    : null;
+            }
+        }
+
+
         public TimeSpan? Begin { get; set; }
         public TimeSpan? End { get; set; }
         public TimeSpan? Entrance { get; set; }
@@ -1095,6 +1120,21 @@ namespace DataModel
         public bool? Ticket { get; set; }
         [SwaggerDeprecated("Deprecated use isCancelled")]
         public string? Cancelled { get; set; }
+
+        //NEW Venue Assignment
+        public ICollection<string>? VenueIds { get; set; }
+
+        public ICollection<VenueLink>? VenueLink
+        {
+            get
+            {
+                return this.VenueIds != null
+                    ? this
+                        .VenueIds.Select(x => new VenueLink() { Id = x, Self = "Venue/" + x })
+                        .ToList()
+                    : new List<VenueLink>();
+            }
+        }
     }
 
     public class EventDateCalculatedDay
