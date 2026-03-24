@@ -664,6 +664,7 @@ namespace OdhApiCore.Controllers
         /// <param name="detail">Include Offer Details (String, 1 = full Details)</param>
         /// <param name="msssource">Source of the Requester (possible value: 'sinfo' = Suedtirol.info, 'sbalance' = Südtirol Balance) REQUIRED</param>
         /// <param name="availabilityonly">Get only availability information without Accommodation information</param>
+        /// <param name="typefilter">Typefilter BITMASK values: 1 = (HotelPension), 2 = (BedBreakfast), 4 = (Farm), 8 = (Camping), 16 = (Youth), 32 = (Mountain), 64 = (Apartment), 128 = (Not defined),'null' = (No Filter), (default:'null')</param>
         /// <param name="locfilter">Locfilter SPECIAL Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMVEREINID = (Filter by Tourismverein), mun + MUNICIPALITYID = (Filter by Municipality), fra + FRACTIONID = (Filter by Fraction), 'null' = (No Filter), (default:'null') <a href="https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#location-filter-locfilter" target="_blank">Wiki locfilter</a></param>
         /// <param name="usemsscache">Use the MSS Cache to Request Data. No Ids have to be passed, the whole MSS Result of whole South Tyrol is used, available options (null/false/true) default (null), false = pass always the Ids to MSS omit its caching mechanism, true = do not pass ids to MSS get availability result and filter the resultset of MSS, null = let opendatahub decide when to use caching and when not.</param>
         /// <param name="uselcscache">Currently not used (planned to be active in 2025)</param>
@@ -694,6 +695,7 @@ namespace OdhApiCore.Controllers
             string? bokfilter = "hgv",
             string? msssource = "sinfo",
             string? detail = "0",
+            string? typefilter = null,
             string? locfilter = null,
             string? publishedon = null, //setting idm-marketplace as default publishedon
             bool availabilityonly = false,
@@ -804,7 +806,7 @@ namespace OdhApiCore.Controllers
                     idlist: availableonlineaccos,
                     locfilter: locfilter,
                     categoryfilter: null,
-                    typefilter: null,
+                    typefilter: typefilter,
                     boardfilter: boardfilter,
                     featurefilter: null,
                     featureidfilter: null,
