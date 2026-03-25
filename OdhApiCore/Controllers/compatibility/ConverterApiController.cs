@@ -90,17 +90,33 @@ namespace OdhApiCore.Controllers
 
                 var jsonrawlist = converted.Select(x => new JsonRaw(x)).ToList();
 
-                var dataTransformed = jsonrawlist.Select(raw =>
+
+                if (converted.Count() == 1)
+                {
+                    var dataTransformed = jsonrawlist.FirstOrDefault().TransformRawData(
+                        language,
+                        fields,
+                        filteroutNullValues: removenullvalues,
+                        urlGenerator: UrlGenerator,
+                        fieldstohide: null                        
+                    );
+
+                    return dataTransformed;
+                }
+                else
+                {
+                    var dataTransformed = jsonrawlist.Select(raw =>
                     raw.TransformRawData(
                         language,
                         fields,
                         filteroutNullValues: removenullvalues,
                         urlGenerator: UrlGenerator,
                         fieldstohide: null
-                    )
-                );
+                        )
+                    );
 
-                return dataTransformed;
+                    return dataTransformed;
+                }
             });
         }
             

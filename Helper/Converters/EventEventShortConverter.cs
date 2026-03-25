@@ -174,7 +174,7 @@ namespace Helper.Converters
         {
             EventLinked eventv1 = new EventLinked();
 
-            eventv1.Id = eventshort.Id;
+            eventv1.Id = "urn:" + eventshort.Source + ":" + eventshort.Id.Replace("eventshort-", "event:");
             eventv1.ImageGallery = eventshort.ImageGallery;
             eventv1.TagIds = eventshort.TagIds;
             eventv1.Tags = eventshort.Tags;
@@ -199,9 +199,7 @@ namespace Helper.Converters
             eventv1.LicenseInfo = eventshort.LicenseInfo;
 
             eventv1.RelatedContent = eventshort.RelatedContent;
-
-            eventv1.Id = eventshort.Id;
-
+            
             eventv1.Mapping = eventshort.Mapping;
 
             if (eventv1.Mapping == null)
@@ -389,6 +387,7 @@ namespace Helper.Converters
             //_Meta generation
             var meta = eventshort._Meta;
             meta.Type = "event";
+            meta.Id = eventv1.Id;
 
             eventv1._Meta = meta;
 
