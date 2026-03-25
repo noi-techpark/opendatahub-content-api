@@ -1121,19 +1121,19 @@ namespace DataModel
         public string? Cancelled { get; set; }
 
         //NEW Venue Assignment
-        public ICollection<string>? VenueIds { get; set; }
+        public ICollection<string>? VenueRoomDetailsIds { get; set; }
 
-        public ICollection<VenueLink>? VenueLink
-        {
-            get
-            {
-                return this.VenueIds != null
-                    ? this
-                        .VenueIds.Select(x => new VenueLink() { Id = x, Self = "Venue/" + x })
-                        .ToList()
-                    : new List<VenueLink>();
-            }
-        }
+        //public ICollection<VenueLink>? VenueLink
+        //{
+        //    get
+        //    {
+        //        return this.VenueIds != null
+        //            ? this
+        //                .VenueIds.Select(x => new VenueLink() { Id = x, Self = "Venue/" + x })
+        //                .ToList()
+        //            : new List<VenueLink>();
+        //    }
+        //}
     }
 
     public class EventDateCalculatedDay

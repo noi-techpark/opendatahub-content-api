@@ -6,6 +6,7 @@ using DataModel;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using NGuid;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -324,32 +325,43 @@ namespace Helper.Converters
                     //SpaceAbbrev
 
                     //Venue
-                    if (eventdate.VenueIds == null)
-                        eventdate.VenueIds = new List<string>();
+                    if (eventdate.VenueRoomDetailsIds == null)
+                        eventdate.VenueRoomDetailsIds = new List<string>();
 
                     if (!String.IsNullOrEmpty(roombooked.SpaceDesc))
-                        eventdate.VenueIds.Add("venue:" + roombooked.SpaceDesc.ToLower().Replace(" ", ":"));
+                        eventdate.VenueRoomDetailsIds.Add("venue:" + roombooked.SpaceType.ToLower() + ":" + roombooked.SpaceDesc.ToLower().Replace(" ", ":"));
 
                     eventv1.EventDate.Add(eventdate);
                 }
             }
 
-            var contactinfo = new ContactInfos();
-            contactinfo.Faxnumber = eventshort.ContactFax;
-            contactinfo.City = eventshort.ContactCity;
 
-            contactinfo.Address = eventshort.ContactAddressLine1;
-            contactinfo.Email = eventshort.ContactEmail;
-            contactinfo.CountryName = eventshort.ContactCountry;
-            contactinfo.Phonenumber = eventshort.ContactPhone;
-            contactinfo.Surname = eventshort.ContactLastName;
-            contactinfo.Givenname = eventshort.ContactFirstName;
-            contactinfo.Area = eventshort.ContactAddressLine2;
-            contactinfo.Region = eventshort.ContactAddressLine3;
-            contactinfo.Url = eventshort.WebAddress;
+            //ContactInfo
+            //Only if some data is provided
 
-            eventv1.ContactInfos = new Dictionary<string, ContactInfos>();
-            eventv1.ContactInfos.Add("en", contactinfo);
+            if((!String.IsNullOrEmpty(eventshort.ContactFirstName) ||
+                !String.IsNullOrEmpty(eventshort.ContactLastName)) &&
+                !String.IsNullOrEmpty(eventshort.ContactAddressLine1))
+            {
+                var contactinfo = new ContactInfos();
+                contactinfo.Faxnumber = eventshort.ContactFax;
+                contactinfo.City = eventshort.ContactCity;
+
+                contactinfo.ZipCode = eventshort.ContactPostalCode;
+                contactinfo.Address = eventshort.ContactAddressLine1;
+                contactinfo.Email = eventshort.ContactEmail;
+                contactinfo.CountryName = eventshort.ContactCountry;
+                contactinfo.Phonenumber = eventshort.ContactPhone;
+                contactinfo.Surname = eventshort.ContactLastName;
+                contactinfo.Givenname = eventshort.ContactFirstName;
+                contactinfo.Area = eventshort.ContactAddressLine2;
+                contactinfo.Region = eventshort.ContactAddressLine3;
+                contactinfo.Url = eventshort.WebAddress;
+
+                eventv1.ContactInfos = new Dictionary<string, ContactInfos>();
+                eventv1.ContactInfos.Add("en", contactinfo);
+            }
+            
 
             //OrganizerInfos
             if(!String.IsNullOrEmpty(eventshort.CompanyName) &&
@@ -363,6 +375,7 @@ namespace Helper.Converters
 
                 // Split ZipCode and Address from "ZipCode Address"            
                 organizerinfo.Address = eventshort.CompanyAddressLine1;
+                organizerinfo.ZipCode = eventshort.CompanyPostalCode;
 
                 organizerinfo.Email = eventshort.CompanyMail;
                 organizerinfo.CountryName = eventshort.CompanyCountry;
@@ -382,7 +395,7 @@ namespace Helper.Converters
                 eventv1.VenueIds = new List<string>();
 
             if (!String.IsNullOrEmpty(eventshort.AnchorVenue))
-                eventv1.VenueIds.Add("venue:" + eventshort.AnchorVenue.ToLower().Replace(" ", ":"));
+                eventv1.VenueIds.Add("venue:" + eventshort.EventLocation.ToLower() + ":" + GuidHelpers.CreateFromName(Guid.Empty, eventshort.EventLocation.ToLower())); ;
 
             //_Meta generation
             var meta = eventshort._Meta;
@@ -392,6 +405,67 @@ namespace Helper.Converters
             eventv1._Meta = meta;
 
             return eventv1;
+        }
+
+        private static IEnumerable<VenueV2> ConvertEventShortToVenue(
+            IEnumerable<EventShortLinked> eventshortlist
+            )
+        {
+            List<VenueV2> venuelist = new List<VenueV2>();
+
+            foreach (var eventshort in eventshortlist)
+            {                
+                //Venue Flat
+
+                VenueV2 venue = new VenueV2();
+                venue.Id = "urn:venue:" + eventshort.EventLocation.ToLower() + ":" + GuidHelpers.CreateFromName(Guid.Empty, eventshort.EventLocation.ToLower());
+                venue.Shortname = eventshort.AnchorVenue;
+                venue.Active = true;
+                venue.FirstImport = DateTime.Now;
+                venue.LastChange = DateTime.Now;
+                venue._Meta = new Metadata() { Id = venue.Id, LastUpdate = DateTime.Now, Reduced = false, Source = "noi", Type = "venue" };
+                venue.Source = "noi";
+
+                //Fill manually
+                //venue.Detail.Add("de", new Detail() { Language = "de", Title =  })
+           
+                foreach (var room in eventshort.RoomBooked)
+                {
+                    if (venue.RoomDetails == null)
+                        venue.RoomDetails = new List<VenueRoomDetailsV2>();
+
+                    if (!String.IsNullOrEmpty(room.SpaceDesc))
+                    //Add as Venue
+                    {
+                        var space = room.SpaceDesc;
+                        if (String.IsNullOrEmpty(space))
+                            space = eventshort.EventLocation.ToLower();
+
+                        VenueRoomDetailsV2 venueroom = new VenueRoomDetailsV2();
+                        venueroom.Id = "urn:" + space.ToLower() + ":" + room.SpaceDesc.ToLower().Replace(" ", ":") + GuidHelpers.CreateFromName(Guid.Empty, space + "_" + room.SpaceDesc.ToLower()); ;
+                        venueroom.Shortname = room.SpaceDesc;
+
+                        venue.RoomDetails.Add(venueroom);
+                    }
+                }
+
+                venuelist.Add(venue);
+
+            }
+
+            var merged = venuelist
+                .GroupBy(v => v.Id)
+                .Select(g => new VenueV2
+                {
+                    Id = g.Key,
+                    Active = g.First().Active,
+                    RoomDetails = g.SelectMany(v => v.RoomDetails ?? Enumerable.Empty<VenueRoomDetailsV2>())
+                                   .DistinctBy(r => r.Id)
+                                   .ToList()
+                })
+                .ToList();
+
+            return merged;
         }
 
         public static IEnumerable<EventLinked> ConvertEventShortToEventByType(
@@ -414,5 +488,12 @@ namespace Helper.Converters
             else
                 return new List<EventLinked>() { eventLinked };
         }
-    }
+
+        public static IEnumerable<VenueV2> ConvertEventShortsToVenueList(
+            IEnumerable<EventShortLinked> eventshortlist
+            )
+        {
+            return ConvertEventShortToVenue(eventshortlist);
+        }
+  }
 }

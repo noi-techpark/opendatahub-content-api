@@ -14,6 +14,7 @@ using OdhNotifier;
 using Schema.NET;
 using SqlKata.Execution;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,6 +63,29 @@ namespace OdhApiCore.Controllers
                 removenullvalues: removenullvalues,
                 cancellationToken
             );            
+        }
+
+        /// <summary>
+        /// GET Venues from EventShort
+        /// </summary>
+        /// <param name="id">EventShort Id</param>
+        [ProducesResponseType(typeof(JsonResult<EventLinked>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpGet, Route("Converter/EventShortToVenues")]
+        public async Task<IActionResult> GetEventShortToVenues(
+            string? language = null,
+            [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
+            bool removenullvalues = false,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return await GetEventShortToVenueList(                      
+                language,
+                fields: fields ?? Array.Empty<string>(),
+                removenullvalues: removenullvalues,
+                cancellationToken
+            );
         }
 
         private Task<IActionResult> GetEventShortToEventSingle(
@@ -119,6 +143,46 @@ namespace OdhApiCore.Controllers
                 }
             });
         }
-            
+
+        private Task<IActionResult> GetEventShortToVenueList(           
+           string? language,
+           string[] fields,
+           bool removenullvalues,
+           CancellationToken cancellationToken
+       )
+        {
+            return DoAsyncReturn(async () =>
+            {
+                //check if there are additionalfilters to add
+                AdditionalFiltersToAdd.TryGetValue("Read", out var additionalfilter);
+
+                var query = QueryFactory
+                 .Query("eventeuracnoi")
+                 .SourceFilter_GeneratedColumn(new List<string>() { "noi","ebms","eurac", "unibz", "nobis" })
+                 .Select("data")                 
+                 .FilterDataByAccessRoles(UserRolesToFilter)
+                 .Take(500);
+
+                var data = await query.GetObjectListAsync<EventShortLinked>();
+
+                var converted = EventEventShortConverter.ConvertEventShortsToVenueList(data);
+
+                var jsonrawlist = converted.Select(x => new JsonRaw(x)).ToList();
+                
+                var dataTransformed = jsonrawlist.Select(raw =>
+                raw.TransformRawData(
+                    language,
+                    fields,
+                    filteroutNullValues: removenullvalues,
+                    urlGenerator: UrlGenerator,
+                    fieldstohide: null
+                    )
+                );
+
+                return dataTransformed;
+                
+            });
+        }
+
     }
 }
