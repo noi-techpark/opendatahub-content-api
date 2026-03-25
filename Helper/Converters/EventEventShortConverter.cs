@@ -20,7 +20,7 @@ namespace Helper.Converters
     public class EventEventShortConverter
     {
         //Convert Event to EventV2
-        public static EventShortLinked ConvertEventToEventShort(
+        private static EventShortLinked ConvertEventToEventShort(
             EventLinked eventv1
         )
         {
@@ -168,7 +168,7 @@ namespace Helper.Converters
         }
 
         //Convert EventShort to EventV2
-        public static EventLinked ConvertEventShortToEvent(
+        private static EventLinked ConvertEventShortToEvent(
             EventShortLinked eventshort
         )
         {
@@ -387,10 +387,33 @@ namespace Helper.Converters
                 eventv1.VenueIds.Add("venue:" + eventshort.AnchorVenue.ToLower().Replace(" ", ":"));
 
             //_Meta generation
+            var meta = eventshort._Meta;
+            meta.Type = "event";
 
-
+            eventv1._Meta = meta;
 
             return eventv1;
+        }
+
+        public static IEnumerable<EventLinked> ConvertEventShortToEventByType(
+            EventShortLinked eventshort,
+            bool denormalized
+        )
+        {
+            var eventLinked = ConvertEventShortToEvent(eventshort);
+
+            if (denormalized)
+            {
+                // Denormalize by EventDate
+                var byEventDate = eventLinked.DenormalizeBy(
+                    e => e.EventDate,
+                    (e, val) => e.EventDate = val
+                );
+
+                return byEventDate;
+            }
+            else
+                return new List<EventLinked>() { eventLinked };
         }
     }
 }

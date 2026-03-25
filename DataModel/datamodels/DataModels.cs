@@ -961,26 +961,26 @@ namespace DataModel
         public bool SmgActive { get; set; }      
     }
 
-    public class EventRaven : Event
-    {
-        //Overwrites The Features
-        public new ICollection<TopicLinked> Topics { get; set; }
+    //public class EventRaven : Event
+    //{
+    //    //Overwrites The Features
+    //    public new ICollection<TopicLinked> Topics { get; set; }
 
-        //Overwrites The LocationInfo
-        public new LocationInfoLinked? LocationInfo { get; set; }
+    //    //Overwrites The LocationInfo
+    //    public new LocationInfoLinked? LocationInfo { get; set; }
 
-        //Overwrites LTSTags
-        public List<LTSTagsLinked>? LTSTags { get; set; }
+    //    //Overwrites LTSTags
+    //    public List<LTSTagsLinked>? LTSTags { get; set; }
 
-        public string? Type { get; set; }
-        public string? Pdf { get; set; }
-        public IDictionary<string, EventPrice> EventPrice { get; set; }
-        public IDictionary<string, ICollection<EventPrice>> EventPrices { get; set; }
-        public EventOperationScheduleOverview? EventOperationScheduleOverview { get; set; }
-        public IDictionary<string, ICollection<string>> Hashtag { get; set; }
-        public bool? GrpEvent { get; set; }
-        public bool? EventBenefit { get; set; }
-    }
+    //    public string? Type { get; set; }
+    //    public string? Pdf { get; set; }
+    //    public IDictionary<string, EventPrice> EventPrice { get; set; }
+    //    public IDictionary<string, ICollection<EventPrice>> EventPrices { get; set; }
+    //    public EventOperationScheduleOverview? EventOperationScheduleOverview { get; set; }
+    //    public IDictionary<string, ICollection<string>> Hashtag { get; set; }
+    //    public bool? GrpEvent { get; set; }
+    //    public bool? EventBenefit { get; set; }
+    //}
 
     //Includes registration, meetingPoint, location
     public class EventAdditionalInfos : IEventAdditionalInfos, ILanguage
@@ -1095,7 +1095,6 @@ namespace DataModel
                     : null;
             }
         }
-
 
         public TimeSpan? Begin { get; set; }
         public TimeSpan? End { get; set; }

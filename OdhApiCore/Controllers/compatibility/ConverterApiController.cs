@@ -14,6 +14,7 @@ using OdhNotifier;
 using Schema.NET;
 using SqlKata.Execution;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -46,6 +47,7 @@ namespace OdhApiCore.Controllers
         [HttpGet, Route("Converter/EventShortToEvent/{id}", Name = "SingleEventShortToEventConverter")]
         public async Task<IActionResult> GetEventShortToEvent(
             string id,
+            bool denormalize = false,
             string? language = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             bool removenullvalues = false,
@@ -54,6 +56,7 @@ namespace OdhApiCore.Controllers
         {
             return await GetEventShortToEventSingle(
                 id,
+                denormalize,
                 language,
                 fields: fields ?? Array.Empty<string>(),
                 removenullvalues: removenullvalues,
@@ -63,6 +66,7 @@ namespace OdhApiCore.Controllers
 
         private Task<IActionResult> GetEventShortToEventSingle(
             string id,
+            bool denormalize,
             string? language,
             string[] fields,
             bool removenullvalues,
@@ -82,17 +86,21 @@ namespace OdhApiCore.Controllers
 
                 var data = await query.GetObjectSingleAsync<EventShortLinked>();
 
-                var converted = EventEventShortConverter.ConvertEventShortToEvent(data);
+                var converted = EventEventShortConverter.ConvertEventShortToEventByType(data, denormalize);
 
-                var jsonraw = new JsonRaw(converted);
+                var jsonrawlist = converted.Select(x => new JsonRaw(x)).ToList();
 
-                return jsonraw?.TransformRawData(
+                var dataTransformed = jsonrawlist.Select(raw =>
+                    raw.TransformRawData(
                         language,
                         fields,
                         filteroutNullValues: removenullvalues,
                         urlGenerator: UrlGenerator,
                         fieldstohide: null
-                    );
+                    )
+                );
+
+                return dataTransformed;
             });
         }
             
