@@ -1400,7 +1400,7 @@ namespace OdhApiImporter.Helpers
 
             foreach (var eventshort in data)
             {
-                var eventv1 = EventEventShortConverter.ConvertEventShortToEventByType(eventshort, false).FirstOrDefault();
+                var eventv1 = EventEventShortConverter.ConvertEventShortToEventByType(eventshort, false, null).FirstOrDefault();
 
                 if (eventv1 != null)
                 {
