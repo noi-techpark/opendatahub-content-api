@@ -4,6 +4,7 @@
 
 using DataModel;
 using Helper;
+using Helper.Converters;
 using Helper.Generic;
 using Helper.JsonHelpers;
 using Helper.Tagging;
@@ -1389,6 +1390,41 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        public async Task<int> SaveEventShortsToEvents()
+        {
+            //Load all data from PG and resave with Detail Object
+            var query = QueryFactory.Query().SelectRaw("data").From("eventeuracnoi");
+
+            var data = await query.GetObjectListAsync<EventShortLinked>();
+            int i = 0;
+
+            foreach (var eventshort in data)
+            {
+                var eventv1 = EventEventShortConverter.ConvertEventShortToEventByType(eventshort, false, null).FirstOrDefault();
+
+                if (eventv1 != null)
+                {
+                    //Save tp DB
+                    //TODO CHECK IF THIS WORKS
+                    var queryresult = await QueryFactory
+                        .Query("events")
+                        .Where("id", eventv1.Id)
+                        //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+                        .UpdateAsync(
+                            new JsonBData()
+                            {
+                                id = eventshort.Id?.ToLower() ?? "",
+                                data = new JsonRaw(eventv1)
+                            }
+                    );
+
+                    i++;
+                }
+            }
+
+            return i;
+        }
+        
 
         #endregion
 

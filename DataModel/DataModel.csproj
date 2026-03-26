@@ -25,6 +25,7 @@
     <PackageReference Include="Npgsql" Version="9.0.2" />
     <PackageReference Include="Npgsql.NetTopologySuite" Version="9.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.9.0" />
+    <PackageReference Include="TimeZoneConverter" Version="7.2.0" />
   </ItemGroup>
 
   <ItemGroup>
