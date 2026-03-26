@@ -54,7 +54,8 @@ namespace OdhApiCore.Controllers
             uint pagenumber = 1,
             PageSize pagesize = null!,
             string? idlist = null,
-            bool denormalize = false,            
+            bool denormalize = false,
+            string? denormalizedatetimecheck = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             bool removenullvalues = false,
             CancellationToken cancellationToken = default
@@ -62,6 +63,7 @@ namespace OdhApiCore.Controllers
         {
             return await GetEventShortToEventList(                
                 denormalize,
+                denormalizedatetimecheck,
                 fields: fields ?? Array.Empty<string>(),
                 language,
                 pagenumber: pagenumber,
@@ -84,6 +86,7 @@ namespace OdhApiCore.Controllers
         public async Task<IActionResult> GetEventShortToEventSingle(
             string id,
             bool denormalize = false,
+            string? denormalizedatetimecheck = null,
             string? language = null,
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
             bool removenullvalues = false,
@@ -93,6 +96,7 @@ namespace OdhApiCore.Controllers
             return await GetEventShortToEventById(
                 id,
                 denormalize,
+                denormalizedatetimecheck,
                 language,
                 fields: fields ?? Array.Empty<string>(),
                 removenullvalues: removenullvalues,
@@ -125,6 +129,7 @@ namespace OdhApiCore.Controllers
 
         private Task<IActionResult> GetEventShortToEventList(           
             bool denormalize,
+            string? denormalizedatetimecheck,
             string[] fields,
             string? language,
             uint pagenumber,
@@ -160,7 +165,7 @@ namespace OdhApiCore.Controllers
                     dataRaw.Page,
                     dataRaw.PerPage,
                     dataRaw.Count,
-                    List = dataRaw.List.Select(jr => EventEventShortConverter.ConvertEventShortToEventByType(JsonConvert.DeserializeObject<EventShortLinked>(jr.Value), denormalize)!).ToList()
+                    List = dataRaw.List.Select(jr => EventEventShortConverter.ConvertEventShortToEventByType(JsonConvert.DeserializeObject<EventShortLinked>(jr.Value), denormalize, denormalizedatetimecheck)!).ToList()
                 };
 
                 var dataMappedjsonraw = new
@@ -200,6 +205,7 @@ namespace OdhApiCore.Controllers
         private Task<IActionResult> GetEventShortToEventById(
             string id,
             bool denormalize,
+            string? denormalizedatetimecheck,
             string? language,
             string[] fields,
             bool removenullvalues,
@@ -219,7 +225,7 @@ namespace OdhApiCore.Controllers
 
                 var data = await query.GetObjectSingleAsync<EventShortLinked>();
 
-                var converted = EventEventShortConverter.ConvertEventShortToEventByType(data, denormalize);
+                var converted = EventEventShortConverter.ConvertEventShortToEventByType(data, denormalize, denormalizedatetimecheck);
 
                 var jsonrawlist = converted.Select(x => new JsonRaw(x)).ToList();
 

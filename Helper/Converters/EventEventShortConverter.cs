@@ -532,20 +532,34 @@ namespace Helper.Converters
 
         public static IEnumerable<EventLinked> ConvertEventShortToEventByType(
             EventShortLinked eventshort,
-            bool denormalized
+            bool denormalized,
+            string? denormalizedatetimecheck
         )
         {
             var eventLinked = ConvertEventShortToEvent(eventshort);
 
             if (denormalized)
             {
-                // Denormalize by EventDate
-                var byEventDate = eventLinked.DenormalizeBy(
-                    e => e.EventDate,
-                    (e, val) => e.EventDate = val
-                );
-
-                return byEventDate;
+                if (DateTime.TryParse(denormalizedatetimecheck, out var denormalizetdatetimedt))
+                {
+                    // Denormalize by EventDate and add only Elements with datetime higher than the provided
+                    var byEventDate = eventLinked.DenormalizeBy(
+                        e => e.EventDate,
+                        (e, val) => e.EventDate = val,
+                        item => item.From >= denormalizetdatetimedt
+                    );
+                    return byEventDate;
+                }
+                else
+                {
+                    // Denormalize by EventDate
+                    var byEventDate = eventLinked.DenormalizeBy(
+                        e => e.EventDate,
+                        (e, val) => e.EventDate = val
+                    );
+                    return byEventDate;
+                }
+                
             }
             else
                 return new List<EventLinked>() { eventLinked };

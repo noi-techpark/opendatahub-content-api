@@ -40,6 +40,43 @@ namespace Helper
         }
 
         /// <summary>
+        /// Denormalizes an EventLinked record by expanding a specified collection property,
+        /// returning one EventLinked clone per item in that collection.
+        /// </summary>
+        public static IEnumerable<EventLinked> DenormalizeBy<TItem>(
+            this EventLinked source,
+            Func<EventLinked, ICollection<TItem>?> collectionSelector,
+            Action<EventLinked, ICollection<TItem>?> collectionSetter,
+            Func<TItem, bool>? itemFilter = null)
+        {
+            var collection = collectionSelector(source);
+
+            if (collection == null || !collection.Any())
+            {
+                yield return source;
+                yield break;
+            }
+
+            // Apply optional filter on items
+            var filteredItems = itemFilter != null
+                ? collection.Where(itemFilter)
+                : collection;
+
+            if (!filteredItems.Any())
+            {
+                yield break; // or yield return source if you want to keep the record
+            }
+
+            foreach (var item in filteredItems)
+            {
+                var clone = source.DeepClone();
+                collectionSetter(clone, new List<TItem> { item });
+                yield return clone;
+            }
+        }
+
+
+        /// <summary>
         /// Deep clone via JSON serialization (simple and safe for data models).
         /// </summary>
         private static EventLinked DeepClone(this EventLinked source)
