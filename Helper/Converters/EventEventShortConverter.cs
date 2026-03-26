@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Amazon.Auth.AccessControlPolicy;
 using DataModel;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -329,7 +330,7 @@ namespace Helper.Converters
                         eventdate.VenueRoomDetailsIds = new List<string>();
 
                     if (!String.IsNullOrEmpty(roombooked.SpaceDesc))
-                        eventdate.VenueRoomDetailsIds.Add("venue:" + roombooked.SpaceType.ToLower() + ":" + roombooked.SpaceDesc.ToLower().Replace(" ", ":"));
+                        eventdate.VenueRoomDetailsIds.Add(GetRoomBookedVenueId(eventshort, roombooked).Item1);
 
                     eventv1.EventDate.Add(eventdate);
                 }
@@ -395,7 +396,7 @@ namespace Helper.Converters
                 eventv1.VenueIds = new List<string>();
 
             if (!String.IsNullOrEmpty(eventshort.AnchorVenue))
-                eventv1.VenueIds.Add("venue:" + eventshort.EventLocation.ToLower() + ":" + GuidHelpers.CreateFromName(Guid.Empty, eventshort.EventLocation.ToLower())); ;
+                eventv1.VenueIds.Add(GetVenueId(eventshort).Item1);
 
             //_Meta generation
             var meta = eventshort._Meta;
@@ -414,43 +415,45 @@ namespace Helper.Converters
             List<VenueV2> venuelist = new List<VenueV2>();
 
             foreach (var eventshort in eventshortlist)
-            {                
-                //Venue Flat
+            {
+                //Exclude EventLocation Virtual Village and Empty String
 
-                VenueV2 venue = new VenueV2();
-                venue.Id = "urn:venue:" + eventshort.EventLocation.ToLower() + ":" + GuidHelpers.CreateFromName(Guid.Empty, eventshort.EventLocation.ToLower());
-                venue.Shortname = eventshort.AnchorVenue;
-                venue.Active = true;
-                venue.FirstImport = DateTime.Now;
-                venue.LastChange = DateTime.Now;
-                venue._Meta = new Metadata() { Id = venue.Id, LastUpdate = DateTime.Now, Reduced = false, Source = "noi", Type = "venue" };
-                venue.Source = "noi";
-
-                //Fill manually
-                //venue.Detail.Add("de", new Detail() { Language = "de", Title =  })
-           
-                foreach (var room in eventshort.RoomBooked)
+                if (!new List<string>() { "VV", "" }.Contains(eventshort.EventLocation))
                 {
-                    if (venue.RoomDetails == null)
-                        venue.RoomDetails = new List<VenueRoomDetailsV2>();
+                    var (venueid, eventlocation, source) = GetVenueId(eventshort);
 
-                    if (!String.IsNullOrEmpty(room.SpaceDesc))
-                    //Add as Venue
+                    VenueV2 venue = new VenueV2();
+                    venue.Id = venueid;
+                    venue.Shortname = eventshort.AnchorVenue;
+                    venue.Active = true;
+                    venue.FirstImport = DateTime.Now;
+                    venue.LastChange = DateTime.Now;
+                    venue._Meta = new Metadata() { Id = venue.Id, LastUpdate = DateTime.Now, Reduced = false, Source = "noi", Type = "venue" };
+                    venue.Source = source;
+
+                    //Fill manually
+                    //venue.Detail.Add("de", new Detail() { Language = "de", Title =  })
+
+                    foreach (var room in eventshort.RoomBooked)
                     {
-                        var space = room.SpaceDesc;
-                        if (String.IsNullOrEmpty(space))
-                            space = eventshort.EventLocation.ToLower();
+                        if (venue.RoomDetails == null)
+                            venue.RoomDetails = new List<VenueRoomDetailsV2>();
 
-                        VenueRoomDetailsV2 venueroom = new VenueRoomDetailsV2();
-                        venueroom.Id = "urn:" + space.ToLower() + ":" + room.SpaceDesc.ToLower().Replace(" ", ":") + GuidHelpers.CreateFromName(Guid.Empty, space + "_" + room.SpaceDesc.ToLower()); ;
-                        venueroom.Shortname = room.SpaceDesc;
+                        if (!String.IsNullOrEmpty(room.SpaceDesc))
+                        //Add as Venue
+                        {
+                            var (venueroomid, space) = GetRoomBookedVenueId(eventshort, room);
 
-                        venue.RoomDetails.Add(venueroom);
+                            VenueRoomDetailsV2 venueroom = new VenueRoomDetailsV2();
+                            venueroom.Id = venueroomid;
+                            venueroom.Shortname = room.SpaceDesc;
+
+                            venue.RoomDetails.Add(venueroom);
+                        }
                     }
-                }
 
-                venuelist.Add(venue);
-
+                    venuelist.Add(venue);
+                }           
             }
 
             var merged = venuelist
@@ -459,6 +462,11 @@ namespace Helper.Converters
                 {
                     Id = g.Key,
                     Active = g.First().Active,
+                    Shortname = g.First().Shortname,
+                    Source = g.First().Source,
+                    FirstImport = DateTime.Now,
+                    LastChange = DateTime.Now,
+                    _Meta = g.First()._Meta,
                     RoomDetails = g.SelectMany(v => v.RoomDetails ?? Enumerable.Empty<VenueRoomDetailsV2>())
                                    .DistinctBy(r => r.Id)
                                    .ToList()
@@ -467,6 +475,60 @@ namespace Helper.Converters
 
             return merged;
         }
+
+        private static (string, string, string) GetVenueId(EventShort eventshort)
+        {
+            var eventlocation = eventshort.EventLocation.ToLower();
+            var source = eventshort.EventLocation.ToLower();
+
+            if (eventlocation == "ec")
+            {
+                eventlocation = "eurac";
+                source = "eurac";
+            }
+
+            if (eventlocation == "noi")
+            {
+                eventlocation = "noi";
+                source = "noi";
+            }
+
+            if (eventlocation == "out")
+            {
+                eventlocation = "out";
+                source = "noi";
+            }
+
+            if (eventlocation == "noibruneck")
+            {
+                eventlocation = "noibruneck";
+                source = "nobis";
+            }
+
+            var venueid = "urn:venue:" + eventlocation + ":" + GuidHelpers.CreateFromName(Guid.Empty, eventlocation);
+
+            return (venueid, eventlocation, source);
+        }
+
+        private static (string, string) GetRoomBookedVenueId(EventShort eventshort, RoomBooked room)
+        {
+            var space = room.SpaceType;
+
+            if (space == "no")
+                space = "noi";
+            if (space == "ec")
+                space = "eurac";
+            if (space == "vi")
+                space = "eurac";
+
+            if (String.IsNullOrEmpty(space))
+                space = eventshort.EventLocation.ToLower();
+
+            var venueroomid = "urn:" + space.ToLower() + ":" + room.SpaceDesc.ToLower().Replace(" ", "-") + ":" + GuidHelpers.CreateFromName(Guid.Empty, space + "_" + room.SpaceDesc.ToLower());
+
+            return (venueroomid, space);
+        }
+
 
         public static IEnumerable<EventLinked> ConvertEventShortToEventByType(
             EventShortLinked eventshort,
@@ -493,6 +555,12 @@ namespace Helper.Converters
             IEnumerable<EventShortLinked> eventshortlist
             )
         {
+            //Eventlocation can be
+            //NOI           NOI
+            //NOI Bruneck   NOIBRUNECK
+            //Other         OUT
+            //VirtualVillageVV
+
             return ConvertEventShortToVenue(eventshortlist);
         }
   }
