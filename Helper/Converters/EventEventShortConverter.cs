@@ -293,8 +293,6 @@ namespace Helper.Converters
 
                     EventDate eventdate = new EventDate();
 
-
-
                     //Comment
                     if (roombooked.Comment != null && roombooked.Comment.ToLower() == "x")
                         eventdate.Active = false;
@@ -403,6 +401,7 @@ namespace Helper.Converters
             meta.Type = "event";
             meta.Id = eventv1.Id;
 
+            eventv1.LicenseInfo = eventv1.LicenseInfo;
             eventv1._Meta = meta;
 
             return eventv1;
@@ -430,6 +429,9 @@ namespace Helper.Converters
                     venue.LastChange = DateTime.Now;
                     venue._Meta = new Metadata() { Id = venue.Id, LastUpdate = DateTime.Now, Reduced = false, Source = "noi", Type = "venue" };
                     venue.Source = source;
+                    venue.LicenseInfo = new LicenseInfo() { License = "CC0", LicenseHolder = "https://noi.bz.it" };
+
+                    venue.Detail.TryAddOrUpdate("en", new Detail(){ Title = eventshort.AnchorVenue, Language = "en" });
 
                     //Fill manually
                     //venue.Detail.Add("de", new Detail() { Language = "de", Title =  })
@@ -447,6 +449,7 @@ namespace Helper.Converters
                             VenueRoomDetailsV2 venueroom = new VenueRoomDetailsV2();
                             venueroom.Id = venueroomid;
                             venueroom.Shortname = room.SpaceDesc;
+                            venueroom.Detail.TryAddOrUpdate("en", new Detail() { Title = room.SpaceDesc, Language = "en" });
 
                             venue.RoomDetails.Add(venueroom);
                         }
@@ -466,6 +469,8 @@ namespace Helper.Converters
                     Source = g.First().Source,
                     FirstImport = DateTime.Now,
                     LastChange = DateTime.Now,
+                    Detail = g.First().Detail,
+                    LicenseInfo = g.First().LicenseInfo,
                     _Meta = g.First()._Meta,
                     RoomDetails = g.SelectMany(v => v.RoomDetails ?? Enumerable.Empty<VenueRoomDetailsV2>())
                                    .DistinctBy(r => r.Id)
@@ -512,19 +517,16 @@ namespace Helper.Converters
 
         private static (string, string) GetRoomBookedVenueId(EventShort eventshort, RoomBooked room)
         {
-            var space = room.SpaceType;
+            var space = room.SpaceType != null ? room.SpaceType.ToLower() : eventshort.EventLocation.ToLower();
 
             if (space == "no")
                 space = "noi";
             if (space == "ec")
                 space = "eurac";
             if (space == "vi")
-                space = "eurac";
+                space = "eurac";            
 
-            if (String.IsNullOrEmpty(space))
-                space = eventshort.EventLocation.ToLower();
-
-            var venueroomid = "urn:" + space.ToLower() + ":" + room.SpaceDesc.ToLower().Replace(" ", "-") + ":" + GuidHelpers.CreateFromName(Guid.Empty, space + "_" + room.SpaceDesc.ToLower());
+            var venueroomid = "urn:" + space.ToLower() + ":" + room.SpaceDesc.ToLower().Replace(" ", "-").Replace(",","") + ":" + GuidHelpers.CreateFromName(Guid.Empty, space + "_" + room.SpaceDesc.ToLower());
 
             return (venueroomid, space);
         }

@@ -1424,7 +1424,40 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
-        
+
+        public async Task<int> SaveEventShortsToVenues()
+        {
+            //Load all data from PG and resave with Detail Object
+            var query = QueryFactory.Query().SelectRaw("data").From("eventeuracnoi");
+
+            var data = await query.GetObjectListAsync<EventShortLinked>();
+            int i = 0;
+
+            var venuelist = EventEventShortConverter.ConvertEventShortsToVenueList(data);
+
+            foreach (var venue in venuelist)
+            {                
+                if (venue != null)
+                {
+                    //Save tp DB
+                    //TODO CHECK IF THIS WORKS
+                    var queryresult = await QueryFactory
+                        .Query("venues")
+                        .Where("id", venue.Id)
+                        .UpdateAsync(
+                            new JsonBData()
+                            {
+                                id = venue.Id?.ToLower() ?? "",
+                                data = new JsonRaw(venue)
+                            }
+                    );
+
+                    i++;
+                }
+            }
+
+            return i;
+        }
 
         #endregion
 
