@@ -165,7 +165,7 @@ namespace OdhApiCore.Controllers
                     dataRaw.Page,
                     dataRaw.PerPage,
                     dataRaw.Count,
-                    List = dataRaw.List.Select(jr => EventEventShortConverter.ConvertEventShortToEventByType(JsonConvert.DeserializeObject<EventShortLinked>(jr.Value), denormalize, denormalizedatetimecheck)!).ToList()
+                    List = dataRaw.List.SelectMany(jr => EventEventShortConverter.ConvertEventShortToEventByType(JsonConvert.DeserializeObject<EventShortLinked>(jr.Value), denormalize, denormalizedatetimecheck)!).ToList()
                 };
 
                 var dataMappedjsonraw = new
@@ -188,6 +188,9 @@ namespace OdhApiCore.Controllers
                 );
 
                 uint totalpages = (uint)dataMappedjsonraw.TotalPages;
+                
+                //TODO for denormalized Events check the count
+
                 uint totalcount = (uint)dataMappedjsonraw.Count;
 
                 return ResponseHelpers.GetResult(
