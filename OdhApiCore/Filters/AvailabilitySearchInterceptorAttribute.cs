@@ -301,7 +301,7 @@ namespace OdhApiCore.Filters
 
                                 allowwithoutids = false;
                             }
-                            else if (locfilter != null)
+                            else if (locfilter != null || typefilter != null || categoryfilter != null || badgefilter != null || featureidfilter != null || featurefilter != null)
                             {
                                 AccommodationHelper myhelper =
                                     await AccommodationHelper.CreateAsync(

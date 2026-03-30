@@ -3,7 +3,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel.Annotations;
+using DataModel.helpers;
 using DataModel.validation;
+using NetTopologySuite.Geometries;
+using NetTopologySuite.Geometries.Utilities;
+using NetTopologySuite.IO;
+using Newtonsoft.Json;
+// using System.Text.Json.Serialization; // this is not the package used to serialize
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Swashbuckle.AspNetCore.Annotations;
@@ -14,9 +20,6 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
-using NetTopologySuite.Geometries.Utilities;
 
 namespace DataModel
 {
@@ -960,26 +963,26 @@ namespace DataModel
         public bool SmgActive { get; set; }      
     }
 
-    public class EventRaven : Event
-    {
-        //Overwrites The Features
-        public new ICollection<TopicLinked> Topics { get; set; }
+    //public class EventRaven : Event
+    //{
+    //    //Overwrites The Features
+    //    public new ICollection<TopicLinked> Topics { get; set; }
 
-        //Overwrites The LocationInfo
-        public new LocationInfoLinked? LocationInfo { get; set; }
+    //    //Overwrites The LocationInfo
+    //    public new LocationInfoLinked? LocationInfo { get; set; }
 
-        //Overwrites LTSTags
-        public List<LTSTagsLinked>? LTSTags { get; set; }
+    //    //Overwrites LTSTags
+    //    public List<LTSTagsLinked>? LTSTags { get; set; }
 
-        public string? Type { get; set; }
-        public string? Pdf { get; set; }
-        public IDictionary<string, EventPrice> EventPrice { get; set; }
-        public IDictionary<string, ICollection<EventPrice>> EventPrices { get; set; }
-        public EventOperationScheduleOverview? EventOperationScheduleOverview { get; set; }
-        public IDictionary<string, ICollection<string>> Hashtag { get; set; }
-        public bool? GrpEvent { get; set; }
-        public bool? EventBenefit { get; set; }
-    }
+    //    public string? Type { get; set; }
+    //    public string? Pdf { get; set; }
+    //    public IDictionary<string, EventPrice> EventPrice { get; set; }
+    //    public IDictionary<string, ICollection<EventPrice>> EventPrices { get; set; }
+    //    public EventOperationScheduleOverview? EventOperationScheduleOverview { get; set; }
+    //    public IDictionary<string, ICollection<string>> Hashtag { get; set; }
+    //    public bool? GrpEvent { get; set; }
+    //    public bool? EventBenefit { get; set; }
+    //}
 
     //Includes registration, meetingPoint, location
     public class EventAdditionalInfos : IEventAdditionalInfos, ILanguage
@@ -1072,6 +1075,29 @@ namespace DataModel
         //startDate, endDate
         public DateTime From { get; set; }
         public DateTime To { get; set; }
+
+        //Begindate UTC
+        public double? FromUTC
+        {
+            get
+            {
+                return this.From != null
+                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.From)
+                    : null;
+            }
+        }
+
+        //Enddate UTC
+        public double? ToUTC
+        {
+            get
+            {
+                return this.To != null
+                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.To)
+                    : null;
+            }
+        }
+
         public TimeSpan? Begin { get; set; }
         public TimeSpan? End { get; set; }
         public TimeSpan? Entrance { get; set; }
@@ -1095,6 +1121,21 @@ namespace DataModel
         public bool? Ticket { get; set; }
         [SwaggerDeprecated("Deprecated use isCancelled")]
         public string? Cancelled { get; set; }
+
+        //NEW Venue Assignment
+        public ICollection<string>? VenueRoomDetailsIds { get; set; }
+
+        //public ICollection<VenueLink>? VenueLink
+        //{
+        //    get
+        //    {
+        //        return this.VenueIds != null
+        //            ? this
+        //                .VenueIds.Select(x => new VenueLink() { Id = x, Self = "Venue/" + x })
+        //                .ToList()
+        //            : new List<VenueLink>();
+        //    }
+        //}
     }
 
     public class EventDateCalculatedDay

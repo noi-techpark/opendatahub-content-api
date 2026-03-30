@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Newtonsoft.Json;
 
@@ -163,11 +164,11 @@ namespace EBMS
                 //UTC
                 //Int32 unixTimestampEStart = (Int32)(DateTime.UtcNow.Subtract(eventtosave.StartDate)).TotalSeconds;
                 //Int32 unixTimestampEEnd = (Int32)(DateTime.UtcNow.Subtract()).TotalSeconds;
-                eventtosave.EndDateUTC = Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                eventtosave.EndDateUTC = DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                     eventtosave.EndDate
                 );
                 eventtosave.StartDateUTC =
-                    Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                    DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                         eventtosave.StartDate
                     );
 
@@ -305,11 +306,11 @@ namespace EBMS
                         //Int32 unixTimestampEnd = (Int32)(DateTime.UtcNow.Subtract(myroom.EndDate)).TotalSeconds;
 
                         myroom.EndDateUTC =
-                            Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                            DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                                 myroom.EndDate
                             );
                         myroom.StartDateUTC =
-                            Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                            DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                                 myroom.StartDate
                             );
 

@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel.helpers;
 using System;
 using System.Collections.Generic;
 
@@ -114,14 +115,14 @@ namespace OdhApiCore.Controllers.api
                 if (!String.IsNullOrEmpty(startdate))
                 {
                     double startdatedb = Convert.ToDouble(startdate);
-                    start = Helper.DateTimeHelper.UnixTimeStampToDateTimeMilliseconds(startdatedb);
+                    start = DateTimeHelper.UnixTimeStampToDateTimeMilliseconds(startdatedb);
                 }
 
                 if (!String.IsNullOrEmpty(enddate))
                 {
                     double enddatedb = Convert.ToDouble(enddate);
 
-                    end = Helper.DateTimeHelper.UnixTimeStampToDateTimeMilliseconds(enddatedb);
+                    end = DateTimeHelper.UnixTimeStampToDateTimeMilliseconds(enddatedb);
                     if (end.TimeOfDay == new TimeSpan(0, 0, 0))
                     {
                         end = end.AddDays(1);

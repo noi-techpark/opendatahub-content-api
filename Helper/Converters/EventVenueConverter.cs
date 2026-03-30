@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Amazon.S3;
 using DataModel;
+using DataModel.helpers;
 
 namespace Helper.Converters
 {
@@ -190,10 +191,10 @@ namespace Helper.Converters
 
                 eventv2.Begin = eventdate.From.Date + eventdate.Begin.Value;
                 eventv2.End = eventdate.To.Date + eventdate.End.Value;
-                eventv2.BeginUTC = Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                eventv2.BeginUTC = DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                     eventv2.Begin
                 );
-                eventv2.EndUTC = Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                eventv2.EndUTC = DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                     eventv2.End
                 );
 
@@ -412,7 +413,7 @@ namespace Helper.Converters
                 }
 
                 //ExternalOrganizer, SoldOut, TypicalAgeRange
-                EventEuracNoiInfo additionalinfo = new EventEuracNoiInfo();
+                EventEuracNoiDataProperties additionalinfo = new EventEuracNoiDataProperties();
                 additionalinfo.ExternalOrganizer = eventv1.ExternalOrganizer;
                 additionalinfo.SoldOut = eventv1.SoldOut;
                 additionalinfo.TypicalAgeRange = eventv1.TypicalAgeRange;

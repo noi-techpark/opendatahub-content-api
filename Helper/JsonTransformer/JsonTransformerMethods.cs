@@ -2,13 +2,14 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Helper
 {
@@ -289,9 +290,17 @@ namespace Helper
         {
             if (token == null)
                 return null;
+
             var language = languageParam ?? "en";
+
             var fields = new List<(string name, string path)> { ("Id", "Id") };
-            fields.AddRange(fieldsFromQueryString.Select(field => (field, field)));
+            fields.AddRange(fieldsFromQueryString.Select(field =>
+            {
+                var cleanName = string.Join(".", SplitPath(field)); 
+                var jsonPath = ToJsonPath(field);                 
+                return (cleanName, jsonPath);
+            }));
+
             if (token is JObject obj)
             {
                 return new JObject(
@@ -379,6 +388,54 @@ namespace Helper
                     _ => token,
                 };
             return Walk(token, urlGenerator);
+        }
+
+        private static string EscapeJsonPath(string field)
+        {
+            // Split only on dots that are path separators, then re-wrap
+            // segments containing dots in bracket notation
+            var segments = field.Split('.');
+            var escaped = segments.Select(segment =>
+                segment.Contains('.') || segment.Any(c => !char.IsLetterOrDigit(c) && c != '_')
+                    ? $"['{segment}']"
+                    : segment
+            );
+            return string.Join(".", escaped)
+                         .Replace(".[", "["); // fix double dot before bracket: "Mapping.['tirol']" --> "Mapping['tirol']"
+        }
+
+        private static string ToJsonPath(string field)
+        {
+            // Split the field path respecting that some segments may contain dots
+            // Input:  "Mapping.tirol.mapservices.eu.id"
+            // Output: "Mapping['tirol.mapservices.eu']['id']"  (only if key exists with dots)
+            // Better: escape ALL segments to be safe
+            var segments = SplitPath(field);
+
+            var sb = new StringBuilder();
+            foreach (var segment in segments)
+            {
+                if (segment.Contains('.') || segment.Contains('-') || segment.Contains(' '))
+                    sb.Append($"['{segment}']");
+                else if (sb.Length == 0)
+                    sb.Append(segment);
+                else
+                    sb.Append($".{segment}");
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Splits "Mapping.tirol.mapservices.eu.id" by trying longest-match against
+        /// the actual token, OR you define the split convention with brackets in the input.
+        /// Simplest convention: user passes "Mapping['tirol.mapservices.eu'].id"
+        /// </summary>
+        private static IEnumerable<string> SplitPath(string field)
+        {
+            // Support bracket notation in input: Mapping['tirol.mapservices.eu'].id
+            // Otherwise fall back to dot split
+            return Regex.Matches(field, @"\['([^']+)'\]|([^.\[]+)")
+                        .Select(m => m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value);
         }
     }
 

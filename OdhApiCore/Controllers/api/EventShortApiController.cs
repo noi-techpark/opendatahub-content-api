@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DataModel;
 using DataModel.Annotations;
+using DataModel.helpers;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
@@ -763,7 +764,7 @@ namespace OdhApiCore.Controllers.api
                             myeventshortbyroom.RoomStartDateUTC = room.StartDateUTC;
                             myeventshortbyroom.SpaceDesc = room.SpaceDesc;
                             myeventshortbyroom.SpaceType = room.SpaceType;
-                            myeventshortbyroom.Subtitle = room.Subtitle;
+                            myeventshortbyroom.Subtitle = room.Subtitle != null ? room.Subtitle : "";
 
                             string roomname = room.SpaceDesc ?? "";
                             if (
@@ -955,7 +956,7 @@ namespace OdhApiCore.Controllers.api
             if (firstbegindate.HasValue && firstbegindate != eventshort.StartDate)
             {
                 eventshort.StartDate = firstbegindate.Value;
-                eventshort.StartDateUTC = Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                eventshort.StartDateUTC = DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                     firstbegindate.Value
                 );
             }
@@ -963,7 +964,7 @@ namespace OdhApiCore.Controllers.api
             if (lastenddate.HasValue && lastenddate != eventshort.EndDate)
             {
                 eventshort.EndDate = lastenddate.Value;
-                eventshort.EndDateUTC = Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                eventshort.EndDateUTC = DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                     lastenddate.Value
                 );
             }
@@ -1143,11 +1144,11 @@ namespace OdhApiCore.Controllers.api
                     //eventshort.EndDate = DateTime.SpecifyKind(eventshort.EndDate, DateTimeKind.Utc);
 
                     eventshort.EndDateUTC =
-                        Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                        DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                             eventshort.EndDate
                         );
                     eventshort.StartDateUTC =
-                        Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                        DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                             eventshort.StartDate
                         );
 
@@ -1169,11 +1170,11 @@ namespace OdhApiCore.Controllers.api
                         myroom.StartDate = eventshort.StartDate;
                         myroom.EndDate = eventshort.EndDate;
                         myroom.EndDateUTC =
-                            Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                            DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                                 eventshort.EndDate
                             );
                         myroom.StartDateUTC =
-                            Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                            DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                                 eventshort.StartDate
                             );
                         myroom.Comment = "";
@@ -1203,11 +1204,11 @@ namespace OdhApiCore.Controllers.api
                                 //room.EndDate = DateTime.SpecifyKind(room.EndDate, DateTimeKind.Utc);
 
                                 room.EndDateUTC =
-                                    Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                                    DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                                         room.EndDate
                                     );
                                 room.StartDateUTC =
-                                    Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                                    DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                                         room.StartDate
                                     );
 
@@ -1376,11 +1377,11 @@ namespace OdhApiCore.Controllers.api
                     eventshort.AnchorVenueShort = eventshort.AnchorVenue;
 
                     eventshort.EndDateUTC =
-                        Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                        DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                             eventshort.EndDate
                         );
                     eventshort.StartDateUTC =
-                        Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                        DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                             eventshort.StartDate
                         );
 
@@ -1400,11 +1401,11 @@ namespace OdhApiCore.Controllers.api
                                 );
 
                             room.EndDateUTC =
-                                Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                                DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                                     room.EndDate
                                 );
                             room.StartDateUTC =
-                                Helper.DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
+                                DateTimeHelper.DateTimeToUnixTimestampMilliseconds(
                                     room.StartDate
                                 );
                         }
