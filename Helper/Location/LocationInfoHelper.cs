@@ -299,40 +299,68 @@ namespace Helper.Location
                         //Check if the Gps Point is in South Tyrol
                         CultureInfo culture = CultureInfo.InvariantCulture;
 
-                        var isinsouthtyrol = await queryFactory
-                            .Query()
-                            .SelectRaw(
-                                $"ST_Contains((select geometry from shapes where name = 'Bolzano'), st_setsrid(st_makepoint(({gps.Longitude.GetValueOrDefault(0).ToString(culture)})::double precision, ({gps.Latitude.GetValueOrDefault(0).ToString(culture)})::double precision), 4326))"
-                            )
-                            .FirstOrDefaultAsync<bool>();
+                        bool isinsouthtyrol = false;
 
-                        if (isinsouthtyrol)
+                        try
                         {
-                            //If TourismOrganization is assigned restrict Districts to this TV!
-                            string? tvid = null;
+                            //var isinsouthtyrolcheckexists = await queryFactory
+                            //.Query()
+                            //.SelectRaw(
+                            //    $"ST_Contains((select geometry from shapes where name = 'Bolzano'), st_setsrid(st_makepoint(({gps.Longitude.GetValueOrDefault(0).ToString(culture)})::double precision, ({gps.Latitude.GetValueOrDefault(0).ToString(culture)})::double precision), 4326))"
+                            //)
+                            //.FirstOrDefaultAsync<int>();
 
-                            if (data is IHasTourismorganizationId && !String.IsNullOrEmpty((data as IHasTourismorganizationId).TourismorganizationId))
+                            // Check if shapes table and Bolzano record exist first
+                            var bolzanoExists = await queryFactory
+                                .Query()
+                                .SelectRaw("COUNT(1)")
+                                .FromRaw("geoshapes")
+                                .WhereRaw("name = 'Bolzano'")
+                                .FirstOrDefaultAsync<int>();
+
+                            if (bolzanoExists > 0)
                             {
-                                tvid = (data as IHasTourismorganizationId).TourismorganizationId;
-
-                                //CHECK if we have this TourismOrganizationID in the DB otherwise reset null for the tvid
-                                tvid = await GetTourismOrganizationById(queryFactory, tvid);
+                                isinsouthtyrol = await queryFactory
+                                    .Query()
+                                    .SelectRaw(
+                                        $"ST_Contains((select geometry4326 from geoshapes where name = 'Bolzano'), st_setsrid(st_makepoint(({gps.Longitude.GetValueOrDefault(0).ToString(culture)})::double precision, ({gps.Latitude.GetValueOrDefault(0).ToString(culture)})::double precision), 4326))"
+                                    )
+                                    .FirstOrDefaultAsync<bool>();
                             }
 
-                            var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
-                                queryFactory,
-                                gps.Latitude.GetValueOrDefault(0),
-                                gps.Longitude.GetValueOrDefault(0),
-                                30000,
-                                tvid
-                            );
-                            if(district != null)
-                                return await GetTheLocationInfoDistrict(queryFactory, district.Id);
-                            else
-                                return new LocationInfoLinked();
                         }
+                        catch (Exception ex)
+                        {
+                            return new LocationInfoLinked();
+                        }
+                        if (isinsouthtyrol)
+                            {
+                                //If TourismOrganization is assigned restrict Districts to this TV!
+                                string? tvid = null;
+
+                                if (data is IHasTourismorganizationId && !String.IsNullOrEmpty((data as IHasTourismorganizationId).TourismorganizationId))
+                                {
+                                    tvid = (data as IHasTourismorganizationId).TourismorganizationId;
+
+                                    //CHECK if we have this TourismOrganizationID in the DB otherwise reset null for the tvid
+                                    tvid = await GetTourismOrganizationById(queryFactory, tvid);
+                                }
+
+                                var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
+                                    queryFactory,
+                                    gps.Latitude.GetValueOrDefault(0),
+                                    gps.Longitude.GetValueOrDefault(0),
+                                    30000,
+                                    tvid
+                                );
+                                if (district != null)
+                                    return await GetTheLocationInfoDistrict(queryFactory, district.Id);
+                                else
+                                    return new LocationInfoLinked();
+                            }
                         else
                             return new LocationInfoLinked();
+                        
                     }
                     else
                         return new LocationInfoLinked();
