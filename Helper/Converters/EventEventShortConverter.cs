@@ -452,7 +452,7 @@ namespace Helper.Converters
                             venueroom.Id = venueroomid;
                             venueroom.Shortname = room.SpaceDesc;
                             venueroom.Detail.TryAddOrUpdate("en", new Detail() { Title = room.SpaceDesc, Language = "en" });
-
+                            
                             venue.RoomDetails.Add(venueroom);
                         }
                     }
