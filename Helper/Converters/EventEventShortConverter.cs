@@ -171,7 +171,8 @@ namespace Helper.Converters
 
         //Convert EventShort to EventV2
         private static EventLinked ConvertEventShortToEvent(
-            EventShortLinked eventshort
+            EventShortLinked eventshort,
+            bool removeinactiverooms = false
         )
         {
             EventLinked eventv1 = new EventLinked();
@@ -330,7 +331,13 @@ namespace Helper.Converters
                     if (!String.IsNullOrEmpty(roombooked.SpaceDesc))
                         eventdate.VenueRoomDetailsIds.Add(GetRoomBookedVenueId(eventshort, roombooked).Item1);
 
-                    eventv1.EventDate.Add(eventdate);
+                    if(removeinactiverooms)
+                    {
+                        if(eventdate.Active.Value)
+                            eventv1.EventDate.Add(eventdate);
+                    }
+                    else
+                        eventv1.EventDate.Add(eventdate);
                 }
             }
 
@@ -338,9 +345,7 @@ namespace Helper.Converters
             //ContactInfo
             //Only if some data is provided
 
-            if((!String.IsNullOrEmpty(eventshort.ContactFirstName) ||
-                !String.IsNullOrEmpty(eventshort.ContactLastName)) &&
-                !String.IsNullOrEmpty(eventshort.ContactAddressLine1))
+            if(!String.IsNullOrEmpty(eventshort.ContactFirstName))
             {
                 var contactinfo = new ContactInfos();
                 contactinfo.Faxnumber = eventshort.ContactFax;
@@ -363,10 +368,7 @@ namespace Helper.Converters
             
 
             //OrganizerInfos
-            if(!String.IsNullOrEmpty(eventshort.CompanyName) &&
-                !String.IsNullOrEmpty(eventshort.CompanyAddressLine1) &&
-                !String.IsNullOrEmpty(eventshort.CompanyUrl)
-                )
+            if(!String.IsNullOrEmpty(eventshort.CompanyName))
             {
                 var organizerinfo = new ContactInfos();
                 organizerinfo.Faxnumber = eventshort.CompanyFax;
@@ -535,10 +537,11 @@ namespace Helper.Converters
         public static IEnumerable<EventLinked> ConvertEventShortToEventByType(
             EventShortLinked eventshort,
             bool denormalized,
-            string? denormalizedatetimecheck
+            string? denormalizedatetimecheck,
+            bool removeinactiverooms
         )
         {
-            var eventLinked = ConvertEventShortToEvent(eventshort);
+            var eventLinked = ConvertEventShortToEvent(eventshort, removeinactiverooms);
 
             if (denormalized)
             {
