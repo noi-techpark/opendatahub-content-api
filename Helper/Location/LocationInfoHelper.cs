@@ -346,6 +346,8 @@ namespace Helper.Location
                                     tvid = await GetTourismOrganizationById(queryFactory, tvid);
                                 }
 
+                            try
+                            {
                                 var district = await LocationInfoHelper.GetNearestDistrictbyGPS(
                                     queryFactory,
                                     gps.Latitude.GetValueOrDefault(0),
@@ -358,6 +360,11 @@ namespace Helper.Location
                                 else
                                     return new LocationInfoLinked();
                             }
+                            catch (Exception ex)
+                            {
+                                return new LocationInfoLinked();
+                            }
+                        }
                         else
                             return new LocationInfoLinked();
                         
