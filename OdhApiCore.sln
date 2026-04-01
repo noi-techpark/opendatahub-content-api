@@ -77,6 +77,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZOHO", "ZOHO\ZOHO.csproj", "{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MOMENTUS", "MOMENTUS\MOMENTUS.csproj", "{D7C0F688-7F41-4993-841C-965121D31203}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B380784A-025B-4983-9FC2-6282759AB38F} = {B380784A-025B-4983-9FC2-6282759AB38F}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
