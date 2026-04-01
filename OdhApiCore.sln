@@ -76,6 +76,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HDS", "HDS\HDS.csproj", "{5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZOHO", "ZOHO\ZOHO.csproj", "{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MOMENTUS", "MOMENTUS\MOMENTUS.csproj", "{D7C0F688-7F41-4993-841C-965121D31203}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -210,6 +212,10 @@ Global
 		{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A535AC8B-18A4-4BAD-90C5-0A9ED724D1E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7C0F688-7F41-4993-841C-965121D31203}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7C0F688-7F41-4993-841C-965121D31203}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7C0F688-7F41-4993-841C-965121D31203}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7C0F688-7F41-4993-841C-965121D31203}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
