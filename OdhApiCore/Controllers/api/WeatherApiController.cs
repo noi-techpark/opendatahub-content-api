@@ -459,7 +459,7 @@ namespace OdhApiCore.Controllers
             {
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
-                    new { error = ex.Message, stacktrace = ex.StackTrace }
+                    new { error = ex.Message }
                 );
             }
         }

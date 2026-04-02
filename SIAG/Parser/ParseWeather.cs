@@ -1595,27 +1595,27 @@ namespace SIAG
         {
             var mylist = new List<SiagForecastMeasurement>();
 
-            foreach (var data in siagforecast.tempMin24.data)
+            foreach (var data in siagforecast.tempMin24?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "tempMin24", data.value));
             }
-            foreach (var data in siagforecast.tempMax24.data)
+            foreach (var data in siagforecast.tempMax24?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "tempMax24", data.value));
             }
-            foreach (var data in siagforecast.ssd24.data)
+            foreach (var data in siagforecast.ssd24?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "ssd24", data.value));
             }
-            foreach (var data in siagforecast.precProb24.data)
+            foreach (var data in siagforecast.precProb24?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "precProb24", data.value));
             }
-            foreach (var data in siagforecast.precSum24.data)
+            foreach (var data in siagforecast.precSum24?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "precSum24", data.value));
             }
-            foreach (var data in siagforecast.symbols24.data)
+            foreach (var data in siagforecast.symbols24?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(
                     new SiagForecastMeasurement(data.date, "symbols24", null, null, data.value)
@@ -1631,27 +1631,27 @@ namespace SIAG
         {
             var mylist = new List<SiagForecastMeasurement>();
 
-            foreach (var data in siagforecast.temp3.data)
+            foreach (var data in siagforecast.temp3?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "temp3", null, data.value));
             }
-            foreach (var data in siagforecast.precProb3.data)
+            foreach (var data in siagforecast.precProb3?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "precProb3", data.value));
             }
-            foreach (var data in siagforecast.precSum3.data)
+            foreach (var data in siagforecast.precSum3?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "precSum3", null, data.value));
             }
-            foreach (var data in siagforecast.windSpd3.data)
+            foreach (var data in siagforecast.windSpd3?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "windSpd3", data.value));
             }
-            foreach (var data in siagforecast.windDir3.data)
+            foreach (var data in siagforecast.windDir3?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(new SiagForecastMeasurement(data.date, "windDir3", data.value));
             }
-            foreach (var data in siagforecast.symbols3.data)
+            foreach (var data in siagforecast.symbols3?.data ?? Enumerable.Empty<dynamic>())
             {
                 mylist.Add(
                     new SiagForecastMeasurement(data.date, "symbols3", null, null, data.value)
