@@ -192,3 +192,4 @@ $RECYCLE.BIN/
 /OdhApiImporter/json/GenericTags.json
 
 OdhApiCore/testdata
+/OdhApiCore/.env.old
