@@ -15,22 +15,45 @@ namespace DataModel.helpers
     {
         public static double DateTimeToUnixTimestamp(DateTime dateTime)
         {
-            var tzinfo = TZConvert.GetTimeZoneInfo("W. Europe Standard Time");
+            //var tzinfo = TZConvert.GetTimeZoneInfo("W. Europe Standard Time");
 
-            return (
-                TimeZoneInfo.ConvertTimeToUtc(dateTime, tzinfo)
-                - new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc)
-            ).TotalSeconds;
+            //return (
+            //    TimeZoneInfo.ConvertTimeToUtc(dateTime, tzinfo)
+            //    - new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc)
+            //).TotalSeconds;
+
+            var utc = dateTime.Kind switch
+            {
+                DateTimeKind.Utc => dateTime,
+                DateTimeKind.Local => dateTime.ToUniversalTime(),
+                _ => TimeZoneInfo.ConvertTimeToUtc(
+                         dateTime,
+                         TZConvert.GetTimeZoneInfo("W. Europe Standard Time"))
+            };
+
+            return (utc - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds;
         }
 
         public static double DateTimeToUnixTimestampMilliseconds(DateTime dateTime)
         {
-            var tzinfo = TZConvert.GetTimeZoneInfo("W. Europe Standard Time");
+            //var tzinfo = TZConvert.GetTimeZoneInfo("W. Europe Standard Time");
 
-            return (
-                TimeZoneInfo.ConvertTimeToUtc(dateTime, tzinfo)
-                - new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc)
-            ).TotalMilliseconds;
+            //return (
+            //    TimeZoneInfo.ConvertTimeToUtc(dateTime, tzinfo)
+            //    - new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc)
+            //).TotalMilliseconds;
+
+            DateTime utc = dateTime.Kind switch
+            {
+                DateTimeKind.Utc => dateTime,
+                DateTimeKind.Local => dateTime.ToUniversalTime(),
+                _ => TimeZoneInfo.ConvertTimeToUtc(
+                         dateTime,
+                         TZConvert.GetTimeZoneInfo("W. Europe Standard Time"))
+            };
+
+            return (utc - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc))
+           .TotalMilliseconds;            
         }
 
         ////TEST without conversion to UTC simply convert to UTC what is passed
