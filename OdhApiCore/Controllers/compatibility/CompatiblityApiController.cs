@@ -1134,6 +1134,7 @@ namespace OdhApiCore.Controllers.api
                     orgfilter,
                     begindate,
                     enddate,
+                    null,
                     active,
                     smgactive,
                     smgtagfilter,

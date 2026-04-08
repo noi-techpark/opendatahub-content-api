@@ -4,6 +4,7 @@
 
 using DataModel;
 using Helper;
+using Helper.Converters;
 using Helper.Generic;
 using Helper.Identity;
 using Helper.Location;
@@ -13,11 +14,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,8 +58,9 @@ namespace OdhApiCore.Controllers
         /// <param name="orgfilter">Organization Filter (Filter by Organizer RID)</param>
         /// <param name="odhtagfilter">ODH Taglist Filter (refers to Array SmgTags) (String, Separator ',' more Tags possible, available Tags reference to 'v1/ODHTag?validforentity=event'), (default:'null')</param>
         /// <param name="tagfilter">Filter on Tags. (Endpoint on v1/Tag) Syntax =and/or(Tag.Id,Tag.Id,Tag.Id) example or(summer,hiking) - and(themed hikes,family hikings) - or(hiking) - and(summer) - Combining and/or is not supported at the moment, default: 'null')</param>
-        /// <param name="begindate">BeginDate of Events (Format: yyyy-MM-dd), (default: 'null')</param>
-        /// <param name="enddate">EndDate of Events (Format: yyyy-MM-dd), (default: 'null')</param>
+        /// <param name="begindate">BeginDate of Events (Format: yyyy-MM-dd) default or Unix Timestamp, (default: 'null')</param>
+        /// <param name="enddate">EndDate of Events (Format: yyyy-MM-dd) default or Unix Timestamp, (default: 'null')</param>
+        /// <param name="datetimeformat">not provided, use default format, for unix timestamp pass "uxtimestamp"</param>
         /// <param name="sort">Sorting Mode of Events ('asc': Ascending simple sort by next begindate, 'desc': simple descent sorting by next begindate, 'upcoming': Sort Events by next EventDate matching passed startdate, 'upcomingspecial': Sort Events by next EventDate matching passed startdate, multiple day events are showed at bottom, default: if no sort mode passed, sort by shortname )</param>
         /// <param name="active">Active Events Filter (possible Values: 'true' only Active Events, 'false' only Disabled Events), (default:'null')</param>
         /// <param name="odhactive">ODH Active (Published) Events Filter (Refers to field OdhActive) Events Filter (possible Values: 'true' only published Events, 'false' only not published Events), (default:'null')</param>
@@ -100,8 +104,11 @@ namespace OdhApiCore.Controllers
             LegacyBool odhactive = null!,
             string? begindate = null,
             string? enddate = null,
+            string? datetimeformat = null,
             string? sort = null,
             string? updatefrom = null,
+            bool? denormalize = false,
+            bool? optimizedates = false,
             string? seed = null,
             string? publishedon = null,
             string? langfilter = null,
@@ -142,6 +149,9 @@ namespace OdhApiCore.Controllers
                 orgfilter: orgfilter,
                 begindate: begindate,
                 enddate: enddate,
+                datetimeformat: datetimeformat,
+                denormalize: denormalize,
+                optimizedates: optimizedates,
                 sort: sort,
                 active: active,
                 smgactive: odhactive,
@@ -291,12 +301,15 @@ namespace OdhApiCore.Controllers
             string? topicfilter,
             string? begindate,
             string? enddate,
+            string? datetimeformat,
             string? sort,
             bool? active,
             bool? smgactive,
             string? smgtags,
             string? tagfilter,
             string? seed,
+            bool? denormalize,
+            bool? optimizedates,
             string? lastchange,
             string? langfilter,
             string? source,
@@ -322,8 +335,9 @@ namespace OdhApiCore.Controllers
                     rancfilter,
                     topicfilter,
                     orgfilter,
-                    begindate,
+                    begindate,                    
                     enddate,
+                    datetimeformat,
                     active,
                     smgactive,
                     smgtags,
@@ -337,8 +351,8 @@ namespace OdhApiCore.Controllers
 
                 string? sortifseednull = EventHelper.GetEventSortExpression(
                     sort,
-                    begindate,
-                    enddate,
+                    myeventhelper.begin,
+                    myeventhelper.end,
                     ref seed
                 );
 
@@ -391,11 +405,6 @@ namespace OdhApiCore.Controllers
                         rawsort,
                         sortifseednull
                     );
-                //.ApplyOrdering(ref seed, geosearchresult, rawsort, sortifseednull);
-
-                //.OrderBySeed(ref seed, sortifseednull)
-                //.GeoSearchFilterAndOrderby(geosearchresult);
-                //TODO Use sorting
 
                 //IF getasidarray set simply return array of ids
                 if (getasidarray)
@@ -409,7 +418,15 @@ namespace OdhApiCore.Controllers
                     perPage: pagesize ?? 25
                 );
 
-                var dataTransformed = data.List.Select(raw =>
+                //If we want to have the data denormalized use the function to denormalize events
+                var list = denormalize == true
+                    ? data.List
+                        .SelectMany(jr => DeNormalizeEventLinked(JsonConvert.DeserializeObject<EventLinked>(jr.Value), myeventhelper.begin, optimizedates)!)
+                        .Select(jr => new JsonRaw(jr))
+                    : data.List;
+
+
+                var dataTransformed = list.Select(raw =>
                     raw.TransformRawData(
                         language,
                         fields,
@@ -430,7 +447,25 @@ namespace OdhApiCore.Controllers
                     dataTransformed,
                     Url
                 );
+
             });
+        }
+
+        //Helper Method to Denormalize Event
+        public static IEnumerable<EventLinked> DeNormalizeEventLinked(
+            EventLinked eventLinked,
+            DateTime? denormalizedatetimecheck,
+            bool? removeinactiverooms
+        )
+        {
+            // Denormalize by EventDate and add only Elements with datetime higher than the provided
+            var byEventDate = eventLinked.DenormalizeBy(
+                e => e.EventDate,
+                (e, val) => e.EventDate = val,
+                removeinactiverooms.HasValue && removeinactiverooms.Value ? item => item.From >= denormalizedatetimecheck && item.Active == true : item => item.From >= denormalizedatetimecheck,
+                item => item.From
+            );
+            return byEventDate;
         }
 
         /// <summary>

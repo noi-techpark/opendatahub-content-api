@@ -47,7 +47,8 @@ namespace Helper
             this EventLinked source,
             Func<EventLinked, ICollection<TItem>?> collectionSelector,
             Action<EventLinked, ICollection<TItem>?> collectionSetter,
-            Func<TItem, bool>? itemFilter = null)
+            Func<TItem, bool>? itemFilter = null,
+            Func<TItem, object>? orderBy = null)
         {
             var collection = collectionSelector(source);
 
@@ -66,6 +67,9 @@ namespace Helper
             {
                 yield break; // or yield return source if you want to keep the record
             }
+
+            if (orderBy != null)
+                filteredItems = filteredItems.OrderBy(orderBy);
 
             foreach (var item in filteredItems)
             {
