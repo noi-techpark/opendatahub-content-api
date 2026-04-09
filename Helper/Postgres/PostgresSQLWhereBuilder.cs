@@ -463,7 +463,7 @@ namespace Helper
             );
 
             return query
-                .IdUpperFilter(idlist,"gen_id")
+                .IdIlikeFilter(idlist,"gen_id")
                 .EventTopicFilter_GeneratedColumn(topiclist)
                 //.EventDateFilterEnd_GeneratedColumn(begindate, enddate)
                 //.EventDateFilterBegin_GeneratedColumn(begindate, enddate)

@@ -489,7 +489,7 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("events")
                     .Select("data")
-                    .Where("gen_id", id.ToUpper())
+                    .Where("gen_id", id)
                     //.WhereRaw("data#>>'\\{Id\\}' = $$", id.ToUpper()) SLOW
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
