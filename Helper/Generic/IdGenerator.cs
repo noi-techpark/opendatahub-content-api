@@ -69,14 +69,14 @@ namespace Helper
                 //LTSActivityLinked => IDStyle.uppercase,
                 //LTSPoiLinked => IDStyle.uppercase,
                 //GastronomyLinked => IDStyle.uppercase,
-                Event or EventLinked or EventFlattened => IDStyle.uppercase,
+                Event or EventLinked or EventFlattened => IDStyle.mixed,
                 ODHActivityPoi or ODHActivityPoiLinked => IDStyle.lowercase,
                 Package or PackageLinked => IDStyle.uppercase,
                 MeasuringpointV2 => IDStyle.uppercase,
                 WebcamInfo or WebcamInfoLinked => IDStyle.uppercase,
                 Article or ArticlesLinked => IDStyle.uppercase,
                 DDVenue => IDStyle.uppercase,
-                Venue or VenueLinked or VenueV2 or VenueFlattened => IDStyle.uppercase,
+                Venue or VenueLinked or VenueV2 or VenueFlattened => IDStyle.mixed,
                 EventShort or EventShortLinked => IDStyle.lowercase,
                 ExperienceArea or ExperienceAreaLinked => IDStyle.uppercase,
                 MetaRegion or MetaRegionLinked => IDStyle.uppercase,
@@ -117,7 +117,7 @@ namespace Helper
                 //Type _ when odhtype == typeof(LTSPoiLinked) => IDStyle.uppercase,
                 //Type _ when odhtype == typeof(GastronomyLinked) => IDStyle.uppercase,
                 Type _ when odhtype == typeof(Event) || odhtype == typeof(EventLinked) =>
-                    IDStyle.uppercase,
+                    IDStyle.mixed,
                 Type _
                     when odhtype == typeof(ODHActivityPoi)
                         || odhtype == typeof(ODHActivityPoiLinked) => IDStyle.lowercase,
@@ -131,7 +131,7 @@ namespace Helper
                     IDStyle.uppercase,
                 Type _ when odhtype == typeof(DDVenue) => IDStyle.uppercase,
                 Type _ when odhtype == typeof(Venue) || odhtype == typeof(VenueLinked) || odhtype == typeof(VenueFlattened) || odhtype == typeof(VenueV2) =>
-                    IDStyle.uppercase,
+                    IDStyle.mixed,
                 Type _ when odhtype == typeof(EventShort) || odhtype == typeof(EventShortLinked) =>
                     IDStyle.lowercase,
                 Type _
