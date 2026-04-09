@@ -840,17 +840,17 @@ namespace DataModel
         public string? Id { get; set; }
         public string? Shortname { get; set; }
 
-        public ICollection<string> TagIds { get; set; }
+        public ICollection<string>? TagIds { get; set; }
 
-        public ICollection<Tags> Tags { get; set; }
+        public ICollection<Tags>? Tags { get; set; }
         
         public IDictionary<string, Detail> Detail { get; set; }
 
         public ICollection<ImageGallery>? ImageGallery { get; set; }
 
-        public VenueRoomProperties VenueRoomProperties { get; set; }
+        public VenueRoomProperties? VenueRoomProperties { get; set; }
 
-        public string Placement { get; set; }
+        public string? Placement { get; set; }
     }
 
     public class VenueRoomProperties
