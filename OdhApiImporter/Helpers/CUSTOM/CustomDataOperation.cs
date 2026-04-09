@@ -1390,10 +1390,11 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
-        public async Task<int> SaveEventShortsToEvents(string lastchange)
+        public async Task<int> SaveEventShortsToEvents(string idlist, string lastchange)
         {
             //Load all data from PG and resave with Detail Object
             var query = QueryFactory.Query().SelectRaw("data").From("eventeuracnoi")
+                .IdIlikeFilter(!String.IsNullOrEmpty(idlist) ? idlist.Split(",") : new List<string>() { })
                 .SourceFilter_GeneratedColumn(new List<string>() { "noi", "ebms", "eurac", "unibz", "nobis" })
                 .LastChangedFilter_GeneratedColumn(lastchange);
 

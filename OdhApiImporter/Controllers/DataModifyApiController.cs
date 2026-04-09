@@ -186,6 +186,7 @@ namespace OdhApiImporter.Controllers
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("SaveEventShortsToEvents")]
         public async Task<IActionResult> SaveEventShortsToEvents(
+            string idlist = null,
             string lastchange = null,
             CancellationToken cancellationToken = default
         )
@@ -197,7 +198,7 @@ namespace OdhApiImporter.Controllers
                 QueryFactory
             );
 
-            objectscount = await customdataoperation.SaveEventShortsToEvents(lastchange);
+            objectscount = await customdataoperation.SaveEventShortsToEvents(idlist, lastchange);
 
             return Ok(
                 new UpdateResult

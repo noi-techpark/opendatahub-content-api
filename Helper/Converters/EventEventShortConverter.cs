@@ -301,8 +301,8 @@ namespace Helper.Converters
                         eventdate.Active = true;
 
                     //StartDate
-                    eventdate.From = roombooked.StartDate;
-                    eventdate.To = roombooked.EndDate;
+                    eventdate.From = roombooked.StartDate.Date;
+                    eventdate.To = roombooked.EndDate.Date;
 
                     //StartDateUTC
                     //EndDateUTC

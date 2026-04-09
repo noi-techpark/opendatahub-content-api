@@ -1078,10 +1078,8 @@ namespace DataModel
         public double? FromUTC
         {
             get
-            {
-                return this.From != null
-                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.From)
-                    : null;
+            {                
+                return DateTimeHelper.DateTimeToUnixTimestampMilliseconds(From.Date + (Begin ?? TimeSpan.Zero));
             }
         }
 
@@ -1090,9 +1088,7 @@ namespace DataModel
         {
             get
             {
-                return this.To != null
-                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.To)
-                    : null;
+                return DateTimeHelper.DateTimeToUnixTimestampMilliseconds(To.Date + (End ?? TimeSpan.Zero));
             }
         }
 
