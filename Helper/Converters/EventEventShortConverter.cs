@@ -273,7 +273,7 @@ namespace Helper.Converters
             //RoomBooked.SpaceType
             //RoomBooked.SpaceAbbrev
             
-
+            //TODO THIS IS NOT WORKING AS IT SHOULD!
             EventEuracNoiDataProperties additionalprops = new EventEuracNoiDataProperties();
             additionalprops.ExternalOrganizer = eventshort.ExternalOrganizer;
             additionalprops.SoldOut = eventshort.SoldOut;

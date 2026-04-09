@@ -421,7 +421,7 @@ namespace OdhApiCore.Controllers
                 //If we want to have the data denormalized use the function to denormalize events
                 var list = denormalize == true
                     ? data.List
-                        .SelectMany(jr => DeNormalizeEventLinked(JsonConvert.DeserializeObject<EventLinked>(jr.Value), myeventhelper.begin, optimizedates)!)
+                        .SelectMany(jr => DeNormalizeEventLinked(JsonConvert.DeserializeObject<EventLinked>(jr.Value), myeventhelper.begin, myeventhelper.end, optimizedates)!)
                         .Select(jr => new JsonRaw(jr))
                     : data.List;
 
@@ -454,15 +454,20 @@ namespace OdhApiCore.Controllers
         //Helper Method to Denormalize Event
         public static IEnumerable<EventLinked> DeNormalizeEventLinked(
             EventLinked eventLinked,
-            DateTime? denormalizedatetimecheck,
+            DateTime? start,
+            DateTime? end,
             bool? removeinactiverooms
         )
         {
-            // Denormalize by EventDate and add only Elements with datetime higher than the provided
+            // Denormalize by EventDate and add only Elements with EndDate higher than the provided enddate
             var byEventDate = eventLinked.DenormalizeBy(
                 e => e.EventDate,
                 (e, val) => e.EventDate = val,
-                removeinactiverooms.HasValue && removeinactiverooms.Value ? item => item.From >= denormalizedatetimecheck && item.Active == true : item => item.From >= denormalizedatetimecheck,
+                //Start + Enddate, check if room.EndDate >= start AND room.StartDate <= end
+                //If removeinactiverooms set to true remove all room.Active = false
+                removeinactiverooms.HasValue && removeinactiverooms.Value ? 
+                    item => ((DateTime)(item.To.Date + (item.End ?? TimeSpan.Zero))) >= start && ((DateTime)(item.From.Date + (item.Begin ?? TimeSpan.Zero))) <= end && item.Active == true 
+                    : item => ((DateTime)(item.To.Date + (item.End ?? TimeSpan.Zero))) >= start && ((DateTime)(item.From.Date + (item.Begin ?? TimeSpan.Zero))) <= end,
                 item => item.From
             );
             return byEventDate;
