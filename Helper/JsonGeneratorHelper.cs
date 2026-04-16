@@ -393,7 +393,7 @@ namespace Helper
                 .Query()
                 .SelectRaw("data")
                 .From("tags")
-                .TagTypesFilter(new List<string>() { "accommodationoption", "accommodationcategory", "accommodationtypes", "accommodationmealplans" });
+                .TagTypesFilter(new List<string>() { "accommodationoption", "accommodationtitle", "accommodationcategory", "accommodationtypes", "accommodationmealplans" });
 
             var datafirst = await query.GetObjectListAsync<TagLinked>();
 

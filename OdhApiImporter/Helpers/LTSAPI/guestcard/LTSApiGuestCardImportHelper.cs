@@ -166,7 +166,11 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     {
                         {
                             "lts",
-                            new Dictionary<string, string>() { { "rid", data.rid } }
+                            new Dictionary<string, string>() { 
+                                { "rid", data.rid },
+                                { "code", data.code },
+                                { "typeId", data.typeId == null ? data.typeId.ToString() : "" } 
+                            }
                         },
                     };
                     ;
@@ -322,5 +326,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         public DateTime lastUpdate { get; set; }
         public IDictionary<string, string> name { get; set; }
         public bool isActive { get; set; }
+        public string code { get; set; }
+        public int? typeId { get; set; }
     }
 }
