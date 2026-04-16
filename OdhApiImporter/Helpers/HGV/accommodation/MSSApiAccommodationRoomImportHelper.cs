@@ -187,7 +187,7 @@ namespace OdhApiImporter.Helpers.HGV
                 }
 
                 //Deactivate all AccommodationRooms from HGV
-                if (rooms != null && rooms.Count > 0)
+                if (rooms != null && rooms.Count() > 0)
                 {
                     var deleteresult = await DisableRoomsNotMorepresent(rooms.FirstOrDefault().A0RID, rooms);
                     updatedetails.Add(deleteresult);
