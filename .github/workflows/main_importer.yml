@@ -243,6 +243,7 @@ jobs:
           curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
           curl "${{ env.API_URL_IMPORTER }}ODH/ActivityPoiDatalist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/AccommodationFeatures"
           
   deploy-prod-importer:
     runs-on: ubuntu-22.04
@@ -438,3 +439,4 @@ jobs:
           curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
           curl "${{ env.API_URL_IMPORTER }}ODH/ActivityPoiDatalist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/AccommodationFeatures"
