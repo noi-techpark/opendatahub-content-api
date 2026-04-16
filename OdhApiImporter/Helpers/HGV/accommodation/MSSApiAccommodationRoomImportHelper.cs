@@ -63,7 +63,7 @@ namespace OdhApiImporter.Helpers.HGV
             List<UpdateDetail> updatedetailist = new List<UpdateDetail>();
 
             var xmlfiles = ImportUtils.LoadXmlFiles(
-                    Path.Combine(".\\xml\\"),
+                    settings.XmlConfig.Xmldir,
                     new List<string>() { "RoomAmenities" });
 
 
