@@ -4,6 +4,7 @@
 
 using DataModel;
 using Helper;
+using Helper.Converters;
 using Helper.Generic;
 using Helper.JsonHelpers;
 using Helper.Tagging;
@@ -1389,6 +1390,133 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        public async Task<int> SaveEventShortsToEvents(string idlist, string lastchange)
+        {
+            //Load all data from PG and resave with Detail Object
+            var query = QueryFactory.Query().SelectRaw("data").From("eventeuracnoi")
+                .IdIlikeFilter(!String.IsNullOrEmpty(idlist) ? idlist.Split(",") : new List<string>() { })
+                .SourceFilter_GeneratedColumn(new List<string>() { "noi", "ebms", "eurac", "unibz", "nobis" })
+                .LastChangedFilter_GeneratedColumn(lastchange);
+
+            var data = await query.GetObjectListAsync<EventShortLinked>();
+            int i = 0;
+
+            var total = data.Count();
+
+            foreach (var eventshort in data)
+            {
+                var eventv1 = EventEventShortConverter.ConvertEventShortToEventByType(eventshort, false, null, false).FirstOrDefault();
+
+                if (eventv1 != null)
+                {
+                    //Check if present
+                    var datapresent = await QueryFactory
+                        .Query("events")
+                        .Select("data")
+                        .Where("id", eventv1.Id)
+                        .FirstOrDefaultAsync<JsonRaw>();
+
+                    if (datapresent != null)
+                    {
+                        //Save tp DB
+                        //TODO CHECK IF THIS WORKS
+                        var queryresult = await QueryFactory
+                        .Query("events")
+                        .Where("id", eventv1.Id)
+                        //.UpdateAsync(new JsonBData() { id = eventshort.Id.ToLower(), data = new JsonRaw(eventshort) });
+                        .UpdateAsync(
+                            new JsonBData()
+                            {
+                                id = eventv1.Id?.ToLower() ?? "",
+                                data = new JsonRaw(eventv1)
+                            }
+                         );
+
+                        i += queryresult;
+                    }
+                    else
+                    {
+                        //Update to DB                        
+                        var queryresult = await QueryFactory
+                            .Query("events")
+                            .InsertAsync(
+                                new JsonBData()
+                                {
+                                    id = eventv1.Id?.ToLower(),
+                                    data = new JsonRaw(eventv1)
+                                }
+                        );
+
+                        i += queryresult;
+                    }
+                }
+            }
+
+            return i;
+        }
+
+        public async Task<int> SaveEventShortsToVenues()
+        {
+            //Load all data from PG and resave with Detail Object
+            var query = QueryFactory
+                .Query()
+                .SelectRaw("data").From("eventeuracnoi")
+                .SourceFilter_GeneratedColumn(new List<string>() { "noi", "ebms", "eurac", "unibz", "nobis" });
+
+            var data = await query.GetObjectListAsync<EventShortLinked>();
+            int i = 0;
+
+            var venuelist = EventEventShortConverter.ConvertEventShortsToVenueList(data);
+
+            var total = data.Count();
+
+            foreach (var venue in venuelist)
+            {                
+                if (venue != null)
+                {
+                    //Check if present
+                    var datapresent = await QueryFactory
+                        .Query("venues")
+                        .Select("data")
+                        .Where("id", venue.Id)
+                        .FirstOrDefaultAsync<JsonRaw>();
+
+                    if (datapresent != null)
+                    {
+                        //Update to DB                        
+                        var queryresult = await QueryFactory
+                            .Query("venues")
+                            .Where("id", venue.Id)
+                            .UpdateAsync(
+                                new JsonBData()
+                                {
+                                    id = venue.Id?.ToLower() ?? "",
+                                    data = new JsonRaw(venue)
+                                }
+                        );
+
+                        i += queryresult;
+                    }
+                    else
+                    {
+                        //Update to DB                        
+                        var queryresult = await QueryFactory
+                            .Query("venues")
+                            .InsertAsync(
+                                new JsonBData()
+                                {
+                                    id = venue.Id?.ToLower(),
+                                    data = new JsonRaw(venue)
+                                }
+                        );
+
+                        i += queryresult;
+                    }                        
+                }
+            }
+
+            return i;
+        }
 
         #endregion
 

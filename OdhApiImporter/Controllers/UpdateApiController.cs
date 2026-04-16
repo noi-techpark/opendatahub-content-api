@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using OdhApiImporter.Helpers;
 using OdhApiImporter.Helpers.DSS;
+using OdhApiImporter.Helpers.HGV;
 using OdhApiImporter.Helpers.LOOPTEC;
 using OdhApiImporter.Helpers.LTSAPI;
 using OdhApiImporter.Helpers.SuedtirolWein;
@@ -328,7 +329,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "eventeuracnoi",
-                    UrlGeneratorStatic("EBMS/EventShort")
+                    UrlGeneratorStatic("EBMS/EventShort"),
+                    OdhPushnotifier
                 );
 
                 if (forceupdate)
@@ -387,7 +389,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "events",
-                    UrlGeneratorStatic("NINJA/Events")
+                    UrlGeneratorStatic("NINJA/Events"),
+                    OdhPushnotifier
                 );
                 updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -438,7 +441,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "eventsv2",
-                    UrlGeneratorStatic("NINJA/EventFlattened")
+                    UrlGeneratorStatic("NINJA/EventFlattened"),
+                    OdhPushnotifier
                 );
                 updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -489,7 +493,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "venuesv2",
-                    UrlGeneratorStatic("NINJA/VenueFlattened")
+                    UrlGeneratorStatic("NINJA/VenueFlattened"),
+                    OdhPushnotifier
                 );
                 updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -540,7 +545,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "odhactivitypoi",
-                    UrlGeneratorStatic("NINJA/Echarging")
+                    UrlGeneratorStatic("NINJA/Echarging"),
+                    OdhPushnotifier
                 );
                 updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -594,7 +600,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "weatherdatahistory",
-                    UrlGeneratorStatic("Siag/Weather")
+                    UrlGeneratorStatic("Siag/Weather"),
+                    OdhPushnotifier
                 );
                 updatedetail = await siagimporthelper.SaveWeatherToHistoryTable(cancellationToken);
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
@@ -645,7 +652,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "weatherdatahistory",
-                    UrlGeneratorStatic("Siag/Weather")
+                    UrlGeneratorStatic("Siag/Weather"),
+                    OdhPushnotifier
                 );
                 updatedetail = await siagimporthelper.SaveWeatherToHistoryTable(
                     cancellationToken,
@@ -703,7 +711,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "smgpois",
-                    UrlGeneratorStatic("Siag/Museum")
+                    UrlGeneratorStatic("Siag/Museum"),
+                    OdhPushnotifier
                 );
                 updatedetail = await siagimporthelper.SaveDataToODH(null, null, cancellationToken);
 
@@ -755,7 +764,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "tags",
-                    UrlGeneratorStatic("Siag/Museum")
+                    UrlGeneratorStatic("Siag/Museum"),
+                    OdhPushnotifier
                 );
                 updatedetail = await siagimporthelper.SaveDataToODH(null, null, cancellationToken);
 
@@ -866,7 +876,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "wines",
-                        UrlGeneratorStatic("SuedtirolWein/WineAward")
+                        UrlGeneratorStatic("SuedtirolWein/WineAward"),
+                        OdhPushnotifier
                     );
                 updatedetail = await sweinimporthelper.SaveDataToODH(null, null, cancellationToken);
 
@@ -923,7 +934,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        UrlGeneratorStatic("Common/Skiarea")
+                        UrlGeneratorStatic("Common/Skiarea"),
+                        OdhPushnotifier
                     );
                 updatedetail = await skiareasimporthelper.SaveDataToODH(null, null, cancellationToken);
 
@@ -1102,13 +1114,187 @@ namespace OdhApiImporter.Controllers
 
         #region HGV ACCOMMODATION DATA SYNC
 
-        #endregion
+        //Generic Update Single Accommodation MSS
+        [HttpGet, Route("HGV/Accommodation/Update/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateAccommodationDataFromHGV(
+            string id,            
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update HGV";
+            string updatetype = "single";
+            string source = "api";
+            string otherinfo = "accommodation";
 
-        #region LTS MEASURINGPOINTS DATA SYNC
+            try
+            {
+                MSSApiAccommodationImportHelper hgvapiimporthelper = new MSSApiAccommodationImportHelper(
+                    settings,
+                    QueryFactory,
+                    "accommodations",
+                    UrlGeneratorStatic("HGV/accommodation"),
+                    OdhPushnotifier
+                );
+                var resulttuple = await hgvapiimporthelper.SaveDataToODH(                    
+                    new List<string>() { id },
+                    cancellationToken
+                );
+                updatedetail = resulttuple;
 
-        #endregion
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
 
-        #region LTS WEBCAM DATA SYNC
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        //Generic Update Single Accommodation MSS
+        [HttpGet, Route("HGV/Accommodation/Update/All")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateAccommodationDataFromHGV(            
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update HGV";
+            string updatetype = "list";
+            string source = "api";
+            string otherinfo = "accommodation";
+
+            try
+            {
+                MSSApiAccommodationImportHelper hgvapiimporthelper = new MSSApiAccommodationImportHelper(
+                    settings,
+                    QueryFactory,
+                    "accommodations",
+                    UrlGeneratorStatic("HGV/accommodation"),
+                    OdhPushnotifier
+                );
+                var resulttuple = await hgvapiimporthelper.SaveDataToODH(
+                    null,
+                    cancellationToken
+                );
+                updatedetail = resulttuple;                
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    "",
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
+
+        //Generic Update Single Accommodation MSS
+        [HttpGet, Route("HGV/AccommodationRoom/Update/{id}")]
+        [Authorize(Roles = "DataPush")]
+        public async Task<IActionResult> UpdateAccommodationRoomsDataFromHGV(
+            string id,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update HGV";
+            string updatetype = "single";
+            string source = "api";
+            string otherinfo = "accommodation.room";
+
+            try
+            {
+                MSSApiAccommodationRoomImportHelper hgvapiimporthelper = new MSSApiAccommodationRoomImportHelper(
+                    settings,
+                    QueryFactory,
+                    "accommodationrooms",
+                    UrlGeneratorStatic("HGV/accommodationroom"),
+                    OdhPushnotifier
+                );
+                var resulttuple = await hgvapiimporthelper.SaveDataToODH(
+                    null,
+                    new List<string>() { id },
+                    cancellationToken
+                );
+                updatedetail = resulttuple;
+
+                //Add Push logic here
+
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "Update HGV failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+
+                return BadRequest(errorResult);
+            }
+        }
 
         #endregion
 
@@ -1197,7 +1383,8 @@ namespace OdhApiImporter.Controllers
                             settings,
                             QueryFactory,
                             "webcams",
-                            UrlGeneratorStatic("DSS/Webcam")
+                            UrlGeneratorStatic("DSS/Webcam"),
+                            OdhPushnotifier
                         );
 
                         updatedetail = await dsswebcamimporthelper.SaveDataToODH(
@@ -1212,7 +1399,8 @@ namespace OdhApiImporter.Controllers
                             settings,
                             QueryFactory,
                             "smgpois",
-                            UrlGeneratorStatic("DSS/" + dssentity)
+                            UrlGeneratorStatic("DSS/" + dssentity),
+                            OdhPushnotifier
                         );
                         dssimporthelper.entitytype = dssentity.ToLower();
 
@@ -1273,7 +1461,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "skiareas",
-                    UrlGeneratorStatic("DSS/SkiArea")
+                    UrlGeneratorStatic("DSS/SkiArea"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await dssimporthelper.SaveDataToODH(null, null, cancellationToken);
@@ -1331,7 +1520,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "",
-                    UrlGeneratorStatic("LOOPTEC/Ejobs")
+                    UrlGeneratorStatic("LOOPTEC/Ejobs"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await looptecejobsimporthelper.SaveDataToODH(
@@ -1391,7 +1581,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "webcams",
-                    UrlGeneratorStatic("PANOMAX/Webcam")
+                    UrlGeneratorStatic("PANOMAX/Webcam"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await panomaximporthelper.SaveDataToODH(
@@ -1451,7 +1642,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "webcams",
-                    UrlGeneratorStatic("PANOCLOUD/Webcam")
+                    UrlGeneratorStatic("PANOCLOUD/Webcam"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await panocloudimporthelper.SaveDataToODH(
@@ -1511,7 +1703,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "webcams",
-                    UrlGeneratorStatic("FERATEL/Wecam")
+                    UrlGeneratorStatic("FERATEL/Wecam"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await feratelwebcamimporthelper.SaveDataToODH(
@@ -1578,7 +1771,8 @@ namespace OdhApiImporter.Controllers
                             settings,
                             QueryFactory,
                             "webcams",
-                            UrlGeneratorStatic("A22/Webcam")
+                            UrlGeneratorStatic("A22/Webcam"),
+                            OdhPushnotifier
                         );
                         updatedetail = await a22importhelper.SaveDataToODH(
                             null,
@@ -1593,7 +1787,8 @@ namespace OdhApiImporter.Controllers
                             QueryFactory,
                             "smgpois",
                             UrlGeneratorStatic("A22/ServiceArea"),
-                            a22entity.ToLower()
+                            a22entity.ToLower(),
+                            OdhPushnotifier
                         );
                         updatedetail = await a22importhelper.SaveDataToODH(
                             null,
@@ -1608,7 +1803,8 @@ namespace OdhApiImporter.Controllers
                             QueryFactory,
                             "smgpois",
                             UrlGeneratorStatic("A22/Tollstation"),
-                            a22entity.ToLower()
+                            a22entity.ToLower(),
+                            OdhPushnotifier
                         );
                         updatedetail = await a22importhelper.SaveDataToODH(
                             null,
@@ -1673,7 +1869,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "tags",
-                    UrlGeneratorStatic("LTS/SuedtirolGuestpass/Cardtypes")
+                    UrlGeneratorStatic("LTS/SuedtirolGuestpass/Cardtypes"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -1727,7 +1924,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "tags",
-                    UrlGeneratorStatic("LTS/Events/Tags")
+                    UrlGeneratorStatic("LTS/Events/Tags"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -1838,7 +2036,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Events/Categories")
+                        UrlGeneratorStatic("LTS/Events/Categories"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -1893,7 +2092,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Events/Classifications")
+                        UrlGeneratorStatic("LTS/Events/Classifications"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -1948,7 +2148,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Gastronomies/Categories")
+                        UrlGeneratorStatic("LTS/Gastronomies/Categories"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2003,7 +2204,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Gastronomies/Facilities")
+                        UrlGeneratorStatic("LTS/Gastronomies/Facilities"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2058,7 +2260,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Gastronomies/CeremonyCodes")
+                        UrlGeneratorStatic("LTS/Gastronomies/CeremonyCodes"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2113,7 +2316,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Gastronomies/DishCodes")
+                        UrlGeneratorStatic("LTS/Gastronomies/DishCodes"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2168,7 +2372,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Accommodations/Categories")
+                        UrlGeneratorStatic("LTS/Accommodations/Categories"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2223,7 +2428,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Accommodations/Mealplans")
+                        UrlGeneratorStatic("LTS/Accommodations/Mealplans"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2278,7 +2484,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Accommodation/Types")
+                        UrlGeneratorStatic("LTS/Accommodation/Types"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2332,7 +2539,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "tags",
-                    UrlGeneratorStatic("LTS/Accommodations/Amenities")
+                    UrlGeneratorStatic("LTS/Accommodations/Amenities"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2366,6 +2574,61 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Imports all Accommodation Amenities to accofeatures table (compatibility)
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("LTS/Accommodation/Update/AmenitiesToAccommodationFeatures")]
+        public async Task<IActionResult> ImportLTSAccommodationAmenitiesToAccommodationFeatures(
+            string id = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import LTS Accommodations AmenitiesToAccommodationFeatures";
+            string updatetype = GetUpdateType(null);
+            string source = "lts";
+            string otherinfo = "accommodations.amenities.accofeatures";
+
+            try
+            {
+                LTSApiAmenitiesToAccoFeaturesImportHelper importhelper = new LTSApiAmenitiesToAccoFeaturesImportHelper(
+                    settings,
+                    QueryFactory,
+                    "accommodationfeatures",
+                    UrlGeneratorStatic("LTS/Accommodations/AmenitiesToAccommodationFeatures"),
+                    OdhPushnotifier
+                );
+
+                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS Accommodations AmenitiesToAccommodationFeatures succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS Accommodations AmenitiesToAccommodationFeatures data failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
         //Imports all Venues Categories
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("LTS/Venue/Update/Categories")]
@@ -2387,7 +2650,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Venues/Categories")
+                        UrlGeneratorStatic("LTS/Venues/Categories"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2442,7 +2706,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "tags",
-                        UrlGeneratorStatic("LTS/Venues/HallFeatures")
+                        UrlGeneratorStatic("LTS/Venues/HallFeatures"),
+                        OdhPushnotifier
                     );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2496,7 +2761,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "tags",
-                    UrlGeneratorStatic("LTS/ODHActivityPois/Tags")
+                    UrlGeneratorStatic("LTS/ODHActivityPois/Tags"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2550,7 +2816,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "tags",
-                    UrlGeneratorStatic("LTS/ODHActivityPois/TagProperties")
+                    UrlGeneratorStatic("LTS/ODHActivityPois/TagProperties"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
@@ -2643,37 +2910,37 @@ namespace OdhApiImporter.Controllers
 
                 Tuple<string,UpdateDetail> resulttuple = default(Tuple<string,UpdateDetail>);
 
-                if (datatype == "accommodation")
-                {
-                    RavenImportHelper ravenimporthelper = new RavenImportHelper(
-                        settings,
-                        QueryFactory,
-                        UrlGeneratorStatic("Raven/" + datatype),
-                        OdhPushnotifier
-                    );
-                    resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
-                        id,
-                        datatype,
-                        cancellationToken
-                    );
-                    updatedetail = resulttuple.Item2;
-                }
-                else
-                {
-                    LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
-                       settings,
-                       QueryFactory,
-                       UrlGeneratorStatic("LTS/" + datatypecalculated),
-                       OdhPushnotifier
-                   );
+                //if (datatype == "accommodation")
+                //{
+                //    RavenImportHelper ravenimporthelper = new RavenImportHelper(
+                //        settings,
+                //        QueryFactory,
+                //        UrlGeneratorStatic("Raven/" + datatype),
+                //        OdhPushnotifier
+                //    );
+                //    resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
+                //        id,
+                //        datatype,
+                //        cancellationToken
+                //    );
+                //    updatedetail = resulttuple.Item2;
+                //}
+                //else
+                //{
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                    settings,
+                    QueryFactory,
+                    UrlGeneratorStatic("LTS/" + datatypecalculated),
+                    OdhPushnotifier
+                );
 
-                    resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
-                        idtopass,
-                        datatypecalculated,
-                        cancellationToken
-                    );
-                    updatedetail = resulttuple.Item2;
-                }
+                resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
+                    idtopass,
+                    datatypecalculated,
+                    cancellationToken
+                );
+                updatedetail = resulttuple.Item2;
+                //}
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     resulttuple.Item1,
@@ -3145,7 +3412,8 @@ namespace OdhApiImporter.Controllers
                           settings,
                           QueryFactory,
                           tabletowrite,
-                          UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                          UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                          OdhPushnotifier
                       );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3168,7 +3436,8 @@ namespace OdhApiImporter.Controllers
                             settings,
                             QueryFactory,
                             tabletowrite,
-                            UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                            UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                            OdhPushnotifier
                         );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3191,7 +3460,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         tabletowrite,
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                        OdhPushnotifier
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3210,7 +3480,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         "spatialdatas",
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                        OdhPushnotifier
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3232,7 +3503,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         tabletowrite,
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                        OdhPushnotifier
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3253,7 +3525,8 @@ namespace OdhApiImporter.Controllers
                         settings,
                         QueryFactory,
                         tabletowrite,
-                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower())
+                        UrlGeneratorStatic("DIGIWAY/" + identifier.ToLower()),
+                        OdhPushnotifier
                     );
 
                     digiwayimporthelper.identifier = identifier.ToLower();
@@ -3318,7 +3591,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "announcements",
-                    UrlGeneratorStatic("ZOHO/TrailClosures")
+                    UrlGeneratorStatic("ZOHO/TrailClosures"),
+                    OdhPushnotifier
                     );
 
                 updatedetail = await digiwaytrailclosuresimporthelper.SaveDataToODH(
@@ -3380,7 +3654,8 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     "smgpois",
-                    UrlGeneratorStatic("GTFSAPI/StaTimeTablesStops")
+                    UrlGeneratorStatic("GTFSAPI/StaTimeTablesStops"),
+                    OdhPushnotifier
                 );
 
                 updatedetail = await gtfsapiimporthelper.SaveDataToODH(
@@ -3503,8 +3778,7 @@ namespace OdhApiImporter.Controllers
                 return "single";
             else
                 return "passed_ids";
-        }
-  
+        }        
     }
 
     public static class DateTimeHelper

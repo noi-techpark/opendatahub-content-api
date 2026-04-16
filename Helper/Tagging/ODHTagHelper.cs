@@ -206,7 +206,7 @@ namespace Helper
             if (smgpoi.AdditionalPoiInfos == null)
                 smgpoi.AdditionalPoiInfos = new Dictionary<string, AdditionalPoiInfos>();
 
-            if (smgpoi.SmgTags != null && smgpoi.SmgTags.Count > 0)
+            if (smgpoi.SmgTags != null && smgpoi.SmgTags.Count > 0 && validtagsforcategories != null && validtagsforcategories.Count > 0)
             {
                 //Setting Categorization by Valid Tags
                 var currentcategories = validtagsforcategories.Where(x =>
@@ -264,14 +264,33 @@ namespace Helper
         //GETS all tags for categorization tags from json as object to avoid DB call on each Tag update
         public static async Task<List<TagLinked>> GetAllODHTagsforCategorizationJson(string jsondir)
         {
-            using (
-                StreamReader r = new StreamReader(Path.Combine(jsondir, $"TagsForCategories.json"))
-            )
-            {
-                string json = await r.ReadToEndAsync();
+            var filePath = Path.Combine(jsondir, "TagsForCategories.json");
 
+            if (!File.Exists(filePath))
+                return new();
+
+            try
+            {
+                using var r = new StreamReader(filePath);
+                string json = await r.ReadToEndAsync();
                 return JsonConvert.DeserializeObject<List<TagLinked>>(json) ?? new();
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Failed to read TagsForCategories.json: {ex.Message}");
+                return new();
+            }
         }
+        //public static async Task<List<TagLinked>> GetAllODHTagsforCategorizationJson(string jsondir)
+        //{
+        //    using (
+        //        StreamReader r = new StreamReader(Path.Combine(jsondir, $"TagsForCategories.json"))
+        //    )
+        //    {
+        //        string json = await r.ReadToEndAsync();
+
+        //        return JsonConvert.DeserializeObject<List<TagLinked>>(json) ?? new();
+        //    }
+        //}
     }
 }

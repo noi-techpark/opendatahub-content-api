@@ -224,24 +224,6 @@ namespace DataModel
         //series, sponsors, subEvents
     }
 
-    //LTS Specific
-    public class EventLTSInfo
-    {
-        public EventPublisher EventPublisher { get; set; }
-        public bool SignOn { get; set; }
-        public EventBooking EventBooking { get; set; }
-        public EventPrice EventPrice { get; set; }
-    }
-
-    //EventShort Specific
-    public class EventEuracNoiInfo
-    {
-        public bool? ExternalOrganizer { get; set; }
-        public bool? SoldOut { get; set; }
-        public AgeRange? TypicalAgeRange { get; set; }
-        public string EventLocation { get; set; }
-    }
-
     #endregion
 
     #region VenueFlattened Datamodel
@@ -858,17 +840,17 @@ namespace DataModel
         public string? Id { get; set; }
         public string? Shortname { get; set; }
 
-        public ICollection<string> TagIds { get; set; }
+        public ICollection<string>? TagIds { get; set; }
 
-        public ICollection<Tags> Tags { get; set; }
+        public ICollection<Tags>? Tags { get; set; }
         
         public IDictionary<string, Detail> Detail { get; set; }
 
         public ICollection<ImageGallery>? ImageGallery { get; set; }
 
-        public VenueRoomProperties VenueRoomProperties { get; set; }
+        public VenueRoomProperties? VenueRoomProperties { get; set; }
 
-        public string Placement { get; set; }
+        public string? Placement { get; set; }
     }
 
     public class VenueRoomProperties
@@ -883,19 +865,37 @@ namespace DataModel
 
     #endregion
 
-    #region AdditionalInfos
+    #region Event AdditionalProperties
 
     //AdditionalInfos Centrotrevi
-    public class AdditionalInfosCentroTrevi
+    public class EventCentroTreviDataProperties
     {
         public double Price { get; set; }
         public bool Ticket { get; set; }
         public string TicketInfo { get; set; }
     }
 
+    //LTS Specific
+    public class EventLTSDataProperties
+    {
+        public EventPublisher EventPublisher { get; set; }
+        public bool SignOn { get; set; }
+        public EventBooking EventBooking { get; set; }
+        public EventPrice EventPrice { get; set; }
+    }
+
+    //EventShort Specific
+    public class EventEuracNoiDataProperties
+    {
+        public bool? ExternalOrganizer { get; set; }
+        public bool? SoldOut { get; set; }
+        public AgeRange? TypicalAgeRange { get; set; }
+        public string EventLocation { get; set; }
+    }
+
     #endregion
 
-    #region ODHActivityPoiAdditionalProperties
+    #region ODHActivityPoi AdditionalProperties
 
     //To check if this is added as AdditionalProperty
     //ODHActivityPoiPropertiesLTSActivity

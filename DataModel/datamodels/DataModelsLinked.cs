@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
+using DataModel.helpers;
 
 namespace DataModel
 {
@@ -597,7 +598,7 @@ namespace DataModel
                     : new List<DistrictLink>();
             }
         }
-        
+
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public ICollection<ODHTags>? ODHTags
         {
@@ -649,7 +650,7 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                return this.GpsInfo != null && this.GpsInfo.Count > 0
                     ? this.GpsInfo.FirstOrDefault().Latitude.GetValueOrDefault(0)
                     : 0;
             }
@@ -661,7 +662,7 @@ namespace DataModel
         {
             get
             {
-                return this.GpsInfo != null && this.GpsInfo.Count > 0 
+                return this.GpsInfo != null && this.GpsInfo.Count > 0
                     ? this.GpsInfo.FirstOrDefault().Longitude.GetValueOrDefault(0)
                     : 0;
             }
@@ -708,7 +709,50 @@ namespace DataModel
 
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
-    }    
+
+        //NEW Venue Assignment
+        public ICollection<string>? VenueIds { get; set; }
+
+        public ICollection<VenueLink>? VenueLink
+        {
+            get
+            {
+                return this.VenueIds != null
+                    ? this
+                        .VenueIds.Select(x => new VenueLink() { Id = x, Self = "Venue/" + x })
+                        .ToList()
+                    : new List<VenueLink>();
+            }
+        }
+
+        //Video Assignment
+        public IDictionary<string, ICollection<VideoItems>>? VideoItems { get; set; }
+
+        //Document Assignment
+        public IDictionary<string, List<Document>?> Documents { get; set; }
+
+        //Begindate UTC
+        public double? DateBeginUTC
+        {
+            get
+            {
+                return this.DateBegin != null
+                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.DateBegin.Value)
+                    : null;
+            }
+        }
+
+        //Enddate UTC
+        public double? DateEndUTC
+        {
+            get
+            {
+                return this.DateEnd != null
+                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.DateEnd.Value)
+                    : null;
+            }
+        }
+    }
 
     public class VenueLinked : Venue, IMetaData, IHasLocationInfoLinked
     {
@@ -2213,6 +2257,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
 
     }  
+    
     public class WineLinked : Wine, IMetaData, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }

@@ -9,6 +9,7 @@ using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Newtonsoft.Json;
 
@@ -72,7 +73,7 @@ namespace DSS.Parser
             var lastchangeobj = (string)dssitem["update-date"];
 
             if (double.TryParse(lastchangeobj, out double updatedate))
-                myodhactivitypoilinked.LastChange = Helper.DateTimeHelper.UnixTimeStampToDateTime(
+                myodhactivitypoilinked.LastChange = DateTimeHelper.UnixTimeStampToDateTime(
                     updatedate
                 );
 
@@ -299,7 +300,7 @@ namespace DSS.Parser
             var lastchangeobj = (string)dssitem["update-date"];
 
             if (double.TryParse(lastchangeobj, out double updatedate))
-                myodhactivitypoilinked.LastChange = Helper.DateTimeHelper.UnixTimeStampToDateTime(
+                myodhactivitypoilinked.LastChange = DateTimeHelper.UnixTimeStampToDateTime(
                     updatedate
                 );
 
@@ -580,10 +581,10 @@ namespace DSS.Parser
                 OperationSchedule operationSchedule = new OperationSchedule();
                 operationSchedule.Type = "1";
                 operationSchedule.OperationscheduleName = seasonname;
-                operationSchedule.Start = Helper.DateTimeHelper.UnixTimeStampToDateTime(
+                operationSchedule.Start = DateTimeHelper.UnixTimeStampToDateTime(
                     seasonstart.Value
                 );
-                operationSchedule.Stop = Helper.DateTimeHelper.UnixTimeStampToDateTime(
+                operationSchedule.Stop = DateTimeHelper.UnixTimeStampToDateTime(
                     seasonend.Value
                 );
 
@@ -666,10 +667,10 @@ namespace DSS.Parser
                 OperationSchedule operationSchedule = new OperationSchedule();
                 operationSchedule.Type = "1";
                 operationSchedule.OperationscheduleName = seasonname;
-                operationSchedule.Start = Helper.DateTimeHelper.UnixTimeStampToDateTime(
+                operationSchedule.Start = DateTimeHelper.UnixTimeStampToDateTime(
                     seasonstart.Value
                 );
-                operationSchedule.Stop = Helper.DateTimeHelper.UnixTimeStampToDateTime(
+                operationSchedule.Stop = DateTimeHelper.UnixTimeStampToDateTime(
                     seasonend.Value
                 );
 

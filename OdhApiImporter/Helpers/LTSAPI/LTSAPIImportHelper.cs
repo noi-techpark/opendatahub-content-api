@@ -2,20 +2,12 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using Amazon.Auth.AccessControlPolicy;
 using DataModel;
 using Helper;
-using Helper.Generic;
-using Helper.Tagging;
-using MongoDB.Driver;
-using MongoDB.Driver.Core.Operations;
-using NetTopologySuite.GeometriesGraph;
 using Newtonsoft.Json.Linq;
+using OdhApiImporter.Helpers.HGV;
 using OdhApiImporter.Helpers.LTSAPI;
-using OdhApiImporter.Helpers.RAVEN;
 using OdhNotifier;
-using RAVEN;
-using SqlKata;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
@@ -64,7 +56,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory, 
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -86,7 +79,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -109,7 +103,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -132,7 +127,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -154,7 +150,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -176,7 +173,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -198,7 +196,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Get full data
@@ -211,6 +210,76 @@ namespace OdhApiImporter.Helpers
                                 updateresult,
                                 id,
                                 datatype
+                            );
+
+                    break;
+
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL,
+                        OdhPushnotifier
+                        );
+
+                    IDictionary<string, UpdateDetail> updateresultdict = new Dictionary<string, UpdateDetail>();
+                    IDictionary<string, UpdateDetail> updateresultdictreduced = new Dictionary<string, UpdateDetail>();
+
+                    //Get full data
+                    updateresultdict = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, false, cancellationToken);
+
+                    //Get reduced data (do not update rooms)
+                    updateresultdictreduced = await ltsapiaccommodationimporthelper.SaveSingleDataToODH(id, true, cancellationToken);
+
+                    
+                    //Check if Accommodation exists on HGV done in LTS Sync
+
+                    if(ltsapiaccommodationimporthelper.isdatapresentonhgv)
+                    {
+                        //Get HGV Room data;
+                        MSSApiAccommodationRoomImportHelper hgvroomapiimporthelper = new MSSApiAccommodationRoomImportHelper(
+                            settings,
+                            QueryFactory,
+                            "accommodationrooms",
+                            importerURL,
+                            OdhPushnotifier
+                        );
+                        var hgvupdateroomresult = await hgvroomapiimporthelper.SaveDataToODH(new List<string>() { id }, cancellationToken);
+                        updateresultdict.Add("accommodationroom_hgv", hgvupdateroomresult);
+
+                        //Get HGV data (Make sure the Rooms are imported first because of the AccoRoomInfo Object)
+                        MSSApiAccommodationImportHelper hgvapiimporthelper = new MSSApiAccommodationImportHelper(
+                            settings,
+                            QueryFactory,
+                            "accommodations",
+                            importerURL,
+                            OdhPushnotifier
+                        );
+
+                        //Disable the datapush because it is done one push after all updates
+                        hgvapiimporthelper.pushdata = false;
+                        var hgvupdateresult = await hgvapiimporthelper.SaveDataToODH(new List<string>() { id }, cancellationToken);
+                        updateresultdict.Add("accommodation_hgv", hgvupdateresult);
+                    }
+                   
+                    //MERGE the UpdateResults updateresultdict
+                    updateresult = GenericResultsHelper.MergeUpdateDetail(updateresultdict);
+
+                    //Check if rooms have changed
+                    bool roomschanged = false;
+                    foreach(var kvp in updateresultdict.Where(x => x.Key.StartsWith("accommodationroom_lts") || x.Key == "accommodationroom_hgv"))
+                    {
+                        if (kvp.Value.objectchanged != null && kvp.Value.objectchanged > 0)
+                            roomschanged = true;
+                    }
+
+                    //TO Test if every special Case is present in the objectchanged
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype,
+                                new Dictionary<string, bool>() { { "roomschanged", roomschanged } }
                             );
 
                     break;
@@ -253,7 +322,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -274,7 +344,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -295,7 +366,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -316,7 +388,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -337,7 +410,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -358,7 +432,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -379,7 +454,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     //Deactivate Full
@@ -394,7 +470,31 @@ namespace OdhApiImporter.Helpers
                                 datatype
                             );
                     break;
-                
+
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL,
+                        OdhPushnotifier
+                        );
+
+                    //Deactivate Full
+                    updateresult = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, false, false);
+
+                    //Delete Reduced                    
+                    updateresultreduced = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, true, true);
+
+                    //TODO WHAT ABOUT ROOMS
+
+                    updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                updateresult,
+                                id,
+                                datatype
+                            );
+                    break;
+
                 default:
                     throw new Exception("no match found");
             }
@@ -437,7 +537,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapieventimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -473,7 +574,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapigastroimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -509,7 +611,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapipoiimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -545,7 +648,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiactivityimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -581,7 +685,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapivenueimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -617,7 +722,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapimeasuringpointimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -653,7 +759,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiwebcamimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
@@ -662,6 +769,43 @@ namespace OdhApiImporter.Helpers
                     foreach (var id in lastchangedlist)
                     {
                         var resulttuple = await UpdateSingleDataFromLTSApi(id, "webcam", cancellationToken);
+
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            resulttuple.Item1,
+                            "api",
+                            "Update LTS",
+                            "single.lastchanged",
+                            "Update LTS succeeded",
+                            datatype.ToLower(),
+                            resulttuple.Item2,
+                            true
+                        );
+
+                        createcounter = resulttuple.Item2.created + createcounter;
+                        updatecounter = resulttuple.Item2.updated + updatecounter;
+                        deletecounter = resulttuple.Item2.deleted + deletecounter;
+                        errorcounter = resulttuple.Item2.error + errorcounter;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL,
+                        OdhPushnotifier
+                        );
+
+                    lastchangedlist = await ltsapiaccommodationimporthelper.GetLastChangedData(lastchanged, false, cancellationToken);
+
+                    //Call Single Update and write LOG
+                    foreach (var id in lastchangedlist)
+                    {
+                        var resulttuple = await UpdateSingleDataFromLTSApi(id, "accommodation", cancellationToken);
 
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
@@ -712,7 +856,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapieventimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -772,7 +917,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapigastroimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -836,7 +982,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapipoiimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -900,7 +1047,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiactivityimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -964,7 +1112,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapivenueimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -1028,7 +1177,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapimeasuringpointimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -1092,7 +1242,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     lastchangedlist = await ltsapiwebcamimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
@@ -1112,6 +1263,69 @@ namespace OdhApiImporter.Helpers
 
                         //Get Reduced                    
                         updateresultreduced = await ltsapiwebcamimporthelper.DeleteOrDisableWebcamsData(id, true, true);
+
+                        updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                    updateresult,
+                                    id,
+                                    datatype
+                                );
+
+                        //Create Delete/Disable Log
+                        GenericResultsHelper.GetSuccessUpdateResult(
+                            id,
+                            "api",
+                            "Update LTS",
+                            "single.deleted",
+                            "Update LTS succeeded",
+                            datatype.ToLower(),
+                            updateresult,
+                            true
+                        );
+
+                        createcounter = updateresult.created + createcounter;
+                        updatecounter = updateresult.updated + updatecounter;
+                        deletecounter = updateresult.deleted + deletecounter;
+                        errorcounter = updateresult.error + errorcounter;
+
+                        //Add also Reduced info
+                        if (updateresultreduced.created != null)
+                            createcounter = createcounter + updateresultreduced.created;
+                        if (updateresultreduced.updated != null)
+                            updatecounter = updatecounter + updateresultreduced.updated;
+                        if (updateresultreduced.deleted != null)
+                            deletecounter = deletecounter + updateresultreduced.deleted;
+                        if (updateresultreduced.error != null)
+                            errorcounter = errorcounter + updateresultreduced.error;
+                    }
+
+                    updatedetail = Tuple.Create(String.Join(",", lastchangedlist), new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+
+                    break;
+
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL,
+                        OdhPushnotifier
+                        );
+
+                    lastchangedlist = await ltsapiaccommodationimporthelper.GetLastDeletedData(lastchanged, false, cancellationToken);
+
+
+                    foreach (var id in lastchangedlist)
+                    {
+                        var updateresult = default(UpdateDetail);
+                        var updateresultreduced = default(UpdateDetail);
+
+                        //Use the DeleteOrDisable method
+                        updateresult = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, false, false);
+
+                        //Use the DeleteOrDisable method
+                        updateresultreduced = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, true, true);
+
+                        //TODO WHAT AVOUT ROOMS
 
                         updateresult.pushed = await CheckIfObjectChangedAndPush(
                                     updateresult,
@@ -1185,7 +1399,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "events",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1295,7 +1510,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach(var datatoprocess in datatoprocesslist)
@@ -1410,7 +1626,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1524,7 +1741,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "smgpois",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1638,7 +1856,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "venues",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1752,7 +1971,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "measuringpoints",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1866,7 +2086,8 @@ namespace OdhApiImporter.Helpers
                         settings,
                         QueryFactory,
                         "webcams",
-                        importerURL
+                        importerURL,
+                        OdhPushnotifier
                         );
 
                     foreach (var datatoprocess in datatoprocesslist)
@@ -1975,6 +2196,114 @@ namespace OdhApiImporter.Helpers
 
                     break;
 
+                case "accommodation":
+                    LTSApiAccommodationImportHelper ltsapiaccommodationimporthelper = new LTSApiAccommodationImportHelper(
+                        settings,
+                        QueryFactory,
+                        "accommodations",
+                        importerURL,
+                        OdhPushnotifier
+                        );
+
+                    foreach (var datatoprocess in datatoprocesslist)
+                    {
+                        int? updatecounter = 0;
+                        int? createcounter = 0;
+                        int? deletecounter = 0;
+                        int? errorcounter = 0;
+
+                        if (datatoprocess == "reduced")
+                            reduced = true;
+
+                        activelist = await ltsapiaccommodationimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        activelistinDB = await GetAllDataBySource("accommodation", new List<string>() { "lts" }, null, true);
+
+                        //Compare with DB and deactivate all inactive items
+                        idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p.Replace("_REDUCED", "").ToUpper())).ToList();
+
+                        //Ids only present on LTS Interface ?
+                        idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2 == p.Replace("_REDUCED", "").ToUpper())).ToList();
+
+                        //Delete Disable all Inactive Data from DB
+                        foreach (var id in idstodelete)
+                        {
+                            var updateresult = default(UpdateDetail);
+                            var updateresultreduced = default(UpdateDetail);
+
+                            if (!reduced)
+                            {
+                                updateresult = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, false, false);
+
+                                //TODO ACCOMMODATION ROOMS
+
+                                updateresult.pushed = await CheckIfObjectChangedAndPush(
+                                            updateresult,
+                                            id,
+                                            datatype
+                                        );
+                            }
+
+                            if (reduced)
+                                //Get Reduced                    
+                                updateresultreduced = await ltsapiaccommodationimporthelper.DeleteOrDisableAccommodationsData(id, true, true);
+
+
+                            //Create Delete/Disable Log
+                            GenericResultsHelper.GetSuccessUpdateResult(
+                                id,
+                                "api",
+                                "Update LTS",
+                                "single.inactivesync",
+                                "Update LTS succeeded",
+                                datatype.ToLower(),
+                                updateresult,
+                                true
+                            );
+
+                            createcounter = updateresult.created + createcounter;
+                            updatecounter = updateresult.updated + updatecounter;
+                            deletecounter = updateresult.deleted + deletecounter;
+                            errorcounter = updateresult.error + errorcounter;
+
+                            //Add also Reduced info
+                            if (updateresultreduced.created != null)
+                                createcounter = createcounter + updateresultreduced.created;
+                            if (updateresultreduced.updated != null)
+                                updatecounter = updatecounter + updateresultreduced.updated;
+                            if (updateresultreduced.deleted != null)
+                                deletecounter = deletecounter + updateresultreduced.deleted;
+                            if (updateresultreduced.error != null)
+                                errorcounter = errorcounter + updateresultreduced.error;
+                        }
+
+                        //Call Single Update for all active Items not present in DB
+                        foreach (var id in idstoimport)
+                        {
+                            var resulttuple = await UpdateSingleDataFromLTSApi(id, "accommodation", cancellationToken);
+
+                            GenericResultsHelper.GetSuccessUpdateResult(
+                                resulttuple.Item1,
+                                "api",
+                                "Update LTS",
+                                "single.activesync",
+                                "Update LTS succeeded",
+                                datatype.ToLower(),
+                                resulttuple.Item2,
+                                true
+                            );
+
+                            createcounter = resulttuple.Item2.created + createcounter;
+                            updatecounter = resulttuple.Item2.updated + updatecounter;
+                            deletecounter = resulttuple.Item2.deleted + deletecounter;
+                            errorcounter = resulttuple.Item2.error + errorcounter;
+                        }
+
+                        updatedetaillist.Add(new UpdateDetail() { error = errorcounter, updated = updatecounter, created = createcounter, deleted = deletecounter });
+                        updatedidlist.AddRange(idstodelete);
+                        updatedidlist.AddRange(idstoimport);
+                    }
+                    break;
 
                 default:
                     throw new Exception("no match found");
@@ -2094,6 +2423,19 @@ namespace OdhApiImporter.Helpers
 
             IDictionary<string, XDocument> myxmlfiles = new Dictionary<string, XDocument>();
             myxmlfiles.Add(filename, XDocument.Load(directory + filename + ".xml"));
+
+            return myxmlfiles;
+        }
+
+        public static IDictionary<string, XDocument> LoadXmlFiles(string directory, List<string> filenames)
+        {
+            //TODO move this files to Database
+
+            IDictionary<string, XDocument> myxmlfiles = new Dictionary<string, XDocument>();
+            foreach(var filename in filenames)
+            {
+                myxmlfiles.Add(filename, XDocument.Load(directory + filename + ".xml"));
+            }
 
             return myxmlfiles;
         }

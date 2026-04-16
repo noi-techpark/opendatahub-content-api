@@ -96,6 +96,8 @@ namespace Helper
                 ?? default!;
         }
 
+
+
         #region Using Reflection
         public static async Task<IIdentifiable?> GetObjectSingleAsync<T>(
             this Query query,

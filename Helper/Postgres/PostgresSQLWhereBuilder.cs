@@ -463,7 +463,7 @@ namespace Helper
             );
 
             return query
-                .IdUpperFilter(idlist,"gen_id")
+                .IdFilter(idlist,"gen_id")
                 .EventTopicFilter_GeneratedColumn(topiclist)
                 //.EventDateFilterEnd_GeneratedColumn(begindate, enddate)
                 //.EventDateFilterBegin_GeneratedColumn(begindate, enddate)
@@ -650,7 +650,7 @@ namespace Helper
             );
 
             return query
-                .IdUpperFilter(idlist)
+                .IdUpperFilter(idlist, "gen_id")
                 .AccoTypeFilter_GeneratedColumn(accotypelist)
                 .AccoCategoryFilter_GeneratedColumn(categorylist) //.AccoCategoryFilter(categorylist)
                 .AccoSpecialFeatureIdsFilterOr_GeneratedColumn(
@@ -1091,7 +1091,7 @@ namespace Helper
 
             //TODO
             return query
-                .IdUpperFilter(idlist, "gen_id")
+                .IdFilter(idlist, "gen_id")
                 .ActiveFilter_GeneratedColumn(activefilter) //OK GENERATED COLUMNS //.VenueActiveFilter(activefilter)
                 //.OdhActiveFilter_GeneratedColumn(smgactivefilter) //OK GENERATED COLUMNS //.VenueODHActiveFilter(smgactivefilter)
                 //.When(smgtaglist.Count > 0, q => q.SmgTagFilterOr_GeneratedColumn(smgtaglist)) //OK GENERATED COLUMNS //.VenueODHTagFilter(smgtaglist)

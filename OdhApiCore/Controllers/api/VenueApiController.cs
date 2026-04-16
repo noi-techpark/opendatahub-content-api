@@ -416,7 +416,7 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("venues")
                     .Select("data")                    
-                    .Where("gen_id", id.ToUpper())
+                    .Where("gen_id", id)
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)
@@ -625,6 +625,7 @@ namespace OdhApiCore.Controllers
                 venue.TrimStringProperties();
 
                 //Populate Tags (Id/Source/Type)
+                //TO CHECK TagEntry Preserve?
                 await venue.UpdateTagsExtension(QueryFactory);
                 
                 return await UpsertData<VenueV2>(

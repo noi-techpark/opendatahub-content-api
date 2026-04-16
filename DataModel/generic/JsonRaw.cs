@@ -2,15 +2,16 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Npgsql;
+using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Newtonsoft.Json;
-using Npgsql;
-using NpgsqlTypes;
 using static Dapper.SqlMapper;
 
 namespace DataModel
@@ -33,6 +34,10 @@ namespace DataModel
         {
             string json = reader.ReadAsString();
             return new JsonRaw(json);
+
+            //Fix that causes Additionalproperties to no more break
+            //JToken token = JToken.Load(reader);
+            //return new JsonRaw(token.ToString(Formatting.None));
         }
     }
 
