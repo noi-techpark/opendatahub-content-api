@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+﻿// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -294,12 +294,13 @@ namespace Helper
             var language = languageParam ?? "en";
 
             var fields = new List<(string name, string path)> { ("Id", "Id") };
-            fields.AddRange(fieldsFromQueryString.Select(field =>
-            {
-                var cleanName = string.Join(".", SplitPath(field)); 
-                var jsonPath = ToJsonPath(field);                 
-                return (cleanName, jsonPath);
-            }));
+            fields.AddRange(fieldsFromQueryString.Select(field => (field, field)));
+            //fields.AddRange(fieldsFromQueryString.Select(field => 
+            //{
+            //    var cleanName = field; //string.Join(".", SplitPath(field)); 
+            //    var jsonPath = ToJsonPath(field);                 
+            //    return (cleanName, jsonPath);
+            //}));
 
             if (token is JObject obj)
             {
@@ -404,39 +405,82 @@ namespace Helper
                          .Replace(".[", "["); // fix double dot before bracket: "Mapping.['tirol']" --> "Mapping['tirol']"
         }
 
-        private static string ToJsonPath(string field)
-        {
-            // Split the field path respecting that some segments may contain dots
-            // Input:  "Mapping.tirol.mapservices.eu.id"
-            // Output: "Mapping['tirol.mapservices.eu']['id']"  (only if key exists with dots)
-            // Better: escape ALL segments to be safe
-            var segments = SplitPath(field);
+        //private static string ToJsonPath(string field)
+        //{
+        //    // Split the field path respecting that some segments may contain dots
+        //    // Input:  "Mapping.tirol.mapservices.eu.id"
+        //    // Output: "Mapping['tirol.mapservices.eu']['id']"  (only if key exists with dots)
+        //    // Better: escape ALL segments to be safe
+        //    var segments = SplitPath(field);
 
-            var sb = new StringBuilder();
-            foreach (var segment in segments)
-            {
-                if (segment.Contains('.') || segment.Contains('-') || segment.Contains(' '))
-                    sb.Append($"['{segment}']");
-                else if (sb.Length == 0)
-                    sb.Append(segment);
-                else
-                    sb.Append($".{segment}");
-            }
-            return sb.ToString();
-        }
+        //    var sb = new StringBuilder();
+        //    foreach (var segment in segments)
+        //    {
+        //        if (segment.Contains('.') || segment.Contains('-') || segment.Contains(' '))
+        //            sb.Append($"['{segment}']");
+        //        else if (sb.Length == 0)
+        //            sb.Append(segment);
+        //        else
+        //            sb.Append($".{segment}");
+        //    }
+        //    return sb.ToString();
+        //}
 
-        /// <summary>
-        /// Splits "Mapping.tirol.mapservices.eu.id" by trying longest-match against
-        /// the actual token, OR you define the split convention with brackets in the input.
-        /// Simplest convention: user passes "Mapping['tirol.mapservices.eu'].id"
-        /// </summary>
-        private static IEnumerable<string> SplitPath(string field)
-        {
-            // Support bracket notation in input: Mapping['tirol.mapservices.eu'].id
-            // Otherwise fall back to dot split
-            return Regex.Matches(field, @"\['([^']+)'\]|([^.\[]+)")
-                        .Select(m => m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value);
-        }
+        //private static string ToJsonPath(string field)
+        //{
+        //    var segments = SplitPath(field);
+        //    var sb = new StringBuilder();
+
+        //    foreach (var segment in segments)
+        //    {
+        //        // Array index [0]
+        //        if (int.TryParse(segment, out _))
+        //        {
+        //            sb.Append($"[{segment}]");
+        //        }
+        //        // Wildcard [*]
+        //        else if (segment == "*")
+        //        {
+        //            sb.Append("[*]");
+        //        }
+        //        // Empty bracket []
+        //        else if (segment == "")
+        //        {
+        //            sb.Append("[]");
+        //        }
+        //        // Keys with special chars → ['key']
+        //        else if (segment.Contains('.') || segment.Contains('-') || segment.Contains(' '))
+        //        {
+        //            sb.Append($"['{segment}']");
+        //        }
+        //        // First normal segment — no leading dot
+        //        else if (sb.Length == 0)
+        //        {
+        //            sb.Append(segment);
+        //        }
+        //        // Normal segment
+        //        else
+        //        {
+        //            sb.Append($".{segment}");
+        //        }
+        //    }
+
+        //    return sb.ToString();
+        //}
+
+        //private static IEnumerable<string> SplitPath(string field)
+        //{
+        //    // Handles:
+        //    // ['key.with.dots']  → quoted key
+        //    // [0]                → numeric index
+        //    // [*]                → wildcard
+        //    // []                 → empty (all elements)
+        //    // plain              → normal segment
+        //    return Regex.Matches(field, @"\['([^']+)'\]|\[(\d+|\*|)\]|([^.\[]+)")
+        //                .Select(m => m.Groups[1].Success ? m.Groups[1].Value   // ['key']
+        //                           : m.Groups[2].Success ? m.Groups[2].Value   // [0], [*], []
+        //                           : m.Groups[3].Value);                        // plain
+        //}
     }
 
     public static class JsonExtensions
