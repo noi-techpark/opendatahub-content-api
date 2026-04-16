@@ -1,5 +1,8 @@
-﻿using DataModel;
-using Geo.Gps;
+﻿// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using DataModel;
 using Helper;
 using LTSAPI;
 using LTSAPI.Parser;
