@@ -978,43 +978,45 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "odhtag":
-                    mydata = await GetDataFromRaven.GetRavenData<ODHTagLinked>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<ODHTagLinked, ODHTagLinked>(
-                            (ODHTagLinked)mydata,
-                            TransformToPGObject.GetODHTagPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<ODHTagLinked>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<ODHTagLinked, ODHTagLinked>(
+                    //        (ODHTagLinked)mydata,
+                    //        TransformToPGObject.GetODHTagPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //LicenseInfo Logic added on TransformToPGObject because on the sinfo instance there is no license info
-                    //PublishedOn Logic added on TransformToPGObject because ODHTag not implementing ISource
+                    ////LicenseInfo Logic added on TransformToPGObject because on the sinfo instance there is no license info
+                    ////PublishedOn Logic added on TransformToPGObject because ODHTag not implementing ISource
 
-                    myupdateresult = await SaveRavenObjectToPG<ODHTagLinked>(
-                        (ODHTagLinked)mypgdata,
-                        "smgtags",
-                        true,
-                        false,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<ODHTagLinked>(
+                    //    (ODHTagLinked)mypgdata,
+                    //    "smgtags",
+                    //    true,
+                    //    false,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    break;
+                    // break;
+
+                    throw new Exception("ODHTag Update Raven Migrated!");
 
                 case "measuringpoint":
                     //mydata = await GetDataFromRaven.GetRavenData<MeasuringpointRaven>(
@@ -1434,15 +1436,17 @@ namespace OdhApiImporter.Helpers
 
                 case "odhtag":
 
-                    //Delete
-                    deleteresult = await DeleteRavenObjectFromPG<ODHTagLinked>(
-                        id,
-                        "smgtags",
-                        false
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    ////Delete
+                    //deleteresult = await DeleteRavenObjectFromPG<ODHTagLinked>(
+                    //    id,
+                    //    "smgtags",
+                    //    false
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("ODHTag Delete Raven Migrated!");
 
                 case "measuringpoint":
 

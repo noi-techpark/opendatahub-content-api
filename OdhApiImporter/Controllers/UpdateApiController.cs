@@ -2574,6 +2574,61 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //Imports all Accommodation Amenities to accofeatures table (compatibility)
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("LTS/Accommodation/Update/AmenitiesToAccommodationFeatures")]
+        public async Task<IActionResult> ImportLTSAccommodationAmenitiesToAccommodationFeatures(
+            string id = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Import LTS Accommodations AmenitiesToAccommodationFeatures";
+            string updatetype = GetUpdateType(null);
+            string source = "lts";
+            string otherinfo = "accommodations.amenities.accofeatures";
+
+            try
+            {
+                LTSApiAmenitiesToAccoFeaturesImportHelper importhelper = new LTSApiAmenitiesToAccoFeaturesImportHelper(
+                    settings,
+                    QueryFactory,
+                    "accommodationfeatures",
+                    UrlGeneratorStatic("LTS/Accommodations/AmenitiesToAccommodationFeatures"),
+                    OdhPushnotifier
+                );
+
+                updatedetail = await importhelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS Accommodations AmenitiesToAccommodationFeatures succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "Import LTS Accommodations AmenitiesToAccommodationFeatures data failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
         //Imports all Venues Categories
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("LTS/Venue/Update/Categories")]
