@@ -12,6 +12,7 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json;
 using OdhApiImporter.Helpers.DIGIWAY;
+using OdhNotifier;
 using SqlKata;
 using SqlKata.Execution;
 using SqlKata.Extensions;
@@ -39,9 +40,10 @@ namespace OdhApiImporter.Helpers
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             idlistinterface = new List<string>();
             importtospatialdata = false;

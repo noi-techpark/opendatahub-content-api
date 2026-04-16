@@ -625,6 +625,7 @@ namespace OdhApiCore.Controllers
                 venue.TrimStringProperties();
 
                 //Populate Tags (Id/Source/Type)
+                //TO CHECK TagEntry Preserve?
                 await venue.UpdateTagsExtension(QueryFactory);
                 
                 return await UpsertData<VenueV2>(

@@ -9,6 +9,7 @@ using Helper.Generic;
 using Helper.IDM;
 using Helper.Location;
 using Helper.Tagging;
+using MongoDB.Driver;
 using Newtonsoft.Json.Linq;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -35,7 +36,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             string importerURL,
             IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) 
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) 
         {
             this.OdhPushnotifier = odhpushnotifier;
         }
@@ -257,12 +258,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                 //Push Data if changed
                 //push modified data to all published Channels
                 //TODO adding the push status to the response
-                result.pushed = await ImportUtils.CheckIfObjectChangedAndPush(
-                    OdhPushnotifier,
+                result.pushed = await CheckIfObjectChangedAndPush(                    
                     result,
                     result.id,
                     "poi",
-                    null,
                     "suedtirolwein.companies.update"
                 );
 
@@ -318,9 +317,7 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
             CancellationToken cancellationToken
         )
         {
-            int updateresult = 0;
-            int deleteresult = 0;
-            int errorresult = 0;
+            List<UpdateDetail> updatedetaillist = new List<UpdateDetail>();
 
             try
             {
@@ -330,6 +327,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                         .Root?.Elements("item")
                         .Select(x => x.Element("id")?.Value)
                         .ToList() ?? new();
+
+                //Check if this ids are all null then return
+                if (winecompaniesonsource == null || winecompaniesonsource.Contains(null))
+                    throw new Exception("idlist could not be created");
 
                 var myquery = QueryFactory
                     .Query("smgpois")
@@ -350,17 +351,14 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     //Push Data if changed
                     //push modified data to all published Channels
                     //TODO adding the push status to the response
-                    result.pushed = await ImportUtils.CheckIfObjectChangedAndPush(
-                        OdhPushnotifier,
+                    result.pushed = await CheckIfObjectChangedAndPush(                        
                         result,
                         idtodelete,
-                        "poi",
-                        null,
+                        "poi",                        
                         "suedtirolwein.update"
                     );
 
-                    updateresult += result.updated ?? 0;
-                    deleteresult += result.deleted ?? 0;
+                    updatedetaillist.Add(result);
                 }
             }
             catch (Exception ex)
@@ -378,16 +376,10 @@ namespace OdhApiImporter.Helpers.SuedtirolWein
                     }
                 );
 
-                errorresult = errorresult + 1;
+                updatedetaillist.Add(new UpdateDetail() { error = 1, exception = ex.Message});
             }
 
-            return new UpdateDetail()
-            {
-                created = 0,
-                updated = updateresult,
-                deleted = deleteresult,
-                error = errorresult,
-            };
+            return GenericResultsHelper.MergeUpdateDetail(updatedetaillist);
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(

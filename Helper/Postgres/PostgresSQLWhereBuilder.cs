@@ -650,7 +650,7 @@ namespace Helper
             );
 
             return query
-                .IdUpperFilter(idlist)
+                .IdUpperFilter(idlist, "gen_id")
                 .AccoTypeFilter_GeneratedColumn(accotypelist)
                 .AccoCategoryFilter_GeneratedColumn(categorylist) //.AccoCategoryFilter(categorylist)
                 .AccoSpecialFeatureIdsFilterOr_GeneratedColumn(

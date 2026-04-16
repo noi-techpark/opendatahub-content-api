@@ -2,6 +2,20 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using DataModel;
+using DIGIWAY;
+using GTFSAPI;
+using Helper;
+using Helper.Generic;
+using Helper.Location;
+using Helper.Tagging;
+using LTSAPI.Parser;
+using NetTopologySuite.Geometries;
+using Newtonsoft.Json;
+using OdhNotifier;
+using SqlKata;
+using SqlKata.Execution;
+using SqlKata.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,19 +23,6 @@ using System.Runtime.Intrinsics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using DataModel;
-using DIGIWAY;
-using GTFSAPI;
-using Helper;
-using Helper.Generic;
-using LTSAPI.Parser;
-using NetTopologySuite.Geometries;
-using Newtonsoft.Json;
-using SqlKata;
-using SqlKata.Execution;
-using SqlKata.Extensions;
-using Helper.Tagging;
-using Helper.Location;
 
 namespace OdhApiImporter.Helpers
 {
@@ -33,9 +34,10 @@ namespace OdhApiImporter.Helpers
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             idlistfrominterface = new List<string>();
         }

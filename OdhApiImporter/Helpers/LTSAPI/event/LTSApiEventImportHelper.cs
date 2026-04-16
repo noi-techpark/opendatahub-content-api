@@ -4,21 +4,20 @@
 
 using DataModel;
 using Helper;
+using Helper.Extensions;
 using Helper.Generic;
 using Helper.Location;
 using Helper.Tagging;
-using Helper.Extensions;
 using LTSAPI;
 using LTSAPI.Parser;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OdhApiImporter.Helpers.RAVEN;
+using OdhNotifier;
 using SqlKata.Execution;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,9 +33,10 @@ namespace OdhApiImporter.Helpers.LTSAPI
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         //Not implemented here
         public async Task<UpdateDetail> SaveDataToODH(

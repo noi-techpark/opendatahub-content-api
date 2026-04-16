@@ -37,7 +37,7 @@ namespace OdhApiImporter.Helpers
             string importerURL,
             IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL)
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier)
         {
             this.OdhPushnotifier = odhpushnotifier;
             updatefrom = DateTime.Now.AddDays(-1);
@@ -210,12 +210,10 @@ namespace OdhApiImporter.Helpers
                             //Push to MP
                             //Push Data if changed
                             //push modified data to all published Channels                            
-                            pushresponse = await ImportUtils.CheckIfObjectChangedAndPush(
-                                OdhPushnotifier,
+                            pushresponse = await CheckIfObjectChangedAndPush(                                
                                 pgcrudresult,
                                 pgcrudresult.id,
-                                "odhactivitypoi",
-                                null,
+                                "odhactivitypoi",                                
                                 "outdooractive." + type + ".update"
                             );
 
@@ -279,12 +277,10 @@ namespace OdhApiImporter.Helpers
                                 //Push to MP
                                 //Push Data if changed
                                 //push modified data to all published Channels                            
-                                pushresponse = await ImportUtils.CheckIfObjectChangedAndPush(
-                                    OdhPushnotifier,
+                                pushresponse = await CheckIfObjectChangedAndPush(                                    
                                     pgcrudresult,
                                     pgcrudresult.id,
-                                    "odhactivitypoi",
-                                    null,
+                                    "odhactivitypoi",                                    
                                     "outdooractive." + type + ".update"
                                 );
 
