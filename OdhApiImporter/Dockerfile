@@ -48,5 +48,16 @@ COPY --from=publish /app/publish .
 COPY OdhApiImporter/xml/Weather.xml xml/
 COPY OdhApiImporter/xml/STACategories.xml xml/
 COPY OdhApiImporter/xml/BezirkWeather.xml xml/
+COPY OdhApiImporter/xml/AccoCategories.xml xml/
+COPY OdhApiImporter/xml/AccoTypes.xml xml/
+COPY OdhApiImporter/xml/Alpine.xml xml/
+COPY OdhApiImporter/xml/Boards.xml xml/
+COPY OdhApiImporter/xml/City.xml xml/
+COPY OdhApiImporter/xml/Dolomites.xml xml/
+COPY OdhApiImporter/xml/Mediterranean.xml xml/
+COPY OdhApiImporter/xml/NearSkiArea.xml xml/
+COPY OdhApiImporter/xml/RoomAmenities.xml xml/
+COPY OdhApiImporter/xml/Vinum.xml xml/
+COPY OdhApiImporter/xml/Wine.xml xml/
 
 ENTRYPOINT ["dotnet", "OdhApiImporter.dll"]
