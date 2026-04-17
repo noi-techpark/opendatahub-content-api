@@ -588,8 +588,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     new DataInfo("accommodationrooms", Helper.Generic.CRUDOperation.CreateAndUpdate),
                     new EditInfo("lts.accommodations.rooms.import", importerURL),
                     new CRUDConstraints(),
-                    new CompareConfig(true, false),
-                    null
+                    new CompareConfig(true, false)
                 );
             }
             catch (Exception ex)

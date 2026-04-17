@@ -242,8 +242,8 @@ namespace OdhApiImporter.Helpers.HGV
                     new DataInfo("accommodationrooms", Helper.Generic.CRUDOperation.CreateAndUpdate),
                     new EditInfo("hgv.accommodations.rooms.import", importerURL),
                     new CRUDConstraints(),
-                    new CompareConfig(true, false),
-                    rawdataid
+                    new CompareConfig(true, false)
+                    //rawdataid
                 );
             }
             catch (Exception ex)
