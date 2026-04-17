@@ -87,6 +87,7 @@ namespace MSS
                                         ? myroom.Element("room_lts_id").Value
                                         : "";
                                 myroomtosave.Source = "hgv";
+                                myroomtosave.Active = true;
 
                                 string roomtyp = myroom.Element("room_type").Value;
                                 if (roomtyp == "1")
