@@ -172,6 +172,7 @@ namespace OdhApiImporter.Helpers.HGV
 
                     var result = await InsertDataToDB(accommodation, data);
 
+                    //To check! what about roomschanged and imagechanged here?
                     if(pushdata)
                         result.pushed = await CheckIfObjectChangedAndPush(
                             result,

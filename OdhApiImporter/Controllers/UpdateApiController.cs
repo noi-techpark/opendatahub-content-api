@@ -3798,13 +3798,22 @@ namespace OdhApiImporter.Controllers
 
             return unit switch
             {
-                "s" => DateTime.Now.AddSeconds(-value),
-                "m" => DateTime.Now.AddMinutes(-value),
-                "h" => DateTime.Now.AddHours(-value),
-                "d" => DateTime.Now.AddDays(-value),
-                "w" => DateTime.Now.AddDays(-7 * value),
+                "s" => GetMyTime().AddSeconds(-value),
+                "m" => GetMyTime().AddMinutes(-value),
+                "h" => GetMyTime().AddHours(-value),
+                "d" => GetMyTime().AddDays(-value),
+                "w" => GetMyTime().AddDays(-7 * value),
                 _ => throw new NotSupportedException($"Time unit '{unit}' is not supported.")
             };
         }
     }
-}
+
+    private static DateTime GetMyTime()
+        {
+            var zoneId = OperatingSystem.IsWindows()
+                ? "Central European Standard Time"
+                : "Europe/Rome";
+            var zone = TimeZoneInfo.FindSystemTimeZoneById(zoneId);
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zone);
+        }
+    }
