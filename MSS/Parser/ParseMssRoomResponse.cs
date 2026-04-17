@@ -15,7 +15,7 @@ namespace MSS
 {
     public class ParseMssRoomResponse
     {
-        public static List<AccommodationRoomLinked> ParseMyRoomResponse(
+        public static List<AccommodationRoomV2> ParseMyRoomResponse(
             string lang,
             XElement mssresponse,
             XDocument roomamenities
@@ -25,7 +25,7 @@ namespace MSS
             {
                 var myresult = mssresponse.Elements("result").Elements("hotel");
 
-                List<AccommodationRoomLinked> myroomlist = new List<AccommodationRoomLinked>();
+                List<AccommodationRoomV2> myroomlist = new List<AccommodationRoomV2>();
 
                 foreach (var myhotelresult in myresult)
                 {
@@ -40,7 +40,7 @@ namespace MSS
             }
         }
 
-        public static List<AccommodationRoomLinked> ResponseRoomParser(
+        public static List<AccommodationRoomV2> ResponseRoomParser(
             XElement myresult,
             XDocument roomamenities,
             string language
@@ -50,7 +50,7 @@ namespace MSS
             {
                 CultureInfo culturede = CultureInfo.CreateSpecificCulture("de");
 
-                List<AccommodationRoomLinked> myaccorooms = new List<AccommodationRoomLinked>();
+                List<AccommodationRoomV2> myaccorooms = new List<AccommodationRoomV2>();
 
                 string A0RID = myresult.Element("id_lts").Value;
                 string HgvId = myresult.Element("id").Value;
@@ -70,7 +70,7 @@ namespace MSS
 
                             foreach (var myroom in myroomlist)
                             {
-                                AccommodationRoomLinked myroomtosave = new AccommodationRoomLinked();
+                                AccommodationRoomV2 myroomtosave = new AccommodationRoomV2();
 
                                 string roomid = myroom.Element("room_id").Value;
                                 string roomidlts =
