@@ -131,7 +131,6 @@ namespace OdhApiImporter.Helpers.HGV
             }
         }
 
-
         private async Task<UpdateDetail> SaveAccommodationRoomsToPG(Dictionary<string, XElement> hgvdata, IDictionary<string, XDocument> xmlfiles)
         {
             List<UpdateDetail> updatedetails = new List<UpdateDetail>();

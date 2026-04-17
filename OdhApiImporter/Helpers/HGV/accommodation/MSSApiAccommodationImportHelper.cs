@@ -155,98 +155,107 @@ namespace OdhApiImporter.Helpers.HGV
             //TODO if data is not updateable on HGV clear the AccoHGVInfo!
 
             if (hgvdata != null)
-            {                             
+            {
                 foreach (var data in hgvdata)
                 {
                     //Load Accommodation and fill out HGV Info                    
                     var accommodation = await LoadDataFromDB<AccommodationV2>(data.id_lts, IDStyle.uppercase);
 
-                    //Add HGV Info for Accommodation
-                    await AddHGVInfoToAccommodation(data, accommodation);
-
-                    //Add Cincode and id to mapping
-                    await AddHGVMappingToAccommodation(data, accommodation);
-
-                    //TODO here error occurs
-                    await accommodation.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "hgv" }, null);
-
-                    var result = await InsertDataToDB(accommodation, data);
-
-                    if(pushdata)
-                        result.pushed = await CheckIfObjectChangedAndPush(
-                            result,
-                            accommodation.Id,
-                            "accommodation",
-                            "accommodations.hgvinfo"
-                        );
-
-                    updatedetails.Add(new UpdateDetail()
+                    if (accommodation != null)
                     {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    });
-                    
-                    WriteLog.LogToConsole(
-                        data.id_lts,
-                        "dataimport",
-                        "single.accommodations",
-                        new ImportLog()
+                        //Add HGV Info for Accommodation
+                        await AddHGVInfoToAccommodation(data, accommodation);
+
+                        //Add Cincode and id to mapping
+                        await AddHGVMappingToAccommodation(data, accommodation);
+
+                        //TODO here error occurs
+                        await accommodation.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "hgv" }, null);
+
+                        var result = await InsertDataToDB(accommodation, data);
+
+                        //To check! what about roomschanged and imagechanged here?
+                        if (pushdata)
+                            result.pushed = await CheckIfObjectChangedAndPush(
+                                result,
+                                accommodation.Id,
+                                "accommodation",
+                                "accommodations.hgvinfo",
+                                new Dictionary<string, bool>() { { "roomschanged", false } }
+                            );
+
+                        updatedetails.Add(new UpdateDetail()
                         {
-                            sourceid = data.id_lts,
-                            sourceinterface = "hgv.accommodations",
-                            success = true,
-                            error = "",
-                        }
-                    );
+                            created = result.created,
+                            updated = result.updated,
+                            deleted = result.deleted,
+                            error = result.error,
+                            objectchanged = result.objectchanged,
+                            objectimagechanged = result.objectimagechanged,
+                            comparedobjects =
+                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            pushchannels = result.pushchannels,
+                            changes = result.changes,
+                        });
+
+                        WriteLog.LogToConsole(
+                            data.id_lts,
+                            "dataimport",
+                            "single.accommodations",
+                            new ImportLog()
+                            {
+                                sourceid = data.id_lts,
+                                sourceinterface = "hgv.accommodations",
+                                success = true,
+                                error = "",
+                            }
+                        );
+                    }
                 }
 
-                //this is to check should only clear the hgv data + hgv rooms
-                foreach(var idtoclear in idlist.Except(hgvdata.Select(x => x.id_lts)))
+                if (idlist != null)
                 {
-                    var deactivateresult = await ClearHgvInfoForDataNotInList(idtoclear);
-
-                    if (pushdata)
-                        deactivateresult.pushed = await CheckIfObjectChangedAndPush(
-                            deactivateresult,
-                            idtoclear,
-                            "accommodation",
-                            "accommodations.hgvinfo"
-                        );
-
-                    updatedetails.Add(new UpdateDetail()
+                    //this is to check should only clear the hgv data + hgv rooms
+                    foreach (var idtoclear in idlist.Except(hgvdata.Select(x => x.id_lts)))
                     {
-                        created = deactivateresult.created,
-                        updated = deactivateresult.updated,
-                        deleted = deactivateresult.deleted,
-                        error = deactivateresult.error,
-                        objectchanged = deactivateresult.objectchanged,
-                        objectimagechanged = deactivateresult.objectimagechanged,
-                        comparedobjects =
-                        deactivateresult.compareobject != null && deactivateresult.compareobject.Value ? 1 : 0,
-                        pushchannels = deactivateresult.pushchannels,
-                        changes = deactivateresult.changes,
-                    });
+                        var deactivateresult = await ClearHgvInfoForDataNotInList(idtoclear);
 
-                    WriteLog.LogToConsole(
-                        idtoclear,
-                        "dataimport",
-                        "single.accommodations",
-                        new ImportLog()
+                        if (pushdata)
+                            deactivateresult.pushed = await CheckIfObjectChangedAndPush(
+                                deactivateresult,
+                                idtoclear,
+                                "accommodation",
+                                "accommodations.hgvinfo",
+                                new Dictionary<string, bool>() { { "roomschanged", false } }
+                            );
+
+                        updatedetails.Add(new UpdateDetail()
                         {
-                            sourceid = idtoclear,
-                            sourceinterface = "hgv.accommodations",
-                            success = true,
-                            error = "",
-                        }
-                    );
+                            created = deactivateresult.created,
+                            updated = deactivateresult.updated,
+                            deleted = deactivateresult.deleted,
+                            error = deactivateresult.error,
+                            objectchanged = deactivateresult.objectchanged,
+                            objectimagechanged = deactivateresult.objectimagechanged,
+                            comparedobjects =
+                            deactivateresult.compareobject != null && deactivateresult.compareobject.Value ? 1 : 0,
+                            pushchannels = deactivateresult.pushchannels,
+                            changes = deactivateresult.changes,
+                        });
+
+                        WriteLog.LogToConsole(
+                            idtoclear,
+                            "dataimport",
+                            "single.accommodations",
+                            new ImportLog()
+                            {
+                                sourceid = idtoclear,
+                                sourceinterface = "hgv.accommodations",
+                                success = true,
+                                error = "",
+                            }
+                        );
+                    }
                 }
             }
             else
@@ -361,7 +370,8 @@ namespace OdhApiImporter.Helpers.HGV
                             deactivateresult,
                             idtoclear,
                             "accommodation",
-                            "accommodations.hgvinfo"
+                            "accommodations.hgvinfo",
+                            new Dictionary<string, bool>() { { "roomschanged", false } }
                         );
 
                     updatedetaillist.Add(new UpdateDetail()
@@ -468,8 +478,7 @@ namespace OdhApiImporter.Helpers.HGV
             }
 
              accommodation.Mapping.TryAddOrUpdate("hgv", hgvdict);
-        }
-        
+        }        
     }
 
 }

@@ -491,7 +491,8 @@ namespace OdhApiImporter.Helpers
                     updateresult.pushed = await CheckIfObjectChangedAndPush(
                                 updateresult,
                                 id,
-                                datatype
+                                datatype,
+                                new Dictionary<string, bool>() { { "roomschanged", false } }
                             );
                     break;
 
@@ -1330,7 +1331,8 @@ namespace OdhApiImporter.Helpers
                         updateresult.pushed = await CheckIfObjectChangedAndPush(
                                     updateresult,
                                     id,
-                                    datatype
+                                    datatype,
+                                    new Dictionary<string, bool>() { { "roomschanged", false } }
                                 );
 
                         //Create Delete/Disable Log
@@ -2240,7 +2242,8 @@ namespace OdhApiImporter.Helpers
                                 updateresult.pushed = await CheckIfObjectChangedAndPush(
                                             updateresult,
                                             id,
-                                            datatype
+                                            datatype,
+                                            new Dictionary<string, bool>() { { "roomschanged", false } }
                                         );
                             }
 

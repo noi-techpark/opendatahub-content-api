@@ -177,7 +177,7 @@ namespace OdhApiImporter.Controllers
         }
 
         #endregion
-   
+
         #region REPROCESS PUSH FAILURE QUEUE
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("PushFailureQueue/Retry/{publishedon}")]
@@ -694,7 +694,7 @@ namespace OdhApiImporter.Controllers
         #region SIAG DATA SYNC MUSEUMS
 
         [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("Siag/Museum/Update")]        
+        [HttpGet, Route("Siag/Museum/Update")]
         public async Task<IActionResult> ImportSiagMuseum(
             CancellationToken cancellationToken = default
         )
@@ -747,7 +747,7 @@ namespace OdhApiImporter.Controllers
         }
 
         [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("Siag/Museum/Tags/Update")]        
+        [HttpGet, Route("Siag/Museum/Tags/Update")]
         public async Task<IActionResult> ImportSiagMuseumTags(
            CancellationToken cancellationToken = default
        )
@@ -1118,7 +1118,7 @@ namespace OdhApiImporter.Controllers
         [HttpGet, Route("HGV/Accommodation/Update/{id}")]
         [Authorize(Roles = "DataPush")]
         public async Task<IActionResult> UpdateAccommodationDataFromHGV(
-            string id,            
+            string id,
             CancellationToken cancellationToken = default
         )
         {
@@ -1137,7 +1137,7 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("HGV/accommodation"),
                     OdhPushnotifier
                 );
-                var resulttuple = await hgvapiimporthelper.SaveDataToODH(                    
+                var resulttuple = await hgvapiimporthelper.SaveDataToODH(
                     new List<string>() { id },
                     cancellationToken
                 );
@@ -1177,7 +1177,7 @@ namespace OdhApiImporter.Controllers
         //Generic Update Single Accommodation MSS
         [HttpGet, Route("HGV/Accommodation/Update/All")]
         [Authorize(Roles = "DataPush")]
-        public async Task<IActionResult> UpdateAccommodationDataFromHGV(            
+        public async Task<IActionResult> UpdateAccommodationDataFromHGV(
             CancellationToken cancellationToken = default
         )
         {
@@ -1200,7 +1200,7 @@ namespace OdhApiImporter.Controllers
                     null,
                     cancellationToken
                 );
-                updatedetail = resulttuple;                
+                updatedetail = resulttuple;
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     "",
@@ -2849,7 +2849,7 @@ namespace OdhApiImporter.Controllers
                 );
                 return BadRequest(updateResult);
             }
-        }       
+        }
 
         #endregion
 
@@ -2880,7 +2880,7 @@ namespace OdhApiImporter.Controllers
                     var data = await QueryFactory
                    .Query("smgpois")
                    .Select("data")
-                   .Where("id", id.ToLower())                   
+                   .Where("id", id.ToLower())
                    .FilterDataByAccessRoles(new List<string>() { "IDM" })
                    .GetObjectSingleAsync<ODHActivityPoiLinked>();
 
@@ -2890,9 +2890,10 @@ namespace OdhApiImporter.Controllers
                         throw new Exception("Data not found");
                     else
                     {
-                        switch(data.SyncSourceInterface)
+                        switch (data.SyncSourceInterface)
                         {
-                            case "gastronomicdata": datatypecalculated = "gastronomy";
+                            case "gastronomicdata":
+                                datatypecalculated = "gastronomy";
                                 break;
                             case "activitydata":
                                 datatypecalculated = "activity";
@@ -2900,15 +2901,16 @@ namespace OdhApiImporter.Controllers
                             case "poidata":
                                 datatypecalculated = "poi";
                                 break;
-                            default: datatypecalculated = datatypecalculated;
+                            default:
+                                datatypecalculated = datatypecalculated;
                                 break;
                         }
                     }
                 }
 
-               
 
-                Tuple<string,UpdateDetail> resulttuple = default(Tuple<string,UpdateDetail>);
+
+                Tuple<string, UpdateDetail> resulttuple = default(Tuple<string, UpdateDetail>);
 
                 //if (datatype == "accommodation")
                 //{
@@ -2970,7 +2972,7 @@ namespace OdhApiImporter.Controllers
                 );
 
                 return BadRequest(errorResult);
-            }    
+            }
         }
 
         [HttpPost, Route("SyncDataFromLTS/{datatype}/{id}")]
@@ -3135,7 +3137,7 @@ namespace OdhApiImporter.Controllers
                 //supported '2h', '3d', '15m', or '1w'
                 if (!DateTime.TryParse(date, out DateTime lastchangeddate))
                     lastchangeddate = DateTimeHelper.SubtractFromNow(date);
-             
+
                 LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
                     settings,
                     QueryFactory,
@@ -3195,12 +3197,12 @@ namespace OdhApiImporter.Controllers
 
             try
             {
-               LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
-                    settings,
-                    QueryFactory,
-                    UrlGeneratorStatic("LTS/" + datatype),
-                    OdhPushnotifier
-                );
+                LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
+                     settings,
+                     QueryFactory,
+                     UrlGeneratorStatic("LTS/" + datatype),
+                     OdhPushnotifier
+                 );
                 var result = await ltsapiimporthelper.UpdateActiveInactiveDataFromLTSApi(
                     onlyactive,
                     datatype,
@@ -3519,7 +3521,7 @@ namespace OdhApiImporter.Controllers
                 }
                 else if (digiwayconfig.Source == "tirol.mapservices.eu" && digiwayconfig.Format == "geojson")
                 {
-                    string tabletowrite = "announcements";                    
+                    string tabletowrite = "announcements";
 
                     DigiWayMapServicesGeoJson2AccouncementImportHelper digiwayimporthelper = new DigiWayMapServicesGeoJson2AccouncementImportHelper(
                         settings,
@@ -3532,7 +3534,7 @@ namespace OdhApiImporter.Controllers
                     digiwayimporthelper.identifier = identifier.ToLower();
                     digiwayimporthelper.source = digiwayconfig.Source;
                     digiwayimporthelper.srid = digiwayconfig.SRid;
-                    
+
                     updatedetail = await digiwayimporthelper.SaveDataToODH(
                                             null,
                                             null,
@@ -3717,7 +3719,7 @@ namespace OdhApiImporter.Controllers
                     UrlGeneratorStatic("HDS/MarketCalendar"),
                     type
                 );
-                
+
                 updatedetail = await hdsimporthelper.PostHDSMarketCalendar(
                 Request,
                 cancellationToken
@@ -3778,7 +3780,7 @@ namespace OdhApiImporter.Controllers
                 return "single";
             else
                 return "passed_ids";
-        }        
+        }
     }
 
     public static class DateTimeHelper
@@ -3798,13 +3800,22 @@ namespace OdhApiImporter.Controllers
 
             return unit switch
             {
-                "s" => DateTime.Now.AddSeconds(-value),
-                "m" => DateTime.Now.AddMinutes(-value),
-                "h" => DateTime.Now.AddHours(-value),
-                "d" => DateTime.Now.AddDays(-value),
-                "w" => DateTime.Now.AddDays(-7 * value),
+                "s" => GetMyTime().AddSeconds(-value),
+                "m" => GetMyTime().AddMinutes(-value),
+                "h" => GetMyTime().AddHours(-value),
+                "d" => GetMyTime().AddDays(-value),
+                "w" => GetMyTime().AddDays(-7 * value),
                 _ => throw new NotSupportedException($"Time unit '{unit}' is not supported.")
             };
+        }
+
+        private static DateTime GetMyTime()
+        {
+            var zoneId = OperatingSystem.IsWindows()
+                ? "Central European Standard Time"
+                : "Europe/Rome";
+            var zone = TimeZoneInfo.FindSystemTimeZoneById(zoneId);
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zone);
         }
     }
 }
