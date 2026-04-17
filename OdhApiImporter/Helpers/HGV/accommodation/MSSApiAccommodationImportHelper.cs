@@ -178,7 +178,8 @@ namespace OdhApiImporter.Helpers.HGV
                             result,
                             accommodation.Id,
                             "accommodation",
-                            "accommodations.hgvinfo"
+                            "accommodations.hgvinfo",
+                            new Dictionary<string, bool>() { { "roomschanged", false } }
                         );
 
                     updatedetails.Add(new UpdateDetail()
@@ -219,7 +220,8 @@ namespace OdhApiImporter.Helpers.HGV
                             deactivateresult,
                             idtoclear,
                             "accommodation",
-                            "accommodations.hgvinfo"
+                            "accommodations.hgvinfo",
+                            new Dictionary<string, bool>() { { "roomschanged", false } }
                         );
 
                     updatedetails.Add(new UpdateDetail()
@@ -362,7 +364,8 @@ namespace OdhApiImporter.Helpers.HGV
                             deactivateresult,
                             idtoclear,
                             "accommodation",
-                            "accommodations.hgvinfo"
+                            "accommodations.hgvinfo",
+                            new Dictionary<string, bool>() { { "roomschanged", false } }
                         );
 
                     updatedetaillist.Add(new UpdateDetail()
