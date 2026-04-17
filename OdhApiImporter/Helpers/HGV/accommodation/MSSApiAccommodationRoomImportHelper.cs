@@ -231,9 +231,9 @@ namespace OdhApiImporter.Helpers.HGV
 
                 //Set PublishedOn
                 objecttosave.CreatePublishedOnList();
-
+                
                 //Populate Tags (Id/Source/Type)
-                //await objecttosave.UpdateTagsExtension(QueryFactory);
+                await objecttosave.UpdateTagsExtension(QueryFactory);
 
                 var rawdataid = await InsertInRawDataDB(objecttosave.HGVId, hgvdata);
 
