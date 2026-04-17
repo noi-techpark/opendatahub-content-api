@@ -89,7 +89,7 @@ namespace OdhApiImporter.Helpers.HGV
             try
             {
                 var client = new HttpClient();
-                var result = default(IEnumerable<AccommodationRoomLinked>);
+                var result = default(IEnumerable<AccommodationRoomV2>);
 
                 if (!String.IsNullOrEmpty(accoid))
                 {                 
@@ -214,7 +214,7 @@ namespace OdhApiImporter.Helpers.HGV
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
-            AccommodationRoomLinked objecttosave,
+            AccommodationRoomV2 objecttosave,
             IEnumerable<XElement> hgvdata
         )
         {
@@ -237,9 +237,9 @@ namespace OdhApiImporter.Helpers.HGV
 
                 var rawdataid = await InsertInRawDataDB(objecttosave.HGVId, hgvdata);
 
-                return await QueryFactory.UpsertData<AccommodationRoomLinked>(
+                return await QueryFactory.UpsertData<AccommodationRoomV2>(
                     objecttosave,
-                    new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                    new DataInfo("accommodationrooms", Helper.Generic.CRUDOperation.CreateAndUpdate),
                     new EditInfo("hgv.accommodations.rooms.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
@@ -272,7 +272,7 @@ namespace OdhApiImporter.Helpers.HGV
 
         private async Task<UpdateDetail> DisableRoomsNotMorepresent(
            string accommodationid,
-           IEnumerable<AccommodationRoomLinked> hgvdata
+           IEnumerable<AccommodationRoomV2> hgvdata
        )
         {
             int updateresult = 0;
@@ -294,7 +294,7 @@ namespace OdhApiImporter.Helpers.HGV
                 //TODO Check all Rooms with this ID, disable/delete all rooms that are no more present
                 foreach(var accoroom in accommodationroomidstodeactivate)
                 {
-                    var result = await DeleteOrDisableData<AccommodationRoomLinked>(accoroom, true);
+                    var result = await DeleteOrDisableData<AccommodationRoomV2>(accoroom, true);
 
                     updateresult = updateresult + result.Item1;
                     deleteresult = deleteresult + result.Item2;
@@ -327,9 +327,9 @@ namespace OdhApiImporter.Helpers.HGV
             };
         }
 
-        private IEnumerable<AccommodationRoomLinked> MergeRooms(IEnumerable<AccommodationRoomLinked> roomlistde, IEnumerable<AccommodationRoomLinked> roomlistit, IEnumerable<AccommodationRoomLinked> roomlisten)
+        private IEnumerable<AccommodationRoomV2> MergeRooms(IEnumerable<AccommodationRoomV2> roomlistde, IEnumerable<AccommodationRoomV2> roomlistit, IEnumerable<AccommodationRoomV2> roomlisten)
         {
-            List<AccommodationRoomLinked> roomlisttoreturn = new List<AccommodationRoomLinked>();
+            List<AccommodationRoomV2> roomlisttoreturn = new List<AccommodationRoomV2>();
 
             foreach (var room in roomlistde)
             {
