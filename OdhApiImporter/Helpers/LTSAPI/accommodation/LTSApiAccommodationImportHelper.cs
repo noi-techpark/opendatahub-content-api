@@ -536,8 +536,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         "RelatedContent", 
                         "RatePlan", 
                         "OperationSchedule",
-                        "ImageName", 
-                        "ListPosition" }),  //Ignore OperationSchedule, RatePlan
+                        "ImageGallery.[].ImageName",
+                        "ImageGallery.[].ListPosition" }),  //Ignore OperationSchedule, RatePlan
                     rawdataid,
                     opendata
                 );
@@ -596,7 +596,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     new DataInfo("accommodationrooms", Helper.Generic.CRUDOperation.CreateAndUpdate),
                     new EditInfo("lts.accommodations.rooms.import", importerURL),
                     new CRUDConstraints(),
-                    new CompareConfig(true, false)
+                    new CompareConfig(true, false, new List<string>() {
+                        "LastChange",
+                        "_Meta",
+                        "FirstImport",
+                        "RelatedContent",
+                        "ImageGallery.[].ImageName",
+                        "ImageGallery.[].ListPosition" })
                 );
             }
             catch (Exception ex)
