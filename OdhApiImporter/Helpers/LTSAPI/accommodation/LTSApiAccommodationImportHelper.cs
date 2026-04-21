@@ -529,7 +529,15 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.accommodations.import", importerURL),
                     new CRUDConstraints(),
-                    new CompareConfig(true, true, new List<string>() { "LastChange", "_Meta", "FirstImport", "RelatedContent", "RatePlan", "OperationSchedule" }),  //Ignore OperationSchedule, RatePlan
+                    new CompareConfig(true, true, new List<string>() { 
+                        "LastChange", 
+                        "_Meta", 
+                        "FirstImport", 
+                        "RelatedContent", 
+                        "RatePlan", 
+                        "OperationSchedule",
+                        "ImageName", 
+                        "ListPosition" }),  //Ignore OperationSchedule, RatePlan
                     rawdataid,
                     opendata
                 );
