@@ -412,7 +412,7 @@ namespace Helper
                     imagesequal = EqualityHelper.CompareImageGallery(
                         (data as IImageGalleryAware).ImageGallery,
                         (queryresult as IImageGalleryAware).ImageGallery,
-                        new List<string>() { }
+                        new List<string>() { "ImageName", "ListPosition" } //Lets exclude this otherwise LTS will produce to many imagechanged pushes
                     );
                     if (imagesequal)
                         objectimagechangedcount = 0;

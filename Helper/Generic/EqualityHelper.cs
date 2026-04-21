@@ -219,6 +219,8 @@ namespace Helper.Generic
 
             if (propertiestonotcheck != null)
             {
+                //Insert ImageName ???
+
                 foreach (string s in propertiestonotcheck)
                 {
                     //Set the fields null (DateTime sets DateTime min
