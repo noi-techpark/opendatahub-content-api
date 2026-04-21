@@ -67,7 +67,7 @@ namespace Helper.Generic
 
             if (fieldstoignore == null)
                 FieldsToIgnore = new List<string>() { 
-                    "LastChange", "_Meta", "FirstImport", "RelatedContent"  };
+                    "LastChange", "_Meta", "FirstImport", "RelatedContent"  };  //Check add ImageName, ListPosition???
             else
                 FieldsToIgnore = fieldstoignore;
         }

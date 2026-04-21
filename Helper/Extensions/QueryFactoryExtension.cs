@@ -412,7 +412,7 @@ namespace Helper
                     imagesequal = EqualityHelper.CompareImageGallery(
                         (data as IImageGalleryAware).ImageGallery,
                         (queryresult as IImageGalleryAware).ImageGallery,
-                        new List<string>() { }
+                        new List<string>() { "ImageName" }
                     );
                     if (imagesequal)
                         objectimagechangedcount = 0;

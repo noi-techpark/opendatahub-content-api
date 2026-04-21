@@ -252,7 +252,7 @@ namespace DataModel
             List<string>? channelstopush = new List<string>();
             string? exception = null;
 
-            JToken? changes = null;
+            JArray? changes = null;
 
             IDictionary<string, NotifierResponse> pushed =
                 new Dictionary<string, NotifierResponse>();
@@ -273,9 +273,9 @@ namespace DataModel
                 if (updatedetail.Value.changes != null)
                 {
                     if (changes == null)
-                        changes = updatedetail.Value.changes;
-                    else
-                        changes.Append(updatedetail.Value.changes);
+                        changes = new JArray();
+                    
+                    changes.Add(updatedetail.Value.changes);
                 }
 
                 if (updatedetail.Value.pushchannels != null)
