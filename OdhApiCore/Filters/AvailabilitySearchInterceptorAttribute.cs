@@ -461,6 +461,7 @@ namespace OdhApiCore.Filters
                 string roominfo = (string?)query["roominfo"] ?? "1-18,18";
                 string msssource = (string?)query["msssource"] ?? "sinfo";
                 string detail = (string?)query["detail"] ?? "0";
+                string? ltsapiversion = (string?)query["ltsapiversion"] ?? "v1";
 
                 if (CheckArrivalAndDeparture(arrival, departure))
                 {
@@ -530,14 +531,15 @@ namespace OdhApiCore.Filters
                                             }
                                             else if (actionid == "GetAccommodation")
                                             {
-                                                lcsresult = await GetLCSAvailability(
+                                                lcsresult = await GetLTSAvailability(
                                                     language: language,
                                                     arrival: arrival,
                                                     departure: departure,
                                                     boardfilter: boardfilter,
                                                     roominfo: roominfo,
                                                     bookableaccoIDs: bookableAccoIds,
-                                                    requestsource: msssource
+                                                    requestsource: msssource,
+                                                    apiversion: ltsapiversion                                                    
                                                 );
                                             }
 
@@ -629,14 +631,15 @@ namespace OdhApiCore.Filters
                                                 }
                                                 else if (actionid == "GetAccommodation")
                                                 {
-                                                    lcsresult = await GetLCSAvailability(
+                                                    lcsresult = await GetLTSAvailability(
                                                         language: language,
                                                         arrival: arrival,
                                                         departure: departure,
                                                         boardfilter: boardfilter,
                                                         roominfo: roominfo,
                                                         bookableaccoIDs: bookableAccoIds,
-                                                        requestsource: msssource
+                                                        requestsource: msssource,
+                                                        apiversion: ltsapiversion
                                                     );
                                                 }
 
