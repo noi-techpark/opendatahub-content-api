@@ -523,6 +523,8 @@ namespace Helper.Converters
 
             if (space == "no")
                 space = "noi";
+            if (space == "noi")
+                space = "noi";
             if (space == "ec")
                 space = "eurac";
             if (space == "vi")
