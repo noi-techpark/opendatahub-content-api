@@ -605,7 +605,7 @@ namespace OdhApiCore.Controllers
                 venue.TrimStringProperties();
 
                 //Populate Tags (Id/Source/Type)
-                await venue.UpdateTagsExtension(QueryFactory);
+                await venue.UpdateTagsExtension(QueryFactory);                               
                 
                 return await UpsertData<VenueV2>(
                     venue,
@@ -652,6 +652,9 @@ namespace OdhApiCore.Controllers
                 //TO CHECK TagEntry Preserve?
                 await venue.UpdateTagsExtension(QueryFactory);
                 
+                //QUick Hack Sort Venue
+                venue.RoomDetails = venue.RoomDetails.OrderBy(x => x.Detail["en"].Title).ToList();
+
                 return await UpsertData<VenueV2>(
                     venue,
                     new DataInfo("venues", CRUDOperation.Update, true),

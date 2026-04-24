@@ -519,9 +519,11 @@ namespace Helper.Converters
 
         private static (string, string) GetRoomBookedVenueId(EventShort eventshort, RoomBooked room)
         {
-            var space = room.SpaceType != null ? room.SpaceType.ToLower() : eventshort.EventLocation.ToLower();
+            var space = !String.IsNullOrEmpty(room.SpaceType) ? room.SpaceType.ToLower() : eventshort.EventLocation.ToLower();
 
             if (space == "no")
+                space = "noi";
+            if (space == "noi")
                 space = "noi";
             if (space == "ec")
                 space = "eurac";
