@@ -106,7 +106,7 @@ namespace OdhApiCore.Controllers
             featurelist = Helper.VenueListCreator.CreateVenueFeatureListfromFlag(featurefilter);
             categorylist = Helper.VenueListCreator.CreateVenueCategoryListfromFlag(categoryfilter);
 
-            idlist = Helper.CommonListCreator.CreateIdList(idfilter?.ToUpper());
+            idlist = Helper.CommonListCreator.CreateIdList(idfilter);
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);
             languagelist = Helper.CommonListCreator.CreateIdList(languagefilter);            
 
