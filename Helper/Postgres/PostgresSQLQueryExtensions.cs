@@ -178,16 +178,6 @@ namespace Helper
             IReadOnlyCollection<string> districtlist
         ) => query.WhereInJsonb(list: districtlist, "DistrictId", id => id.ToUpper());
 
-        public static Query IdFilter(this Query query, IReadOnlyCollection<string> idlist, string fieldname = "id") =>
-            query.Where(q =>
-            {
-                foreach (var id in idlist)
-                {
-                    q = q.OrWhere(fieldname, "=", id);
-                }
-                return q;
-            });
-
         public static Query IdUpperFilter(this Query query, IReadOnlyCollection<string> idlist, string fieldname = "id") =>
             query.Where(q =>
             {
