@@ -18,11 +18,27 @@ namespace MOMENTUS.Parser
         {
             EventLinked eventLinked = new EventLinked();
 
+            eventLinked.Id = "urn:event:momentus:" + mevent.Id;
+            eventLinked.Shortname = mevent.Name;
+
+
             return eventLinked;
         }
 
+        //To check if one room for noi with subrooms is returned
         public static VenueV2 ParseMomentusRoom(MomentusRoom mroom)
         {
+            //This is always assigned
+            //"venueId": "venue-1-A",
+            //"venueName": "Eurac Research",
+
+
+
+            // "group": "NOI TECHPARK"
+            // "group": "EURAC RESEARCH HQ"
+
+
+
             VenueV2 venue = new VenueV2();
 
             return venue;
