@@ -223,17 +223,35 @@ namespace Helper.Converters
             {
                 foreach (var tag in eventshort.CustomTagging)
                 {
-                    eventv1.TagIds.Add(tag);
+                    eventv1.TagIds.Add(tag.ToLower()
+                        .Replace(" ","")
+                        .Replace("-", "")
+                        .Replace("&", "")
+                        );
                 }
-            }            
+            }
+
+            if (eventshort.TechnologyFields != null)
+            {
+                foreach (var tag in eventshort.TechnologyFields)
+                {
+                    eventv1.TagIds.Add(tag.ToLower()
+                        .Replace(" ", "")
+                        .Replace("-", "")
+                        .Replace("&", "")
+                        );
+                }
+            }
 
             //Add Location as Tag
-            if(!String.IsNullOrEmpty(eventshort.EventLocation))
+            if (!String.IsNullOrEmpty(eventshort.EventLocation))
                 eventv1.TagIds.Add("eventlocation:" + eventshort.EventLocation.ToLower());
 
-            //Add each Room as Tag?
+            //To check Add each Room as Tag?
 
-            eventv1.Documents = eventshort.Documents;
+
+            //Test if this works
+            eventv1.Documents = (IDictionary<string, ICollection<Document>>?)(eventshort.Documents != null ? eventshort.Documents : null);
             eventv1.VideoItems = eventshort.VideoItems;
 
             if(eventshort.WebAddress != null)

@@ -729,7 +729,7 @@ namespace DataModel
         public IDictionary<string, ICollection<VideoItems>>? VideoItems { get; set; }
 
         //Document Assignment
-        public IDictionary<string, List<Document>?> Documents { get; set; }
+        public IDictionary<string, ICollection<Document>>? Documents { get; set; }
 
         //Begindate UTC
         public double? DateBeginUTC
