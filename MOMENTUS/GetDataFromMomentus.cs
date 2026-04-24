@@ -98,7 +98,7 @@ namespace MOMENTUS
             }
         }
 
-        public static async Task<IEnumerable<MomentusFunction>> RequestMomentusRoomResponse(string url, string clientid, string clientsecret, string authurl, string eventid)
+        public static async Task<IEnumerable<MomentusFunction>> RequestMomentusFunction(string url, string clientid, string clientsecret, string authurl, string eventid)
         {
             var authresponse = await GetAccessTokenAsync(authurl, clientid, clientsecret);
 
