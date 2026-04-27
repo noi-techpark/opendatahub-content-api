@@ -300,7 +300,7 @@ namespace Helper.Converters
 
             //find a better key here
             eventv1.AdditionalProperties = new Dictionary<string, dynamic>();
-            eventv1.AdditionalProperties.Add("eventeuracnoidataproperties", additionalprops);
+            eventv1.AdditionalProperties.Add("EventEuracNoiDataProperties", additionalprops);
 
 
             if (eventshort.RoomBooked != null)
