@@ -392,8 +392,8 @@ namespace OdhApiCore.Controllers
 
                 string? sortifseednull = EventHelper.GetEventSortExpression(
                     sort,
-                    begindate,
-                    enddate,
+                    myeventhelper.begin,
+                    myeventhelper.end,
                     ref seed
                 );
 

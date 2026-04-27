@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -95,6 +96,7 @@ namespace OdhApiCore.Controllers
             string? source = null,
             LegacyBool active = null!,
             string? publishedon = null,
+            bool? denormalize = false,
             string? updatefrom = null,
             string? langfilter = null,
             string? seed = null,
@@ -140,6 +142,7 @@ namespace OdhApiCore.Controllers
                 lastchange: updatefrom,
                 langfilter: langfilter,
                 publishedon: publishedon,
+                denormalize: denormalize,
                 polygonsearchresult: polygonsearchresult,
                 geosearchresult: geosearchresult,
                 rawfilter: rawfilter,
@@ -288,6 +291,7 @@ namespace OdhApiCore.Controllers
             string? lastchange,
             string? langfilter,
             string? publishedon,
+            bool? denormalize,
             GeoPolygonSearchResult? polygonsearchresult,
             PGGeoSearchResult geosearchresult,
             string? rawfilter,
@@ -374,7 +378,15 @@ namespace OdhApiCore.Controllers
                     perPage: pagesize ?? 25
                 );
 
-                var dataTransformed = data.List.Select(raw =>
+                //If we want to have the data denormalized use the function to denormalize events
+                var list = denormalize == true
+                    ? data.List
+                        .SelectMany(jr => DeNormalizeVenue(JsonConvert.DeserializeObject<VenueV2>(jr.Value))!)
+                        .Select(jr => new JsonRaw(jr))
+                    : data.List;
+
+
+                var dataTransformed = list.Select(raw =>
                     raw.TransformRawData(
                         language,
                         fields,
@@ -398,6 +410,18 @@ namespace OdhApiCore.Controllers
             });
         }
 
+        //Helper Method to Denormalize Venue
+        public static IEnumerable<VenueV2> DeNormalizeVenue(
+            VenueV2 venuev2            
+        )
+        {
+            // Denormalize by RoomDetails and add only Elements with EndDate higher than the provided enddate
+            var byVenueRoomDetails = venuev2.DenormalizeBy(
+                e => e.RoomDetails,
+                (e, val) => e.RoomDetails = val);
+            return byVenueRoomDetails;
+        }
+
         private Task<IActionResult> GetSingle(
             string id,
             string? language,
@@ -416,7 +440,7 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("venues")
                     .Select("data")                    
-                    .Where("gen_id", id.ToUpper())
+                    .Where("gen_id", id)
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),
                         q => q.FilterAdditionalDataByCondition(additionalfilter)
@@ -581,7 +605,7 @@ namespace OdhApiCore.Controllers
                 venue.TrimStringProperties();
 
                 //Populate Tags (Id/Source/Type)
-                await venue.UpdateTagsExtension(QueryFactory);
+                await venue.UpdateTagsExtension(QueryFactory);                               
                 
                 return await UpsertData<VenueV2>(
                     venue,
@@ -625,8 +649,12 @@ namespace OdhApiCore.Controllers
                 venue.TrimStringProperties();
 
                 //Populate Tags (Id/Source/Type)
+                //TO CHECK TagEntry Preserve?
                 await venue.UpdateTagsExtension(QueryFactory);
                 
+                //QUick Hack Sort Venue
+                venue.RoomDetails = venue.RoomDetails.OrderBy(x => x.Detail["en"].Title).ToList();
+
                 return await UpsertData<VenueV2>(
                     venue,
                     new DataInfo("venues", CRUDOperation.Update, true),

@@ -144,6 +144,7 @@ namespace OdhApiCore.Controllers
             string? msssource = "sinfo",
             string? availabilitychecklanguage = "en",
             string? detail = "0",
+            string? ltsapiversion = "v1",
             string? tagfilter = null,
             LegacyBool availabilitycheck = null!,
             string? latitude = null,
@@ -321,6 +322,7 @@ namespace OdhApiCore.Controllers
             string? roominfo = "1-18,18",
             string? bokfilter = "hgv",
             string? msssource = "sinfo",
+            string? ltsapiversion = "v1",
             LegacyBool availabilitycheck = null!,
             string? detail = "0",
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
@@ -1156,7 +1158,7 @@ namespace OdhApiCore.Controllers
                 var query = QueryFactory
                     .Query("accommodations")
                     .Select("data")
-                    .Where("id", id.ToUpper())
+                    .Where("gen_id", id.ToUpper())
                     .FilterDataByAccessRoles(UserRolesToFilter)
                     .When(
                         !String.IsNullOrEmpty(additionalfilter),

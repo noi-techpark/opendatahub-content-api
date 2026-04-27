@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using DataModel.helpers;
 using Helper;
 using SqlKata.Execution;
 
@@ -43,6 +44,7 @@ namespace OdhApiCore.Controllers
             string? orgfilter,
             string? begindate,
             string? enddate,
+            string? datetimeformat,
             bool? activefilter,
             bool? smgactivefilter,
             string? smgtags,
@@ -76,6 +78,7 @@ namespace OdhApiCore.Controllers
                 orgfilter: orgfilter,
                 begindate: begindate,
                 enddate: enddate,
+                datetimeformat: datetimeformat,
                 activefilter: activefilter,
                 smgactivefilter: smgactivefilter,
                 smgtags: smgtags,
@@ -96,6 +99,7 @@ namespace OdhApiCore.Controllers
             string? orgfilter,
             string? begindate,
             string? enddate,
+            string? datetimeformat,
             bool? activefilter,
             bool? smgactivefilter,
             string? smgtags,
@@ -107,7 +111,7 @@ namespace OdhApiCore.Controllers
             IEnumerable<string>? tourismusvereinids
         )
         {
-            idlist = CommonListCreator.CreateIdList(idfilter?.ToUpper());
+            idlist = CommonListCreator.CreateIdList(idfilter);
 
             smgtaglist = CommonListCreator.CreateIdList(smgtags);
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);
@@ -146,13 +150,49 @@ namespace OdhApiCore.Controllers
             begin = DateTime.MinValue;
             end = DateTime.MaxValue;
 
-            if (!String.IsNullOrEmpty(begindate))
-                if (begindate != "null")
-                    begin = Convert.ToDateTime(begindate);
+            //if (!String.IsNullOrEmpty(begindate))
+            //    if (begindate != "null")
+            //        begin = Convert.ToDateTime(begindate);
 
-            if (!String.IsNullOrEmpty(enddate))
-                if (enddate != "null")
+            //if (!String.IsNullOrEmpty(enddate))
+            //    if (enddate != "null")
+            //        end = Convert.ToDateTime(enddate);
+
+
+
+            if (String.IsNullOrEmpty(datetimeformat))
+            {
+                if (!String.IsNullOrEmpty(begindate) && begindate != "null")
+                    begin = Convert.ToDateTime(begindate);
+                if (!String.IsNullOrEmpty(enddate) && enddate != "null")
+                {
                     end = Convert.ToDateTime(enddate);
+                    if (end.Value.TimeOfDay == new TimeSpan(0, 0, 0))
+                    {
+                        end = end.Value.AddDays(1);
+                    }
+                }
+            }
+            else if (datetimeformat == "uxtimestamp")
+            {
+                if (!String.IsNullOrEmpty(begindate) && begindate != "null")
+                {
+                    double startdatedb = Convert.ToDouble(begindate);
+                    begin = DateTimeHelper.UnixTimeStampToDateTimeMilliseconds(startdatedb);
+                }
+
+                if (!String.IsNullOrEmpty(enddate) && enddate != "null")
+                {
+                    double enddatedb = Convert.ToDouble(enddate);
+
+                    end = DateTimeHelper.UnixTimeStampToDateTimeMilliseconds(enddatedb);
+                    if (end.Value.TimeOfDay == new TimeSpan(0, 0, 0))
+                    {
+                        end = end.Value.AddDays(1);
+                    }
+                }
+            }
+
 
             publishedonlist = Helper.CommonListCreator.CreateIdList(publishedonfilter?.ToLower());
 
@@ -161,8 +201,8 @@ namespace OdhApiCore.Controllers
 
         public static string? GetEventSortExpression(
             string? sort,
-            string? begindate,
-            string? enddate,
+            DateTime? begindate,
+            DateTime? enddate,
             ref string? seed
         )
         {
@@ -180,9 +220,9 @@ namespace OdhApiCore.Controllers
                     var sortfromdate = "2000-01-01";
 
                     if (begindate != null)
-                        sortfromdate = begindate;
+                        sortfromdate = begindate.Value.ToString("yyyy-MM-dd");
                     else if (enddate != null)
-                        sortfromdate = enddate;
+                        sortfromdate = enddate.Value.ToString("yyyy-MM-dd");
 
                     //TO CHECK Events with Eventdate interval vs singledays, how do we sort here?
                     if (sort.ToLower() == "upcoming")

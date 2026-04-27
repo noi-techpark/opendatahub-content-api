@@ -13,13 +13,11 @@ using Newtonsoft.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Swashbuckle.AspNetCore.Annotations;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 
@@ -325,7 +323,7 @@ namespace DataModel
 
     public class AdditionalContact
     {
-        public string Type { get; set; }
+        public string? Type { get; set; }
         public ContactInfos? ContactInfos { get; set; }
         public string? Description { get; set; }
     }
@@ -549,6 +547,10 @@ namespace DataModel
         public string? Vat { get; set; }
 
         public string? CountryCode { get; set; }
+
+        //New Fields
+        public string? MetaTitle { get; set; }
+        public string? MetaDesc { get; set; }
     }
 
     public class AccoFeature
@@ -1078,10 +1080,8 @@ namespace DataModel
         public double? FromUTC
         {
             get
-            {
-                return this.From != null
-                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.From)
-                    : null;
+            {                
+                return DateTimeHelper.DateTimeToUnixTimestampMilliseconds(From.Date + (Begin ?? TimeSpan.Zero));
             }
         }
 
@@ -1090,9 +1090,7 @@ namespace DataModel
         {
             get
             {
-                return this.To != null
-                    ? DateTimeHelper.DateTimeToUnixTimestampMilliseconds(this.To)
-                    : null;
+                return DateTimeHelper.DateTimeToUnixTimestampMilliseconds(To.Date + (End ?? TimeSpan.Zero));
             }
         }
 

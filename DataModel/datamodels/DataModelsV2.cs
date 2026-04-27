@@ -829,7 +829,7 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class VenueRoomDetailsV2 : IHasTagInfo
+    public class VenueRoomDetailsV2 : IHasTagInfo, IMappingAware
     {
         public VenueRoomDetailsV2()
         {
@@ -840,17 +840,35 @@ namespace DataModel
         public string? Id { get; set; }
         public string? Shortname { get; set; }
 
-        public ICollection<string> TagIds { get; set; }
+        public ICollection<string>? TagIds { get; set; }
 
-        public ICollection<Tags> Tags { get; set; }
+        public ICollection<Tags>? Tags { get; set; }
         
         public IDictionary<string, Detail> Detail { get; set; }
 
         public ICollection<ImageGallery>? ImageGallery { get; set; }
 
-        public VenueRoomProperties VenueRoomProperties { get; set; }
+        public VenueRoomProperties? VenueRoomProperties { get; set; }
 
-        public string Placement { get; set; }
+        public string? Placement { get; set; }
+
+        //New fields
+        
+        public bool? Active { get; set; }
+
+        public int? MaxCapacity { get; set; }
+
+        //"id": "room-36-A",
+        //"venueId": "venue-1-A",
+        //"venueName": "Eurac Research",
+        //"group": "NOI TECHPARK",
+        //"itemCode": null,
+        //"subRoomIds": [],
+        //"conflictingRoomIds": [
+        //    "room-45-A"
+        //]
+        //"isComboRoom": false,
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
     }
 
     public class VenueRoomProperties

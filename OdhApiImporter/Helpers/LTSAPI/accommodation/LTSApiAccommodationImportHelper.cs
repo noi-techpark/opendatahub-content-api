@@ -4,36 +4,40 @@
 
 using DataModel;
 using Helper;
+using Helper.AccommodationRoomsExtension;
+using Helper.Extensions;
 using Helper.Generic;
-using Helper.Tagging;
+using Helper.IDM;
 using Helper.Location;
+using Helper.Tagging;
 using LTSAPI;
 using LTSAPI.Parser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using OdhApiImporter.Helpers.RAVEN;
+using OdhNotifier;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers.LTSAPI
 {
     public class LTSApiAccommodationImportHelper : ImportHelper, IImportHelper
     {
         public bool opendata = false;
+
+        public bool isdatapresentonhgv = false;
         
         public LTSApiAccommodationImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string table,
-            string importerURL
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
         )
-            : base(settings, queryfactory, table, importerURL) { }
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
 
         //Not implemented here
         public async Task<UpdateDetail> SaveDataToODH(
@@ -55,7 +59,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             throw new NotImplementedException();
         }
 
-        public async Task<UpdateDetail> SaveSingleDataToODH(
+        public async Task<IDictionary<string, UpdateDetail>> SaveSingleDataToODH(
             string id,
             bool reduced = false,
             CancellationToken cancellationToken = default
@@ -92,16 +96,16 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         resulttoreturn.exception = resulttoreturn.exception + "opendata:" + accommodationlts.FirstOrDefault()["message"].ToString() + "|";
                 }
 
-                return resulttoreturn;
+                return new Dictionary<string, UpdateDetail>()
+                {
+                    { "accommodation", resulttoreturn }
+                };
             }
             else
             {
-                return new UpdateDetail()
+                return new Dictionary<string, UpdateDetail>()
                 {
-                    updated = 0,
-                    created = 0,
-                    deleted = 0,
-                    error = 1,
+                    { "accommodation", new UpdateDetail() { updated = 0, created = 0, deleted = 0, error = 1, } }
                 };
             }
         }
@@ -294,20 +298,19 @@ namespace OdhApiImporter.Helpers.LTSAPI
         }
 
 
-        private async Task<UpdateDetail> SaveAccommodationsToPG(List<JObject> ltsdata)
+        private async Task<IDictionary<string, UpdateDetail>> SaveAccommodationsToPG(List<JObject> ltsdata)
         {
-            List<UpdateDetail> updatedetails = new List<UpdateDetail>();
+            Dictionary<string, UpdateDetail> updatedetails = new Dictionary<string, UpdateDetail>();
 
             if (ltsdata != null)
             {
                 List<string> idlistlts = new List<string>();
                 List<LTSAcco> accosdata = new List<LTSAcco>();
 
-
                 //Load the json and xml Data
 
-                var xmlfiles = ImportUtils.LoadXmlFiles(
-                    Path.Combine(".\\xml\\"),
+                var xmlfiles = LTSAPIImportHelper.LoadXmlFiles(
+                    settings.XmlConfig.Xmldir,
                     new List<string>()
                     {
                         "AccoCategories",
@@ -320,14 +323,22 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         "NearSkiArea",
                         "RoomAmenities",
                         "Vinum",
-                        "Wine",
+                        "Wine"                        
                     }
                 );
 
-                var jsonfiles = await ImportUtils.LoadJsonFiles(
-                    Path.Combine(".\\json\\"),
-                    new List<string>() { "Features" }
+                //Load the json Data
+                IDictionary<string, JArray> jsondata = default(Dictionary<string, JArray>);
+
+                jsondata = await LTSAPIImportHelper.LoadJsonFiles(
+                settings.JsonConfig.Jsondir,
+                new List<string>()
+                    {
+                        "Features"
+                    }
                 );
+
+                //IDictionary<string, JArray> jsondata = new Dictionary<string, JArray>() { { "Features", new JArray() } };
 
                 foreach (var ltsdatasingle in ltsdata)
                 {
@@ -336,13 +347,29 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     );
                 }
 
+                //MetaInfos
+                var metainfosidm = default(MetaInfosOdhActivityPoi);
+                if(!opendata)
+                {
+                    metainfosidm = await QueryFactory
+                    .Query("odhactivitypoimetainfos")
+                    .Select("data")
+                    .Where("id", "metainfoaccommodation")
+                    .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
+                }
+
+
                 foreach (var data in accosdata)
                 {
                     string id = data.data.rid.ToUpper();
-                    
-                    var accommodationparsed = AccommodationParser.ParseLTSAccommodation(data.data, false, xmlfiles, jsonfiles);
 
-                    //POPULATE LocationInfo TO CHECK if this works for new activities...
+                    var accommodationparsed = AccommodationParser.ParseLTSAccommodation(data.data, false, xmlfiles, jsondata);
+
+                    //Check if Accommodation is available on HGV!
+                    if (CheckIfDataIsPresentOnHgv(accommodationparsed))
+                        isdatapresentonhgv = true;
+
+                    //POPULATE LocationInfo TO CHECK if this works for new accommodations...
                     accommodationparsed.LocationInfo = await accommodationparsed.UpdateLocationInfoExtension(
                         QueryFactory
                     );
@@ -350,24 +377,80 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     //DistanceCalculation
                     await accommodationparsed.UpdateDistanceCalculation(QueryFactory);
 
-                    //GET OLD Activity
-                    var activityindb = await LoadDataFromDB<ODHActivityPoiLinked>("smgpoi" + id, IDStyle.lowercase);
+                    //GET OLD Accommodation
+                    var accommodationindb = await LoadDataFromDB<AccommodationV2>(id, IDStyle.uppercase, opendata);
 
-                    //TODO Update All ROOMS
+                   
+                    if (!opendata)
+                    {
+                        //TODO Update All ROOMS
 
-                    //TODO Update HGV INFO
+                        var accommodationsroomparsed = AccommodationParser.ParseLTSAccommodationRoom(data.data, false, xmlfiles, jsondata);
 
-                    //TODO Update HGV ROOMS
+                        int roomcounter = 0;
+                        foreach (var accommodationroom in accommodationsroomparsed)
+                        {
+                            var accommodationroominsertresult = await InsertAccommodationRoomDataToDB(accommodationroom, jsondata);
+                            updatedetails.Add($"accommodationroom_lts_{roomcounter}", new UpdateDetail()
+                            {
+                                created = accommodationroominsertresult.created,
+                                updated = accommodationroominsertresult.updated,
+                                deleted = accommodationroominsertresult.deleted,
+                                error = accommodationroominsertresult.error,
+                                objectchanged = accommodationroominsertresult.objectchanged,
+                                objectimagechanged = accommodationroominsertresult.objectimagechanged,
+                                comparedobjects =
+                                    accommodationroominsertresult.compareobject != null && accommodationroominsertresult.compareobject.Value ? 1 : 0,
+                                pushchannels = accommodationroominsertresult.pushchannels,
+                                changes = accommodationroominsertresult.changes,
+                            });
+                            roomcounter++;
+                        }
+
+                        //Get rooms to delete
+                        var ltsrooms = accommodationsroomparsed.Select(x => x.Id).ToList();
+                        var ltsroomsondb = accommodationindb != null && accommodationindb.AccoRoomInfo != null ? accommodationindb.AccoRoomInfo.Where(x => x.Source == "lts").Select(x => x.Id).ToList() : new List<string>();
+                        var ltsroomstodelete = ltsroomsondb.Except(ltsrooms);
+                        int roomdeletecounter = 0;
+
+                        //Delete Deleted ROOMS
+                        foreach (var deletedroom in ltsroomstodelete)
+                        {
+                            var accommodationroomdeleteresult = await DeleteOrDisableAccommodationRoomsData(deletedroom, true, false);
+                            updatedetails.Add($"accommodationroom_lts_delete_{roomdeletecounter}", accommodationroomdeleteresult);
+                            roomdeletecounter++;
+                        }
+
+                        //Add the AccoLTSInfo
+                        AssignAccoLTSInfo(accommodationsroomparsed, accommodationparsed);
+
+                        //Readd AccoHGVInfo
+                        if(isdatapresentonhgv)
+                            ReAddAccoHGVInfo(accommodationparsed, accommodationindb);
+
+                        //Regenerated AccoRooms List LTS on Accommodation object without DB Calls
+                        await accommodationparsed.UpdateAccoRoomInfosExtension(QueryFactory, new List<string>() { "lts" }, new Dictionary<string, List<string>>() { { "lts", accommodationsroomparsed.Select(x => x.Id).ToList() } });
+
+                        if (isdatapresentonhgv)
+                            ReAddAccoHGVRooms(accommodationparsed, accommodationindb);
+
+                        //Preserve SmgTags
+                        await AssignODHTags(accommodationparsed, accommodationindb);
+
+                        //Add MetaInfo
+                        await AddIDMMetaTitleAndDescription(accommodationparsed, metainfosidm);
+                    }                                       
 
                     //FINALLY UPDATE ACCOMMODATION ROOT OBJECT
 
                     //Create Tags and preserve the old TagEntries
                     await accommodationparsed.UpdateTagsExtension(QueryFactory);
 
+                    //TODO Add the Amenities as Tags without the need to recreate the TagEntries
 
-                    var result = await InsertDataToDB(accommodationparsed, data.data, jsonfiles);
+                    var result = await InsertDataToDB(accommodationparsed, data.data, jsondata);
 
-                    updatedetails.Add(new UpdateDetail()
+                    updatedetails.Add("accommodation_lts", new UpdateDetail()
                     {
                         created = result.created,
                         updated = result.updated,
@@ -399,7 +482,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             }
             else
             {
-                updatedetails.Add(new UpdateDetail()
+                updatedetails.Add("accommodation_lts", new UpdateDetail()
                 {
                     created = 0,
                     updated = 0,
@@ -412,8 +495,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     changes = null
                 });
             }
-
-            return updatedetails.FirstOrDefault();
+            
+            return updatedetails;
         }
 
         private async Task<PGCRUDResult> InsertDataToDB(
@@ -425,13 +508,13 @@ namespace OdhApiImporter.Helpers.LTSAPI
             try
             {
                 //Set LicenseInfo
-                objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
+                objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseforAccommodation(
                     objecttosave,
-                    Helper.LicenseHelper.GetLicenseforAccommodation
+                    opendata
                 );
 
                 //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
-                objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave);
+                objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave, opendata);
 
                 //Set PublishedOn
                 objecttosave.CreatePublishedOnList();
@@ -443,11 +526,20 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                 return await QueryFactory.UpsertData<AccommodationV2>(
                     objecttosave,
-                    new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                    new DataInfo("accommodations", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
                     new EditInfo("lts.accommodations.import", importerURL),
                     new CRUDConstraints(),
-                    new CompareConfig(true, false),
-                    rawdataid
+                    new CompareConfig(true, true, new List<string>() { 
+                        "LastChange", 
+                        "_Meta", 
+                        "FirstImport", 
+                        "RelatedContent", 
+                        "RatePlan", 
+                        "OperationSchedule",
+                        "ImageGallery.[].ImageName",
+                        "ImageGallery.[].ListPosition" }),  //Ignore OperationSchedule, RatePlan
+                    rawdataid,
+                    opendata
                 );
             }
             catch (Exception ex)
@@ -474,6 +566,51 @@ namespace OdhApiImporter.Helpers.LTSAPI
             );
         }
 
+        private async Task<PGCRUDResult> InsertAccommodationRoomDataToDB(
+            AccommodationRoomV2 objecttosave,            
+            IDictionary<string, JArray>? jsonfiles
+        )
+        {
+            try
+            {
+                //Set LicenseInfo
+                objecttosave.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject(
+                    objecttosave,
+                    Helper.LicenseHelper.GetLicenseforAccommodationRoom
+                );
+
+                //Setting MetaInfo (we need the MetaData Object in the PublishedOnList Creator)
+                objecttosave._Meta = MetadataHelper.GetMetadataobject(objecttosave);
+
+                //Set PublishedOn
+                objecttosave.CreatePublishedOnList();
+
+                //Populate Tags (Id/Source/Type)
+                await objecttosave.UpdateTagsExtension(QueryFactory);
+
+                //Populate Id by using the LTS ID
+                objecttosave.Id = objecttosave.LTSId;
+
+                return await QueryFactory.UpsertData<AccommodationRoomV2>(
+                    objecttosave,
+                    new DataInfo("accommodationrooms", Helper.Generic.CRUDOperation.CreateAndUpdate),
+                    new EditInfo("lts.accommodations.rooms.import", importerURL),
+                    new CRUDConstraints(),
+                    new CompareConfig(true, false, new List<string>() {
+                        "LastChange",
+                        "_Meta",
+                        "FirstImport",
+                        "RelatedContent",
+                        "ImageGallery.[].ImageName",
+                        "ImageGallery.[].ListPosition" })
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        
         public async Task<UpdateDetail> DeleteOrDisableAccommodationsData(string id, bool delete, bool reduced)
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
@@ -550,6 +687,226 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return deletedisableresult;
         }
 
+        public async Task<UpdateDetail> DeleteOrDisableAccommodationRoomsData(string id, bool delete, bool reduced)
+        {
+            UpdateDetail deletedisableresult = default(UpdateDetail);
+
+            PGCRUDResult result = default(PGCRUDResult);
+
+            if (delete)
+            {
+                result = await QueryFactory.DeleteData<AccommodationRoomV2>(
+                id.ToUpper(),
+                new DataInfo("accommodationrooms", CRUDOperation.Delete),
+                new CRUDConstraints(),
+                reduced
+                );
+
+                if (result.errorreason != "Data Not Found")
+                {
+                    deletedisableresult = new UpdateDetail()
+                    {
+                        created = result.created,
+                        updated = result.updated,
+                        deleted = result.deleted,
+                        error = result.error,
+                        objectchanged = result.objectchanged,
+                        objectimagechanged = result.objectimagechanged,
+                        comparedobjects =
+                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                        pushchannels = result.pushchannels,
+                        changes = result.changes,
+                    };
+                }
+            }
+            else
+            {
+                var query = QueryFactory.Query("accommodationrooms").Select("data").Where("id", id.ToUpper());
+
+                var data = await query.GetObjectSingleAsync<AccommodationRoomV2>();
+
+                if (data != null)
+                {
+                    if (
+                        data.Active != false
+                        || (data is ISmgActive && ((ISmgActive)data).SmgActive != false)
+                    )
+                    {
+                        data.Active = false;
+                        if (data is ISmgActive)
+                            ((ISmgActive)data).SmgActive = false;
+
+                        result = await QueryFactory.UpsertData<AccommodationRoomV2>(
+                               data,
+                               new DataInfo("accommodationrooms", Helper.Generic.CRUDOperation.CreateAndUpdate, !opendata),
+                               new EditInfo("lts.accommodations.roows.import.deactivate", importerURL),
+                               new CRUDConstraints(),
+                               new CompareConfig(true, false)
+                        );
+
+                        deletedisableresult = new UpdateDetail()
+                        {
+                            created = result.created,
+                            updated = result.updated,
+                            deleted = result.deleted,
+                            error = result.error,
+                            objectchanged = result.objectchanged,
+                            objectimagechanged = result.objectimagechanged,
+                            comparedobjects = result.compareobject != null && result.compareobject.Value ? 1 : 0,
+                            pushchannels = result.pushchannels,
+                            changes = result.changes,
+                        };
+                    }
+                }
+            }
+
+            return deletedisableresult;
+        }
+
+        #region Custom Stuff
+
+        private bool CheckIfDataIsPresentOnHgv(AccommodationV2 accommodation)
+        {
+            if (accommodation.AccoBookingChannel != null)
+            {
+                if (accommodation.AccoBookingChannel.Count > 0)
+                {
+                    if (accommodation.AccoBookingChannel.Where(x => x.Id == "hgv").Count() > 0)
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void ReAddAccoHGVInfo(AccommodationV2 accommodation, AccommodationV2? accommodationInDB)
+        {
+            if (accommodationInDB != null)
+            {
+                //Readd AccoHGVInfo
+                if (accommodationInDB.AccoHGVInfo != null)
+                    accommodation.AccoHGVInfo = accommodationInDB.AccoHGVInfo;
+
+                //Readd Mapping HGV
+                if (accommodationInDB.Mapping != null && accommodationInDB.Mapping.ContainsKey("hgv"))
+                {
+                    foreach (var item in accommodationInDB.Mapping["hgv"])
+                    {
+                        if (!accommodation.Mapping.ContainsKey("hgv"))
+                            accommodation.Mapping.TryAddOrUpdate("hgv", new Dictionary<string, string>());
+
+                        if (!accommodation.Mapping["hgv"].ContainsKey(item.Key))
+                            accommodation.Mapping["hgv"].TryAddOrUpdate(item.Key, item.Value);
+                    }
+                }
+            }
+        }
+
+        public void ReAddAccoHGVRooms(AccommodationV2 accommodation, AccommodationV2? accommodationInDB)
+        {
+            if (accommodationInDB != null)
+            {
+                //Read the Rooms from hgv            
+                var hgvroomstopreserve = accommodationInDB.AccoRoomInfo != null ? accommodationInDB.AccoRoomInfo.Where(x => x.Source == "hgv").ToList() : null;
+                if (hgvroomstopreserve != null)
+                {
+                    if (accommodation.AccoRoomInfo == null)
+                        accommodation.AccoRoomInfo = new List<AccoRoomInfoLinked>();
+
+                    foreach (var hgvroom in hgvroomstopreserve)
+                        accommodation.AccoRoomInfo.Add(hgvroom);
+                }
+            }
+        }
+
+        public void AssignAccoLTSInfo(IEnumerable<AccommodationRoomV2> accoltsrooms, AccommodationV2 accommodation)
+        {
+            double? pricefrom = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFrom != null).OrderBy(x => x.PriceFrom).Select(x => x.PriceFrom).FirstOrDefault() : null;
+            double? pricefromperunit = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFromPerUnit != null).OrderBy(x => x.PriceFromPerUnit).Select(x => x.PriceFromPerUnit).FirstOrDefault() : null;
+            string? pricefromperunittype = accoltsrooms != null ? accoltsrooms.Where(x => x.Active == true && x.PriceFromPerUnit != null && x.Roomtype != null).OrderBy(x => x.PriceFromPerUnit).Select(x => x.Roomtype).FirstOrDefault() : null;
+
+            //If lts info is null
+            if (accommodation.AccoLTSInfo == null)
+                accommodation.AccoLTSInfo = new AccoLTSInfo();
+
+            accommodation.AccoLTSInfo.PriceFrom = (int?)pricefrom;
+            accommodation.AccoLTSInfo.PriceFromPerUnit = (int?)pricefromperunit;
+            accommodation.AccoLTSInfo.PriceFromPerUnitType = pricefromperunittype;            
+        }        
+
+        #endregion
+
+        #region Compatibility Stuff
+
+        //Accommodation preserve ODHTags assignment
+        private async Task AssignODHTags(AccommodationV2 accoNew, AccommodationV2 accoOld)
+        {
+            //Hardcoded List of all SmgTags assigned on import
+            List<string> assignedtagsonimport = new List<string>()
+            {
+                "barrier-free",
+                "bonus vacanze", //to remove?
+                "bozencardplus",
+                "rittencard",
+                "klausencard",
+                "brixencard",
+                "almencardplus",
+                "activecard",
+                "winepass",
+                "ultentalcard",
+                "merancard",
+                "vinschgaucard",
+                "algundcard",
+                "holidaypass",
+                "valgardenamobilcard",
+                "dolomitimobilcard",
+                "mobilactivcard",
+                "suedtirolguestpass",
+                "holidaypass3zinnen",
+                "seiseralm_balance",
+                "workation",
+                "merancard_allyear",
+                "dolomiti_museumobilcard",
+                "sarntalcard",
+                "suedtirolguestpass_passeiertal_premium",
+                "suedtirolguestpass_mobilcard",
+                "suedtirolguestpass_museumobilcard",
+                "natzschabscard",
+                "accomodation bed bike",
+                "accomodation bett bike sport"
+            };
+            
+            List<string> tagstopreserve = new List<string>();
+            if (accoNew.SmgTags == null)
+                accoNew.SmgTags = new List<string>();
+
+            //Remove all ODHTags that where automatically assigned
+            if (accoNew != null && accoOld != null && accoOld.SmgTags != null && assignedtagsonimport != null)
+                tagstopreserve = accoOld.SmgTags.Except(assignedtagsonimport).ToList();
+
+            
+            //Readd Tags to preserve
+            foreach (var tagtopreserve in tagstopreserve)
+            {
+                accoNew.SmgTags.Add(tagtopreserve);
+            }
+
+            accoNew.SmgTags.RemoveEmptyStrings();
+        }
+
+        //Metadata assignment detailde.MetaTitle = detailde.Title + " | suedtirol.info";
+        private async Task AddIDMMetaTitleAndDescription(AccommodationV2 accoNew, MetaInfosOdhActivityPoi metainfo)
+        {
+            //var metainfosidm = await QueryFactory
+            //    .Query("odhactivitypoimetainfos")
+            //    .Select("data")
+            //    .Where("id", "metainfoexcelsmgpoi")
+            //    .GetObjectSingleAsync<MetaInfosOdhActivityPoi>();
+
+            IDMCustomHelper.SetMetaInfoForAccommodation(accoNew, metainfo);
+        }
+
+        #endregion
     }
 
 }

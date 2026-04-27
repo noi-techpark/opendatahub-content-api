@@ -767,9 +767,9 @@ namespace OdhApiCore.Controllers.api
                 //Add english Translations for TagIds 
                 await GenericTaggingHelper.AddTagIdsToODHActivityPoi(odhactivitypoi, await GenericTaggingHelper.GetAllGenericTagsfromJson(settings.JsonConfig.Jsondir));
 
+                //TO CHECK if Tag entries should preserved here!
                 //Populate Tags (Id/Source/Type)
-                await odhactivitypoi.UpdateTagsExtension(QueryFactory);
-
+                await odhactivitypoi.UpdateTagsExtension(QueryFactory, await FillTagsObject.GetTagEntrysToPreserve(odhactivitypoi));
 
                 //POPULATE Categories
                 await ODHTagHelper.GetCategoriesFromAssignedODHTags(

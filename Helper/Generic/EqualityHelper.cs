@@ -117,11 +117,14 @@ namespace Helper.Generic
         )
             where T : IIdentifiable, new()
         {
-            T compareclass1 = new T();
-            T compareclass2 = new T();
+            //T compareclass1 = new T();
+            //T compareclass2 = new T();
 
-            CopyClassHelper.CopyPropertyValues(class1, compareclass1);
-            CopyClassHelper.CopyPropertyValues(class2, compareclass2);
+            //CopyClassHelper.CopyPropertyValues(class1, compareclass1);
+            //CopyClassHelper.CopyPropertyValues(class2, compareclass2);
+
+            T compareclass1 = DeepCopy<T>(class1);
+            T compareclass2 = DeepCopy<T>(class2);
 
             if (propertiestonotcheck != null)
             {
@@ -219,6 +222,8 @@ namespace Helper.Generic
 
             if (propertiestonotcheck != null)
             {
+                //Insert ImageName ???
+
                 foreach (string s in propertiestonotcheck)
                 {
                     //Set the fields null (DateTime sets DateTime min
@@ -258,7 +263,11 @@ namespace Helper.Generic
             );
         }
 
-       
+        public static T DeepCopy<T>(object source) where T : new()
+        {
+            var json = JsonConvert.SerializeObject(source);
+            return JsonConvert.DeserializeObject<T>(json);
+        }
     }
 
     public class OrderedContractResolver : DefaultContractResolver
@@ -345,26 +354,7 @@ namespace Helper.Generic
             if (property1 != null && property1.GetSetMethod() != null)
                 property1.SetValue(obj, null, null);
         }
-
-        //public static void SetNestedPropertyValueToNull<T>(this T obj, string propertyPath)
-        //{
-        //    var parts = propertyPath.Split('.');
-        //    object current = obj!;
-
-        //    for (int i = 0; i < parts.Length - 1; i++)
-        //    {
-        //        var prop = current.GetType().GetProperty(parts[i]);
-        //        current = prop.GetValue(obj);
-        //    }
-
-        //    if (current != null)
-        //    {
-        //        var finalProp = current.GetType().GetProperty(parts.Last());
-        //        if (finalProp != null && finalProp.GetSetMethod() != null)
-        //            finalProp.SetValue(current, null, null);
-        //    }
-        //}
-
+        
         public static void SetNestedPropertyValueToNull<T>(this T obj, string propertyPath)
         {
             var parts = propertyPath.Split('.');

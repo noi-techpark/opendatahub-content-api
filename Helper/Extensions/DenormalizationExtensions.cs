@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -47,7 +48,8 @@ namespace Helper
             this EventLinked source,
             Func<EventLinked, ICollection<TItem>?> collectionSelector,
             Action<EventLinked, ICollection<TItem>?> collectionSetter,
-            Func<TItem, bool>? itemFilter = null)
+            Func<TItem, bool>? itemFilter = null,
+            Func<TItem, object>? orderBy = null)
         {
             var collection = collectionSelector(source);
 
@@ -67,6 +69,9 @@ namespace Helper
                 yield break; // or yield return source if you want to keep the record
             }
 
+            if (orderBy != null)
+                filteredItems = filteredItems.OrderBy(orderBy);
+
             foreach (var item in filteredItems)
             {
                 var clone = source.DeepClone();
@@ -79,10 +84,15 @@ namespace Helper
         /// <summary>
         /// Deep clone via JSON serialization (simple and safe for data models).
         /// </summary>
+        //private static EventLinked DeepClone(this EventLinked source)
+        //{
+        //    var json = JsonSerializer.Serialize(source);
+        //    return JsonSerializer.Deserialize<EventLinked>(json)!;
+        //}
         private static EventLinked DeepClone(this EventLinked source)
         {
-            var json = JsonSerializer.Serialize(source);
-            return JsonSerializer.Deserialize<EventLinked>(json)!;
+            var json = JsonConvert.SerializeObject(source);
+            return JsonConvert.DeserializeObject<EventLinked>(json)!;
         }
 
         public static IEnumerable<T> DenormalizeBy<T, TItem>(
@@ -107,10 +117,16 @@ namespace Helper
             }
         }
 
+        //private static T DeepClone<T>(this T source) where T : class
+        //{
+        //    var json = JsonSerializer.Serialize(source);
+        //    return JsonSerializer.Deserialize<T>(json)!;
+        //}
+
         private static T DeepClone<T>(this T source) where T : class
         {
-            var json = JsonSerializer.Serialize(source);
-            return JsonSerializer.Deserialize<T>(json)!;
+            var json = JsonConvert.SerializeObject(source);
+            return JsonConvert.DeserializeObject<T>(json)!;
         }
     }
 }

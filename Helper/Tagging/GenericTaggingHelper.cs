@@ -88,16 +88,38 @@ namespace Helper
             return returnList;
         }
 
+        //public static async Task<List<TagLinked>> GetAllGenericTagsfromJson(string jsondir)
+        //{
+        //    using (StreamReader r = new StreamReader(Path.Combine(jsondir, $"GenericTags.json")))
+        //    {
+        //        string json = await r.ReadToEndAsync();
+
+        //        return JsonConvert.DeserializeObject<List<TagLinked>>(json) ?? new();
+        //    }
+        //}
+
         //GETS all generic tags from json as object to avoid DB call on each Tag update
         public static async Task<List<TagLinked>> GetAllGenericTagsfromJson(string jsondir)
         {
-            using (StreamReader r = new StreamReader(Path.Combine(jsondir, $"GenericTags.json")))
-            {
-                string json = await r.ReadToEndAsync();
+            var filePath = Path.Combine(jsondir, "GenericTags.json");
 
+            if (!File.Exists(filePath))
+                return new();
+
+            try
+            {
+                using var r = new StreamReader(filePath);
+                string json = await r.ReadToEndAsync();
                 return JsonConvert.DeserializeObject<List<TagLinked>>(json) ?? new();
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Warning: Failed to read GenericTags.json: {ex.Message}");
+                return new();
+            }
         }
+
+
 
         //public static async Task<List<ODHTagLinked>> GetAllGeneratedOdhTagsfromJson(string jsondir)
         //{

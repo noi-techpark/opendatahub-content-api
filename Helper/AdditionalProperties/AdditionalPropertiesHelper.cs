@@ -170,6 +170,25 @@ namespace Helper.AdditionalProperties
                         }
 
                         break;
+                    case "EventEuracNoiDataProperties":
+
+                        var resulteventeuracnoidata = CastAs<EventEuracNoiDataProperties>(kvp.Value);
+                        success = resulteventeuracnoidata.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resulteventeuracnoidata.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resulteventeuracnoidata.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "EventEuracNoiDataProperties",
+                                    (EventEuracNoiDataProperties)resulteventeuracnoidata.Item3
+                                );
+                            }
+                        }
+
+                        break;
 
                     default:
                         errorlist.Add("unknown error", "The Type " + kvp.Key + " is not known");

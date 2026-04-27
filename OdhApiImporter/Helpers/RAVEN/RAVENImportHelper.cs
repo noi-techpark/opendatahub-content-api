@@ -59,194 +59,197 @@ namespace OdhApiImporter.Helpers
             switch (datatype.ToLower())
             {
                 case "accommodation":
-                    bool accommodationhasnopushchannels = false;
-                    var updateresultstomerge = new List<UpdateDetail>();
+                    //bool accommodationhasnopushchannels = false;
+                    //var updateresultstomerge = new List<UpdateDetail>();
 
-                    mydata = await GetDataFromRaven.GetRavenData<AccommodationRaven>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<
-                            AccommodationRaven,
-                            AccommodationV2
-                        >(
-                            (AccommodationRaven)mydata,
-                            TransformToPGObject.GetAccommodationPGObjectV2
-                        );
-                    else
-                        throw new Exception("No data found!");
-
-                    //Add the PublishedOn Logic
-                    ((AccommodationV2)mypgdata).CreatePublishedOnList();
-
-                    //Update LTS CIN Code
-                    await LtsApiv2Operations.UpdateAccommodationWithLTSV2Data(
-                        (AccommodationV2)mypgdata,
-                        QueryFactory,
-                        settings,
-                        true,
-                        true,
-                        true,
-                        true
-                    );
-
-                    var myupdateresultacco = await SaveRavenObjectToPG<AccommodationV2>(
-                        (AccommodationV2)mypgdata,
-                        "accommodations",
-                        true,
-                        true,
-                        true
-                    );
-                    updateresultstomerge.Add(myupdateresultacco);
-
-                    //Check if accommodation has no push channels assigned
-                    if (myupdateresultacco.pushchannels == null || myupdateresultacco.pushchannels.Count == 0)
-                        accommodationhasnopushchannels = true;
-
-                    //Check if data has to be reduced and save it
-                    if (
-                        ReduceDataTransformer.ReduceDataCheck<AccommodationV2>(
-                            (AccommodationV2)mypgdata
-                        ) == true
-                    )
-                    {
-                        var reducedobject = ReduceDataTransformer.GetReducedObject(
-                            (AccommodationV2)mypgdata,
-                            ReduceDataTransformer.CopyLTSAccommodationToReducedObject
-                        );
-
-                        updateresultreduced = await SaveRavenObjectToPG<AccommodationV2>(
-                            (AccommodationV2)reducedobject,
-                            "accommodations",
-                            false,
-                            false,
-                            false
-                        );
-                    }
-
-                    bool roomschanged = false;
-
-                    //UPDATE ACCOMMODATIONROOMS
-                    var myroomdatalist = await GetDataFromRaven.GetRavenData<
-                        IEnumerable<AccommodationRoomLinked>
-                    >(
-                        "accommodationroom",
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken,
-                        "AccommodationRoom?getall=true&accoid="
-                    );
-
-                    //TODO make a call on all rooms, save the processed rooms and delete all rooms that are no more on the list
-                    var currentassignedroomids = await QueryFactory
-                        .Query("accommodationrooms")
-                        .Select("id")
-                        .Where("gen_a0rid", "ILIKE", mypgdata.Id)
-                        .GetAsync<string>();
-
-                    if (currentassignedroomids.Count() > 0)
-                    {
-                        var roomdataidsactual = myroomdatalist.Select(x => x.Id.ToUpper()).ToList();
-
-                        var roomidstodelete = currentassignedroomids.Except(roomdataidsactual);
-
-                        if (roomidstodelete.Count() > 0)
-                        {
-                            //DELETE this rooms
-                            foreach (var roomid in roomidstodelete)
-                            {
-                                var roomdeleteresult =
-                                    await DeleteRavenObjectFromPG<AccommodationRoomLinked>(
-                                        roomid,
-                                        "accommodationrooms",
-                                        false
-                                    );
-
-                                updateresultstomerge.Add(roomdeleteresult);
-
-                                roomschanged = true;
-                            }
-                        }
-                    }
-
-                    if (myroomdatalist != null)
-                    {
-                        Tuple<string, bool>? roomsourcecheck = null;
-                        if (
-                            ((AccommodationV2)mypgdata).AccoRoomInfo != null
-                            && ((AccommodationV2)mypgdata)
-                                .AccoRoomInfo.Select(x => x.Source)
-                                .Distinct()
-                                .Count() > 1
-                        )
-                            roomsourcecheck = Tuple.Create("hgv", true);
-
-                        foreach (var myroomdata in myroomdatalist)
-                        {
-                            var mypgroomdata = TransformToPGObject.GetPGObject<
-                                AccommodationRoomLinked,
-                                AccommodationRoomLinked
-                            >(
-                                (AccommodationRoomLinked)myroomdata,
-                                TransformToPGObject.GetAccommodationRoomPGObject
-                            );
-
-                            //Add the PublishedOn Logic
-                            ((AccommodationRoomLinked)mypgroomdata).CreatePublishedOnList(
-                                null,
-                                roomsourcecheck
-                            );
-
-                            var accoroomresult = await SaveRavenObjectToPG<AccommodationRoomLinked>(
-                                (AccommodationRoomLinked)mypgroomdata,
-                                "accommodationrooms",
-                                true,
-                                true,
-                                true
-                            );
-
-                            if (accoroomresult.objectchanged > 0)
-                                roomschanged = true;
-
-                            updateresultstomerge.Add(accoroomresult);
-                        }
-                    }
-
-                    //TODO Add a check where if the Accommodation Object has no Push Channels assigned the Accommodation Room Objects push channels
-                    //are cleared
-                    if(accommodationhasnopushchannels)
-                    {
-                        foreach(var updatesulttoclear in updateresultstomerge)
-                        {
-                            if(updatesulttoclear.pushchannels != null)
-                                updatesulttoclear.pushchannels.Clear();
-                        }
-                    }
-
-                    //Merge with updateresult
-                    myupdateresult = GenericResultsHelper.MergeUpdateDetail(updateresultstomerge);
-
-                    //Remove Exception not all accommodations have rooms
+                    //mydata = await GetDataFromRaven.GetRavenData<AccommodationRaven>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<
+                    //        AccommodationRaven,
+                    //        AccommodationV2
+                    //    >(
+                    //        (AccommodationRaven)mydata,
+                    //        TransformToPGObject.GetAccommodationPGObjectV2
+                    //    );
                     //else
                     //    throw new Exception("No data found!");
 
+                    ////Add the PublishedOn Logic
+                    //((AccommodationV2)mypgdata).CreatePublishedOnList();
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        new Dictionary<string, bool>() { { "roomschanged", roomschanged } }
-                    );
+                    ////Update LTS CIN Code
+                    //await LtsApiv2Operations.UpdateAccommodationWithLTSV2Data(
+                    //    (AccommodationV2)mypgdata,
+                    //    QueryFactory,
+                    //    settings,
+                    //    true,
+                    //    true,
+                    //    true,
+                    //    true
+                    //);
 
-                    break;
+                    //var myupdateresultacco = await SaveRavenObjectToPG<AccommodationV2>(
+                    //    (AccommodationV2)mypgdata,
+                    //    "accommodations",
+                    //    true,
+                    //    true,
+                    //    true
+                    //);
+                    //updateresultstomerge.Add(myupdateresultacco);
+
+                    ////Check if accommodation has no push channels assigned
+                    //if (myupdateresultacco.pushchannels == null || myupdateresultacco.pushchannels.Count == 0)
+                    //    accommodationhasnopushchannels = true;
+
+                    ////Check if data has to be reduced and save it
+                    //if (
+                    //    ReduceDataTransformer.ReduceDataCheck<AccommodationV2>(
+                    //        (AccommodationV2)mypgdata
+                    //    ) == true
+                    //)
+                    //{
+                    //    var reducedobject = ReduceDataTransformer.GetReducedObject(
+                    //        (AccommodationV2)mypgdata,
+                    //        ReduceDataTransformer.CopyLTSAccommodationToReducedObject
+                    //    );
+
+                    //    updateresultreduced = await SaveRavenObjectToPG<AccommodationV2>(
+                    //        (AccommodationV2)reducedobject,
+                    //        "accommodations",
+                    //        false,
+                    //        false,
+                    //        false
+                    //    );
+                    //}
+
+                    //bool roomschanged = false;
+
+                    ////UPDATE ACCOMMODATIONROOMS
+                    //var myroomdatalist = await GetDataFromRaven.GetRavenData<
+                    //    IEnumerable<AccommodationRoomLinked>
+                    //>(
+                    //    "accommodationroom",
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken,
+                    //    "AccommodationRoom?getall=true&accoid="
+                    //);
+
+                    ////TODO make a call on all rooms, save the processed rooms and delete all rooms that are no more on the list
+                    //var currentassignedroomids = await QueryFactory
+                    //    .Query("accommodationrooms")
+                    //    .Select("id")
+                    //    .Where("gen_a0rid", "ILIKE", mypgdata.Id)
+                    //    .GetAsync<string>();
+
+                    //if (currentassignedroomids.Count() > 0)
+                    //{
+                    //    var roomdataidsactual = myroomdatalist.Select(x => x.Id.ToUpper()).ToList();
+
+                    //    var roomidstodelete = currentassignedroomids.Except(roomdataidsactual);
+
+                    //    if (roomidstodelete.Count() > 0)
+                    //    {
+                    //        //DELETE this rooms
+                    //        foreach (var roomid in roomidstodelete)
+                    //        {
+                    //            var roomdeleteresult =
+                    //                await DeleteRavenObjectFromPG<AccommodationRoomLinked>(
+                    //                    roomid,
+                    //                    "accommodationrooms",
+                    //                    false
+                    //                );
+
+                    //            updateresultstomerge.Add(roomdeleteresult);
+
+                    //            roomschanged = true;
+                    //        }
+                    //    }
+                    //}
+
+                    //if (myroomdatalist != null)
+                    //{
+                    //    Tuple<string, bool>? roomsourcecheck = null;
+                    //    if (
+                    //        ((AccommodationV2)mypgdata).AccoRoomInfo != null
+                    //        && ((AccommodationV2)mypgdata)
+                    //            .AccoRoomInfo.Select(x => x.Source)
+                    //            .Distinct()
+                    //            .Count() > 1
+                    //    )
+                    //        roomsourcecheck = Tuple.Create("hgv", true);
+
+                    //    foreach (var myroomdata in myroomdatalist)
+                    //    {
+                    //        var mypgroomdata = TransformToPGObject.GetPGObject<
+                    //            AccommodationRoomLinked,
+                    //            AccommodationRoomLinked
+                    //        >(
+                    //            (AccommodationRoomLinked)myroomdata,
+                    //            TransformToPGObject.GetAccommodationRoomPGObject
+                    //        );
+
+                    //        //Add the PublishedOn Logic
+                    //        ((AccommodationRoomLinked)mypgroomdata).CreatePublishedOnList(
+                    //            null,
+                    //            roomsourcecheck
+                    //        );
+
+                    //        var accoroomresult = await SaveRavenObjectToPG<AccommodationRoomLinked>(
+                    //            (AccommodationRoomLinked)mypgroomdata,
+                    //            "accommodationrooms",
+                    //            true,
+                    //            true,
+                    //            true
+                    //        );
+
+                    //        if (accoroomresult.objectchanged > 0)
+                    //            roomschanged = true;
+
+                    //        updateresultstomerge.Add(accoroomresult);
+                    //    }
+                    //}
+
+                    ////TODO Add a check where if the Accommodation Object has no Push Channels assigned the Accommodation Room Objects push channels
+                    ////are cleared
+                    //if(accommodationhasnopushchannels)
+                    //{
+                    //    foreach(var updatesulttoclear in updateresultstomerge)
+                    //    {
+                    //        if(updatesulttoclear.pushchannels != null)
+                    //            updatesulttoclear.pushchannels.Clear();
+                    //    }
+                    //}
+
+                    ////Merge with updateresult
+                    //myupdateresult = GenericResultsHelper.MergeUpdateDetail(updateresultstomerge);
+
+                    ////Remove Exception not all accommodations have rooms
+                    ////else
+                    ////    throw new Exception("No data found!");
+
+
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    new Dictionary<string, bool>() { { "roomschanged", roomschanged } }
+                    //);
+
+                    //break;
+
+
+                    throw new Exception("Accommodation Update Raven Migrated!");
 
                 case "gastronomy":
                     //mydata = await GetDataFromRaven.GetRavenData<GastronomyRaven>(
@@ -975,43 +978,45 @@ namespace OdhApiImporter.Helpers
                     break;
 
                 case "odhtag":
-                    mydata = await GetDataFromRaven.GetRavenData<ODHTagLinked>(
-                        datatype,
-                        id,
-                        settings.RavenConfig.ServiceUrl,
-                        settings.RavenConfig.User,
-                        settings.RavenConfig.Password,
-                        cancellationToken
-                    );
-                    if (mydata != null)
-                        mypgdata = TransformToPGObject.GetPGObject<ODHTagLinked, ODHTagLinked>(
-                            (ODHTagLinked)mydata,
-                            TransformToPGObject.GetODHTagPGObject
-                        );
-                    else
-                        throw new Exception("No data found!");
+                    //mydata = await GetDataFromRaven.GetRavenData<ODHTagLinked>(
+                    //    datatype,
+                    //    id,
+                    //    settings.RavenConfig.ServiceUrl,
+                    //    settings.RavenConfig.User,
+                    //    settings.RavenConfig.Password,
+                    //    cancellationToken
+                    //);
+                    //if (mydata != null)
+                    //    mypgdata = TransformToPGObject.GetPGObject<ODHTagLinked, ODHTagLinked>(
+                    //        (ODHTagLinked)mydata,
+                    //        TransformToPGObject.GetODHTagPGObject
+                    //    );
+                    //else
+                    //    throw new Exception("No data found!");
 
-                    //LicenseInfo Logic added on TransformToPGObject because on the sinfo instance there is no license info
-                    //PublishedOn Logic added on TransformToPGObject because ODHTag not implementing ISource
+                    ////LicenseInfo Logic added on TransformToPGObject because on the sinfo instance there is no license info
+                    ////PublishedOn Logic added on TransformToPGObject because ODHTag not implementing ISource
 
-                    myupdateresult = await SaveRavenObjectToPG<ODHTagLinked>(
-                        (ODHTagLinked)mypgdata,
-                        "smgtags",
-                        true,
-                        false,
-                        false
-                    );
+                    //myupdateresult = await SaveRavenObjectToPG<ODHTagLinked>(
+                    //    (ODHTagLinked)mypgdata,
+                    //    "smgtags",
+                    //    true,
+                    //    false,
+                    //    false
+                    //);
 
-                    //Check if the Object has Changed and Push all infos to the channels
-                    myupdateresult.pushed = await CheckIfObjectChangedAndPush(
-                        myupdateresult,
-                        mypgdata.Id,
-                        datatype,
-                        null,
-                        "redactional.push"
-                    );
+                    ////Check if the Object has Changed and Push all infos to the channels
+                    //myupdateresult.pushed = await CheckIfObjectChangedAndPush(
+                    //    myupdateresult,
+                    //    mypgdata.Id,
+                    //    datatype,
+                    //    null,
+                    //    "redactional.push"
+                    //);
 
-                    break;
+                    // break;
+
+                    throw new Exception("ODHTag Update Raven Migrated!");
 
                 case "measuringpoint":
                     //mydata = await GetDataFromRaven.GetRavenData<MeasuringpointRaven>(
@@ -1232,15 +1237,15 @@ namespace OdhApiImporter.Helpers
             {
                 case "accommodation":
 
-                    deleteresult = await DeleteRavenObjectFromPG<AccommodationLinked>(
-                        id,
-                        "accommodations",
-                        true
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
-                    //TODO DELETE also rooms
+                    //deleteresult = await DeleteRavenObjectFromPG<AccommodationLinked>(
+                    //    id,
+                    //    "accommodations",
+                    //    true
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    ////TODO DELETE also rooms
 
-                    break;
+                    throw new Exception("Accommodation Delete Raven Migrated!");                    
 
                 case "gastronomy":
 
@@ -1431,15 +1436,17 @@ namespace OdhApiImporter.Helpers
 
                 case "odhtag":
 
-                    //Delete
-                    deleteresult = await DeleteRavenObjectFromPG<ODHTagLinked>(
-                        id,
-                        "smgtags",
-                        false
-                    );
-                    deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
+                    ////Delete
+                    //deleteresult = await DeleteRavenObjectFromPG<ODHTagLinked>(
+                    //    id,
+                    //    "smgtags",
+                    //    false
+                    //);
+                    //deleteresult.pushed = await PushDeletedObject(deleteresult, id, datatype);
 
-                    break;
+                    //break;
+
+                    throw new Exception("ODHTag Delete Raven Migrated!");
 
                 case "measuringpoint":
 

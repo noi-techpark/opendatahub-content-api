@@ -223,17 +223,35 @@ namespace Helper.Converters
             {
                 foreach (var tag in eventshort.CustomTagging)
                 {
-                    eventv1.TagIds.Add(tag);
+                    eventv1.TagIds.Add(tag.ToLower()
+                        .Replace(" ","")
+                        .Replace("-", "")
+                        .Replace("&", "")
+                        );
                 }
-            }            
+            }
+
+            if (eventshort.TechnologyFields != null)
+            {
+                foreach (var tag in eventshort.TechnologyFields)
+                {
+                    eventv1.TagIds.Add(tag.ToLower()
+                        .Replace(" ", "")
+                        .Replace("-", "")
+                        .Replace("&", "")
+                        );
+                }
+            }
 
             //Add Location as Tag
-            if(!String.IsNullOrEmpty(eventshort.EventLocation))
+            if (!String.IsNullOrEmpty(eventshort.EventLocation))
                 eventv1.TagIds.Add("eventlocation:" + eventshort.EventLocation.ToLower());
 
-            //Add each Room as Tag?
+            //To check Add each Room as Tag?
 
-            eventv1.Documents = eventshort.Documents;
+
+            //Test if this works
+            eventv1.Documents = (IDictionary<string, ICollection<Document>>?)(eventshort.Documents != null ? eventshort.Documents : null);
             eventv1.VideoItems = eventshort.VideoItems;
 
             if(eventshort.WebAddress != null)
@@ -273,7 +291,7 @@ namespace Helper.Converters
             //RoomBooked.SpaceType
             //RoomBooked.SpaceAbbrev
             
-
+            //TODO THIS IS NOT WORKING AS IT SHOULD!
             EventEuracNoiDataProperties additionalprops = new EventEuracNoiDataProperties();
             additionalprops.ExternalOrganizer = eventshort.ExternalOrganizer;
             additionalprops.SoldOut = eventshort.SoldOut;
@@ -282,7 +300,7 @@ namespace Helper.Converters
 
             //find a better key here
             eventv1.AdditionalProperties = new Dictionary<string, dynamic>();
-            eventv1.AdditionalProperties.Add("eventeuracnoidataproperties", additionalprops);
+            eventv1.AdditionalProperties.Add("EventEuracNoiDataProperties", additionalprops);
 
 
             if (eventshort.RoomBooked != null)
@@ -301,8 +319,8 @@ namespace Helper.Converters
                         eventdate.Active = true;
 
                     //StartDate
-                    eventdate.From = roombooked.StartDate;
-                    eventdate.To = roombooked.EndDate;
+                    eventdate.From = roombooked.StartDate.Date;
+                    eventdate.To = roombooked.EndDate.Date;
 
                     //StartDateUTC
                     //EndDateUTC
@@ -519,9 +537,11 @@ namespace Helper.Converters
 
         private static (string, string) GetRoomBookedVenueId(EventShort eventshort, RoomBooked room)
         {
-            var space = room.SpaceType != null ? room.SpaceType.ToLower() : eventshort.EventLocation.ToLower();
+            var space = !String.IsNullOrEmpty(room.SpaceType) ? room.SpaceType.ToLower() : eventshort.EventLocation.ToLower();
 
             if (space == "no")
+                space = "noi";
+            if (space == "noi")
                 space = "noi";
             if (space == "ec")
                 space = "eurac";
