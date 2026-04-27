@@ -853,10 +853,11 @@ namespace DataModel
         public string? Placement { get; set; }
 
         //New fields
-
-        //"isActive": true,
+        
         public bool? Active { get; set; }
-        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+
+        public int? MaxCapacity { get; set; }
+
         //"id": "room-36-A",
         //"venueId": "venue-1-A",
         //"venueName": "Eurac Research",
@@ -866,10 +867,8 @@ namespace DataModel
         //"conflictingRoomIds": [
         //    "room-45-A"
         //]
-
-        //Add as Tags?
-        //"maxCapacity": null,
         //"isComboRoom": false,
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
     }
 
     public class VenueRoomProperties
