@@ -42,6 +42,7 @@ namespace OdhApiCore
         private readonly LTSCredentials ltsCredentialsOpen;
 
         private readonly ZOHOConfig zohoConfig;
+        private readonly MOMENTUSConfig momentusConfig;
 
         public Settings(IConfiguration configuration)
         {
@@ -295,6 +296,14 @@ namespace OdhApiCore
                 zoho.GetValue<string>("AuthUrl", ""),
                 zoho.GetValue<string>("Scope", "")
             );
+
+            var momentus = this.configuration.GetSection("MomentusConfig");
+            this.momentusConfig = new MOMENTUSConfig(
+                zoho.GetValue<string>("ClientId", ""),
+                zoho.GetValue<string>("ClientSecret", ""),
+                zoho.GetValue<string>("ServiceUrl", ""),
+                zoho.GetValue<string>("AuthUrl", "")
+            );
         }
 
         public string PostgresConnectionString => this.connectionString.Value;
@@ -336,5 +345,6 @@ namespace OdhApiCore
         public LTSCredentials LtsCredentialsOpen => this.ltsCredentialsOpen;
 
         public ZOHOConfig ZohoConfig => this.zohoConfig;
+        public MOMENTUSConfig MomentusConfig => this.momentusConfig;
     }
 }

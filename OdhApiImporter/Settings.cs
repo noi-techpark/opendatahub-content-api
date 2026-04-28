@@ -329,7 +329,6 @@ namespace OdhApiImporter
         public IDictionary<string, GTFSApiConfig> GTFSApiConfig => this.gtfsapiConfig;
 
         public ZOHOConfig ZohoConfig => this.zohoConfig;
-
         public MOMENTUSConfig MomentusConfig => this.momentusConfig;
     }
 }
