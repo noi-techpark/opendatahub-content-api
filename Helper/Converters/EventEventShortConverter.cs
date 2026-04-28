@@ -202,14 +202,14 @@ namespace Helper.Converters
             eventv1.LicenseInfo = eventshort.LicenseInfo;
 
             eventv1.RelatedContent = eventshort.RelatedContent;
-            
+
             eventv1.Mapping = eventshort.Mapping;
 
             if (eventv1.Mapping == null)
                 eventv1.Mapping = new Dictionary<string, IDictionary<string, string>>();
 
             var mappingtoadd = eventv1.Mapping.ContainsKey("ebms") ? eventv1.Mapping["ebms"] : new Dictionary<string, string>();
-            if(eventshort.EventId != null)
+            if (eventshort.EventId != null)
                 mappingtoadd.Add("eventid", eventshort.EventId.ToString());
 
             if (eventshort.CompanyId != null)
@@ -219,12 +219,12 @@ namespace Helper.Converters
 
             eventv1.TagIds = new List<string>();
 
-            if(eventshort.CustomTagging != null)
+            if (eventshort.CustomTagging != null)
             {
                 foreach (var tag in eventshort.CustomTagging)
                 {
                     eventv1.TagIds.Add(tag.ToLower()
-                        .Replace(" ","")
+                        .Replace(" ", "")
                         .Replace("-", "")
                         .Replace("&", "")
                         );
@@ -251,7 +251,14 @@ namespace Helper.Converters
 
 
             //Test if this works
-            eventv1.Documents = (IDictionary<string, ICollection<Document>>?)(eventshort.Documents != null ? eventshort.Documents : null);
+            if (eventshort.Documents != null)
+            {
+                eventv1.Documents = eventshort.Documents?
+                                    .ToDictionary(
+                                        kvp => kvp.Key,
+                                        kvp => (ICollection<Document>)kvp.Value
+                                    );
+            }
             eventv1.VideoItems = eventshort.VideoItems;
 
             if(eventshort.WebAddress != null)
@@ -439,7 +446,7 @@ namespace Helper.Converters
 
                 if (!new List<string>() { "VV", "" }.Contains(eventshort.EventLocation))
                 {
-                    var (venueid, eventlocation, source) = GetVenueId(eventshort);
+                    var (venueid, eventlocation, source) = GetVenueId(eventshort);                    
 
                     VenueV2 venue = new VenueV2();
                     venue.Id = venueid;
@@ -546,7 +553,7 @@ namespace Helper.Converters
             if (space == "ec")
                 space = "eurac";
             if (space == "vi")
-                space = "eurac";            
+                space = eventshort.EventLocation.ToLower() == "ec" ? "eurac" : "noi";
 
             var venueroomid = "urn:" + space.ToLower() + ":" + room.SpaceDesc.ToLower().Replace(" ", "-").Replace(",","") + ":" + GuidHelpers.CreateFromName(Guid.Empty, space + "_" + room.SpaceDesc.ToLower());
 
