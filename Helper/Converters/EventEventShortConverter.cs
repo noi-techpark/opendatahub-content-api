@@ -446,7 +446,7 @@ namespace Helper.Converters
 
                 if (!new List<string>() { "VV", "" }.Contains(eventshort.EventLocation))
                 {
-                    var (venueid, eventlocation, source) = GetVenueId(eventshort);
+                    var (venueid, eventlocation, source) = GetVenueId(eventshort);                    
 
                     VenueV2 venue = new VenueV2();
                     venue.Id = venueid;
