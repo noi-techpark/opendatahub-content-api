@@ -26,7 +26,7 @@ namespace MOMENTUS.Parser
         }
 
         //To check if one room for noi with subrooms is returned
-        public static VenueV2 ParseMomentusRoom(MomentusRoom mroom)
+        public static VenueV2 ParseMomentusRoom(MomentusRoom mroom, VenueV2 venue)
         {
             //This is always assigned
             //"venueId": "venue-1-A",
@@ -37,9 +37,10 @@ namespace MOMENTUS.Parser
             // "group": "NOI TECHPARK"
             // "group": "EURAC RESEARCH HQ"
 
+            if(venue == null) 
+                venue = new VenueV2();
 
 
-            VenueV2 venue = new VenueV2();
 
             return venue;
         }
@@ -49,9 +50,9 @@ namespace MOMENTUS.Parser
             return mevents.Select(x => ParseMomentusEvent(x)).ToList();
         }
 
-        public static IEnumerable<VenueV2> ParseMomentusRooms(IEnumerable<MomentusRoom> mrooms)
+        public static IEnumerable<VenueV2> ParseMomentusRooms(IEnumerable<MomentusRoom> mrooms, VenueV2 venue)
         {
-            return mrooms.Select(x => ParseMomentusRoom(x)).ToList();
+            return mrooms.Select(x => ParseMomentusRoom(x, venue)).ToList();
         }
     }
 }

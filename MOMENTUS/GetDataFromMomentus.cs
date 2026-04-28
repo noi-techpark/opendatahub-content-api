@@ -77,7 +77,7 @@ namespace MOMENTUS
             }
         }
 
-        public static async Task<MomentusEvent> RequestMomentusRoomResponse(string url, string clientid, string clientsecret, string authurl)
+        public static async Task<IEnumerable<MomentusRoom>> RequestMomentusRooms(string url, string clientid, string clientsecret, string authurl)
         {
             var authresponse = await GetAccessTokenAsync(authurl, clientid, clientsecret);
 
@@ -92,7 +92,7 @@ namespace MOMENTUS
                 var jsonResponse = await response.Content.ReadAsStringAsync();
 
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var data = JsonSerializer.Deserialize<MomentusEvent>(jsonResponse, options);
+                var data = JsonSerializer.Deserialize<IEnumerable<MomentusRoom>>(jsonResponse, options);
 
                 return data;
             }

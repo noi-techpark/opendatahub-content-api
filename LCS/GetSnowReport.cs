@@ -29,9 +29,9 @@ namespace LCS
 
             List<string> prefilter2 = new List<string>();
             prefilter2.Add("1330A749F05A441EA702B64A8F82CD3C"); //Lift
-            prefilter2.Add("CFF9182A21DC4C0B88030EBE98D73A67"); //Pischtn
-            prefilter2.Add("C84ACF76753D48BCA2F3E5ACC89FF45E"); //Longlafn
-            prefilter2.Add("077EED61EE2F49AE95E472EA7B5C93AB"); //Roudlan
+            prefilter2.Add("CFF9182A21DC4C0B88030EBE98D73A67"); //Slopes
+            prefilter2.Add("C84ACF76753D48BCA2F3E5ACC89FF45E"); //Cross Country Skiing
+            prefilter2.Add("077EED61EE2F49AE95E472EA7B5C93AB"); //Sledge
 
             List<string> activitytype = new List<string>();
             activitytype.Add("LIFT");
