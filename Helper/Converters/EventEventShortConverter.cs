@@ -546,7 +546,7 @@ namespace Helper.Converters
             if (space == "ec")
                 space = "eurac";
             if (space == "vi")
-                space = "eurac";            
+                space = eventshort.EventLocation.ToLower();            
 
             var venueroomid = "urn:" + space.ToLower() + ":" + room.SpaceDesc.ToLower().Replace(" ", "-").Replace(",","") + ":" + GuidHelpers.CreateFromName(Guid.Empty, space + "_" + room.SpaceDesc.ToLower());
 
