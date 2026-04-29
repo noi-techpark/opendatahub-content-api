@@ -29,7 +29,8 @@
     <ProjectReference Include="..\GTFSAPI\GTFSAPI.csproj" />
     <ProjectReference Include="..\HDS\HDS.csproj" />
     <ProjectReference Include="..\Helper\Helper.csproj" />    
-    <ProjectReference Include="..\LOOPTEC\LOOPTEC.csproj" />
+    <ProjectReference Include="..\LOOPTEC\LOOPTEC.csproj" />    
+    <ProjectReference Include="..\MOMENTUS\MOMENTUS.csproj" />
     <ProjectReference Include="..\MSS\MSS.csproj" />
     <ProjectReference Include="..\NINJA\NINJA.csproj" />
     <ProjectReference Include="..\OdhNotifier\OdhNotifier.csproj" />

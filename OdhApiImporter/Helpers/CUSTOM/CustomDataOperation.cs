@@ -1493,6 +1493,18 @@ namespace OdhApiImporter.Helpers
                         venue.Source = datapresent.Source;
                         venue.TagIds = datapresent.TagIds;
                         venue.Tags = datapresent.Tags;
+                        venue.HasLanguage = datapresent.HasLanguage;
+                        venue._Meta = datapresent._Meta;
+                        venue.Active = datapresent.Active;
+                        venue.DistanceInfo = datapresent.DistanceInfo;
+                        //venue.DistrictId = datapresent.DistrictId;
+                        venue.LocationInfo = datapresent.LocationInfo;
+                        venue.OperationSchedule = datapresent.OperationSchedule;
+                        venue.PublishedOn = datapresent.PublishedOn;
+                        venue.FirstImport = datapresent.FirstImport;
+                        venue.LicenseInfo = datapresent.LicenseInfo;
+                        venue.RelatedContent = datapresent.RelatedContent;
+                        venue.AdditionalProperties = datapresent.AdditionalProperties;                        
 
                         //Update to DB                        
                         var queryresult = await QueryFactory
