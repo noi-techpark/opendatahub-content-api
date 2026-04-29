@@ -3,20 +3,21 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
-using MOMENTUS;
 using Helper;
 using Helper.Extensions;
 using Helper.Generic;
 using Helper.Tagging;
+using MOMENTUS;
+using MOMENTUS.Model;
 using Newtonsoft.Json;
 using OdhNotifier;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using MOMENTUS.Model;
 
 namespace OdhApiImporter.Helpers
 {
@@ -59,7 +60,7 @@ namespace OdhApiImporter.Helpers
             int newcounter = 0;
             int errorcounter = 0;
 
-            var momentusgroupedrooms = result.Select(x => x.Group).ToList();
+            var momentusgroupedrooms = result.Select(x => x.Group).Distinct().ToList();
 
             foreach (var momentusroomgroup in momentusgroupedrooms)
             {
@@ -67,8 +68,9 @@ namespace OdhApiImporter.Helpers
                 var venue = await QueryFactory
                        .Query("venues")
                        .Select("data")
-                       .WhereRaw($"data->>'Mapping->momentus->group' = '{momentusroomgroup}'")
+                       .WhereRaw("data#>>'\\{Mapping,momentus,group\\}' = $$", momentusroomgroup)
                        .GetObjectSingleAsync<VenueV2>();
+                
 
                 if (venue != null && momentusroomgroup != null)
                 {
@@ -103,13 +105,22 @@ namespace OdhApiImporter.Helpers
             {
                 foreach (var momentusroom in momentusrooms)
                 {
-                    //Check if venue Room has all infos
-                    var venueroom = venue.RoomDetails.Where(x => momentusroom.Name.Contains(x.Shortname)).FirstOrDefault();
-
-                    if(venueroom != null)
+                    if (momentusroom.Name != null)
                     {
+                        //Check if venue Room has all infos
+                        var venueroom = venue.RoomDetails.Where(x => momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "") == x.Shortname).FirstOrDefault();
+                        bool add = false;
+
+                        if (venueroom != null)
+                        {
+                            add = true;
+                            venueroom = new VenueRoomDetailsV2();
+                            venueroom.Shortname = momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "");
+                            venueroom.Detail.Add("en", new Detail() { Language = "en", Title = momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "") });
+                        }
+
                         venueroom.Active = momentusroom.IsActive;
-                        if(momentusroom.SquareFootage != null)
+                        if (momentusroom.SquareFootage != null)
                         {
                             venueroom.VenueRoomProperties = new VenueRoomProperties();
                             venueroom.VenueRoomProperties.SquareMeters = momentusroom.SquareFootage;
@@ -134,12 +145,17 @@ namespace OdhApiImporter.Helpers
                         mapping.Add("subRoomIds", String.Join(",", momentusroom.SubRoomIds));
                         mapping.Add("conflictingRoomIds", String.Join(",", momentusroom.ConflictingRoomIds));
 
-                        if(momentusroom.ItemCode != null)
+                        if (momentusroom.ItemCode != null)
                             mapping.Add("itemCode", momentusroom.ItemCode);
 
                         venueroom.Mapping.Add("momentus", mapping);
+
+                        if (add)
+                        {
+                            venue.RoomDetails.Add(venueroom);
+                        }
                     }
-                }
+                }            
 
 
                 var queryresult = await InsertDataToDB(
