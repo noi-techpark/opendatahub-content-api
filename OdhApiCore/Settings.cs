@@ -299,10 +299,10 @@ namespace OdhApiCore
 
             var momentus = this.configuration.GetSection("MomentusConfig");
             this.momentusConfig = new MOMENTUSConfig(
-                zoho.GetValue<string>("ClientId", ""),
-                zoho.GetValue<string>("ClientSecret", ""),
-                zoho.GetValue<string>("ServiceUrl", ""),
-                zoho.GetValue<string>("AuthUrl", "")
+                momentus.GetValue<string>("ClientId", ""),
+                momentus.GetValue<string>("ClientSecret", ""),
+                momentus.GetValue<string>("ServiceUrl", ""),
+                momentus.GetValue<string>("AuthUrl", "")
             );
         }
 

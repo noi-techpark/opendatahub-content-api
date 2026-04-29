@@ -70,7 +70,7 @@ namespace OdhApiImporter.Helpers
                        .WhereRaw($"data->>'Mapping->momentus->group' = '{momentusroomgroup}'")
                        .GetObjectSingleAsync<VenueV2>();
 
-                if (venue != null)
+                if (venue != null && momentusroomgroup != null)
                 {
                     var importresult = await ImportDataSingle(venue, momentusroomgroup, result.Where(x => x.Group == momentusroomgroup).ToList());
                     newcounter = newcounter + importresult.created ?? newcounter;

@@ -5,6 +5,7 @@
 using MOMENTUS.Model;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 
 namespace MOMENTUS
@@ -124,18 +125,17 @@ namespace MOMENTUS
             string clientId,
             string clientSecret)
         {
-            var requestBody = new FormUrlEncodedContent(new[]
-                {
-                new KeyValuePair<string, string>("client_id", clientId),
-                new KeyValuePair<string, string>("client_secret", clientSecret)                
-            });
+            var jsonBody = JsonSerializer.Serialize(new { clientId, clientSecret });
+            var requestBody = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
             HttpClient _httpClient = new HttpClient();
             var response = await _httpClient.PostAsync(authurl, requestBody);
             response.EnsureSuccessStatusCode();
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var token = JsonSerializer.Deserialize<MomentusTokenResponse>(jsonResponse);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            var token = JsonSerializer.Deserialize<MomentusTokenResponse>(jsonResponse, options);
 
             return token;
         }
