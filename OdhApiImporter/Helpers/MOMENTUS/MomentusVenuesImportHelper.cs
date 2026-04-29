@@ -108,10 +108,10 @@ namespace OdhApiImporter.Helpers
                     if (momentusroom.Name != null)
                     {
                         //Check if venue Room has all infos
-                        var venueroom = venue.RoomDetails.Where(x => momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "") == x.Shortname).FirstOrDefault();
+                        var venueroom = venue.RoomDetails?.Where(x => momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "") == x.Shortname).FirstOrDefault();
                         bool add = false;
 
-                        if (venueroom != null)
+                        if (venueroom == null)
                         {
                             add = true;
                             venueroom = new VenueRoomDetailsV2();
@@ -120,6 +120,7 @@ namespace OdhApiImporter.Helpers
                         }
 
                         venueroom.Active = momentusroom.IsActive;
+                        
                         if (momentusroom.SquareFootage != null)
                         {
                             venueroom.VenueRoomProperties = new VenueRoomProperties();
@@ -148,7 +149,7 @@ namespace OdhApiImporter.Helpers
                         if (momentusroom.ItemCode != null)
                             mapping.Add("itemCode", momentusroom.ItemCode);
 
-                        venueroom.Mapping.Add("momentus", mapping);
+                        venueroom.Mapping["momentus"] = mapping;
 
                         if (add)
                         {
@@ -231,7 +232,7 @@ namespace OdhApiImporter.Helpers
 
                 return await QueryFactory.UpsertData<VenueV2>(
                     venue,
-                    new DataInfo("venue", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
+                    new DataInfo("venues", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
                     new EditInfo("momentus.venue.import", importerURL),
                     new CRUDConstraints(),
                     new CompareConfig(true, false),
