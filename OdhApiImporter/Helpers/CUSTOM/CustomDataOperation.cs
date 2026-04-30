@@ -1479,10 +1479,21 @@ namespace OdhApiImporter.Helpers
                         .Query("venues")
                         .Select("data")
                         .Where("id", venue.Id)
-                        .FirstOrDefaultAsync<JsonRaw>();
+                        .GetObjectSingleAsync<VenueV2>();
 
                     if (datapresent != null)
                     {
+                        //preservce Mapping, Shortname and Detail                        
+                        venue.Mapping = datapresent.Mapping;
+                        venue.Detail = datapresent.Detail;
+                        venue.Shortname = datapresent.Shortname;
+                        venue.ContactInfos = datapresent.ContactInfos;
+                        venue.GpsInfo = datapresent.GpsInfo;
+                        venue.ImageGallery = datapresent.ImageGallery;
+                        venue.Source = datapresent.Source;
+                        venue.TagIds = datapresent.TagIds;
+                        venue.Tags = datapresent.Tags;
+
                         //Update to DB                        
                         var queryresult = await QueryFactory
                             .Query("venues")
@@ -1499,6 +1510,8 @@ namespace OdhApiImporter.Helpers
                     }
                     else
                     {
+
+
                         //Update to DB                        
                         var queryresult = await QueryFactory
                             .Query("venues")
@@ -1517,6 +1530,7 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
+     
 
         #endregion
 
