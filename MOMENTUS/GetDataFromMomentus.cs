@@ -24,14 +24,20 @@ namespace MOMENTUS
             };
         }
 
-        public static async Task<IEnumerable<MomentusEvent>> RequestMomentusEvents(string url, string clientid, string clientsecret, string authurl, EventSearchRequest eventsearchrequest)
-        {
-            var authresponse = await GetAccessTokenAsync(authurl, clientid, clientsecret);
-
+        public static async Task<IEnumerable<MomentusEvent>> RequestMomentusEvents(string url, string? clientid, string? clientsecret, string? authurl, EventSearchRequest eventsearchrequest, MomentusTokenResponse? authtoken)
+        {      
             using (var client = new HttpClient())
             {
+                //Reuse the token if passed (CURRENTLY no Validity Check)
+                if(authtoken == null)
+                {
+                    if (String.IsNullOrEmpty(authurl) || String.IsNullOrEmpty(clientid) || String.IsNullOrEmpty(clientsecret))
+                        throw new Exception("missing auth config");
 
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authresponse.AccessToken);
+                    authtoken = await GetAccessTokenAsync(authurl, clientid, clientsecret);
+                }
+                
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authtoken.AccessToken);
 
                 //var request = new EventSearchRequest
                 //{
@@ -57,14 +63,21 @@ namespace MOMENTUS
             }
         }
 
-        public static async Task<MomentusEvent> RequestMomentusEventSingle(string url, string clientid, string clientsecret, string authurl, string eventid)
+        public static async Task<MomentusEvent> RequestMomentusEventSingle(string url, string? clientid, string? clientsecret, string? authurl, string eventid, MomentusTokenResponse? authtoken)
         {
-            var authresponse = await GetAccessTokenAsync(authurl, clientid, clientsecret);
-
             using (var client = new HttpClient())
             {
 
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authresponse.AccessToken);
+                //Reuse the token if passed (CURRENTLY no Validity Check)
+                if (authtoken == null)
+                {
+                    if (String.IsNullOrEmpty(authurl) || String.IsNullOrEmpty(clientid) || String.IsNullOrEmpty(clientsecret))
+                        throw new Exception("missing auth config");
+
+                    authtoken = await GetAccessTokenAsync(authurl, clientid, clientsecret);
+                }
+
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authtoken.AccessToken);
 
                 var response = await client.GetAsync(url + "events/" + eventid);
                 response.EnsureSuccessStatusCode();
@@ -78,14 +91,20 @@ namespace MOMENTUS
             }
         }
 
-        public static async Task<IEnumerable<MomentusRoom>> RequestMomentusRooms(string url, string clientid, string clientsecret, string authurl)
-        {
-            var authresponse = await GetAccessTokenAsync(authurl, clientid, clientsecret);
-
+        public static async Task<IEnumerable<MomentusRoom>> RequestMomentusRooms(string url, string? clientid, string? clientsecret, string? authurl, MomentusTokenResponse? authtoken)
+        {            
             using (var client = new HttpClient())
             {
+                //Reuse the token if passed (CURRENTLY no Validity Check)
+                if (authtoken == null)
+                {
+                    if(String.IsNullOrEmpty(authurl) || String.IsNullOrEmpty(clientid) || String.IsNullOrEmpty(clientsecret))
+                            throw new Exception("missing auth config");
 
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authresponse.AccessToken);
+                    authtoken = await GetAccessTokenAsync(authurl, clientid, clientsecret);
+                }
+
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authtoken.AccessToken);
 
                 var response = await client.GetAsync(url + "general-setup/rooms");
                 response.EnsureSuccessStatusCode();
@@ -99,14 +118,20 @@ namespace MOMENTUS
             }
         }
 
-        public static async Task<IEnumerable<MomentusFunction>> RequestMomentusFunction(string url, string clientid, string clientsecret, string authurl, string eventid)
-        {
-            var authresponse = await GetAccessTokenAsync(authurl, clientid, clientsecret);
-
+        public static async Task<IEnumerable<MomentusFunction>> RequestMomentusFunction(string url, string? clientid, string? clientsecret, string? authurl, string eventid, MomentusTokenResponse? authtoken)
+        {            
             using (var client = new HttpClient())
             {
+                //Reuse the token if passed (CURRENTLY no Validity Check)
+                if (authtoken == null)
+                {
+                    if (String.IsNullOrEmpty(authurl) || String.IsNullOrEmpty(clientid) || String.IsNullOrEmpty(clientsecret))
+                        throw new Exception("missing auth config");
 
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authresponse.AccessToken);
+                    authtoken = await GetAccessTokenAsync(authurl, clientid, clientsecret);
+                }
+
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authtoken.AccessToken);
 
                 var response = await client.GetAsync(url + "functions/event/" + eventid);
                 response.EnsureSuccessStatusCode();
@@ -120,7 +145,7 @@ namespace MOMENTUS
             }
         }
 
-        private static async Task<MomentusTokenResponse> GetAccessTokenAsync(
+        public static async Task<MomentusTokenResponse> GetAccessTokenAsync(
             string authurl,
             string clientId,
             string clientSecret)

@@ -15,7 +15,6 @@ using SqlKata.Execution;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,7 +43,8 @@ namespace OdhApiImporter.Helpers
                 settings.MomentusConfig.ServiceUrl, 
                 settings.MomentusConfig.ClientId, 
                 settings.MomentusConfig.ClientSecret, 
-                settings.MomentusConfig.AuthUrl);
+                settings.MomentusConfig.AuthUrl,
+                null);
             
             var updateresult = await ImportData(result, cancellationToken);
 

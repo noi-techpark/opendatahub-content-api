@@ -14,45 +14,22 @@ namespace MOMENTUS.Parser
 {
     public class ParseMomentusData
     {
-        public static EventLinked ParseMomentusEvent(MomentusEvent mevent) 
+        public static EventLinked ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, EventLinked? eventlinked, VenueV2 venuelinked) 
         {
-            EventLinked eventLinked = new EventLinked();
+            if(eventlinked == null)
+                eventlinked = new EventLinked();
 
-            eventLinked.Id = "urn:event:momentus:" + mevent.Id;
-            eventLinked.Shortname = mevent.Name;
+            //check what data to preserve
 
 
-            return eventLinked;
-        }
+            eventlinked.Id = "urn:event:momentus:" + mevent.Id;
+            eventlinked.Shortname = mevent.Name;
 
-        //To check if one room for noi with subrooms is returned
-        public static VenueV2 ParseMomentusRoom(MomentusRoom mroom, VenueV2 venue)
-        {
-            //This is always assigned
-            //"venueId": "venue-1-A",
-            //"venueName": "Eurac Research",
+            //WRITE THE PARSERS LOGIC HERE
 
 
 
-            // "group": "NOI TECHPARK"
-            // "group": "EURAC RESEARCH HQ"
-
-            if(venue == null) 
-                venue = new VenueV2();
-
-
-
-            return venue;
-        }
-
-        public static IEnumerable<EventLinked> ParseMomentusEvents(IEnumerable<MomentusEvent> mevents)
-        {
-            return mevents.Select(x => ParseMomentusEvent(x)).ToList();
-        }
-
-        public static IEnumerable<VenueV2> ParseMomentusRooms(IEnumerable<MomentusRoom> mrooms, VenueV2 venue)
-        {
-            return mrooms.Select(x => ParseMomentusRoom(x, venue)).ToList();
+            return eventlinked;
         }
     }
 }
