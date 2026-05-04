@@ -478,11 +478,6 @@ namespace Helper.Converters
                             venueroom.Shortname = room.SpaceDesc;
                             venueroom.Detail.TryAddOrUpdate("en", new Detail() { Title = room.SpaceDesc, Language = "en" });
                             
-                            if(venueroom.Shortname == "NOI Foyer" || venueroom.Shortname == "NOI Chapel" || venueroom.Shortname == "NOI Open Air Theatre")
-                            {
-                                int i = 0;
-                            }
-
                             venue.RoomDetails.Add(venueroom);
                         }
                     }
