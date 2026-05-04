@@ -202,14 +202,14 @@ namespace Helper.Converters
             eventv1.LicenseInfo = eventshort.LicenseInfo;
 
             eventv1.RelatedContent = eventshort.RelatedContent;
-            
+
             eventv1.Mapping = eventshort.Mapping;
 
             if (eventv1.Mapping == null)
                 eventv1.Mapping = new Dictionary<string, IDictionary<string, string>>();
 
             var mappingtoadd = eventv1.Mapping.ContainsKey("ebms") ? eventv1.Mapping["ebms"] : new Dictionary<string, string>();
-            if(eventshort.EventId != null)
+            if (eventshort.EventId != null)
                 mappingtoadd.Add("eventid", eventshort.EventId.ToString());
 
             if (eventshort.CompanyId != null)
@@ -219,21 +219,46 @@ namespace Helper.Converters
 
             eventv1.TagIds = new List<string>();
 
-            if(eventshort.CustomTagging != null)
+            if (eventshort.CustomTagging != null)
             {
                 foreach (var tag in eventshort.CustomTagging)
                 {
-                    eventv1.TagIds.Add(tag);
+                    eventv1.TagIds.Add(tag.ToLower()
+                        .Replace(" ", "")
+                        .Replace("-", "")
+                        .Replace("&", "")
+                        );
                 }
-            }            
+            }
+
+            if (eventshort.TechnologyFields != null)
+            {
+                foreach (var tag in eventshort.TechnologyFields)
+                {
+                    eventv1.TagIds.Add(tag.ToLower()
+                        .Replace(" ", "")
+                        .Replace("-", "")
+                        .Replace("&", "")
+                        );
+                }
+            }
 
             //Add Location as Tag
-            if(!String.IsNullOrEmpty(eventshort.EventLocation))
+            if (!String.IsNullOrEmpty(eventshort.EventLocation))
                 eventv1.TagIds.Add("eventlocation:" + eventshort.EventLocation.ToLower());
 
-            //Add each Room as Tag?
+            //To check Add each Room as Tag?
 
-            eventv1.Documents = eventshort.Documents;
+
+            //Test if this works
+            if (eventshort.Documents != null)
+            {
+                eventv1.Documents = eventshort.Documents?
+                                    .ToDictionary(
+                                        kvp => kvp.Key,
+                                        kvp => (ICollection<Document>)kvp.Value
+                                    );
+            }
             eventv1.VideoItems = eventshort.VideoItems;
 
             if(eventshort.WebAddress != null)
@@ -282,7 +307,7 @@ namespace Helper.Converters
 
             //find a better key here
             eventv1.AdditionalProperties = new Dictionary<string, dynamic>();
-            eventv1.AdditionalProperties.Add("eventeuracnoidataproperties", additionalprops);
+            eventv1.AdditionalProperties.Add("EventEuracNoiDataProperties", additionalprops);
 
 
             if (eventshort.RoomBooked != null)
@@ -421,7 +446,7 @@ namespace Helper.Converters
 
                 if (!new List<string>() { "VV", "" }.Contains(eventshort.EventLocation))
                 {
-                    var (venueid, eventlocation, source) = GetVenueId(eventshort);
+                    var (venueid, eventlocation, source) = GetVenueId(eventshort);                    
 
                     VenueV2 venue = new VenueV2();
                     venue.Id = venueid;
@@ -528,7 +553,7 @@ namespace Helper.Converters
             if (space == "ec")
                 space = "eurac";
             if (space == "vi")
-                space = "eurac";            
+                space = eventshort.EventLocation.ToLower() == "ec" ? "eurac" : "noi";
 
             var venueroomid = "urn:" + space.ToLower() + ":" + room.SpaceDesc.ToLower().Replace(" ", "-").Replace(",","") + ":" + GuidHelpers.CreateFromName(Guid.Empty, space + "_" + room.SpaceDesc.ToLower());
 
