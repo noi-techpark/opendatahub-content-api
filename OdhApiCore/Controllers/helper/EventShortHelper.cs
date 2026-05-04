@@ -21,7 +21,7 @@ namespace OdhApiCore.Controllers.api
         public string? todayactivefilter;
         public bool? websiteactivefilter;
         public bool? communityactivefilter;
-        public bool activefilter;
+        public bool? activefilter;
         public string? lastchange;
         public string? sortorder;
 
@@ -38,7 +38,7 @@ namespace OdhApiCore.Controllers.api
             bool? todayactive,
             bool? websiteactive,
             bool? communityactive,
-            bool active,
+            bool? active,
             string? eventids,
             string? webaddress,
             string? lastchange,
@@ -77,7 +77,7 @@ namespace OdhApiCore.Controllers.api
             bool? todayactive,
             bool? websiteactive,
             bool? communityactive,
-            bool active,
+            bool? active,
             string? eventids,
             string? webaddress,
             string? lastchange,
