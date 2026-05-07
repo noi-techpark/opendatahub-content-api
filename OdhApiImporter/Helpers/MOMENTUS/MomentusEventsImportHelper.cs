@@ -1,0 +1,558 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using DataModel;
+using EBMS;
+using Helper;
+using Helper.Extensions;
+using Helper.Generic;
+using Helper.Tagging;
+using MOMENTUS;
+using MOMENTUS.Model;
+using MOMENTUS.Parser;
+using MongoDB.Driver.Linq;
+using Newtonsoft.Json;
+using OdhNotifier;
+using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace OdhApiImporter.Helpers
+{
+    public class MomentusEventsImportHelper : ImportHelper, IImportHelper
+    {
+        public bool forceupdate = false; 
+
+        public MomentusEventsImportHelper(
+            ISettings settings,
+            QueryFactory queryfactory,
+            string table,
+            string importerURL,
+            IOdhPushNotifier odhpushnotifier
+        )
+            : base(settings, queryfactory, table, importerURL, odhpushnotifier) { }
+
+        #region MOMENTUS Helpers
+
+        public async Task<UpdateDetail> SaveDataToODH(
+            DateTime? lastchanged,
+            List<string>? idlist = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            var authtoken = await GetDataFromMomentus.GetAccessTokenAsync(
+                settings.MomentusConfig.AuthUrl,
+                settings.MomentusConfig.ClientId,
+                settings.MomentusConfig.ClientSecret
+            );
+
+            var momentusevents = await RequestMomentusEventsWithallRooms(authtoken);
+            
+            var updateresult = await ImportData(momentusevents, authtoken, cancellationToken);
+
+            //var currenteventshort = await GetAllEventsShort(currentdate);
+
+            //todo check if resulttuple item1 is null
+            //var deleteresult = await DeleteDeletedEvents(resulttuple, currenteventshort.ToList());
+
+            return GenericResultsHelper.MergeUpdateDetail(
+                new List<UpdateDetail>() { updateresult }
+            );
+        }
+
+        private async Task<IEnumerable<MomentusEvent>> RequestMomentusEventsWithallRooms(MomentusTokenResponse authtoken)
+        {
+            var momentusrooms = await GetDataFromMomentus.RequestMomentusRooms(
+                settings.MomentusConfig.ServiceUrl,
+                null,null,null, //Token already present
+                authtoken);
+
+            var eventsearchrequest = GetDataFromMomentus.GetEventSearchRequest(
+                DateOnly.FromDateTime(DateTime.Now),
+                DateOnly.FromDateTime(DateTime.Now.AddYears(1)),
+                new List<string> { "venue-1-A" },
+                momentusrooms.Select(x => x.Id).ToList(), //Add all rooms
+                true);
+
+            return await GetDataFromMomentus.RequestMomentusEvents(
+                settings.MomentusConfig.ServiceUrl,
+                null,null,null,
+                eventsearchrequest,
+                authtoken);
+        }
+
+        private async Task<IEnumerable<MomentusFunction>> RequestMomentusFunctionByEventId(string eventid, MomentusTokenResponse authtoken)
+        {
+            return await GetDataFromMomentus.RequestMomentusFunction(
+            settings.MomentusConfig.ServiceUrl,
+            null, null, null,
+            eventid,
+            authtoken);
+        }
+
+        private async Task<UpdateDetail> ImportData(
+            IEnumerable<MomentusEvent> momentuseventlist,
+            MomentusTokenResponse authtoken,
+            CancellationToken cancellationToken            
+        )
+        {
+            int updatecounter = 0;
+            int newcounter = 0;
+            int errorcounter = 0;
+            
+            foreach (var momentusevent in momentuseventlist)
+            {
+                var importresult = await ImportDataSingle(momentusevent, authtoken);
+
+                newcounter = newcounter + importresult.created ?? newcounter;
+                updatecounter = updatecounter + importresult.updated ?? updatecounter;
+                errorcounter = errorcounter + importresult.error ?? errorcounter;
+            }
+
+            return new UpdateDetail()
+            {
+                created = newcounter,
+                updated = updatecounter,
+                deleted = 0,
+                error = errorcounter,
+            };
+        }
+
+        private async Task<UpdateDetail> ImportDataSingle(
+            MomentusEvent momentusevent,
+            MomentusTokenResponse authtoken
+        )
+        {
+            string idtoreturn = "";
+            int updatecounter = 0;
+            int newcounter = 0;
+            int errorcounter = 0;
+
+            try
+            {
+                var query = QueryFactory
+                    .Query("events")
+                    .Select("data")
+                    .Where("id", "urn:events:momentus:" + momentusevent.Id);
+
+                var eventindb = await query.GetObjectSingleAsync<EventLinked>();
+
+                //Get all Functions
+                var momentusfunctionlist = await RequestMomentusFunctionByEventId(momentusevent.Id, authtoken);
+
+                //TODO: Get the Venue that contains all rooms here listed!
+                //How to identify between Eurac and NOI ? with roomIds ++ Mapping 
+                var venuequery = QueryFactory
+                    .Query("venues")
+                    .Select("data");
+                    //.WhereRaw("data->'Mapping'->>''", "urn:events:momentus:" + momentusevent.goupId);
+
+                var venue = await venuequery.GetObjectSingleAsync<VenueV2>();
+
+
+                //TODO Parse the MomentusEvent To 
+                var eventtostore = ParseMomentusData.ParseMomentusEvent(momentusevent, momentusfunctionlist, eventindb, venue);
+
+
+                ////currenteventshort.Where(x => x.EventId == eventshort.EventId).FirstOrDefault();
+
+                //var changedonDB = DateTime.Now;
+
+                ////Fields to not overwrite
+                //var imagegallery = new List<ImageGallery>();
+
+                //IDictionary<string, Detail> detaildict = new Dictionary<string, Detail>();
+
+                //var videourl = "";
+                //Nullable<bool> activeweb = null;
+                //Nullable<bool> activecommunity = null;
+                //List<string>? technologyfields = null;
+                //List<string>? customtagging = null;
+                //var webadress = "";
+                ////List<DocumentPDF>? eventdocument = new List<DocumentPDF>();
+                //IDictionary<string, List<Document>?> document =
+                //    new Dictionary<string, List<Document>?>();
+
+                //bool? soldout = false;
+                //bool? externalorganizer = false;
+                //IDictionary<string, string> eventText = new Dictionary<string, string>();
+                //ICollection<string>? publishedon = new List<string>();
+
+                //ICollection<string>? tagids = null;
+
+                //if (eventindb == null)
+                //{
+                //    eventshort.FirstImport = DateTime.Now;
+                //}
+
+                //if (eventindb != null)
+                //{
+                //    changedonDB = eventindb.ChangedOn;
+                //    imagegallery =
+                //        eventindb.ImageGallery != null ? eventindb.ImageGallery.ToList() : null;
+
+                //    detaildict = eventindb.Detail;                 
+
+                //    activeweb = eventindb.ActiveWeb;
+                //    activecommunity = eventindb.ActiveCommunityApp;
+
+                //    videourl = eventindb.VideoUrl;
+                //    technologyfields = eventindb.TechnologyFields;
+                //    customtagging = eventindb.CustomTagging;
+                //    webadress = eventindb.WebAddress;
+                //    externalorganizer = eventindb.ExternalOrganizer;
+
+                //    //eventdocument = eventindb.EventDocument;
+                //    document = eventindb.Documents;
+
+                //    soldout = eventindb.SoldOut;
+
+                //    publishedon = eventindb.PublishedOn;
+
+                //    tagids = eventindb.TagIds;
+                //}
+
+                //if (changedonDB != eventshort.ChangedOn || forceupdate)
+                //{
+                //    eventshort.ImageGallery = imagegallery;
+                //    //eventshort.EventTextDE = eventTextDE;
+                //    //eventshort.EventTextIT = eventTextIT;
+                //    //eventshort.EventTextEN = eventTextEN;
+
+                //    //eventshort.EventText = eventText;
+
+                //    //Preserve detaildict
+                //    if(detaildict != null && detaildict.Count > 0)
+                //    {
+                //        //Readd Event Title to the Detail Dictionary
+                //        foreach (var eventtitle in eventshort.Detail)
+                //        {
+                //            if (detaildict.ContainsKey(eventtitle.Key))
+                //                detaildict[eventtitle.Key].Title = eventtitle.Value.Title;
+                //            else
+                //            {
+                //                detaildict.TryAddOrUpdate(eventtitle.Key, eventtitle.Value);
+                //            }
+                //        }
+
+                //        eventshort.Detail = detaildict;
+                //    }
+
+
+                //    //foreach (var eventtitle in eventshort.Detail)
+                //    //{
+                //    //    if(eventshort.Detail.ContainsKey(eventtitle.Key))
+                //    //        eventshort.Detail[eventtitle.Key].Title = eventtitle.Value.Title;
+                //    //    else
+                //    //    {
+                //    //        eventshort.Detail.TryAddOrUpdate(eventtitle.Key, eventtitle.Value);
+                //    //    }
+                //    //}
+
+                //    //eventshort.ActiveWeb = activeweb;
+                //    //eventshort.ActiveCommunityApp = activecommunity;
+
+                //    eventshort.PublishedOn = publishedon;
+
+                //    eventshort.VideoUrl = videourl;
+                //    //eventshort.TechnologyFields = technologyfields;
+                //    //eventshort.CustomTagging = customtagging;
+
+                //    eventshort.TagIds = tagids;
+
+                //    if (!String.IsNullOrEmpty(webadress))
+                //        eventshort.WebAddress = webadress;
+
+                //    eventshort.SoldOut = soldout;
+
+                //    //eventshort.EventDocument = eventdocument;
+                //    eventshort.Documents = document;
+
+                //    eventshort.ExternalOrganizer = externalorganizer;
+
+                //    //New If CompanyName is Noi - blablabla assign TechnologyField automatically and Write to Display5 if not empty "NOI"
+                //    if (
+                //        !String.IsNullOrEmpty(eventshort.CompanyName)
+                //        && eventshort.CompanyName.StartsWith("NOI - ")
+                //    )
+                //    {
+                //        if (String.IsNullOrEmpty(eventshort.Display5))
+                //            eventshort.Display5 = "NOI";
+
+                //        //MODIFIED
+                //        eventshort.TagIds = AssignTechnologyfieldsautomatically(
+                //            eventshort.CompanyName,
+                //            eventshort.TechnologyFields
+                //        );
+                //        //eventshort.TechnologyFields = AssignTechnologyfieldsautomatically(eventshort.CompanyName, eventshort.TechnologyFields);
+                //    }
+
+                //    ////Set Publishers in base of Displays
+                //    ////Eurac Videowall
+                //    //if (eventshort.Display1 == "Y")
+                //    //    publishedon.TryAddOrUpdateOnList("eurac-videowall");
+                //    //if (eventshort.Display1 == "N")
+                //    //    publishedon.TryRemoveOnList("eurac-videowall");
+                //    ////Eurac Videowall
+                //    //if (eventshort.Display2 == "Y")
+                //    //    publishedon.TryAddOrUpdateOnList("eurac-seminarroom");
+                //    //if (eventshort.Display2 == "N")
+                //    //    publishedon.TryRemoveOnList("eurac-seminarroom");
+                //    ////Eurac Videowall
+                //    //if (eventshort.Display3 == "Y")
+                //    //    publishedon.TryAddOrUpdateOnList("noi-totem");
+                //    //if (eventshort.Display3 == "N")
+                //    //    publishedon.TryRemoveOnList("noi-totem");
+                //    ////today.noi.bz.it
+                //    //if (eventshort.Display4 == "Y")
+                //    //    publishedon.TryAddOrUpdateOnList("today.noi.bz.it");
+                //    //if (eventshort.Display4 == "N")
+                //    //    publishedon.TryRemoveOnList("today.noi.bz.it");
+
+                //    PublishedOnHelper.CreatePublishedOnList<EventShortLinked>(eventshort);
+
+
+                //    //Fix when TagIds are set lets update the Tags Object
+                //    if (eventshort.TagIds != null && eventshort.TagIds.Count > 0)
+                //    {
+                //        //Populate Tags (Id/Source/Type)
+                //        await eventshort.UpdateTagsExtension(QueryFactory);
+                //    }
+
+                var queryresult = await InsertDataToDB(
+                    eventtostore,
+                    momentusevent
+                );
+
+                newcounter = newcounter + queryresult.created ?? 0;
+                updatecounter = updatecounter + queryresult.updated ?? 0;
+
+                WriteLog.LogToConsole(
+                    idtoreturn,
+                    "dataimport",
+                    "single.event",
+                    new ImportLog()
+                    {
+                        sourceid = idtoreturn,
+                        sourceinterface = "momentus.event",
+                        success = true,
+                        error = "",
+                    }
+                );
+
+            }
+            catch (Exception ex)
+            {
+                WriteLog.LogToConsole(
+                    idtoreturn,
+                    "dataimport",
+                    "single.event",
+                    new ImportLog()
+                    {
+                        sourceid = idtoreturn,
+                        sourceinterface = "momentus.event",
+                        success = false,
+                        error = ex.Message,
+                    }
+                );
+
+                errorcounter = errorcounter + 1;
+            }
+
+            return new UpdateDetail()
+            {
+                created = newcounter,
+                updated = updatecounter,
+                deleted = 0,
+                error = errorcounter,
+            };
+        }
+
+        private async Task<PGCRUDResult> InsertDataToDB(
+            EventLinked eventtostore,
+            MomentusEvent momentusevent
+        )
+        {
+            try
+            {
+                //Setting LicenseInfo TO CHECK
+                eventtostore.LicenseInfo = LicenseHelper.GetLicenseforEvent(eventtostore, true);
+                //Check Languages TO CHECK
+                eventtostore.CheckMyInsertedLanguages(new List<string>() { "de","it","en" });
+
+                //PublishedOn is set by the parser logic
+                //eventshort.CreatePublishedOnList();
+
+                var rawdataid = await InsertInRawDataDB(momentusevent);
+
+                return await QueryFactory.UpsertData<EventLinked>(
+                    eventtostore,
+                    new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
+                    new EditInfo("momentus.event.import", importerURL),
+                    new CRUDConstraints(),
+                    new CompareConfig(true, false),
+                    rawdataid
+                );
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        private async Task<int> InsertInRawDataDB(MomentusEvent momentusevent)
+        {
+            return await QueryFactory.InsertInRawtableAndGetIdAsync(
+                new RawDataStore()
+                {
+                    datasource = "eurac",
+                    importdate = DateTime.Now,
+                    raw = JsonConvert.SerializeObject(momentusevent),
+                    sourceinterface = "momentus",
+                    sourceid = momentusevent.Id,
+                    sourceurl = "https://api.eu-venueops.com/v1/events/query-by-date-range",
+                    type = "event",
+                    license = "open",
+                    rawformat = "json",
+                }
+            );
+        }
+
+        private static List<string>? AssignTechnologyfieldsautomatically(
+            string companyname,
+            List<string>? technologyfields
+        )
+        {
+            if (technologyfields == null)
+                technologyfields = new List<string>();
+
+            //Digital, Alpine, Automotive/Automation, Food, Green
+
+            AssignTechnologyFields(companyname, "Digital", "Digital", technologyfields);
+            AssignTechnologyFields(companyname, "Alpine", "Alpine", technologyfields);
+            AssignTechnologyFields(
+                companyname,
+                "Automotive",
+                "Automotive/Automation",
+                technologyfields
+            );
+            AssignTechnologyFields(companyname, "Food", "Food", technologyfields);
+            AssignTechnologyFields(companyname, "Green", "Green", technologyfields);
+
+            if (technologyfields.Count == 0)
+                return null;
+            else
+                return technologyfields;
+        }
+
+        private static void AssignTechnologyFields(
+            string companyname,
+            string tocheck,
+            string toassign,
+            List<string> automatictechnologyfields
+        )
+        {
+            if (companyname.Contains(tocheck))
+                if (!automatictechnologyfields.Contains(toassign))
+                    automatictechnologyfields.Add(toassign);
+        }
+
+        private async Task<UpdateDetail> DeleteDeletedEvents(
+            List<Tuple<EventShortLinked, EBMSEventREST>> resulttuple,
+            List<EventShortLinked> eventshortinDB
+        )
+        {
+            var deletecounter = 0;
+
+            if (resulttuple.Select(x => x.Item1).Count() > 0)
+            {
+                List<EventShortLinked> eventshortfromnow = resulttuple
+                    .Select(x => x.Item1)
+                    .ToList();
+
+                var idsonListinDB = eventshortinDB.Select(x => x.EventId).ToList();
+                var idsonService = eventshortfromnow.Select(x => x.EventId).ToList();
+
+                var idstodelete = idsonListinDB.Where(p => !idsonService.Any(p2 => p2 == p));
+
+                if (idstodelete.Count() > 0)
+                {
+                    foreach (var idtodelete in idstodelete)
+                    {
+                        //Set to inactive
+                        var eventshorttodeactivate = eventshortinDB
+                            .Where(x => x.EventId == idtodelete)
+                            .FirstOrDefault();
+
+                        //TODO CHECK IF IT WORKS
+                        if (eventshorttodeactivate != null)
+                        {
+                            //Work With Active instead of deleting....
+                            eventshorttodeactivate.Active = false;
+                            eventshorttodeactivate.LastChange = DateTime.Now;
+
+                            var updated = await QueryFactory
+                                .Query("eventeuracnoi")
+                                .Where("id", eventshorttodeactivate.Id?.ToLower())
+                                .UpdateAsync(
+                                    new JsonBData()
+                                    {
+                                        id = eventshorttodeactivate.Id?.ToLower() ?? "",
+                                        data = new JsonRaw(eventshorttodeactivate),
+                                    }
+                                );
+
+                            //LOG the Deletion
+                            WriteLog.LogToConsole(
+                                eventshorttodeactivate.Id,
+                                "dataimport",
+                                "single.eventeuracnoi.deactivate",
+                                new ImportLog()
+                                {
+                                    sourceid = eventshorttodeactivate.Id,
+                                    sourceinterface = "ebms.eventeuracnoi",
+                                    success = updated > 0 ? true : false,
+                                    error = "",
+                                }
+                            );
+
+                            deletecounter++;
+                        }
+                    }
+                }
+            }
+
+            return new UpdateDetail()
+            {
+                created = 0,
+                updated = 0,
+                deleted = deletecounter,
+                error = 0,
+            };
+        }
+
+        private async Task<IEnumerable<EventShortLinked>> GetAllEventsShort(DateTime now)
+        {
+            var today = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+
+            var query = QueryFactory
+                .Query("events")
+                .Select("data")
+                .WhereRaw(
+                    "(((to_date(data->> 'EndDate', 'YYYY-MM-DD') >= '"
+                        + String.Format("{0:yyyy-MM-dd}", today)
+                        + "'))) AND(data#>>'\\{Source\\}' = $$)",
+                    "momentus"
+                )
+                .Where("gen_active", true);
+
+            return await query.GetObjectListAsync<EventShortLinked>();
+        }
+
+        #endregion
+    }
+}

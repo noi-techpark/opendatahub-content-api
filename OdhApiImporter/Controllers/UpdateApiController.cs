@@ -3304,6 +3304,116 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region MOMENTUS DATA SYNC (Event)
+
+        [HttpGet, Route("MOMENTUS/Event/Update")]
+        public async Task<IActionResult> UpdateEventsFromMomentus(
+            string? updatetodate = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update MOMENTUS";
+            string updatetype = GetUpdateType(null);
+            string source = "momentus";
+            string otherinfo = "event";
+
+            try
+            {
+                MomentusEventsImportHelper eventimporthelper = new MomentusEventsImportHelper(
+                    settings,
+                    QueryFactory,
+                    "events",
+                    UrlGeneratorStatic("MOMENTUS/Event"),
+                    OdhPushnotifier
+                );
+
+                updatedetail = await eventimporthelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Events update succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Events update failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        [HttpGet, Route("MOMENTUS/Venue/Update")]
+        public async Task<IActionResult> UpdateVenuesFromMomentus(
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update MOMENTUS";
+            string updatetype = GetUpdateType(null);
+            string source = "momentus";
+            string otherinfo = "venue";
+
+            try
+            {
+                MomentusVenuesImportHelper venueimporthelper = new MomentusVenuesImportHelper(
+                    settings,
+                    QueryFactory,
+                    "venues",
+                    UrlGeneratorStatic("MOMENTUS/Venue"),
+                    OdhPushnotifier
+                );
+
+                updatedetail = await venueimporthelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Venues update succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Venues update failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        #endregion
+
+
         #region OUTDOORACTIVE DATA SYNC
 
         [Authorize(Roles = "DataPush")]

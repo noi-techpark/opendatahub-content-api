@@ -1493,6 +1493,18 @@ namespace OdhApiImporter.Helpers
                         venue.Source = datapresent.Source;
                         venue.TagIds = datapresent.TagIds;
                         venue.Tags = datapresent.Tags;
+                        venue.HasLanguage = datapresent.HasLanguage;
+                        venue._Meta = datapresent._Meta;
+                        venue.Active = datapresent.Active;
+                        venue.DistanceInfo = datapresent.DistanceInfo;
+                        //venue.DistrictId = datapresent.DistrictId;
+                        venue.LocationInfo = datapresent.LocationInfo;
+                        venue.OperationSchedule = datapresent.OperationSchedule;
+                        venue.PublishedOn = datapresent.PublishedOn;
+                        venue.FirstImport = datapresent.FirstImport;
+                        venue.LicenseInfo = datapresent.LicenseInfo;
+                        venue.RelatedContent = datapresent.RelatedContent;
+                        venue.AdditionalProperties = datapresent.AdditionalProperties;                        
 
                         //Update to DB                        
                         var queryresult = await QueryFactory
@@ -2501,9 +2513,12 @@ namespace OdhApiImporter.Helpers
                     {
                         VenueRoomDetailsV2 roomdetailv2 = new VenueRoomDetailsV2();
                         roomdetailv2.ImageGallery = roomdetail.ImageGallery;
-                        roomdetailv2.Detail = roomdetail.Detail;
+                        if (roomdetail.Detail != null)
+                            roomdetailv2.Detail = roomdetail.Detail.ToDictionary(
+                                kvp => kvp.Key,
+                                kvp => new DetailGeneric() { Title = kvp.Value.Title, BaseText = kvp.Value.BaseText, Language = kvp.Value.Language }
+                            );
                         roomdetailv2.Id = roomdetail.Id;
-                        roomdetailv2.Shortname = roomdetail.Shortname;
 
                         roomdetailv2.VenueRoomProperties = new VenueRoomProperties();
                         roomdetailv2.VenueRoomProperties.SquareMeters = roomdetail.SquareMeters;
