@@ -145,10 +145,11 @@ namespace OdhApiImporter.Helpers
                 var momentusfunctionlist = await RequestMomentusFunctionByEventId(momentusevent.Id, authtoken);
 
                 //TODO: Get the Venue that contains all rooms here listed!
+                //How to identify between Eurac and NOI ? with roomIds ++ Mapping 
                 var venuequery = QueryFactory
                     .Query("venues")
-                    .Select("data")
-                    .WhereRaw("data->Mapping", "urn:events:momentus:" + momentusevent.Id);
+                    .Select("data");
+                    //.WhereRaw("data->'Mapping'->>''", "urn:events:momentus:" + momentusevent.goupId);
 
                 var venue = await venuequery.GetObjectSingleAsync<VenueV2>();
 

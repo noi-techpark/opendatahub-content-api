@@ -2513,9 +2513,12 @@ namespace OdhApiImporter.Helpers
                     {
                         VenueRoomDetailsV2 roomdetailv2 = new VenueRoomDetailsV2();
                         roomdetailv2.ImageGallery = roomdetail.ImageGallery;
-                        roomdetailv2.Detail = roomdetail.Detail;
+                        if (roomdetail.Detail != null)
+                            roomdetailv2.Detail = roomdetail.Detail.ToDictionary(
+                                kvp => kvp.Key,
+                                kvp => new DetailGeneric() { Title = kvp.Value.Title, BaseText = kvp.Value.BaseText, Language = kvp.Value.Language }
+                            );
                         roomdetailv2.Id = roomdetail.Id;
-                        roomdetailv2.Shortname = roomdetail.Shortname;
 
                         roomdetailv2.VenueRoomProperties = new VenueRoomProperties();
                         roomdetailv2.VenueRoomProperties.SquareMeters = roomdetail.SquareMeters;

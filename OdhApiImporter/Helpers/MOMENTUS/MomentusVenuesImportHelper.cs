@@ -108,6 +108,7 @@ namespace OdhApiImporter.Helpers
                     if (momentusroom.Name != null)
                     {
                         //Check if venue Room has all infos
+                        //fix & - / → ä   DO THIS also on the Venue Converter
                         var venueroom = venue.RoomDetails?.Where(x => momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "") == x.Shortname).FirstOrDefault();
                         bool add = false;
 
@@ -115,8 +116,8 @@ namespace OdhApiImporter.Helpers
                         {
                             add = true;
                             venueroom = new VenueRoomDetailsV2();
-                            venueroom.Shortname = momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "");
-                            venueroom.Detail.Add("en", new Detail() { Language = "en", Title = momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "") });
+                            //venueroom.Shortname = momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "");
+                            venueroom.Detail.Add("en", new DetailGeneric() { Language = "en", Title = momentusroom.Name.Replace("NOI - ", "").Replace("EURAC - ", "") });                            
                         }
 
                         venueroom.Active = momentusroom.IsActive;
@@ -133,6 +134,7 @@ namespace OdhApiImporter.Helpers
                             //add also as Tag
                         }
 
+                        //TODO add certain Mapping on root!
 
                         if (venueroom.Mapping == null)
                             venueroom.Mapping = new Dictionary<string, IDictionary<string, string>>();
@@ -154,7 +156,10 @@ namespace OdhApiImporter.Helpers
                         if (add)
                         {
                             venue.RoomDetails.Add(venueroom);
-                        }
+
+                            //For new rooms generate the Ids
+                            venue.GenerateRoomDetailIds();
+                        }                        
                     }
                 }            
 
