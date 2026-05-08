@@ -14,7 +14,7 @@ namespace MOMENTUS.Parser
 {
     public class ParseMomentusData
     {
-        public static EventLinked ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, EventLinked? eventlinked, VenueV2? venuelinked)
+        public static EventLinked ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, EventLinked? eventlinked, VenueV2? venuelinked, bool optimizedays = false)
         {
             if (eventlinked == null)
                 eventlinked = new EventLinked();
@@ -34,9 +34,11 @@ namespace MOMENTUS.Parser
             eventlinked.LastChange = DateTime.Now;
             eventlinked.FirstImport = firstimport ?? DateTime.Now;
 
-            // Date range: start from event-level dates, then refine from non-private booked spaces
-            eventlinked.DateBegin = mevent.Start?.ToDateTime(TimeOnly.MinValue);
-            eventlinked.DateEnd = mevent.End?.ToDateTime(TimeOnly.MinValue);
+            // Date range: start from event-level dates+times, then refine from non-private booked spaces
+            eventlinked.DateBegin = mevent.Start?.ToDateTime(
+                TimeSpan.TryParse(mevent.StartTime, out var st) ? TimeOnly.FromTimeSpan(st) : TimeOnly.MinValue);
+            eventlinked.DateEnd = mevent.End?.ToDateTime(
+                TimeSpan.TryParse(mevent.EndTime, out var et) ? TimeOnly.FromTimeSpan(et) : TimeOnly.MinValue);
 
             // Multilingual detail: titles/subtitles from named functions, description from event
             BuildDetailFromFunctions(eventlinked, functionlist, mevent.Description);
@@ -45,13 +47,12 @@ namespace MOMENTUS.Parser
             if (venuelinked?.Id != null)
                 eventlinked.VenueIds = [venuelinked.Id];
 
-            // EventDates from function list (one entry per day, rooms resolved via venue mapping)
-            eventlinked.EventDate = BuildEventDates(functionlist, venuelinked);
+            // EventDates from booked spaces (one entry per day, rooms resolved via venue mapping)
+            eventlinked.EventDate = BuildEventDates(mevent, venuelinked);
 
-            // Recalculate root DateBegin/DateEnd from non-private booked spaces
-            var (nonPrivateBegin, nonPrivateEnd) = ComputeDateRangeFromNonPrivateSpaces(mevent);
-            if (nonPrivateBegin != null) eventlinked.DateBegin = nonPrivateBegin;
-            if (nonPrivateEnd != null) eventlinked.DateEnd = nonPrivateEnd;
+            // Recalculate root DateBegin/DateEnd from active EventDates
+            if (optimizedays)
+                RefineRootDatesFromEventDates(eventlinked);
 
             // ContactInfos from first contact role
             if (mevent.ContactRoles != null && mevent.ContactRoles.Count > 0)
@@ -147,35 +148,21 @@ namespace MOMENTUS.Parser
             };
         }
 
-        private static (DateTime? begin, DateTime? end) ComputeDateRangeFromNonPrivateSpaces(MomentusEvent mevent)
+        private static void RefineRootDatesFromEventDates(EventLinked eventlinked)
         {
-            var spaces = mevent.BookedSpaces?
-                .Where(b => b.StartDate != null &&
-                            !string.Equals(b.UsageType, "PRIVATE", StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            var active = eventlinked.EventDate?.Where(ed => ed.Active == true).ToList();
+            if (active == null || active.Count == 0)
+                return;
 
-            if (spaces == null || spaces.Count == 0)
-                return (null, null);
+            var first = active.OrderBy(ed => ed.From).First();
+            eventlinked.DateBegin = first.Begin.HasValue
+                ? first.From.Date + first.Begin.Value
+                : first.From.Date;
 
-            var starts = spaces
-                .Select(b =>
-                {
-                    var date = b.StartDate!.Value.ToDateTime(TimeOnly.MinValue);
-                    return TimeSpan.TryParse(b.StartTime, out var t) ? date + t : date;
-                })
-                .ToList();
-
-            var ends = spaces
-                .Where(b => b.EndDate != null)
-                .Select(b =>
-                {
-                    var date = b.EndDate!.Value.ToDateTime(TimeOnly.MinValue);
-                    return TimeSpan.TryParse(b.EndTime, out var t) ? date + t : date;
-                })
-                .ToList();
-
-            return (starts.Count > 0 ? starts.Min() : null,
-                    ends.Count > 0   ? ends.Max()   : null);
+            var last = active.OrderBy(ed => ed.To).Last();
+            eventlinked.DateEnd = last.End.HasValue
+                ? last.To.Date + last.End.Value
+                : last.To.Date;
         }
 
         private static void BuildDetailFromFunctions(EventLinked eventlinked, IEnumerable<MomentusFunction> functionlist, string? description)
@@ -206,56 +193,42 @@ namespace MOMENTUS.Parser
             }
         }
 
-        private static List<EventDate> BuildEventDates(IEnumerable<MomentusFunction> functionlist, VenueV2? venuelinked)
+        private static List<EventDate> BuildEventDates(MomentusEvent mevent, VenueV2? venuelinked)
         {
             var eventdates = new List<EventDate>();
 
-            if (functionlist == null)
+            var spaces = mevent.BookedSpaces?
+                .Where(b => b.StartDate != null && !string.Equals(b.UsageType, "moveIn", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (spaces == null || spaces.Count == 0)
                 return eventdates;
 
-            var functions = functionlist.Where(f => f.StartDate != null).ToList();
-            if (functions.Count == 0)
-                return eventdates;
-
-            foreach (var daygroup in functions.GroupBy(f => f.StartDate!.Value))
+            foreach (var space in spaces)
             {
                 var eventdate = new EventDate
                 {
-                    From = daygroup.Key.ToDateTime(TimeOnly.MinValue),
-                    To = daygroup.Key.ToDateTime(TimeOnly.MinValue),
+                    From = space.StartDate!.Value.ToDateTime(TimeOnly.MinValue),
+                    To = space.EndDate.HasValue ? space.EndDate.Value.ToDateTime(TimeOnly.MinValue) : space.StartDate!.Value.ToDateTime(TimeOnly.MinValue),
                     Active = true
                 };
 
-                var starts = daygroup
-                    .Where(f => !string.IsNullOrEmpty(f.StartTime))
-                    .Select(f => TimeSpan.TryParse(f.StartTime, out var ts) ? ts : (TimeSpan?)null)
-                    .Where(ts => ts != null).Select(ts => ts!.Value).ToList();
+                if (TimeSpan.TryParse(space.StartTime, out var begin))
+                    eventdate.Begin = begin;
 
-                var ends = daygroup
-                    .Where(f => !string.IsNullOrEmpty(f.EndTime))
-                    .Select(f => TimeSpan.TryParse(f.EndTime, out var ts) ? ts : (TimeSpan?)null)
-                    .Where(ts => ts != null).Select(ts => ts!.Value).ToList();
+                if (TimeSpan.TryParse(space.EndTime, out var end))
+                    eventdate.End = end;
 
-                if (starts.Count > 0) eventdate.Begin = starts.Min();
-                if (ends.Count > 0) eventdate.End = ends.Max();
-
-                if (venuelinked?.RoomDetails != null)
+                if (venuelinked?.RoomDetails != null && space.RoomId != null)
                 {
-                    var roomIds = daygroup
-                        .Where(f => f.RoomId != null)
-                        .Select(f => f.RoomId!)
-                        .Distinct()
-                        .Select(rid => venuelinked.RoomDetails.FirstOrDefault(r =>
-                            r.Mapping != null &&
-                            r.Mapping.ContainsKey("momentus") &&
-                            r.Mapping["momentus"].ContainsKey("id") &&
-                            r.Mapping["momentus"]["id"] == rid))
-                        .Where(r => r?.Id != null)
-                        .Select(r => r!.Id!)
-                        .ToList();
+                    var room = venuelinked.RoomDetails.FirstOrDefault(r =>
+                        r.Mapping != null &&
+                        r.Mapping.ContainsKey("momentus") &&
+                        r.Mapping["momentus"].ContainsKey("id") &&
+                        r.Mapping["momentus"]["id"] == space.RoomId);
 
-                    if (roomIds.Count > 0)
-                        eventdate.VenueRoomDetailsIds = roomIds;
+                    if (room?.Id != null)
+                        eventdate.VenueRoomDetailsIds = [room.Id];
                 }
 
                 eventdates.Add(eventdate);

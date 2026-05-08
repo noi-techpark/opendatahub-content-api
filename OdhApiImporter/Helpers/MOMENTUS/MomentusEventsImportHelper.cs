@@ -104,7 +104,7 @@ namespace OdhApiImporter.Helpers
             int newcounter = 0;
             int errorcounter = 0;
             
-            foreach (var momentusevent in momentuseventlist)
+            foreach (var momentusevent in momentuseventlist.Where(e => e.BookedSpaces != null && e.BookedSpaces.Any(bs => bs.UsageType != "moveIn")))
             {
                 var importresult = await ImportDataSingle(momentusevent, authtoken);
 
@@ -144,17 +144,20 @@ namespace OdhApiImporter.Helpers
                 //Get all Functions
                 var momentusfunctionlist = await RequestMomentusFunctionByEventId(momentusevent.Id, authtoken);
 
+                ///Use the roomid
+                var roomid = momentusevent.BookedSpaces.Where(x => x.UsageType != "moveIn").Select(x => x.RoomId).FirstOrDefault();
+
                 //TODO: Get the Venue that contains all rooms here listed!
                 //How to identify between Eurac and NOI ? with roomIds ++ Mapping 
                 var venuequery = QueryFactory
                     .Query("venues")
-                    .Select("data");
-                    //.WhereRaw("data->'Mapping'->>''", "urn:events:momentus:" + momentusevent.goupId);
+                    .Select("data")                    
+                    .WhereRaw("data @> $$::jsonb", $"{{\"RoomDetails\":[{{\"Mapping\":{{\"momentus\":{{\"id\":\"{roomid}\"}}}}}}]}}");
 
                 var venue = await venuequery.GetObjectSingleAsync<VenueV2>();
 
 
-                //TODO Parse the MomentusEvent To 
+                //TODO Parse the MomentusEvent To Event
                 var eventtostore = ParseMomentusData.ParseMomentusEvent(momentusevent, momentusfunctionlist, eventindb, venue);
 
 
