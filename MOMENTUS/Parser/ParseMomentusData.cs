@@ -124,28 +124,50 @@ namespace MOMENTUS.Parser
 
         private static List<string> DeterminePublishedOn(MomentusEvent mevent)
         {
-            var usageType = mevent.BookedSpaces?
+            var usageTypes = mevent.BookedSpaces?
                 .Where(b => !string.IsNullOrEmpty(b.UsageType))
-                .Select(b => b.UsageType)
-                .FirstOrDefault()
-                ?.Trim().ToUpperInvariant();
+                .Select(b => b.UsageType!.Trim().ToUpperInvariant())
+                .Distinct()
+                .ToList();
 
-            if (usageType == null || usageType == "PRIVATE")
+            if (usageTypes == null || usageTypes.Count == 0 || usageTypes.All(u => u == "PRIVATE" || u == "MOVEIN"))
+                return [];
+
+            // PUBLIC wins if at least one space has it
+            string effectiveType;
+            if (usageTypes.Any(u => u == "PUBLIC"))
+                effectiveType = "PUBLIC";
+            else if (usageTypes.Any(u => u.Contains("VIDEOWALL")))
+                effectiveType = "VIDEOWALL";
+            else if (usageTypes.Any(u => u.Contains("ROOM")))
+                effectiveType = "ROOM";
+            else
                 return [];
 
             bool isEurac = mevent.VenueNames != null &&
                 mevent.VenueNames.Any(v => v.Contains("Eurac", StringComparison.OrdinalIgnoreCase));
+            bool isNoi = mevent.VenueNames != null &&
+                mevent.VenueNames.Any(v => v.Contains("NOI", StringComparison.OrdinalIgnoreCase));
 
-            return usageType switch
+            var publishers = new List<string>();
+
+            if (effectiveType == "PUBLIC")
             {
-                "PUBLIC" when isEurac => ["eurac-videowall", "eurac-seminarroom"],
-                "PUBLIC"              => ["noi-totem", "today.noi.bz.it"],
-                var u when u.Contains("VIDEOWALL") && isEurac  => ["eurac-videowall"],
-                var u when u.Contains("VIDEOWALL")             => ["today.noi.bz.it"],
-                var u when u.Contains("ROOM") && isEurac       => ["eurac-seminarroom"],
-                var u when u.Contains("ROOM")                  => ["noi-totem"],
-                _ => []
-            };
+                if (isEurac) publishers.AddRange(["eurac-videowall", "eurac-seminarroom"]);
+                if (isNoi)   publishers.AddRange(["noi-totem", "today.noi.bz.it"]);
+            }
+            else if (effectiveType == "VIDEOWALL")
+            {
+                if (isEurac) publishers.Add("eurac-videowall");
+                if (isNoi)   publishers.Add("today.noi.bz.it");
+            }
+            else if (effectiveType == "ROOM")
+            {
+                if (isEurac) publishers.Add("eurac-seminarroom");
+                if (isNoi)   publishers.Add("noi-totem");
+            }
+
+            return publishers;
         }
 
         private static void RefineRootDatesFromEventDates(EventLinked eventlinked)
