@@ -1228,7 +1228,34 @@ namespace OdhApiImporter.Controllers
                 }
             );
         }
-        
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("TagODHTagIdFix")]
+        public async Task<IActionResult> TagODHTagIdFix(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.TagODHTagIdFix();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "TagODHTagIdFix",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
 
         #endregion
 

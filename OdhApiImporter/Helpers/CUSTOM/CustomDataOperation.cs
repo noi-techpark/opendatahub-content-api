@@ -1817,6 +1817,83 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        
+        public async Task<int> TagODHTagIdFix()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("tags")
+                    .SourceFilter_GeneratedColumn(new List<string>() { "idm" });
+
+
+            var data = await query.GetObjectListAsync<TagLinked>();
+            int matchedtags = 0;
+            int notmatchedtags = 0;
+
+            foreach (var tag in data)
+            {
+                if (tag.Mapping != null && tag.Mapping.ContainsKey("lts"))
+                {
+                    if (tag.Mapping["lts"].ContainsKey("rid"))
+                    {
+                        if (tag.ODHTagIds != null && tag.ODHTagIds.Count > 0)
+                        {
+                            //Load LTS Tag
+                            var singlequery = QueryFactory.Query().SelectRaw("data").From("tags").Where("id", tag.Mapping["lts"]["rid"].ToString());
+                            var singledata = await singlequery.GetObjectSingleAsync<TagLinked>();
+
+                            if (singledata != null)
+                            {
+                                string odhtagidtoadd = "";
+
+                                //What todo if 2 ODHTags are present
+                                foreach (var odhtagid in tag.ODHTagIds)
+                                {
+                                    var singleodhtagquery = QueryFactory.Query().SelectRaw("data").From("smgtags").Where("id", odhtagid);
+                                    var singleodhtagdata = await singleodhtagquery.GetObjectSingleAsync<ODHTagLinked>();
+
+                                    if (singleodhtagdata.Source.Contains("LTSCategory", StringComparer.OrdinalIgnoreCase))
+                                        odhtagidtoadd = odhtagid;
+                                }
+
+                                if (!String.IsNullOrEmpty(odhtagidtoadd))
+                                {
+                                    singledata.ODHTagIds = new List<string>() { odhtagidtoadd };
+
+                                    var queryresult = await QueryFactory
+                                        .Query("tags")
+                                        .Where("id", singledata.Id)
+                                        .UpdateAsync(
+                                            new JsonBData()
+                                            {
+                                                id = singledata.Id,
+                                                data = new JsonRaw(singledata),
+                                            }
+                                        );
+
+                                    matchedtags++;
+                                }
+                                else
+                                {
+                                    notmatchedtags++;
+                                }
+                            }
+                            else
+                                notmatchedtags++;
+                        }
+                        else
+                            notmatchedtags++;
+                    }
+                    else
+                        notmatchedtags++;
+                }
+                else
+                    notmatchedtags++;
+            }
+
+            return matchedtags;
+        }
+
+
         public async Task<int> EventTopicsToTags()
         {
             //Load all data from PG and resave
