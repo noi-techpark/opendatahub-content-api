@@ -51,6 +51,7 @@ namespace Helper
         LTSCredentials LtsCredentials { get; }
         LTSCredentials LtsCredentialsOpen { get; }
         ZOHOConfig ZohoConfig { get; }
+        MOMENTUSConfig MomentusConfig { get; }
     }
 
     //Classes for Settings shared between Projects
@@ -571,6 +572,22 @@ namespace Helper
         public string ServiceUrl { get; private set; }
         public string AuthUrl { get; private set; }
         public string Scope { get; private set; }
+    }
+
+    public class MOMENTUSConfig
+    {
+        public MOMENTUSConfig(string clientid, string clientsecret, string serviceurl, string authurl)
+        {
+            this.ClientId = clientid;
+            this.ClientSecret = clientsecret;
+            this.ServiceUrl = serviceurl;
+            this.AuthUrl = authurl;            
+        }
+
+        public string ClientId { get; private set; }
+        public string ClientSecret { get; private set; }
+        public string ServiceUrl { get; private set; }
+        public string AuthUrl { get; private set; }        
     }
 
 

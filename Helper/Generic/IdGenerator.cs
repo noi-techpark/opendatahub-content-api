@@ -19,9 +19,17 @@ namespace Helper
         /// <typeparam name="T"></typeparam>
         /// <param name="odhtype"></param>
         /// <returns></returns>
-        public static string GenerateIDFromType<T>(T odhtype)
+        public static string GenerateIDFromType<T>(T odhtype, bool useUrn = false)
         {
-            return CreateGUID(GetIDStyle(odhtype));
+            var guid = CreateGUID(GetIDStyle(odhtype));
+
+            if (!useUrn)
+                return guid;
+
+            var type = ODHTypeHelper.TranslateType2TypeString(odhtype);
+            var source = (odhtype is ISource s) ? s.Source?.ToLower() ?? "unknown" : "unknown";
+
+            return $"urn:{type}:{source}:{guid}";
         }
 
         public static void CheckIdFromType<T>(T odhtype)

@@ -682,7 +682,8 @@ namespace OdhApiCore.Controllers
                         .Query()
                         .Select("id")
                         .From("skiareas")
-                        .Where("gen_active", true);
+                        .Where("gen_active", true)
+                        .Where("gen_source", "lts");
 
                     var skiareaids = await query.GetAsync<string>();
 
@@ -1699,10 +1700,10 @@ namespace OdhApiCore.Controllers
                 }
             }
 
-            //Schoffts net afn SkiArea object zu bringen kriag do ollm a laars object
+            //Does not work empty object is returned this way
             //var skiarea2 = await query.FirstOrDefaultAsync<SkiArea>();
 
-            //Des hingegen geat
+            //This works
             //var skiareastring = await query.FirstOrDefaultAsync<string>();
             //var skiareaobject = JsonConvert.DeserializeObject<SkiArea>(skiareastring);
 
