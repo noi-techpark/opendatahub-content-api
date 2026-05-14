@@ -137,6 +137,10 @@ services:
       ASPNETCORE_OutdooractiveConfig__ServiceUrl: ${OUTDOORACTIVE_SERVICE_URL}
       ASPNETCORE_OutdooractiveConfig__ServiceUrlDetail: ${OUTDOORACTIVE_SERVICE_URL_DETAIL}
       ASPNETCORE_OutdooractiveConfig__Password: ${OUTDOORACTIVE_PSWD}
+      ASPNETCORE_MomentusConfig__ClientId: ${MOMENTUS_CLIENTID}
+      ASPNETCORE_MomentusConfig__ClientSecret: ${MOMENTUS_CLIENTSECRET}
+      ASPNETCORE_MomentusConfig__ServiceUrl: ${MOMENTUS_SERVICEURL}
+      ASPNETCORE_MomentusConfig__AuthUrl: ${MOMENTUS_AUTHURL}
     restart: unless-stopped
     ports:
       - "${SERVER_PORT}:80"
