@@ -78,6 +78,7 @@ namespace Helper.Converters
                         .Replace(" ", "")
                         .Replace("-", "")
                         .Replace("&", "")
+                        .Replace("/", "").Trim()
                         );
                 }
             }
@@ -90,13 +91,14 @@ namespace Helper.Converters
                         .Replace(" ", "")
                         .Replace("-", "")
                         .Replace("&", "")
+                        .Replace("/", "").Trim()
                         );
                 }
             }
 
             //Add Location as Tag
             if (!String.IsNullOrEmpty(eventshort.EventLocation))
-                eventv1.TagIds.Add("eventlocation:" + eventshort.EventLocation.ToLower());
+                eventv1.TagIds.Add(eventshort.EventLocation.ToLower());
 
             //To check Add each Room as Tag?
 

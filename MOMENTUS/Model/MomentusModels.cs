@@ -198,7 +198,7 @@ namespace MOMENTUS.Model
         public string? SpaceUsageName { get; set; }
         public string? UsageType { get; set; }
 
-        public int? NumberOfHours { get; set; }
+        public double? NumberOfHours { get; set; }
         public bool IsInvoiced { get; set; }
     }
 
