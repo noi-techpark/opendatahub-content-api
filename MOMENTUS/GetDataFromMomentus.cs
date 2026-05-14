@@ -145,6 +145,34 @@ namespace MOMENTUS
             }
         }
 
+        public static async Task<IEnumerable<MomentusBookedSpaceExtended>> RequestMomentusBookedRooms(string url, string? clientid, string? clientsecret, string? authurl, string eventid, MomentusTokenResponse? authtoken)
+        {
+            using (var client = new HttpClient())
+            {
+                //Reuse the token if passed (CURRENTLY no Validity Check)
+                if (authtoken == null)
+                {
+                    if (String.IsNullOrEmpty(authurl) || String.IsNullOrEmpty(clientid) || String.IsNullOrEmpty(clientsecret))
+                        throw new Exception("missing auth config");
+
+                    authtoken = await GetAccessTokenAsync(authurl, clientid, clientsecret);
+                }
+
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authtoken.AccessToken);
+
+                var response = await client.GetAsync(url + "booked-spaces/" + eventid);
+                response.EnsureSuccessStatusCode();
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var data = JsonSerializer.Deserialize<IEnumerable<MomentusBookedSpaceExtended>>(jsonResponse, options);
+
+                return data;
+            }
+        }
+
+
         public static async Task<MomentusTokenResponse> GetAccessTokenAsync(
             string authurl,
             string clientId,

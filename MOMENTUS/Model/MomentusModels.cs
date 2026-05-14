@@ -172,6 +172,36 @@ namespace MOMENTUS.Model
         public string? UsageType { get; set; }
     }
 
+    public class MomentusBookedSpaceExtended
+    {
+        public string? Id { get; set; }
+        public string? Description { get; set; }
+        public string? RoomId { get; set; }
+        public string? RoomName { get; set; }
+        public string? RoomSetup { get; set; }
+        public string? VenueId { get; set; }
+
+        public int? Attendance { get; set; }
+        public int? RoomCapacity { get; set; }
+        public int? SquareFootage { get; set; }
+        public int? OptionNumber { get; set; }
+
+        public DateOnly? StartDate { get; set; }
+        public DateOnly? EndDate { get; set; }
+        public bool IsAllDay { get; set; }
+        public string? StartTime { get; set; }
+        public string? EndTime { get; set; }
+        public string? BookedStatus { get; set; }
+
+        public string? SpaceUsageId { get; set; }
+
+        public string? SpaceUsageName { get; set; }
+        public string? UsageType { get; set; }
+
+        public int? NumberOfHours { get; set; }
+        public bool IsInvoiced { get; set; }
+    }
+
     public class MomentusRoom
     {
         public string? Id { get; set; }
