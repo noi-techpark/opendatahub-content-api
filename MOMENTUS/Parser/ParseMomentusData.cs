@@ -14,7 +14,7 @@ namespace MOMENTUS.Parser
 {
     public class ParseMomentusData
     {
-        public static EventLinked ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, EventLinked? eventlinked, VenueV2? venuelinked, bool optimizedays = false)
+        public static EventLinked ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist, EventLinked? eventlinked, VenueV2? venuelinked, bool optimizedays = false)
         {
             if (eventlinked == null)
                 eventlinked = new EventLinked();
@@ -25,6 +25,17 @@ namespace MOMENTUS.Parser
             var documents = eventlinked.Documents;
             var videoitems = eventlinked.VideoItems;
             var firstimport = eventlinked.FirstImport;
+
+            //What to do with
+            //WebAddress
+            //ExternalOrganizer
+            //SoldOut
+            //        //MODIFIED
+            //        eventshort.TagIds = AssignTechnologyfieldsautomatically(
+            //            eventshort.CompanyName,
+            //            eventshort.TechnologyFields
+            //        );
+
 
             // Identity
             eventlinked.Id = "urn:event:momentus:" + mevent.Id;
@@ -61,13 +72,11 @@ namespace MOMENTUS.Parser
                 eventlinked.ContactInfos = new Dictionary<string, ContactInfos>() { { "en", contact } };
             }
 
-            // OrganizerInfos from account name
-            if (!string.IsNullOrEmpty(mevent.AccountName))
+            // OrganizerInfos from first contact role, with event AccountName as CompanyName
+            if (mevent.ContactRoles != null && mevent.ContactRoles.Count > 0 && !string.IsNullOrEmpty(mevent.AccountName))
             {
-                eventlinked.OrganizerInfos = new Dictionary<string, ContactInfos>()
-                {
-                    { "en", new ContactInfos() { Language = "en", CompanyName = mevent.AccountName } }
-                };
+                var organizer = BuildOrganizerInfo(mevent.ContactRoles.First(), mevent.AccountName);
+                eventlinked.OrganizerInfos = new Dictionary<string, ContactInfos>() { { "en", organizer } };
             }
 
             // Mapping
@@ -101,8 +110,8 @@ namespace MOMENTUS.Parser
                 ];
             }
 
-            // PublishedOn is derived from UsageType and venue organization
-            eventlinked.PublishedOn = DeterminePublishedOn(mevent);
+            // PublishedOn is derived from SpaceUsageName (from extended booked spaces) and venue organization
+            eventlinked.PublishedOn = DeterminePublishedOn(mevent, bookedspacelist);
 
             // Restore preserved fields
             eventlinked.ImageGallery = imagegallery;
@@ -119,27 +128,43 @@ namespace MOMENTUS.Parser
 
             eventlinked.TagIds = tagids.Count > 0 ? tagids : null;
 
+            //New If CompanyName is Noi -  assign TechnologyField automatically
+            var organizerName = eventlinked.OrganizerInfos?.FirstOrDefault().Value?.CompanyName;
+            if (!string.IsNullOrEmpty(organizerName) && organizerName.StartsWith("NOI - "))
+                tagids = AssignTechnologyfieldsautomatically(organizerName, tagids);
+
+
             return eventlinked;
         }
 
-        private static List<string> DeterminePublishedOn(MomentusEvent mevent)
+        private static List<string> DeterminePublishedOn(MomentusEvent mevent, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist)
         {
-            var usageTypes = mevent.BookedSpaces?
-                .Where(b => !string.IsNullOrEmpty(b.UsageType))
-                .Select(b => b.UsageType!.Trim().ToUpperInvariant())
+            // Only consider rooms categorized as "event"
+            var eventSpaceIds = mevent.BookedSpaces?
+                .Where(b => string.Equals(b.UsageType, "event", StringComparison.OrdinalIgnoreCase) && b.BookedSpaceId != null)
+                .Select(b => b.BookedSpaceId!)
+                .ToHashSet();
+
+            if (eventSpaceIds == null || eventSpaceIds.Count == 0)
+                return [];
+
+            // Join with extended list to get SpaceUsageName
+            var spaceUsageNames = bookedspacelist
+                .Where(b => b.Id != null && eventSpaceIds.Contains(b.Id) && !string.IsNullOrEmpty(b.SpaceUsageName))
+                .Select(b => b.SpaceUsageName!.Trim().ToUpperInvariant())
                 .Distinct()
                 .ToList();
 
-            if (usageTypes == null || usageTypes.Count == 0 || usageTypes.All(u => u == "PRIVATE" || u == "MOVEIN"))
+            if (spaceUsageNames.Count == 0 || spaceUsageNames.All(u => u.Contains("PRIVATE")))
                 return [];
 
             // PUBLIC wins if at least one space has it
             string effectiveType;
-            if (usageTypes.Any(u => u == "PUBLIC"))
+            if (spaceUsageNames.Any(u => u.Contains("PUBLIC")))
                 effectiveType = "PUBLIC";
-            else if (usageTypes.Any(u => u.Contains("VIDEOWALL")))
+            else if (spaceUsageNames.Any(u => u.Contains("VIDEOWALL")))
                 effectiveType = "VIDEOWALL";
-            else if (usageTypes.Any(u => u.Contains("ROOM")))
+            else if (spaceUsageNames.Any(u => u.Contains("ROOM")))
                 effectiveType = "ROOM";
             else
                 return [];
@@ -220,7 +245,7 @@ namespace MOMENTUS.Parser
             var eventdates = new List<EventDate>();
 
             var spaces = mevent.BookedSpaces?
-                .Where(b => b.StartDate != null && !string.Equals(b.UsageType, "moveIn", StringComparison.OrdinalIgnoreCase))
+                .Where(b => b.StartDate != null && string.Equals(b.UsageType, "event", StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             if (spaces == null || spaces.Count == 0)
@@ -284,6 +309,72 @@ namespace MOMENTUS.Parser
                 ZipCode = contact.AddressPostalCode,
                 CountryName = contact.AddressCountry
             };
+        }
+
+        private static ContactInfos BuildOrganizerInfo(MomentusContactRole contact, string? accountName)
+        {
+            string? givenname = null;
+            string? surname = null;
+
+            if (!string.IsNullOrEmpty(contact.Name))
+            {
+                var parts = contact.Name.Trim().Split(' ', 2);
+                givenname = parts[0];
+                surname = parts.Length > 1 ? parts[1] : null;
+            }
+
+            return new ContactInfos()
+            {
+                Language = "en",
+                Givenname = givenname,
+                Surname = surname,
+                CompanyName = accountName,
+                Email = contact.Email,
+                Phonenumber = contact.Phone,
+                Address = contact.Address1,
+                City = contact.AddressCity,
+                ZipCode = contact.AddressPostalCode,
+                CountryName = contact.AddressCountry
+            };
+        }
+
+         private static List<string>? AssignTechnologyfieldsautomatically(
+            string companyname,
+            List<string>? technologyfields
+        )
+        {
+            if (technologyfields == null)
+                technologyfields = new List<string>();
+
+            //Digital, Alpine, Automotive/Automation, Food, Green
+
+            AssignTechnologyFields(companyname, "digital", "digital", technologyfields);
+            AssignTechnologyFields(companyname, "alpine", "alpine", technologyfields);
+            AssignTechnologyFields(
+                companyname,
+                "automotive",
+                "automotiveautomation",
+                technologyfields
+            );
+            AssignTechnologyFields(companyname, "food", "food", technologyfields);
+            AssignTechnologyFields(companyname, "green", "green", technologyfields);
+
+            if (technologyfields.Count == 0)
+                return null;
+            else
+                return technologyfields;
+        }
+
+        private static void AssignTechnologyFields(
+            string companyname,
+            string tocheck,
+            string toassign,
+            List<string> automatictechnologyfields
+        )
+        {
+            if (companyname.Contains(tocheck, StringComparison.OrdinalIgnoreCase))
+                if (!automatictechnologyfields.Contains(toassign))
+                    automatictechnologyfields.Add(toassign);
         }
     }
 }

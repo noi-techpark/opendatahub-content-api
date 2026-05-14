@@ -94,6 +94,15 @@ namespace OdhApiImporter.Helpers
             authtoken);
         }
 
+        private async Task<IEnumerable<MomentusBookedSpaceExtended>> RequestMomentusBookedSpacesByEventId(string eventid, MomentusTokenResponse authtoken)
+        {
+            return await GetDataFromMomentus.RequestMomentusBookedSpaces(
+            settings.MomentusConfig.ServiceUrl,
+            null, null, null,
+            eventid,
+            authtoken);
+        }
+
         private async Task<UpdateDetail> ImportData(
             IEnumerable<MomentusEvent> momentuseventlist,
             MomentusTokenResponse authtoken,
@@ -104,7 +113,7 @@ namespace OdhApiImporter.Helpers
             int newcounter = 0;
             int errorcounter = 0;
             
-            foreach (var momentusevent in momentuseventlist.Where(e => e.BookedSpaces != null && e.BookedSpaces.Any(bs => bs.UsageType != "moveIn")))
+            foreach (var momentusevent in momentuseventlist.Where(e => e.BookedSpaces != null && e.BookedSpaces.Any(bs => bs.UsageType == "event")))
             {
                 var importresult = await ImportDataSingle(momentusevent, authtoken);
 
@@ -144,8 +153,11 @@ namespace OdhApiImporter.Helpers
                 //Get all Functions
                 var momentusfunctionlist = await RequestMomentusFunctionByEventId(momentusevent.Id, authtoken);
 
+                //Get detailed BookedRooms
+                var momentusbookedroomlist = await RequestMomentusBookedSpacesByEventId(momentusevent.Id, authtoken);
+
                 ///Use the roomid
-                var roomid = momentusevent.BookedSpaces.Where(x => x.UsageType != "moveIn").Select(x => x.RoomId).FirstOrDefault();
+                var roomid = momentusevent.BookedSpaces.Where(x => x.UsageType == "event").Select(x => x.RoomId).FirstOrDefault();
 
                 //TODO: Get the Venue that contains all rooms here listed!
                 //How to identify between Eurac and NOI ? with roomIds ++ Mapping 
@@ -158,7 +170,7 @@ namespace OdhApiImporter.Helpers
 
 
                 //TODO Parse the MomentusEvent To Event
-                var eventtostore = ParseMomentusData.ParseMomentusEvent(momentusevent, momentusfunctionlist, eventindb, venue);
+                var eventtostore = ParseMomentusData.ParseMomentusEvent(momentusevent, momentusfunctionlist, momentusbookedroomlist, eventindb, venue);
 
 
                 ////currenteventshort.Where(x => x.EventId == eventshort.EventId).FirstOrDefault();

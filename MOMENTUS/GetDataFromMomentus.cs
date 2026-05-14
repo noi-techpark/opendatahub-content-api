@@ -145,7 +145,7 @@ namespace MOMENTUS
             }
         }
 
-        public static async Task<IEnumerable<MomentusBookedSpaceExtended>> RequestMomentusBookedRooms(string url, string? clientid, string? clientsecret, string? authurl, string eventid, MomentusTokenResponse? authtoken)
+        public static async Task<IEnumerable<MomentusBookedSpaceExtended>> RequestMomentusBookedSpaces(string url, string? clientid, string? clientsecret, string? authurl, string eventid, MomentusTokenResponse? authtoken)
         {
             using (var client = new HttpClient())
             {
