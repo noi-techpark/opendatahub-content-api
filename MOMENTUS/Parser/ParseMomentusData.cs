@@ -219,7 +219,7 @@ namespace MOMENTUS.Parser
                 if (!eventlinked.Detail.ContainsKey(lang))
                     eventlinked.Detail[lang] = new Detail() { Language = lang };
 
-                if (!string.IsNullOrEmpty(description))
+                if (!string.IsNullOrEmpty(description) && string.IsNullOrEmpty(eventlinked.Detail[lang].BaseText))
                     eventlinked.Detail[lang].BaseText = description;
             }
 
