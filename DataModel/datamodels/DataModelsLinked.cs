@@ -1302,15 +1302,17 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
-        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public IDictionary<string, GpsInfo> GpsPoints
-        {
-            get { return this.GpsInfo.ToGpsPointsDictionary(); }
-        }
+        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        //public IDictionary<string, GpsInfo> GpsPoints
+        //{
+        //    get { return this.GpsInfo.ToGpsPointsDictionary(); }
+        //}
 
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public class TourismvereinLinked : Tourismverein, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
