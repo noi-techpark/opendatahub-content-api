@@ -13,6 +13,7 @@ COPY RawQueryParser/RawQueryParser.fsproj RawQueryParser/
 COPY GeoConverter/GeoConverter.csproj GeoConverter/
 COPY Helper/Helper.csproj Helper/
 COPY EBMS/EBMS.csproj EBMS/
+COPY MOMENTUS/MOMENTUS.csproj MOMENTUS/
 COPY DSS/DSS.csproj DSS/
 COPY MSS/MSS.csproj MSS/
 COPY LCS/LCS.csproj LCS/
