@@ -1179,7 +1179,7 @@ namespace DataModel
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class MunicipalityLinked : Municipality, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
+    public class MunicipalityLinked : Municipality, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
