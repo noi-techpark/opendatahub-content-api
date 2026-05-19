@@ -496,6 +496,31 @@ namespace OdhApiImporter.Controllers
         }
 
         [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("ModifySTAVendingpointAdditionalProperties")]
+        public async Task<IActionResult> ModifySTAVendingpointAdditionalProperties(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(settings, QueryFactory);
+            var objectscount = await customdataoperation.UpdateAllSTAVendingpointsAdditionalProps();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify STA Vendingpoint Additionalproperties",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = 0,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
+
+        [Authorize(Roles = "DataPush")]
         [HttpGet, Route("CleanODHActivityPoiNullTags")]
         public async Task<IActionResult> CleanODHActivityPoiNullTags(            
             CancellationToken cancellationToken

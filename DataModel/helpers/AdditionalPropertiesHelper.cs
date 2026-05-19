@@ -261,6 +261,54 @@ namespace DataModel.helpers
             }
 
         }
+
+        public static void FillStaVendingPointAdditionalProperties(this ODHActivityPoi odhActivityPoi)
+        {
+            StaVendingPointsDataProperties addprop = new StaVendingPointsDataProperties();
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "haswebsite").Count() > 0)
+                addprop.HasWebsite = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "haswebsite").FirstOrDefault().Value);
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "suedtirolpass_services").Count() > 0)
+                addprop.SuedtirolPassServices = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "suedtirolpass_services").FirstOrDefault().Value);
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "suedtirolpass_over65_apply").Count() > 0)
+                addprop.SuedtirolpassOver65apply = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "suedtirolpass_over65_apply").FirstOrDefault().Value);
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "duplicate").Count() > 0)
+                addprop.Duplicate = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "duplicate").FirstOrDefault().Value);
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "chargecard").Count() > 0)
+                addprop.ChargeCard = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "chargecard").FirstOrDefault().Value);
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "city_card_bus").Count() > 0)
+                addprop.CityCardBus = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "city_card_bus").FirstOrDefault().Value);
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "mobilecard").Count() > 0)
+                addprop.MobileCard = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "mobilecard").FirstOrDefault().Value);
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "bike_mobilecard").Count() > 0)
+                addprop.BikeMobileCard = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "bike_mobilecard").FirstOrDefault().Value);
+
+            if (odhActivityPoi.PoiProperty != null && odhActivityPoi.PoiProperty.ContainsKey("de") && odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "museum_mobilecard").Count() > 0)
+                addprop.MuseumMobileCard = BoolExtensions.TrySetBool(odhActivityPoi.PoiProperty["de"].Where(x => x.Name == "museum_mobilecard").FirstOrDefault().Value);
+
+            var additionalpropertieskey = typeof(StaVendingPointsDataProperties).Name;
+
+            if (odhActivityPoi.AdditionalProperties == null)
+            {
+                odhActivityPoi.AdditionalProperties = new Dictionary<string, dynamic>();
+                odhActivityPoi.AdditionalProperties.Add(additionalpropertieskey, addprop);
+            }
+            else
+            {
+                if (odhActivityPoi.AdditionalProperties.ContainsKey(additionalpropertieskey))
+                    odhActivityPoi.AdditionalProperties[additionalpropertieskey] = addprop;
+                else
+                    odhActivityPoi.AdditionalProperties.Add(additionalpropertieskey, addprop);
+            }
+
+        }
     }
 
     public static class BoolExtensions
