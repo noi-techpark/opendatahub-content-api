@@ -745,7 +745,10 @@ namespace OdhApiImporter.Helpers
                 stapoi._Meta.Reduced = false;
                 stapoi.Source = "sta";
 
-                AdditionalPropertiesHelper.FillStaVendingPointAdditionalProperties(stapoi);
+                if (stapoi.SyncSourceInterface == "gtfsapi")
+                    stapoi.AdditionalProperties = new Dictionary<string, dynamic>();
+                else
+                    AdditionalPropertiesHelper.FillStaVendingPointAdditionalProperties(stapoi);
 
                 //Save tp DB
                 //TODO CHECK IF THIS WORKS

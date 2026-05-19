@@ -509,7 +509,7 @@ namespace OdhApiImporter.Controllers
                     updatetype = "custom",
                     otherinfo = "",
                     message = "Done",
-                    recordsmodified = 0,
+                    recordsmodified = objectscount,
                     created = 0,
                     deleted = 0,
                     id = "",
