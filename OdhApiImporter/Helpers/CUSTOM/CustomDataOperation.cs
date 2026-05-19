@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Helper.Converters;
 using Helper.Generic;
@@ -725,6 +726,46 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
+
+        public async Task<int> UpdateAllSTAVendingpointsAdditionalProps()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("smgpois")
+                .Where("gen_source", "sta");
+
+            var data = await query.GetObjectListAsync<ODHActivityPoiLinked>();
+            int i = 0;
+
+            foreach (var stapoi in data)
+            {
+                //Setting MetaInfo
+                stapoi._Meta.Reduced = false;
+                stapoi.Source = "sta";
+
+                AdditionalPropertiesHelper.FillStaVendingPointAdditionalProperties(stapoi);
+
+                //Save tp DB
+                //TODO CHECK IF THIS WORKS
+                var queryresult = await QueryFactory
+                    .Query("smgpois")
+                    .Where("id", stapoi.Id)
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = stapoi.Id,
+                            data = new JsonRaw(stapoi),
+                        }
+                    );
+
+                i++;
+            }
+
+            return i;
+        }
+
 
         public async Task<int> CleanODHActivityPoiNullTags()
         {
