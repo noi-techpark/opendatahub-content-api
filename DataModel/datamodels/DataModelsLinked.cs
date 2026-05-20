@@ -787,6 +787,12 @@ namespace DataModel
         public new LocationInfoLinked? LocationInfo { get; set; }
     }
 
+    public class VenueLink
+    {
+        public string Id { get; set; }
+        public string? Self { get; set; }
+    }
+
     public class PackageLinked : Package, IMetaData
     {
         public Metadata? _Meta { get; set; }
