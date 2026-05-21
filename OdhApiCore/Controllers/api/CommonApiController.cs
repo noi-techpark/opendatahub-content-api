@@ -2087,8 +2087,21 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<RegionLinked>(
-                    data,
+                    new UpsertableRegion(data),
                     new DataInfo("regions", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2165,8 +2178,21 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<TourismvereinLinked>(
-                    data,
+                    new UpsertableTourismassociation(data),
                     new DataInfo("tvs", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2490,8 +2516,22 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<RegionLinked>(
-                    data,
+                    new UpsertableRegion(data),
                     new DataInfo("regions", CRUDOperation.Update, true),
                     new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2561,8 +2601,22 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<TourismvereinLinked>(
-                    data,
+                    new UpsertableTourismassociation(data),
                     new DataInfo("tvs", CRUDOperation.Update, true),
                     new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
