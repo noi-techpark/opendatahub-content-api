@@ -112,6 +112,7 @@ namespace OdhApiImporter.Helpers
                     true,
                     source
                 );
+
                 weatherresponsetaskit = await SIAG.GetWeatherData.GetSiagWeatherData(
                     "it",
                     settings.SiagConfig.Username,
@@ -139,6 +140,10 @@ namespace OdhApiImporter.Helpers
                     true,
                     source
                 );
+
+                //Avoid HTTP 429 Error
+                Thread.Sleep(1000);
+
                 weatherdistrictit = await GetWeatherData.GetCurrentBezirkWeatherAsync(
                     "it",
                     "1,2,3,4,5,6,7",
@@ -150,6 +155,10 @@ namespace OdhApiImporter.Helpers
                     true,
                     source
                 );
+
+                //Avoid HTTP 429 Error
+                Thread.Sleep(1000);
+
                 weatherdistricten = await GetWeatherData.GetCurrentBezirkWeatherAsync(
                     "en",
                     "1,2,3,4,5,6,7",
