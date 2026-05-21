@@ -103,7 +103,7 @@ namespace DataModel
         //public ICollection<Webcam>? Webcam { get; set; }
         public bool VisibleInSearch { get; set; }
 
-        public int Inhabitants { get; set; }
+        public int? Inhabitants { get; set; }
         public string? IstatNumber { get; set; }
 
         public ICollection<RelatedContent>? RelatedContent { get; set; }
@@ -113,7 +113,6 @@ namespace DataModel
     {
         public Nullable<bool> IsComune { get; set; }
 
-        [SwaggerReference(typeof(MunicipalityLinked), "TESTRegionID")]
         public string? RegionId { get; set; }
         public string? TourismvereinId { get; set; }
         public string? MunicipalityId { get; set; }

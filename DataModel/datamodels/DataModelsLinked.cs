@@ -1066,7 +1066,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public RegionLink Region
+        public RegionLink? Region
         {
             get
             {
@@ -1081,7 +1081,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public MunicipalityLink Municipality
+        public MunicipalityLink? Municipality
         {
             get
             {
@@ -1096,7 +1096,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public TourismAssociationLink Tourismassociation
+        public TourismAssociationLink? Tourismassociation
         {
             get
             {
@@ -1176,7 +1176,7 @@ namespace DataModel
 
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public IDictionary<string, GpsInfo> GpsPoints
+        public IDictionary<string, GpsInfo>? GpsPoints
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(); }
         }
@@ -1209,13 +1209,13 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public bool OdhActive
+        public bool? OdhActive
         {
             get { return this.SmgActive; }
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public RegionLink Region
+        public RegionLink? Region
         {
             get
             {
@@ -1230,7 +1230,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        public TourismAssociationLink Tourismassociation
+        public TourismAssociationLink? Tourismassociation
         {
             get
             {
