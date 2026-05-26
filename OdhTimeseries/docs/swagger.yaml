@@ -102,15 +102,6 @@ definitions:
     required:
     - sensor_names
     type: object
-  models.AddTypesToDatasetRequest:
-    properties:
-      is_required:
-        type: boolean
-      type_names:
-        items:
-          type: string
-        type: array
-    type: object
   models.BatchDataRequest:
     properties:
       measurements:
@@ -132,6 +123,7 @@ definitions:
   models.BatchSensorTypesResponse:
     properties:
       sensors:
+        description: Only populated when distinct=false
         items:
           $ref: '#/definitions/models.SensorTypesResponse'
         type: array
@@ -140,18 +132,7 @@ definitions:
       types:
         description: Only populated when distinct=true
         items:
-          $ref: '#/definitions/models.TypeWithTimeseries'
-        type: array
-    type: object
-  models.CreateDatasetRequest:
-    properties:
-      description:
-        type: string
-      name:
-        type: string
-      type_names:
-        items:
-          type: string
+          $ref: '#/definitions/models.Type'
         type: array
     type: object
   models.DataType:
@@ -170,26 +151,6 @@ definitions:
     - DataTypeGeoposition
     - DataTypeGeoshape
     - DataTypeBoolean
-  models.Dataset:
-    properties:
-      created_on:
-        type: string
-      description:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  models.DatasetResponse:
-    properties:
-      dataset:
-        $ref: '#/definitions/models.Dataset'
-      types:
-        items:
-          $ref: '#/definitions/models.TypeInDataset'
-        type: array
-    type: object
   models.DeleteMeasurementsRequest:
     properties:
       end_time:
@@ -338,13 +299,6 @@ definitions:
       unit:
         type: string
     type: object
-  models.TypeInDataset:
-    properties:
-      is_required:
-        type: boolean
-      type:
-        $ref: '#/definitions/models.Type'
-    type: object
   models.TypeWithSensors:
     properties:
       sensors:
@@ -378,218 +332,6 @@ info:
   title: Timeseries API
   version: 1.0.0
 paths:
-  /datasets:
-    get:
-      description: Retrieve a list of all datasets. Use the 'with_types' query parameter
-        to include associated types.
-      parameters:
-      - description: Include associated measurement types (true/false)
-        in: query
-        name: with_types
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of datasets
-          schema:
-            items:
-              $ref: '#/definitions/models.DatasetResponse'
-            type: array
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get all datasets
-      tags:
-      - datasets
-    post:
-      consumes:
-      - application/json
-      description: Create a new dataset with optional measurement type associations
-      parameters:
-      - description: Create dataset request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.CreateDatasetRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Dataset created successfully
-          schema:
-            $ref: '#/definitions/models.DatasetResponse'
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Create new dataset
-      tags:
-      - datasets
-  /datasets/{id}/types:
-    delete:
-      consumes:
-      - application/json
-      description: Remove measurement types from an existing dataset
-      parameters:
-      - description: Dataset ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Comma-separated list of type names to remove
-        in: query
-        name: type_names
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Types removed successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Dataset not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Remove measurement types from dataset
-      tags:
-      - datasets
-    post:
-      consumes:
-      - application/json
-      description: Add measurement types to an existing dataset with required/optional
-        flag
-      parameters:
-      - description: Dataset ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Add types request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/models.AddTypesToDatasetRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Types added successfully
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Dataset not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Add measurement types to dataset
-      tags:
-      - datasets
-  /datasets/{name}:
-    get:
-      description: Retrieve dataset details with all associated measurement types
-      parameters:
-      - description: Dataset Name
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Dataset details with types
-          schema:
-            $ref: '#/definitions/models.DatasetResponse'
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Dataset not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get dataset details
-      tags:
-      - datasets
-  /datasets/{name}/sensors:
-    get:
-      description: Retrieve all sensors that have timeseries associated with a specific
-        dataset
-      parameters:
-      - description: Dataset Name
-        in: path
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Sensors in the dataset
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            additionalProperties: true
-            type: object
-        "404":
-          description: Dataset not found
-          schema:
-            additionalProperties: true
-            type: object
-        "500":
-          description: Internal server error
-          schema:
-            additionalProperties: true
-            type: object
-      summary: Get all sensors that have timeseries in dataset
-      tags:
-      - datasets
   /health:
     get:
       description: Check the health status of the API

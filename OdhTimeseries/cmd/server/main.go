@@ -96,7 +96,6 @@ func main() {
 	// Initialize handlers
 	mutationHandler := handlers.NewMutationHandler(repo)
 	queryHandler := handlers.NewQueryHandler(repo)
-	datasetHandler := handlers.NewDatasetHandler(repo)
 	sensorDiscoveryHandler := handlers.NewSensorDiscoveryHandler(repo)
 	typeHandler := handlers.NewTypeHandler(repo)
 
@@ -108,7 +107,7 @@ func main() {
 	}
 
 	// Setup Gin router
-	router := setupRouter(mutationHandler, queryHandler, datasetHandler, sensorDiscoveryHandler, typeHandler, streamingHandler)
+	router := setupRouter(mutationHandler, queryHandler, sensorDiscoveryHandler, typeHandler, streamingHandler)
 
 	// Setup HTTP server
 	srv := &http.Server{
@@ -158,7 +157,7 @@ func setupLogging(level string) {
 	logrus.SetLevel(logLevel)
 }
 
-func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handlers.QueryHandler, datasetHandler *handlers.DatasetHandler, sensorDiscoveryHandler *handlers.SensorDiscoveryHandler, typeHandler *handlers.TypeHandler, streamingHandler *handlers.StreamingHandler) *gin.Engine {
+func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handlers.QueryHandler, sensorDiscoveryHandler *handlers.SensorDiscoveryHandler, typeHandler *handlers.TypeHandler, streamingHandler *handlers.StreamingHandler) *gin.Engine {
 	// Set Gin mode based on log level
 	if logrus.GetLevel() == logrus.DebugLevel {
 		gin.SetMode(gin.DebugMode)
@@ -221,17 +220,6 @@ func setupRouter(mutationHandler *handlers.MutationHandler, queryHandler *handle
 
 			// Single sensor timeseries endpoint
 			sensors.GET("/:name", sensorDiscoveryHandler.GetSensorTimeseries)
-		}
-
-		// Dataset endpoints
-		datasets := v1.Group("/datasets")
-		{
-			datasets.POST("", datasetHandler.CreateDataset)
-			datasets.GET("", datasetHandler.ListDatasets)
-			datasets.GET("/:name", datasetHandler.GetDataset)
-			datasets.POST("/:id/types", datasetHandler.AddTypesToDataset)
-			datasets.DELETE("/:id/types", datasetHandler.RemoveTypesFromDataset)
-			datasets.GET("/:name/sensors", datasetHandler.GetSensorsByDataset)
 		}
 
 		// Type endpoints

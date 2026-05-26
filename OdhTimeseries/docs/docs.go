@@ -27,313 +27,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/datasets": {
-            "get": {
-                "description": "Retrieve a list of all datasets. Use the 'with_types' query parameter to include associated types.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Get all datasets",
-                "parameters": [
-                    {
-                        "type": "boolean",
-                        "description": "Include associated measurement types (true/false)",
-                        "name": "with_types",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "List of datasets",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.DatasetResponse"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Create a new dataset with optional measurement type associations",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Create new dataset",
-                "parameters": [
-                    {
-                        "description": "Create dataset request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.CreateDatasetRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Dataset created successfully",
-                        "schema": {
-                            "$ref": "#/definitions/models.DatasetResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/datasets/{id}/types": {
-            "post": {
-                "description": "Add measurement types to an existing dataset with required/optional flag",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Add measurement types to dataset",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Dataset ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Add types request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.AddTypesToDatasetRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Types added successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Dataset not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Remove measurement types from an existing dataset",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Remove measurement types from dataset",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Dataset ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Comma-separated list of type names to remove",
-                        "name": "type_names",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Types removed successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Dataset not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/datasets/{name}": {
-            "get": {
-                "description": "Retrieve dataset details with all associated measurement types",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Get dataset details",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Dataset Name",
-                        "name": "name",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Dataset details with types",
-                        "schema": {
-                            "$ref": "#/definitions/models.DatasetResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Dataset not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
-        "/datasets/{name}/sensors": {
-            "get": {
-                "description": "Retrieve all sensors that have timeseries associated with a specific dataset",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "datasets"
-                ],
-                "summary": "Get all sensors that have timeseries in dataset",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Dataset Name",
-                        "name": "name",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Sensors in the dataset",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "404": {
-                        "description": "Dataset not found",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            }
-        },
         "/health": {
             "get": {
                 "description": "Check the health status of the API",
@@ -1289,20 +982,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.AddTypesToDatasetRequest": {
-            "type": "object",
-            "properties": {
-                "is_required": {
-                    "type": "boolean"
-                },
-                "type_names": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "models.BatchDataRequest": {
             "type": "object",
             "properties": {
@@ -1335,6 +1014,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "sensors": {
+                    "description": "Only populated when distinct=false",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.SensorTypesResponse"
@@ -1347,24 +1027,7 @@ const docTemplate = `{
                     "description": "Only populated when distinct=true",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.TypeWithTimeseries"
-                    }
-                }
-            }
-        },
-        "models.CreateDatasetRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type_names": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/models.Type"
                     }
                 }
             }
@@ -1387,37 +1050,6 @@ const docTemplate = `{
                 "DataTypeGeoshape",
                 "DataTypeBoolean"
             ]
-        },
-        "models.Dataset": {
-            "type": "object",
-            "properties": {
-                "created_on": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DatasetResponse": {
-            "type": "object",
-            "properties": {
-                "dataset": {
-                    "$ref": "#/definitions/models.Dataset"
-                },
-                "types": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.TypeInDataset"
-                    }
-                }
-            }
         },
         "models.DeleteMeasurementsRequest": {
             "type": "object",
@@ -1643,17 +1275,6 @@ const docTemplate = `{
                 },
                 "unit": {
                     "type": "string"
-                }
-            }
-        },
-        "models.TypeInDataset": {
-            "type": "object",
-            "properties": {
-                "is_required": {
-                    "type": "boolean"
-                },
-                "type": {
-                    "$ref": "#/definitions/models.Type"
                 }
             }
         },
