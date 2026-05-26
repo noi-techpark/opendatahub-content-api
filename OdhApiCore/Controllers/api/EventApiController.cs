@@ -422,6 +422,7 @@ namespace OdhApiCore.Controllers
                 var list = denormalize == true
                     ? data.List
                         .SelectMany(jr => DeNormalizeEventLinked(JsonConvert.DeserializeObject<EventLinked>(jr.Value), myeventhelper.begin, myeventhelper.end, optimizedates)!)
+                        .OrderBy(jw => jw.DateBegin)
                         .Select(jr => new JsonRaw(jr))
                     : data.List;
 
