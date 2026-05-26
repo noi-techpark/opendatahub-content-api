@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 namespace DataModel
 {
     #region EventShort
+
+    [Obsolete("Obsolete use Event")]
     public class EventShort
         : IIdentifiable,
             IShortName,
@@ -499,6 +501,73 @@ namespace DataModel
         public int AgeFrom { get; set; }
         public int AgeTo { get; set; }
     }
+
+    [Obsolete("Obsolete use Event")]
+    public class EventShortLinked : EventShort, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties
+    {
+        public Metadata? _Meta { get; set; }
+
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public string? Self
+        {
+            get { return this.Id != null ? "EventShort/" + Uri.EscapeDataString(this.Id) : null; }
+        }
+
+        //Adding Tags also to EventShort
+        //TODO move all Technologyfields + CustomTagging to Tags
+        //TODO make Technologyfields & CustomTagging readonly
+        public ICollection<Tags>? Tags { get; set; }
+
+        public ICollection<string>? TagIds { get; set; }
+
+        //Setting old TechnologyFields to readonly
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public new List<string>? TechnologyFields
+        {
+            get
+            {
+                if (this.Tags != null)
+                {
+                    return this.Tags.Where(x => x.Type == "technologyfields").Count() > 0
+                        ? this
+                            .Tags.Where(x => x.Type == "technologyfields")
+                            .Select(x => CompatibilityHelper.GetOldEventShortTagnames(x.Id))
+                            .ToList()
+                        : null;
+                }
+                else
+                    return null;
+            }
+        }
+
+        //Setting old CustomTagging to readonly
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public new List<string>? CustomTagging
+        {
+            get
+            {
+                if (this.Tags != null)
+                {
+                    return this.Tags.Where(x => x.Type == "customtagging").Count() > 0
+                        ? this
+                            .Tags.Where(x => x.Type == "customtagging")
+                            .Select(x => CompatibilityHelper.GetOldEventShortTagnames(x.Id))
+                            .ToList()
+                        : null;
+                }
+                else
+                    return null;
+            }
+        }
+
+        //Additional Properties
+        public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        //Related Content
+        public ICollection<RelatedContent>? RelatedContent { get; set; }
+
+    }
+
 
     #endregion
 
