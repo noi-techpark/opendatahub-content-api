@@ -14,14 +14,15 @@ namespace OdhApiCore.Swagger
         private static readonly List<string> Order = new()
         {
             // Main
+            "MetaData",
             "Accommodation", "Announcement", "Article", "Common", "Event",
-            "ODHActivityPoi", "ODHTag", "Publisher", "Source", "SpatialData",
+            "ODHActivityPoi", "Publisher", "Source", "SpatialData",
             "Tag", "Trip", "UrbanGreen", "Venue", "Weather", "WebcamInfo",
             // Secondary
             "Search", "Distinct", "Deprecated", "PushResponse",
             "Geo", "GeoConverter", "Location", "FileUpload", "JsonLD",
             // Obsolete
-            "EventShort (Obsolete)",
+            "EventShort", "ODHTag",
         };
 
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
