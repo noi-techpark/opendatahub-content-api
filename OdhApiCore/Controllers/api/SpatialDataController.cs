@@ -27,7 +27,6 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("SpatialData")]
     public class SpatialDataController : OdhController
     {
         public SpatialDataController(

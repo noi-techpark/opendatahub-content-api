@@ -33,7 +33,6 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Event")]
     public class EventController : OdhController
     {
         public EventController(

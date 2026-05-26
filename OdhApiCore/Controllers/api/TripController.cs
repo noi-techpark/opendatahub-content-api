@@ -26,7 +26,6 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Trip")]
     public class TripController : OdhController
     {
         public TripController(

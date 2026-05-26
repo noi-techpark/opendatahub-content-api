@@ -32,7 +32,6 @@ namespace OdhApiCore.Controllers.api
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Z7 Location")]
     public class LocationController : OdhController
     {
         private readonly IHttpClientFactory httpClientFactory;

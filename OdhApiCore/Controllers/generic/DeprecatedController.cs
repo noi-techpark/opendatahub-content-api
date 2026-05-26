@@ -25,7 +25,6 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Z3 Deprecated")]
     public class DeprecatedController : OdhController
     {
         public DeprecatedController(

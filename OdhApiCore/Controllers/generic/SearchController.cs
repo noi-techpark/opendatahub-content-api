@@ -25,7 +25,6 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Z1 Search")]
     public class SearchController : OdhController
     {
         public SearchController(

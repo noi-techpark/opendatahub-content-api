@@ -27,7 +27,6 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Announcement")]
     public class AnnouncementController : OdhController
     {
         public AnnouncementController(

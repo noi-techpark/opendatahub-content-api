@@ -26,7 +26,6 @@ namespace OdhApiCore.Controllers
     [EnableCors("CorsPolicy")]
     //[ApiExplorerSettings(IgnoreApi = true)]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Tag")]
     public class TagController : OdhController
     {
         public TagController(

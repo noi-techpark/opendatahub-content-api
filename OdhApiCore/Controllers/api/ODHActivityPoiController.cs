@@ -31,7 +31,6 @@ namespace OdhApiCore.Controllers.api
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("ODHActivityPoi")]
     public class ODHActivityPoiController : OdhController
     {
         private readonly ISettings settings;

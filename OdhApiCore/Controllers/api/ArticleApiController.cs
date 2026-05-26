@@ -30,7 +30,6 @@ namespace OdhApiCore.Controllers.api
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Article")]
     public class ArticleController : OdhController
     {
         public ArticleController(

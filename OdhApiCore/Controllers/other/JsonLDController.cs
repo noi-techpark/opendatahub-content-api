@@ -24,7 +24,6 @@ namespace OdhApiCore.Controllers.api
     /// <summary>
     /// <a href="https://github.com/noi-techpark/odh-docs/wiki/Getting-Data-as-JsonLD---schema.org" target="_blank">Wiki Json LD Api</a>
     /// </summary>
-    [SwaggerTags("Z9 JsonLD")]
     public class JsonLDController : OdhController
     {
         public JsonLDController(

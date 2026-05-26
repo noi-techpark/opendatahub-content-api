@@ -29,7 +29,6 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("WebcamInfo")]
     public class WebcamInfoController : OdhController
     {
         public WebcamInfoController(

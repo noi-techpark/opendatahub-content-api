@@ -24,7 +24,6 @@ namespace OdhApiCore.Controllers.api
     //[ApiExplorerSettings(IgnoreApi = true)]
     //[Route("api/[controller]")]
     [ApiController]
-    [SwaggerTags("Z8 FileUpload")]
     public class FileUploadController : ControllerBase
     {
         private readonly IWebHostEnvironment env;

@@ -27,7 +27,6 @@ namespace OdhApiCore.Controllers
     //[Route("ODHTag")]
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("ZZ ODHTag (Obsolete)")]
     [Obsolete("Obsolete use Tag Endpoint")]    
     public class ODHTagController : OdhController
     {

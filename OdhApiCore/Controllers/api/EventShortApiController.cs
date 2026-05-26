@@ -35,7 +35,6 @@ namespace OdhApiCore.Controllers.api
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
     [Obsolete("Obsolete use Event Endpoint")]
-    [SwaggerTags("ZZ EventShort (Obsolete)")]
     public class EventShortController : OdhController
     {
         public EventShortController(

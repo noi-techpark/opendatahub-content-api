@@ -23,6 +23,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using OdhApiCore.Controllers;
 using OdhApiCore.Swagger;
 using OdhNotifier;
@@ -459,6 +460,13 @@ namespace OdhApiCore
                 c.SchemaFilter<ReferencedAttributeSchemaFilter>();
                 c.SchemaFilter<PolymorphicDictionarySchemaFilter>();
                 c.EnableAnnotations();
+                c.TagActionsBy(api =>
+                {
+                    if (api.ActionDescriptor is ControllerActionDescriptor cad)
+                        return new[] { ControllerTagMap.GetTag(cad.ControllerName) };
+                    return new[] { "Other" };
+                });
+                c.DocumentFilter<TagOrderDocumentFilter>();
                 //c.UseOneOfForPolymorphism();
                 //c.UseAllOfForInheritance();
                 //c.SelectDiscriminatorNameUsing(baseType =>

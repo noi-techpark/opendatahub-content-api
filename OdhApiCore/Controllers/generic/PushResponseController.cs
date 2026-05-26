@@ -23,7 +23,6 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Z4 PushResponse")]
     public class PushResponseController : OdhControllerWithSearch
     {
         public PushResponseController(

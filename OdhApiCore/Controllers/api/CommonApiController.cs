@@ -23,7 +23,6 @@ using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers.api
 {
-    [SwaggerTags("Common")]
     public class CommonController : OdhController
     {
         public CommonController(

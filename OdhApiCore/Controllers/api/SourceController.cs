@@ -25,7 +25,6 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Source")]
     public class SourceController : OdhController
     {
         public SourceController(

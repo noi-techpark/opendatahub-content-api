@@ -28,7 +28,6 @@ namespace OdhApiCore.Controllers
     [EnableCors("CorsPolicy")]
     //[ApiExplorerSettings(IgnoreApi = true)]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Z5 Geo")]
     public class GeoController : OdhController
     {
         public GeoController(

@@ -37,7 +37,6 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Weather")]
     public class WeatherController : OdhController
     {
         private readonly ISettings settings;

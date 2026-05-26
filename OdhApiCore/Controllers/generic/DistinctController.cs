@@ -27,7 +27,6 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Z2 Distinct")]
     public class DistinctController : OdhController
     {
         public DistinctController(

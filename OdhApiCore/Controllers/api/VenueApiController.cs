@@ -31,7 +31,6 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Venue")]
     public class VenueController : OdhController
     {
         public VenueController(

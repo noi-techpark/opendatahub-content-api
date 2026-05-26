@@ -25,7 +25,6 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Publisher")]
     public class PublisherController : OdhController
     {
         public PublisherController(

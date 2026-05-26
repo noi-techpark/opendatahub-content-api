@@ -28,7 +28,6 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("UrbanGreen")]
     public class UrbanGreenController : OdhController
     {
         public UrbanGreenController(

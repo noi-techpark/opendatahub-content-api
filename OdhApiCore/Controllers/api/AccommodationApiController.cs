@@ -31,7 +31,6 @@ namespace OdhApiCore.Controllers
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
-    [SwaggerTags("Accommodation")]
     public class AccommodationController : OdhController
     {
         private readonly IHttpClientFactory httpClientFactory;
