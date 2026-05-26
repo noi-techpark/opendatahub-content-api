@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OdhApiCore.Filters;
@@ -31,6 +32,7 @@ namespace OdhApiCore.Controllers.api
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [SwaggerTags("Z7 Location")]
     public class LocationController : OdhController
     {
         private readonly IHttpClientFactory httpClientFactory;

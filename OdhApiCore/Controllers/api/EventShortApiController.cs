@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OdhApiCore.Responses;
@@ -34,6 +35,7 @@ namespace OdhApiCore.Controllers.api
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
     [Obsolete("Obsolete use Event Endpoint")]
+    [SwaggerTags("ZZ EventShort (Obsolete)")]
     public class EventShortController : OdhController
     {
         public EventShortController(

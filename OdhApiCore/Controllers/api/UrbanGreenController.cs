@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Controllers.api;
 using OdhApiCore.Responses;
@@ -27,6 +28,7 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [SwaggerTags("UrbanGreen")]
     public class UrbanGreenController : OdhController
     {
         public UrbanGreenController(

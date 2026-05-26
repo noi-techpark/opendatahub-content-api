@@ -10,6 +10,7 @@ using Helper.Tagging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
@@ -22,6 +23,7 @@ using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers.api
 {
+    [SwaggerTags("Common")]
     public class CommonController : OdhController
     {
         public CommonController(

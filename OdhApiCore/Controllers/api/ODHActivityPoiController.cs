@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
@@ -29,7 +30,8 @@ namespace OdhApiCore.Controllers.api
     /// ODH Activity Poi Api (data provided by various data providers) SOME DATA Available as OPENDATA
     /// </summary>
     [EnableCors("CorsPolicy")]
-    [NullStringParameterActionFilter]    
+    [NullStringParameterActionFilter]
+    [SwaggerTags("ODHActivityPoi")]
     public class ODHActivityPoiController : OdhController
     {
         private readonly ISettings settings;

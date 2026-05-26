@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
@@ -24,6 +25,7 @@ namespace OdhApiCore.Controllers
 {
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [SwaggerTags("Publisher")]
     public class PublisherController : OdhController
     {
         public PublisherController(

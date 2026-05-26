@@ -8,6 +8,7 @@ using GeoConverter;
 using Helper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -17,6 +18,7 @@ namespace OdhApiCore.Controllers.api
     /// <summary>
     /// <a href="https://github.com/noi-techpark/odh-docs/wiki/Geoshapes-Api-and-Geo-Converter#geoconverter-api" target="_blank">Wiki GeoConverter Api</a>
     /// </summary>
+    [SwaggerTags("Z6 GeoConverter")]
     public class GeoConverterController : OdhController
     {
         private readonly IHttpClientFactory _clientFactory;

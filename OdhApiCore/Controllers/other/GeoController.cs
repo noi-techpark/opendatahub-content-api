@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
@@ -27,6 +28,7 @@ namespace OdhApiCore.Controllers
     [EnableCors("CorsPolicy")]
     //[ApiExplorerSettings(IgnoreApi = true)]
     [NullStringParameterActionFilter]
+    [SwaggerTags("Z5 Geo")]
     public class GeoController : OdhController
     {
         public GeoController(

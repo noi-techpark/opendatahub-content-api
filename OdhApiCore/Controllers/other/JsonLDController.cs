@@ -13,6 +13,7 @@ using DataModel;
 using Helper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OdhNotifier;
@@ -23,6 +24,7 @@ namespace OdhApiCore.Controllers.api
     /// <summary>
     /// <a href="https://github.com/noi-techpark/odh-docs/wiki/Getting-Data-as-JsonLD---schema.org" target="_blank">Wiki Json LD Api</a>
     /// </summary>
+    [SwaggerTags("Z9 JsonLD")]
     public class JsonLDController : OdhController
     {
         public JsonLDController(
