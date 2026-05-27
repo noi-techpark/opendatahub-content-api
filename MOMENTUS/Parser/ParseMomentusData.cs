@@ -14,7 +14,7 @@ namespace MOMENTUS.Parser
 {
     public class ParseMomentusData
     {
-        public static EventLinked ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist, EventLinked? eventlinked, VenueV2? venuelinked, bool optimizedays = false)
+        public static EventLinked? ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist, EventLinked? eventlinked, VenueV2? venuelinked, bool optimizedays = false)
         {
             if (eventlinked == null)
                 eventlinked = new EventLinked();
@@ -54,12 +54,16 @@ namespace MOMENTUS.Parser
             // Multilingual detail: titles/subtitles from named functions, description from event
             BuildDetailFromFunctions(eventlinked, functionlist, mevent.Description);
 
+            // Skip events with no title in any language
+            if (!eventlinked.Detail.Values.Any(d => !string.IsNullOrEmpty(d.Title)))
+                return null;
+
             // Venue reference
             if (venuelinked?.Id != null)
                 eventlinked.VenueIds = [venuelinked.Id];
 
             // EventDates from booked spaces (one entry per day, rooms resolved via venue mapping)
-            eventlinked.EventDate = BuildEventDates(mevent, venuelinked);
+            eventlinked.EventDate = BuildEventDates(mevent, venuelinked, bookedspacelist);
 
             // Recalculate root DateBegin/DateEnd from active EventDates
             if (optimizedays)
@@ -110,21 +114,26 @@ namespace MOMENTUS.Parser
                 ];
             }
 
-            // PublishedOn is derived from SpaceUsageName (from extended booked spaces) and venue organization
-            eventlinked.PublishedOn = DeterminePublishedOn(mevent, bookedspacelist);
+            // Get eventlocation value from venue Mapping["tag"]["eventlocation"] (e.g. "noi", "ec")
+            string? venueEventLocation = null;
+            if (venuelinked?.Mapping != null &&
+                venuelinked.Mapping.TryGetValue("tag", out var venueTagMap) &&
+                venueTagMap.TryGetValue("eventlocation", out var el) &&
+                !string.IsNullOrEmpty(el))
+                venueEventLocation = el;
+
+            // PublishedOn is derived from SpaceUsageName (from extended booked spaces) and venue eventlocation
+            eventlinked.PublishedOn = DeterminePublishedOn(mevent, bookedspacelist, venueEventLocation);
 
             // Restore preserved fields
             eventlinked.ImageGallery = imagegallery;
             eventlinked.Documents = documents;
             eventlinked.VideoItems = videoitems;
 
-            // Merge event-location tag from venue into TagIds, preserving existing tags
-            var locationTags = new[] { "noi", "ec" };
-            var venueLocationTag = venuelinked?.TagIds?.FirstOrDefault(t => locationTags.Contains(t));
-
+            // Merge venue eventlocation tag into TagIds, preserving existing tags
             tagids ??= [];
-            if (venueLocationTag != null && !tagids.Contains(venueLocationTag))
-                tagids.Add(venueLocationTag);
+            if (venueEventLocation != null && !tagids.Contains(venueEventLocation))
+                tagids.Add(venueEventLocation);
 
             eventlinked.TagIds = tagids.Count > 0 ? tagids : null;
 
@@ -137,7 +146,7 @@ namespace MOMENTUS.Parser
             return eventlinked;
         }
 
-        private static List<string> DeterminePublishedOn(MomentusEvent mevent, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist)
+        private static List<string> DeterminePublishedOn(MomentusEvent mevent, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist, string? venueEventLocation)
         {
             // Only consider rooms categorized as "event"
             var eventSpaceIds = mevent.BookedSpaces?
@@ -169,10 +178,8 @@ namespace MOMENTUS.Parser
             else
                 return [];
 
-            bool isEurac = mevent.VenueNames != null &&
-                mevent.VenueNames.Any(v => v.Contains("Eurac", StringComparison.OrdinalIgnoreCase));
-            bool isNoi = mevent.VenueNames != null &&
-                mevent.VenueNames.Any(v => v.Contains("NOI", StringComparison.OrdinalIgnoreCase));
+            bool isEurac = string.Equals(venueEventLocation, "ec", StringComparison.OrdinalIgnoreCase);
+            bool isNoi = string.Equals(venueEventLocation, "noi", StringComparison.OrdinalIgnoreCase);
 
             var publishers = new List<string>();
 
@@ -240,7 +247,7 @@ namespace MOMENTUS.Parser
             }
         }
 
-        private static List<EventDate> BuildEventDates(MomentusEvent mevent, VenueV2? venuelinked)
+        private static List<EventDate> BuildEventDates(MomentusEvent mevent, VenueV2? venuelinked, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist)
         {
             var eventdates = new List<EventDate>();
 
@@ -253,11 +260,18 @@ namespace MOMENTUS.Parser
 
             foreach (var space in spaces)
             {
+                var extendedSpace = space.BookedSpaceId != null
+                    ? bookedspacelist.FirstOrDefault(b => b.Id == space.BookedSpaceId)
+                    : null;
+
+                bool isPrivate = extendedSpace?.SpaceUsageName != null &&
+                    extendedSpace.SpaceUsageName.Contains("PRIVATE", StringComparison.OrdinalIgnoreCase);
+
                 var eventdate = new EventDate
                 {
                     From = space.StartDate!.Value.ToDateTime(TimeOnly.MinValue),
                     To = space.EndDate.HasValue ? space.EndDate.Value.ToDateTime(TimeOnly.MinValue) : space.StartDate!.Value.ToDateTime(TimeOnly.MinValue),
-                    Active = true
+                    Active = !isPrivate
                 };
 
                 if (TimeSpan.TryParse(space.StartTime, out var begin))

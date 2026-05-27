@@ -172,6 +172,8 @@ namespace OdhApiImporter.Helpers
                 //TODO Parse the MomentusEvent To Event
                 var eventtostore = ParseMomentusData.ParseMomentusEvent(momentusevent, momentusfunctionlist, momentusbookedroomlist, eventindb, venue);
 
+                if (eventtostore == null)
+                    return new UpdateDetail() { created = 0, updated = 0, deleted = 0, error = 0 };
 
                 var queryresult = await InsertDataToDB(
                     eventtostore,
