@@ -34,8 +34,7 @@ namespace Helper
         LcsConfig LcsConfig { get; }
         CDBConfig CDBConfig { get; }
         SiagConfig SiagConfig { get; }
-        DSSConfig DSSConfig { get; }
-        EBMSConfig EbmsConfig { get; }
+        DSSConfig DSSConfig { get; }        
         RavenConfig RavenConfig { get; }
         A22Config A22Config { get; }
         FeratelConfig FeratelConfig { get; }
@@ -324,21 +323,7 @@ namespace Helper
         public string Password { get; private set; }
         public string ServiceUrl { get; private set; }
     }
-
-    public class EBMSConfig
-    {
-        public EBMSConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
+   
     public class RavenConfig
     {
         public RavenConfig(string user, string password, string serviceurl)

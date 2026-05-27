@@ -324,7 +324,6 @@ namespace OdhApiCore
         public NoRateLimitConfig NoRateLimitConfig => this.noRateLimitConfig;
 
         public DSSConfig DSSConfig => throw new NotImplementedException();
-        public EBMSConfig EbmsConfig => throw new NotImplementedException();
         public A22Config A22Config => throw new NotImplementedException();
         public FeratelConfig FeratelConfig => throw new NotImplementedException();
         public PanomaxConfig PanomaxConfig => throw new NotImplementedException();

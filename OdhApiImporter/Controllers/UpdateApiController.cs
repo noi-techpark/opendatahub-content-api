@@ -310,65 +310,6 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
-        #region EBMS DATA SYNC (EventShort)
-
-        [HttpGet, Route("EBMS/EventShort/UpdateFull")]
-        public async Task<IActionResult> UpdateAllEBMS(
-            bool forceupdate = false,
-            CancellationToken cancellationToken = default
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Update EBMS";
-            string updatetype = GetUpdateType(null);
-            string source = "ebms";
-
-            try
-            {
-                EbmsEventsImportHelper ebmsimporthelper = new EbmsEventsImportHelper(
-                    settings,
-                    QueryFactory,
-                    "eventeuracnoi",
-                    UrlGeneratorStatic("EBMS/EventShort"),
-                    OdhPushnotifier
-                );
-
-                if (forceupdate)
-                    ebmsimporthelper.forceupdate = true;
-
-                updatedetail = await ebmsimporthelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "EBMS Eventshorts update succeeded",
-                    "",
-                    updatedetail,
-                    true
-                );
-
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "EBMS Eventshorts update failed",
-                    "",
-                    updatedetail,
-                    ex,
-                    true
-                );
-                return BadRequest(updateResult);
-            }
-        }
-
-        #endregion
-
         #region NINJA DATA SYNC
 
         //Events Centro Trevi and DRIN
