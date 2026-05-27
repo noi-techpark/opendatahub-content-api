@@ -173,6 +173,25 @@ namespace Helper.AdditionalProperties
                         }
 
                         break;
+                    case "StaVendingPointsDataProperties":
+
+                        var resultstavendingpoints = CastAs<StaVendingPointsDataProperties>(kvp.Value);
+                        success = resultstavendingpoints.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resultstavendingpoints.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resultstavendingpoints.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "StaVendingPointsDataProperties",
+                                    (StaVendingPointsDataProperties)resultstavendingpoints.Item3
+                                );
+                            }
+                        }
+
+                        break;
                     case "EventEuracNoiDataProperties":
 
                         var resulteventeuracnoidata = CastAs<EventEuracNoiDataProperties>(kvp.Value);
