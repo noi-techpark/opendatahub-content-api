@@ -665,6 +665,9 @@ namespace OdhApiCore.Controllers
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
 
+                //Add Venue Source to TagIds if a Venue is assigned (skip if Venue Shortname is "Other")
+                await odhevent.AddVenueSourceToTagIds(QueryFactory);
+
                 //DistanceCalculation
                 await odhevent.UpdateDistanceCalculation(QueryFactory);
 
@@ -710,6 +713,9 @@ namespace OdhApiCore.Controllers
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
+
+                //Add Venue Source to TagIds if a Venue is assigned (skip if Venue Shortname is "Other")
+                await odhevent.AddVenueSourceToTagIds(QueryFactory);
 
                 //DistanceCalculation
                 await odhevent.UpdateDistanceCalculation(QueryFactory);

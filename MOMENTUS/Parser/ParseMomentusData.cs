@@ -119,7 +119,7 @@ namespace MOMENTUS.Parser
             eventlinked.VideoItems = videoitems;
 
             // Merge event-location tag from venue into TagIds, preserving existing tags
-            var locationTags = new[] { "noi", "eurac" };
+            var locationTags = new[] { "noi", "ec" };
             var venueLocationTag = venuelinked?.TagIds?.FirstOrDefault(t => locationTags.Contains(t));
 
             tagids ??= [];
