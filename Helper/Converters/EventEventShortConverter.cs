@@ -389,6 +389,19 @@ namespace Helper.Converters
                 source = "nobis";
             }
 
+            if(eventlocation == "vi")
+            {
+                eventlocation = "noi";
+                source = "noi";
+            }
+
+            //fallback
+            if(eventlocation == "")
+            {
+                eventlocation = "noi";
+                source = "noi";
+            }
+
             var venueid = "urn:venue:" + eventlocation + ":" + GuidHelpers.CreateFromName(Guid.Empty, eventlocation);
 
             return (venueid, eventlocation, source);
