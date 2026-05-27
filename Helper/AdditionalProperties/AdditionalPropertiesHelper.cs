@@ -31,6 +31,9 @@ namespace Helper.AdditionalProperties
         {
             Dictionary<string, string> errorlist = new Dictionary<string, string>();
 
+            if (data.AdditionalProperties == null)
+                return errorlist;
+
             bool success = false;
 
             foreach (var kvp in data.AdditionalProperties)
