@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OdhApiCore.Responses;
@@ -422,6 +423,7 @@ namespace OdhApiCore.Controllers
                 var list = denormalize == true
                     ? data.List
                         .SelectMany(jr => DeNormalizeEventLinked(JsonConvert.DeserializeObject<EventLinked>(jr.Value), myeventhelper.begin, myeventhelper.end, optimizedates)!)
+                        .OrderBy(jw => jw.DateBegin)
                         .Select(jr => new JsonRaw(jr))
                     : data.List;
 
@@ -663,6 +665,9 @@ namespace OdhApiCore.Controllers
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
 
+                //Add Venue Source to TagIds if a Venue is assigned (skip if Venue Shortname is "Other")
+                await odhevent.AddVenueSourceToTagIds(QueryFactory);
+
                 //DistanceCalculation
                 await odhevent.UpdateDistanceCalculation(QueryFactory);
 
@@ -708,6 +713,9 @@ namespace OdhApiCore.Controllers
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
+
+                //Add Venue Source to TagIds if a Venue is assigned (skip if Venue Shortname is "Other")
+                await odhevent.AddVenueSourceToTagIds(QueryFactory);
 
                 //DistanceCalculation
                 await odhevent.UpdateDistanceCalculation(QueryFactory);

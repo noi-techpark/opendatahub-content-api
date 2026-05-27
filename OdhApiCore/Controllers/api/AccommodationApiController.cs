@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
@@ -383,6 +384,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(IEnumerable<AccoTypes>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag?validforentity=accommodation&types=accommodationcategory,accommodationmealplans,accommodationtypes)")]
         [HttpGet, Route("AccommodationTypes")]
         public async Task<IActionResult> GetAllAccommodationTypesList(
             string? language,
@@ -429,7 +431,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(AccoTypes), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[Authorize(Roles = "DataReader,AccoReader")]
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag?validforentity=accommodation&types=accommodationcategory,accommodationmealplans,accommodationtypes)")]
         [HttpGet, Route("AccommodationTypes/{id}", Name = "SingleAccommodationTypes")]
         public async Task<IActionResult> GetAllAccommodationTypessingle(
             string id,
@@ -467,7 +469,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(IEnumerable<AccoFeatures>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[Authorize(Roles = "DataReader,AccoReader")]
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag?validforentity=accommodation&types=accommodationoption,accommodationtitle)")]
         [HttpGet, Route("AccommodationFeatures")]
         public async Task<IActionResult> GetAllAccommodationFeaturesList(
             string? language,
@@ -518,7 +520,7 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(typeof(AccoFeatures), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //[Authorize(Roles = "DataReader,AccoReader")]
+        [Obsolete("Deprecated, Use the Tags api (https://tourism.api.opendatahub.com/v1/Tag?validforentity=accommodation&types=accommodationoption,accommodationtitle)")]
         [HttpGet, Route("AccommodationFeatures/{id}", Name = "SingleAccommodationFeatures")]
         public async Task<IActionResult> GetAllAccommodationFeaturesSingle(
             string id,

@@ -31,6 +31,9 @@ namespace Helper.AdditionalProperties
         {
             Dictionary<string, string> errorlist = new Dictionary<string, string>();
 
+            if (data.AdditionalProperties == null)
+                return errorlist;
+
             bool success = false;
 
             foreach (var kvp in data.AdditionalProperties)
@@ -165,6 +168,25 @@ namespace Helper.AdditionalProperties
                                 data.AdditionalProperties.TryAddOrUpdate(
                                     "SiagMuseumDataProperties",
                                     (SiagMuseumDataProperties)resultsiagmuseumdata.Item3
+                                );
+                            }
+                        }
+
+                        break;
+                    case "EventEuracNoiDataProperties":
+
+                        var resulteventeuracnoidata = CastAs<EventEuracNoiDataProperties>(kvp.Value);
+                        success = resulteventeuracnoidata.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resulteventeuracnoidata.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resulteventeuracnoidata.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "EventEuracNoiDataProperties",
+                                    (EventEuracNoiDataProperties)resulteventeuracnoidata.Item3
                                 );
                             }
                         }

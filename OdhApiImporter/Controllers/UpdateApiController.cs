@@ -422,111 +422,7 @@ namespace OdhApiImporter.Controllers
                 return BadRequest(errorResult);
             }
         }
-
-        //Events Centro Trevi and DRIN
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("NINJA/EventFlattened/Update")]
-        public async Task<IActionResult> UpdateAllNinjaEventsV2(
-            CancellationToken cancellationToken = default
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Update Ninja EventsFlattened";
-            string updatetype = GetUpdateType(null);
-            string source = "mobilityapi";
-
-            try
-            {
-                MobilityEventsFlattenedImportHelper ninjaimporthelper = new MobilityEventsFlattenedImportHelper(
-                    settings,
-                    QueryFactory,
-                    "eventsv2",
-                    UrlGeneratorStatic("NINJA/EventFlattened"),
-                    OdhPushnotifier
-                );
-                updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "Ninja EventsFlattened update succeeded",
-                    "",
-                    updatedetail,
-                    true
-                );
-
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "Ninja EventsFlattened update failed",
-                    "",
-                    updatedetail,
-                    ex,
-                    true
-                );
-                return BadRequest(errorResult);
-            }
-        }
-
-        //Events Centro Trevi and DRIN
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("NINJA/VenueFlattened/Update")]
-        public async Task<IActionResult> UpdateAllNinjaVenuesFlattened(
-            CancellationToken cancellationToken = default
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Update Ninja VenuesFlattened";
-            string updatetype = GetUpdateType(null);
-            string source = "mobilityapi";
-
-            try
-            {
-                MobilityVenuesFlattenedImportHelper ninjaimporthelper = new MobilityVenuesFlattenedImportHelper(
-                    settings,
-                    QueryFactory,
-                    "venuesv2",
-                    UrlGeneratorStatic("NINJA/VenueFlattened"),
-                    OdhPushnotifier
-                );
-                updatedetail = await ninjaimporthelper.SaveDataToODH(null, null, cancellationToken);
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "Ninja VenuesFlattened update succeeded",
-                    "",
-                    updatedetail,
-                    true
-                );
-
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
-                    null,
-                    source,
-                    operation,
-                    updatetype,
-                    "Ninja VenuesFlattened update failed",
-                    "",
-                    updatedetail,
-                    ex,
-                    true
-                );
-                return BadRequest(errorResult);
-            }
-        }
-
+      
         //EchargingStations
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("NINJA/Echarging/Update")]
@@ -3303,6 +3199,116 @@ namespace OdhApiImporter.Controllers
 
 
         #endregion
+
+        #region MOMENTUS DATA SYNC (Event)
+
+        [HttpGet, Route("MOMENTUS/Event/Update")]
+        public async Task<IActionResult> UpdateEventsFromMomentus(
+            string? updatetodate = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update MOMENTUS";
+            string updatetype = GetUpdateType(null);
+            string source = "momentus";
+            string otherinfo = "event";
+
+            try
+            {
+                MomentusEventsImportHelper eventimporthelper = new MomentusEventsImportHelper(
+                    settings,
+                    QueryFactory,
+                    "events",
+                    UrlGeneratorStatic("MOMENTUS/Event"),
+                    OdhPushnotifier
+                );
+
+                updatedetail = await eventimporthelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Events update succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Events update failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        [HttpGet, Route("MOMENTUS/Venue/Update")]
+        public async Task<IActionResult> UpdateVenuesFromMomentus(
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update MOMENTUS";
+            string updatetype = GetUpdateType(null);
+            string source = "momentus";
+            string otherinfo = "venue";
+
+            try
+            {
+                MomentusVenuesImportHelper venueimporthelper = new MomentusVenuesImportHelper(
+                    settings,
+                    QueryFactory,
+                    "venues",
+                    UrlGeneratorStatic("MOMENTUS/Venue"),
+                    OdhPushnotifier
+                );
+
+                updatedetail = await venueimporthelper.SaveDataToODH(null, null, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Venues update succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    null,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Venues update failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        #endregion
+
 
         #region OUTDOORACTIVE DATA SYNC
 

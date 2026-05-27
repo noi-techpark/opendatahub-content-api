@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
+using DataModel.helpers;
 using Helper;
 using Helper.Converters;
 using Helper.Generic;
@@ -725,6 +726,49 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
+
+        public async Task<int> UpdateAllSTAVendingpointsAdditionalProps()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("smgpois")
+                .Where("gen_source", "sta");
+
+            var data = await query.GetObjectListAsync<ODHActivityPoiLinked>();
+            int i = 0;
+
+            foreach (var stapoi in data)
+            {
+                //Setting MetaInfo
+                stapoi._Meta.Reduced = false;
+                stapoi.Source = "sta";
+
+                if (stapoi.SyncSourceInterface == "gtfsapi")
+                    stapoi.AdditionalProperties = new Dictionary<string, dynamic>();
+                else
+                    AdditionalPropertiesHelper.FillStaVendingPointAdditionalProperties(stapoi);
+
+                //Save tp DB
+                //TODO CHECK IF THIS WORKS
+                var queryresult = await QueryFactory
+                    .Query("smgpois")
+                    .Where("id", stapoi.Id)
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = stapoi.Id,
+                            data = new JsonRaw(stapoi),
+                        }
+                    );
+
+                i++;
+            }
+
+            return i;
+        }
+
 
         public async Task<int> CleanODHActivityPoiNullTags()
         {
@@ -1479,10 +1523,33 @@ namespace OdhApiImporter.Helpers
                         .Query("venues")
                         .Select("data")
                         .Where("id", venue.Id)
-                        .FirstOrDefaultAsync<JsonRaw>();
+                        .GetObjectSingleAsync<VenueV2>();
 
                     if (datapresent != null)
                     {
+                        //preservce Mapping, Shortname and Detail                        
+                        venue.Mapping = datapresent.Mapping;
+                        venue.Detail = datapresent.Detail;
+                        venue.Shortname = datapresent.Shortname;
+                        venue.ContactInfos = datapresent.ContactInfos;
+                        venue.GpsInfo = datapresent.GpsInfo;
+                        venue.ImageGallery = datapresent.ImageGallery;
+                        venue.Source = datapresent.Source;
+                        venue.TagIds = datapresent.TagIds;
+                        venue.Tags = datapresent.Tags;
+                        venue.HasLanguage = datapresent.HasLanguage;
+                        venue._Meta = datapresent._Meta;
+                        venue.Active = datapresent.Active;
+                        venue.DistanceInfo = datapresent.DistanceInfo;
+                        //venue.DistrictId = datapresent.DistrictId;
+                        venue.LocationInfo = datapresent.LocationInfo;
+                        venue.OperationSchedule = datapresent.OperationSchedule;
+                        venue.PublishedOn = datapresent.PublishedOn;
+                        venue.FirstImport = datapresent.FirstImport;
+                        venue.LicenseInfo = datapresent.LicenseInfo;
+                        venue.RelatedContent = datapresent.RelatedContent;
+                        venue.AdditionalProperties = datapresent.AdditionalProperties;                        
+
                         //Update to DB                        
                         var queryresult = await QueryFactory
                             .Query("venues")
@@ -1499,6 +1566,8 @@ namespace OdhApiImporter.Helpers
                     }
                     else
                     {
+
+
                         //Update to DB                        
                         var queryresult = await QueryFactory
                             .Query("venues")
@@ -1517,6 +1586,7 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
+     
 
         #endregion
 
@@ -1790,6 +1860,83 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
+
+        
+        public async Task<int> TagODHTagIdFix()
+        {
+            //Load all data from PG and resave
+            var query = QueryFactory.Query().SelectRaw("data").From("tags")
+                    .SourceFilter_GeneratedColumn(new List<string>() { "idm" });
+
+
+            var data = await query.GetObjectListAsync<TagLinked>();
+            int matchedtags = 0;
+            int notmatchedtags = 0;
+
+            foreach (var tag in data)
+            {
+                if (tag.Mapping != null && tag.Mapping.ContainsKey("lts"))
+                {
+                    if (tag.Mapping["lts"].ContainsKey("rid"))
+                    {
+                        if (tag.ODHTagIds != null && tag.ODHTagIds.Count > 0)
+                        {
+                            //Load LTS Tag
+                            var singlequery = QueryFactory.Query().SelectRaw("data").From("tags").Where("id", tag.Mapping["lts"]["rid"].ToString());
+                            var singledata = await singlequery.GetObjectSingleAsync<TagLinked>();
+
+                            if (singledata != null)
+                            {
+                                string odhtagidtoadd = "";
+
+                                //What todo if 2 ODHTags are present
+                                foreach (var odhtagid in tag.ODHTagIds)
+                                {
+                                    var singleodhtagquery = QueryFactory.Query().SelectRaw("data").From("smgtags").Where("id", odhtagid);
+                                    var singleodhtagdata = await singleodhtagquery.GetObjectSingleAsync<ODHTagLinked>();
+
+                                    if (singleodhtagdata.Source.Contains("LTSCategory", StringComparer.OrdinalIgnoreCase))
+                                        odhtagidtoadd = odhtagid;
+                                }
+
+                                if (!String.IsNullOrEmpty(odhtagidtoadd))
+                                {
+                                    singledata.ODHTagIds = new List<string>() { odhtagidtoadd };
+
+                                    var queryresult = await QueryFactory
+                                        .Query("tags")
+                                        .Where("id", singledata.Id)
+                                        .UpdateAsync(
+                                            new JsonBData()
+                                            {
+                                                id = singledata.Id,
+                                                data = new JsonRaw(singledata),
+                                            }
+                                        );
+
+                                    matchedtags++;
+                                }
+                                else
+                                {
+                                    notmatchedtags++;
+                                }
+                            }
+                            else
+                                notmatchedtags++;
+                        }
+                        else
+                            notmatchedtags++;
+                    }
+                    else
+                        notmatchedtags++;
+                }
+                else
+                    notmatchedtags++;
+            }
+
+            return matchedtags;
+        }
+
 
         public async Task<int> EventTopicsToTags()
         {
@@ -2487,9 +2634,12 @@ namespace OdhApiImporter.Helpers
                     {
                         VenueRoomDetailsV2 roomdetailv2 = new VenueRoomDetailsV2();
                         roomdetailv2.ImageGallery = roomdetail.ImageGallery;
-                        roomdetailv2.Detail = roomdetail.Detail;
+                        if (roomdetail.Detail != null)
+                            roomdetailv2.Detail = roomdetail.Detail.ToDictionary(
+                                kvp => kvp.Key,
+                                kvp => new DetailGeneric() { Title = kvp.Value.Title, BaseText = kvp.Value.BaseText, Language = kvp.Value.Language }
+                            );
                         roomdetailv2.Id = roomdetail.Id;
-                        roomdetailv2.Shortname = roomdetail.Shortname;
 
                         roomdetailv2.VenueRoomProperties = new VenueRoomProperties();
                         roomdetailv2.VenueRoomProperties.SquareMeters = roomdetail.SquareMeters;

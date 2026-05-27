@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OdhApiCore.Responses;
@@ -33,6 +34,7 @@ namespace OdhApiCore.Controllers.api
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [Obsolete("Obsolete use Event Endpoint")]
     public class EventShortController : OdhController
     {
         public EventShortController(
@@ -102,7 +104,7 @@ namespace OdhApiCore.Controllers.api
             LegacyBool onlyactive = null!,
             LegacyBool websiteactive = null!,
             LegacyBool communityactive = null!,
-            bool active = true,
+            bool? active = null,
             string? eventids = null,
             string? webaddress = null,
             string? tagfilter = null,
@@ -413,7 +415,7 @@ namespace OdhApiCore.Controllers.api
             bool? activetoday,
             bool? websiteactive,
             bool? communityactive,
-            bool active,
+            bool? active,
             string? tagfilter,
             bool optimizedates,
             string? sortorder,

@@ -2219,7 +2219,7 @@ namespace OdhApiImporter.Helpers
 
                         activelist = await ltsapiaccommodationimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
 
-                        activelistinDB = await GetAllDataBySource("accommodation", new List<string>() { "lts" }, null, true);
+                        activelistinDB = await GetAllDataBySource("accommodations", new List<string>() { "lts" }, null, true);
 
                         //Compare with DB and deactivate all inactive items
                         idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p.Replace("_REDUCED", "").ToUpper())).ToList();

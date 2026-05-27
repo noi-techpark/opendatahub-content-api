@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
@@ -26,6 +27,7 @@ namespace OdhApiCore.Controllers
     //[Route("ODHTag")]
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
+    [Obsolete("Obsolete use Tag Endpoint")]    
     public class ODHTagController : OdhController
     {
         public ODHTagController(

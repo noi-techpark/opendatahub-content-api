@@ -216,6 +216,10 @@ jobs:
           X_OUTDOORACTIVE_SERVICE_URL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL }}
           X_OUTDOORACTIVE_SERVICE_URL_DETAIL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL_DETAIL }}
           X_OUTDOORACTIVE_PSWD: ${{ secrets.OUTDOORACTIVE_PSWD }}
+          X_MOMENTUS_CLIENTID: ${{ secrets.MOMENTUS_CLIENTID }}
+          X_MOMENTUS_CLIENTSECRET: ${{ secrets.MOMENTUS_CLIENTSECRET }}
+          X_MOMENTUS_SERVICEURL: "https://api.eu-venueops.com/v1/"
+          X_MOMENTUS_AUTHURL: "https://auth-api.eu-venueops.com/token"
 
       - name: Build and push 
         uses: noi-techpark/github-actions/docker-build-and-push@v2
@@ -412,6 +416,10 @@ jobs:
           X_OUTDOORACTIVE_SERVICE_URL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL }}
           X_OUTDOORACTIVE_SERVICE_URL_DETAIL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL_DETAIL }}
           X_OUTDOORACTIVE_PSWD: ${{ secrets.OUTDOORACTIVE_PSWD }}
+          X_MOMENTUS_CLIENTID: ${{ secrets.MOMENTUS_CLIENTID }}
+          X_MOMENTUS_CLIENTSECRET: ${{ secrets.MOMENTUS_CLIENTSECRET }}
+          X_MOMENTUS_SERVICEURL: "https://api.eu-venueops.com/v1/"
+          X_MOMENTUS_AUTHURL: "https://auth-api.eu-venueops.com/token"
 
       - name: Build and push 
         uses: noi-techpark/github-actions/docker-build-and-push@v2

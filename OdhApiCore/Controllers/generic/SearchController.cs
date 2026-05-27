@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhNotifier;
 using SqlKata.Execution;

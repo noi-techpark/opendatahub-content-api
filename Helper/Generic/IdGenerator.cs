@@ -19,9 +19,17 @@ namespace Helper
         /// <typeparam name="T"></typeparam>
         /// <param name="odhtype"></param>
         /// <returns></returns>
-        public static string GenerateIDFromType<T>(T odhtype)
+        public static string GenerateIDFromType<T>(T odhtype, bool useUrn = false)
         {
-            return CreateGUID(GetIDStyle(odhtype));
+            var guid = CreateGUID(GetIDStyle(odhtype));
+
+            if (!useUrn)
+                return guid;
+
+            var type = ODHTypeHelper.TranslateType2TypeString(odhtype);
+            var source = (odhtype is ISource s) ? s.Source?.ToLower() ?? "unknown" : "unknown";
+
+            return $"urn:{type}:{source}:{guid}";
         }
 
         public static void CheckIdFromType<T>(T odhtype)
@@ -69,14 +77,14 @@ namespace Helper
                 //LTSActivityLinked => IDStyle.uppercase,
                 //LTSPoiLinked => IDStyle.uppercase,
                 //GastronomyLinked => IDStyle.uppercase,
-                Event or EventLinked or EventFlattened => IDStyle.mixed,
+                Event or EventLinked => IDStyle.mixed,
                 ODHActivityPoi or ODHActivityPoiLinked => IDStyle.lowercase,
                 Package or PackageLinked => IDStyle.uppercase,
                 MeasuringpointV2 => IDStyle.uppercase,
                 WebcamInfo or WebcamInfoLinked => IDStyle.uppercase,
                 Article or ArticlesLinked => IDStyle.uppercase,
                 DDVenue => IDStyle.uppercase,
-                Venue or VenueLinked or VenueV2 or VenueFlattened => IDStyle.mixed,
+                Venue or VenueLinked or VenueV2 => IDStyle.mixed,
                 EventShort or EventShortLinked => IDStyle.lowercase,
                 ExperienceArea or ExperienceAreaLinked => IDStyle.uppercase,
                 MetaRegion or MetaRegionLinked => IDStyle.uppercase,
@@ -131,7 +139,7 @@ namespace Helper
                 Type _ when odhtype == typeof(Article) || odhtype == typeof(ArticlesLinked) =>
                     IDStyle.uppercase,
                 Type _ when odhtype == typeof(DDVenue) => IDStyle.uppercase,
-                Type _ when odhtype == typeof(Venue) || odhtype == typeof(VenueLinked) || odhtype == typeof(VenueFlattened) || odhtype == typeof(VenueV2) =>
+                Type _ when odhtype == typeof(Venue) || odhtype == typeof(VenueLinked) || odhtype == typeof(VenueV2) =>
                     IDStyle.mixed,
                 Type _ when odhtype == typeof(EventShort) || odhtype == typeof(EventShortLinked) =>
                     IDStyle.lowercase,

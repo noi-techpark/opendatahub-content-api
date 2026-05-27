@@ -22,7 +22,7 @@ namespace Helper
             "cs",
             "pl",
             "fr",
-            "pl",
+            "ru",
         };
 
         /// <summary>

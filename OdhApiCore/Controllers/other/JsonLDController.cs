@@ -13,6 +13,7 @@ using DataModel;
 using Helper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OdhNotifier;
@@ -262,7 +263,7 @@ namespace OdhApiCore.Controllers.api
             var query = QueryFactory
                 .Query(table)
                 .Select("data")
-                .Where("id", Id.ToUpper())
+                .Where("gen_id", Id)
                 //.Anonymous_Logged_UserRule_GeneratedColumn(FilterClosedData, !ReducedData);
                 //.When(FilterClosedData, q => q.FilterClosedData());
                 .FilterDataByAccessRoles(UserRolesToFilter);

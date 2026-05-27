@@ -10,6 +10,7 @@ using Helper.Tagging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.Responses;
 using OdhNotifier;
@@ -234,6 +235,7 @@ namespace OdhApiCore.Controllers.api
         [ProducesResponseType(typeof(JsonResult<ExperienceAreaLinked>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet, Route("ExperienceArea")]
         public async Task<IActionResult> GetExperienceAreas(
             uint? pagenumber = null,
@@ -346,6 +348,7 @@ namespace OdhApiCore.Controllers.api
         [ProducesResponseType(typeof(ExperienceAreaLinked), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet, Route("ExperienceArea/{id}", Name = "SingleExperienceArea")]
         public async Task<IActionResult> GetExperienceAreaSingle(
             string id,
@@ -2023,7 +2026,6 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">MetaRegion Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,MetaRegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("MetaRegion")]
@@ -2087,8 +2089,21 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<RegionLinked>(
-                    data,
+                    new UpsertableRegion(data),
                     new DataInfo("regions", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2165,8 +2180,21 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<TourismvereinLinked>(
-                    data,
+                    new UpsertableTourismassociation(data),
                     new DataInfo("tvs", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2204,8 +2232,28 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //return await UpsertData<MunicipalityLinked>(
+                //    data,
+                //    new DataInfo("municipalities", CRUDOperation.Create),
+                //    new CompareConfig(false, false),
+                //    new CRUDConstraints(additionalfilter, UserRolesToFilter)
+                //);
+
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<MunicipalityLinked>(
-                    data,
+                    new UpsertableMunicipality(data),
                     new DataInfo("municipalities", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2374,7 +2422,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="data">Wine Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,WineAwardCreate")]
         [AuthorizeODH(PermissionAction.Create)]
         [HttpPost, Route("WineAward")]
@@ -2414,7 +2462,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">MetaRegion Id</param>
         /// <param name="data">MetaRegion Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,MetaRegionUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("MetaRegion/{id}")]
@@ -2470,8 +2518,22 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<RegionLinked>(
-                    data,
+                    new UpsertableRegion(data),
                     new DataInfo("regions", CRUDOperation.Update, true),
                     new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2541,8 +2603,22 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<TourismvereinLinked>(
-                    data,
+                    new UpsertableTourismassociation(data),
                     new DataInfo("tvs", CRUDOperation.Update, true),
                     new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2577,8 +2653,28 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //return await UpsertData<MunicipalityLinked>(
+                //    data,
+                //    new DataInfo("municipalities", CRUDOperation.Update, true),
+                //    new CompareConfig(true, false),
+                //    new CRUDConstraints(additionalfilter, UserRolesToFilter)
+                //);
+
+                //Added GEO Column
+
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
                 return await UpsertData<MunicipalityLinked>(
-                    data,
+                    new UpsertableMunicipality(data),
                     new DataInfo("municipalities", CRUDOperation.Update, true),
                     new CompareConfig(true, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2736,7 +2832,7 @@ namespace OdhApiCore.Controllers.api
         /// <param name="id">WineAward Id</param>
         /// <param name="data">WineAward Object</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,WineAwardUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
         [HttpPut, Route("WineAward/{id}")]
@@ -2797,7 +2893,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">Region Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,RegionDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("Region/{id}")]
@@ -2849,7 +2945,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">TourismAssociation Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,TourismAssociationDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("TourismAssociation/{id}")]
@@ -2875,7 +2971,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">Municipality Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,MunicipalityDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("Municipality/{id}")]
@@ -2901,7 +2997,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">District Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,DistrictDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("District/{id}")]
@@ -3005,7 +3101,7 @@ namespace OdhApiCore.Controllers.api
         /// </summary>
         /// <param name="id">WineAward Id</param>
         /// <returns>Http Response</returns>
-        [ApiExplorerSettings(IgnoreApi = true)]
+        //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,WineAwardDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
         [HttpDelete, Route("WineAward/{id}")]

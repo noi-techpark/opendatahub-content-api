@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson.IO;
 using OdhApiImporter.Helpers;
 using OdhNotifier;
 using SqlKata.Execution;
@@ -247,7 +246,7 @@ namespace OdhApiImporter.Controllers
                     success = true,
                 }
             );
-        }
+        }       
 
         #endregion
 
@@ -494,6 +493,31 @@ namespace OdhApiImporter.Controllers
                 }
             );
         }
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("ModifySTAVendingpointAdditionalProperties")]
+        public async Task<IActionResult> ModifySTAVendingpointAdditionalProperties(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(settings, QueryFactory);
+            var objectscount = await customdataoperation.UpdateAllSTAVendingpointsAdditionalProps();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Modify STA Vendingpoint Additionalproperties",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
 
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("CleanODHActivityPoiNullTags")]
@@ -1229,7 +1253,34 @@ namespace OdhApiImporter.Controllers
                 }
             );
         }
-        
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("TagODHTagIdFix")]
+        public async Task<IActionResult> TagODHTagIdFix(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var objectscount = await customdataoperation.TagODHTagIdFix();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "TagODHTagIdFix",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
 
         #endregion
 

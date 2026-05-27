@@ -111,7 +111,7 @@ namespace OdhApiCore.Controllers
             IEnumerable<string>? tourismusvereinids
         )
         {
-            idlist = CommonListCreator.CreateIdList(idfilter?.ToUpper());
+            idlist = CommonListCreator.CreateIdList(idfilter);
 
             smgtaglist = CommonListCreator.CreateIdList(smgtags);
             sourcelist = Helper.CommonListCreator.CreateSourceList(sourcefilter);

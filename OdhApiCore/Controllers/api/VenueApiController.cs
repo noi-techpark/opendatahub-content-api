@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OdhApiCore.Responses;
@@ -591,12 +592,14 @@ namespace OdhApiCore.Controllers
                 
                 //Generate Id or use the assigned
                 if (generateid)
-                    venue.Id = Helper.IdGenerator.GenerateIDFromType(venue);
+                    venue.Id = Helper.IdGenerator.GenerateIDFromType(venue, true);
                 else if (String.IsNullOrEmpty(venue.Id))
                     throw new Exception("Id is null");
 
                 //GENERATE HasLanguage
                 venue.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
+                //GENERATE missing RoomDetail Ids
+                venue.GenerateRoomDetailIds();
                 //POPULATE LocationInfo
                 venue.LocationInfo = await venue.UpdateLocationInfoExtension(QueryFactory);
                 //DistanceCalculation
@@ -605,8 +608,8 @@ namespace OdhApiCore.Controllers
                 venue.TrimStringProperties();
 
                 //Populate Tags (Id/Source/Type)
-                await venue.UpdateTagsExtension(QueryFactory);                               
-                
+                await venue.UpdateTagsExtension(QueryFactory);
+
                 return await UpsertData<VenueV2>(
                     venue,
                     new DataInfo("venues", CRUDOperation.Create),
@@ -641,6 +644,8 @@ namespace OdhApiCore.Controllers
 
                 //GENERATE HasLanguage
                 venue.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
+                //GENERATE missing RoomDetail Ids
+                venue.GenerateRoomDetailIds();
                 //POPULATE LocationInfo
                 venue.LocationInfo = await venue.UpdateLocationInfoExtension(QueryFactory);
                 //DistanceCalculation
