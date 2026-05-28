@@ -2249,13 +2249,13 @@ namespace OdhApiImporter.Helpers
                         if (activelist == null || activelist.Count == 0)
                             throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
 
-                        activelistinDB = await GetAllDataBySource("accommodations", new List<string>() { "lts" }, null, true);
+                        activelistinDB = await GetAllDataBySource("accommodations", new List<string>() { "lts" }, null, true, reduced);
 
                         //Compare with DB and deactivate all inactive items
                         idstodelete = activelistinDB.Where(p => !activelist.Any(p2 => p2 == p.Replace("_REDUCED", "").ToUpper())).ToList();
 
                         //Ids only present on LTS Interface ?
-                        idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2 == p.Replace("_REDUCED", "").ToUpper())).ToList();
+                        idstoimport = activelist.Where(p => !activelistinDB.Any(p2 => p2.Replace("_REDUCED", "").ToUpper() == p)).ToList();
 
                         //Delete Disable all Inactive Data from DB
                         foreach (var id in idstodelete)
