@@ -51,12 +51,20 @@ namespace MOMENTUS.Parser
             eventlinked.DateEnd = mevent.End?.ToDateTime(
                 TimeSpan.TryParse(mevent.EndTime, out var et) ? TimeOnly.FromTimeSpan(et) : TimeOnly.MinValue);
 
+            // Save existing BaseTexts before rebuilding Detail (may be cleared if lang entry is re-created)
+            var existingBaseTexts = eventlinked.Detail
+                .Where(kv => !string.IsNullOrEmpty(kv.Value.BaseText))
+                .ToDictionary(kv => kv.Key, kv => kv.Value.BaseText!);
+
             // Multilingual detail: titles/subtitles from named functions, description from event
             BuildDetailFromFunctions(eventlinked, functionlist, mevent.Description);
 
             // Skip events with no title in any language
             if (!eventlinked.Detail.Values.Any(d => !string.IsNullOrEmpty(d.Title)))
                 return null;
+
+            // Restore BaseTexts that existed before the update
+            RestoreBaseTexts(eventlinked, existingBaseTexts);
 
             // Venue reference
             if (venuelinked?.Id != null)
@@ -221,28 +229,59 @@ namespace MOMENTUS.Parser
 
         private static void BuildDetailFromFunctions(EventLinked eventlinked, IEnumerable<MomentusFunction> functionlist, string? description)
         {
-            foreach (var lang in new[] { "de", "it", "en" })
+            // Create language entries only when a function provides content for them
+            if (functionlist != null)
             {
-                if (!eventlinked.Detail.ContainsKey(lang))
-                    eventlinked.Detail[lang] = new Detail() { Language = lang };
-
-                if (!string.IsNullOrEmpty(description) && string.IsNullOrEmpty(eventlinked.Detail[lang].BaseText))
-                    eventlinked.Detail[lang].BaseText = description;
+                foreach (var function in functionlist.Where(f => !string.IsNullOrEmpty(f.FunctionTypeName)))
+                {
+                    switch (function.FunctionTypeName!.Trim())
+                    {
+                        case "EN Title":
+                            EnsureDetail(eventlinked, "en").Title = function.Name; break;
+                        case "DE Title":
+                            EnsureDetail(eventlinked, "de").Title = function.Name; break;
+                        case "IT Title":
+                            EnsureDetail(eventlinked, "it").Title = function.Name; break;
+                        case "EN SUBtitle":
+                            EnsureDetail(eventlinked, "en").SubHeader = function.Name; break;
+                        case "DE SUBtitle":
+                            EnsureDetail(eventlinked, "de").SubHeader = function.Name; break;
+                        case "IT SUBtitle":
+                            EnsureDetail(eventlinked, "it").SubHeader = function.Name; break;
+                    }
+                }
             }
 
-            if (functionlist == null)
-                return;
-
-            foreach (var function in functionlist.Where(f => !string.IsNullOrEmpty(f.FunctionTypeName)))
+            // Apply description only to language entries that already exist (have a title/subtitle)
+            if (!string.IsNullOrEmpty(description))
             {
-                switch (function.FunctionTypeName!.Trim())
+                foreach (var detail in eventlinked.Detail.Values)
                 {
-                    case "EN Title":    eventlinked.Detail["en"].Title     = function.Name; break;
-                    case "DE Title":    eventlinked.Detail["de"].Title     = function.Name; break;
-                    case "IT Title":    eventlinked.Detail["it"].Title     = function.Name; break;
-                    case "EN SUBtitle": eventlinked.Detail["en"].SubHeader = function.Name; break;
-                    case "DE SUBtitle": eventlinked.Detail["de"].SubHeader = function.Name; break;
-                    case "IT SUBtitle": eventlinked.Detail["it"].SubHeader = function.Name; break;
+                    if (string.IsNullOrEmpty(detail.BaseText))
+                        detail.BaseText = description;
+                }
+            }
+        }
+
+        private static Detail EnsureDetail(EventLinked eventlinked, string lang)
+        {
+            if (!eventlinked.Detail.ContainsKey(lang))
+                eventlinked.Detail[lang] = new Detail() { Language = lang };
+            return eventlinked.Detail[lang];
+        }
+
+        private static void RestoreBaseTexts(EventLinked eventlinked, Dictionary<string, string> existingBaseTexts)
+        {
+            foreach (var (lang, baseText) in existingBaseTexts)
+            {
+                if (eventlinked.Detail.TryGetValue(lang, out var detail))
+                {
+                    if (string.IsNullOrEmpty(detail.BaseText))
+                        detail.BaseText = baseText;
+                }
+                else
+                {
+                    eventlinked.Detail[lang] = new Detail() { Language = lang, BaseText = baseText };
                 }
             }
         }
