@@ -684,7 +684,7 @@ namespace OdhApiCore.Controllers
                         .Select("id")
                         .From("skiareas")
                         .Where("gen_active", true)
-                        .Where("gen_source", "lts");
+                        .Where("gen_source", "idm");
 
                     var skiareaids = await query.GetAsync<string>();
 
