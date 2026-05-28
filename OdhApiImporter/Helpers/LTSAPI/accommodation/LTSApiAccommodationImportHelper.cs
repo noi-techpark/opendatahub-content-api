@@ -273,7 +273,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
-                    return await ltsapi.ActivityListRequest(dict, true);
+                    return await ltsapi.AccommodationListRequest(dict, true);
                 }
                 else
                     return null;
