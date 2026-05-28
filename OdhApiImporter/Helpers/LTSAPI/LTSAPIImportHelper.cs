@@ -1417,6 +1417,9 @@ namespace OdhApiImporter.Helpers
 
                         activelist = await ltsapieventimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
 
+                        if (activelist == null || activelist.Count == 0)
+                            throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
+
                         activelistinDB = await GetAllDataBySource("event", new List<string>() { "lts" }, null, true);
 
                         //Do this only if activelist has items
@@ -1527,6 +1530,10 @@ namespace OdhApiImporter.Helpers
                             reduced = true;
 
                         activelist = await ltsapigastroimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        if (activelist == null || activelist.Count == 0)
+                            throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
+
                         activelistinDB = await GetAllDataBySource("smgpois", new List<string>() { "lts" }, new List<string>() { "gastronomicdata" }, true, reduced);
 
                         //Do this only if activelist has items
@@ -1643,6 +1650,10 @@ namespace OdhApiImporter.Helpers
                             reduced = true;
 
                         activelist = await ltsapipoiimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        if (activelist == null || activelist.Count == 0)
+                            throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
+
                         activelistinDB = await GetAllDataBySource("smgpois", new List<string>() { "lts" }, new List<string>() { "poidata" }, true, reduced);
 
                         //Do this only if activelist has items
@@ -1758,6 +1769,10 @@ namespace OdhApiImporter.Helpers
                             reduced = true;
 
                         activelist = await ltsapiactivityimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        if (activelist == null || activelist.Count == 0)
+                            throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
+
                         activelistinDB = await GetAllDataBySource("smgpois", new List<string>() { "lts" }, new List<string>() { "activitydata" }, true, reduced);
 
                         //Do this only if activelist has items
@@ -1873,6 +1888,10 @@ namespace OdhApiImporter.Helpers
                             reduced = true;
 
                         activelist = await ltsapivenueimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        if (activelist == null || activelist.Count == 0)
+                            throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
+
                         activelistinDB = await GetAllDataBySource("venues", new List<string>() { "lts" }, null, true, reduced);
 
                         //Do this only if activelist has items
@@ -1988,6 +2007,10 @@ namespace OdhApiImporter.Helpers
                             reduced = true;
 
                         activelist = await ltsapimeasuringpointimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        if (activelist == null || activelist.Count == 0)
+                            throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
+
                         activelistinDB = await GetAllDataBySource("measuringpoints", new List<string>() { "lts" }, null, true, reduced);
 
                         //Do this only if activelist has items
@@ -2103,6 +2126,10 @@ namespace OdhApiImporter.Helpers
                             reduced = true;
 
                         activelist = await ltsapiwebcamimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        if (activelist == null || activelist.Count == 0)
+                            throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
+
                         activelistinDB = await GetAllDataBySource("webcams", new List<string>() { "lts" }, null, true, reduced);
 
                         //Do this only if activelist has items
@@ -2218,6 +2245,9 @@ namespace OdhApiImporter.Helpers
                             reduced = true;
 
                         activelist = await ltsapiaccommodationimporthelper.GetActiveList(onlyactive, reduced, cancellationToken);
+
+                        if (activelist == null || activelist.Count == 0)
+                            throw new Exception("Active List " + datatype.ToLower() + " could not be retrieved");
 
                         activelistinDB = await GetAllDataBySource("accommodations", new List<string>() { "lts" }, null, true);
 
