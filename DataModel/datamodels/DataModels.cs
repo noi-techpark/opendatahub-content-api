@@ -2120,8 +2120,10 @@ namespace DataModel
         public string? totaltrackskm { get; set; }
         [Obsolete("deprecated not available")] 
         public string? opentrackskm { get; set; }
-        public string? totalslides { get; set; }
-        public string? opentslides { get; set; }
+        public string? totalslides { get; set; }        
+        public string? openslides { get; set; }
+        [Obsolete("deprecated compatibilityreasons")]
+        public string? opentslides { get{ return this.openslides; } }
 
         [Obsolete("deprecated not available")] 
         public string? totalslideskm { get; set; }

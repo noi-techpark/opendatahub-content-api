@@ -8,6 +8,7 @@ using LTSAPI;
 using LTSAPI.Parser;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
@@ -94,7 +95,7 @@ namespace OdhApiCore.Controllers.helper
             return parsedsnowreportsearch;
         }
 
-        public static async Task<IEnumerable<MeasuringpointReduced>> GetMeasuringPoints(ICollection<string> areas, ISettings settings)
+        public static async Task<IEnumerable<MeasuringpointReduced>> GetMeasuringPoints(ICollection<string> areas, string language, ISettings settings)
         {
             var ltsapi = new LtsApi(
                 settings.LtsCredentialsOpen.serviceurl,
@@ -131,7 +132,7 @@ namespace OdhApiCore.Controllers.helper
                         LastSnowDate = measuringpointparsed.LastSnowDate ?? DateTime.MinValue,
                         LastUpdate = measuringpointparsed.LastUpdate ?? DateTime.MinValue,
                         newSnowHeight = measuringpointparsed.newSnowHeight,
-                        Shortname = measuringpointparsed.Shortname,
+                        Shortname = measuringpointparsed.Detail.ContainsKey(language) && !String.IsNullOrEmpty(measuringpointparsed.Detail[language].Title) ? measuringpointparsed.Detail[language].Title : measuringpointparsed.Shortname,
                         SnowHeight = measuringpointparsed.SnowHeight,
                         Source = measuringpointparsed.Source ?? "",
                         Temperature = measuringpointparsed.Temperature,
@@ -173,8 +174,8 @@ namespace OdhApiCore.Controllers.helper
                 mysnowreport.contactmail = skiarea.ContactInfos[lang].Email;
                 mysnowreport.contactweburl = skiarea.ContactInfos[lang].Url;
                 mysnowreport.contactlogo = skiarea.ContactInfos[lang].LogoUrl;
-                mysnowreport.contactgpseast = skiarea.Longitude.ToString();
-                mysnowreport.contactgpsnorth = skiarea.Latitude.ToString();
+                mysnowreport.contactgpseast = skiarea.Longitude != null ? skiarea.Longitude.Value.ToString(CultureInfo.InvariantCulture) : null;
+                mysnowreport.contactgpsnorth = skiarea.Latitude != null ? skiarea.Latitude.Value.ToString(CultureInfo.InvariantCulture) : null;
 
                 mysnowreport.SkiAreaSlopeKm = skiarea.TotalSlopeKm;
                 mysnowreport.SkiMapUrl = skiarea.SkiAreaMapURL;
@@ -232,7 +233,7 @@ namespace OdhApiCore.Controllers.helper
                 //Read Sledge infos from Summaries
                 if (mysledgesummary != null)
                 {
-                    mysnowreport.opentslides =
+                    mysnowreport.openslides =
                         mysledgesummary.quantityOpen != null
                             ? mysledgesummary.quantityOpen.ToString()
                             : noinfotext;

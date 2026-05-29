@@ -1718,7 +1718,7 @@ namespace OdhApiCore.Controllers
 
             //Get Summaries
             var summaries = await SnowReportHelper.GetSummaries(skiarea.AreaIds, settings);
-            var measuringpoints = await SnowReportHelper.GetMeasuringPoints(skiarea.AreaIds, settings);
+            var measuringpoints = await SnowReportHelper.GetMeasuringPoints(skiarea.AreaIds, lang, settings);
 
             var mysnowreport = await SnowReportHelper.ParseMySnowReportData(lang, skiarea, webcamlist, summaries, measuringpoints);
 
