@@ -9,13 +9,14 @@ using LTSAPI.Parser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 
 namespace OdhApiCore.Controllers.helper
 {
     public class SnowReportHelper
     {
-        public static async Task<LTSActivitySearchResult?> GetSummaries(List<string> areas, ISettings settings)
+        public static async Task<LTSActivitySearchResult?> GetSummaries(ICollection<string> areas, ISettings settings)
         {
             var ltsapi = new LtsApi(
                 settings.LtsCredentialsOpen.serviceurl,
@@ -93,7 +94,7 @@ namespace OdhApiCore.Controllers.helper
             return parsedsnowreportsearch;
         }
 
-        public static async Task<IEnumerable<MeasuringpointReduced>> GetMeasuringPoints(List<string> areas, ISettings settings)
+        public static async Task<IEnumerable<MeasuringpointReduced>> GetMeasuringPoints(ICollection<string> areas, ISettings settings)
         {
             var ltsapi = new LtsApi(
                 settings.LtsCredentialsOpen.serviceurl,
@@ -106,34 +107,38 @@ namespace OdhApiCore.Controllers.helper
             var dict = ltsapi.GetLTSQSDictionary(qs);
 
             var ltsdata = await ltsapi.WeatherSnowListRequest(dict, true);
-            List<LTSWeatherSnows> weathersnowdata = new List<LTSWeatherSnows>();
+            List<LTSWeatherSnowsList> weathersnowdata = new List<LTSWeatherSnowsList>();
 
             foreach (var ltsdatasingle in ltsdata)
             {
+                
                 weathersnowdata.Add(
-                    ltsdatasingle.ToObject<LTSWeatherSnows>()
+                    ltsdatasingle.ToObject<LTSWeatherSnowsList>()
                 );
             }
 
             List<MeasuringpointReduced> measuringpointreducedlist = new List<MeasuringpointReduced>();
 
-            foreach(var data in weathersnowdata)
+            foreach (var datalist in weathersnowdata)
             {
-                var measuringpointparsed = MeasuringpointParser.ParseLTSMeasuringpoint(data.data, false);
-
-                measuringpointreducedlist.Add(new MeasuringpointReduced()
+                foreach (var data in datalist.data)
                 {
-                    Id = measuringpointparsed.Id,
-                    LastSnowDate = measuringpointparsed.LastSnowDate ?? DateTime.MinValue,
-                    LastUpdate = measuringpointparsed.LastUpdate ?? DateTime.MinValue,
-                    newSnowHeight = measuringpointparsed.newSnowHeight,
-                    Shortname = measuringpointparsed.Shortname,
-                    SnowHeight = measuringpointparsed.SnowHeight,
-                    Source = measuringpointparsed.Source ?? "",
-                    Temperature = measuringpointparsed.Temperature,
-                    WeatherObservation = measuringpointparsed.WeatherObservation
+                    var measuringpointparsed = MeasuringpointParser.ParseLTSMeasuringpoint(data, false);
+
+                    measuringpointreducedlist.Add(new MeasuringpointReduced()
+                    {
+                        Id = measuringpointparsed.Id,
+                        LastSnowDate = measuringpointparsed.LastSnowDate ?? DateTime.MinValue,
+                        LastUpdate = measuringpointparsed.LastUpdate ?? DateTime.MinValue,
+                        newSnowHeight = measuringpointparsed.newSnowHeight,
+                        Shortname = measuringpointparsed.Shortname,
+                        SnowHeight = measuringpointparsed.SnowHeight,
+                        Source = measuringpointparsed.Source ?? "",
+                        Temperature = measuringpointparsed.Temperature,
+                        WeatherObservation = measuringpointparsed.WeatherObservation
+                    }
+                    );
                 }
-                );
             }
 
             return measuringpointreducedlist;
@@ -144,7 +149,7 @@ namespace OdhApiCore.Controllers.helper
             SkiArea skiarea,
             IEnumerable<WebcamInfo> webcams,
             LTSActivitySearchResult summaries,
-            List<MeasuringpointReduced> measuringpoints
+            IEnumerable<MeasuringpointReduced> measuringpoints
         )
         {
             SnowReportBaseData mysnowreport = new SnowReportBaseData();
@@ -206,83 +211,34 @@ namespace OdhApiCore.Controllers.helper
                     mysnowreport.totalskislopes =
                         myslopesummary.quantity != null
                             ? myslopesummary.quantity.ToString()
-                            : noinfotext;
-               
-                    //IS this info there?
-                    //double openskislopeskmdb =
-                    //    mypistensummary != null
-                    //        ? Convert.ToDouble(mypistensummary.SumLenghtOpen)
-                    //        : 0;
-                    //double tempopenskislopeskmdb = openskislopeskmdb / 1000;
-                    //mysnowreport.openskislopeskm = String.Format("{0:0}", tempopenskislopeskmdb);
-
-                    //double totalskislopeskmdb =
-                    //    mypistensummary != null ? Convert.ToDouble(mypistensummary.SumLenght) : 0;
-                    //double temptotalskislopeskmdb = totalskislopeskmdb / 1000;
-                    //mysnowreport.totalskislopeskm = String.Format("{0:0}", temptotalskislopeskmdb);
+                            : noinfotext;               
                 }
 
 
-                //Read Cross country skiing infos from Summaries
-                //var mylonglafsummary = snowdatalts
-                //    .Filters.Tagging.Tags.FirstOrDefault()
-                //    .Item.Where(x =>
-                //        x.ItemValue.FirstOrDefault().RID == "D544A6312F8A47CF80CC4DFF8833FE50"
-                //    )
-                //    .FirstOrDefault();
-
-                //if (mylonglafsummary != null)
-                //{
-                //    //activityresponse.Root.Elements("Filters").Elements("EnumCodes").Elements("Item").Where(x => x.Attribute("OrderID").Value.Equals("3")).FirstOrDefault();
-                //    mysnowreport.opentracks =
-                //        mylonglafsummary.CountIsOpen != null
-                //            ? mylonglafsummary.CountIsOpen.ToString()
-                //            : noinfotext;
-                //    mysnowreport.totaltracks =
-                //        mylonglafsummary.Count != null
-                //            ? mylonglafsummary.Count.ToString()
-                //            : noinfotext;
-                //    //mysnowreport.opentrackskm = mylonglafsummary != null ? mylonglafsummary.Attribute("SumLengthOpen").Value : noinfotext;
-                //    //mysnowreport.totaltrackskm = mylonglafsummary != null ? mylonglafsummary.Attribute("SumLength").Value : noinfotext;
-
-                //    double openskitrackkmdb =
-                //        mylonglafsummary != null
-                //            ? Convert.ToDouble(mylonglafsummary.SumLenghtOpen)
-                //            : 0;
-                //    double tempopenskitrackkmdb = openskitrackkmdb / 1000;
-                //    mysnowreport.opentrackskm = String.Format("{0:0}", tempopenskitrackkmdb);
-
-                //    double totalskitrackkmdb =
-                //        mylonglafsummary != null ? Convert.ToDouble(mylonglafsummary.SumLenght) : 0;
-                //    double temptotalskitrackkmdb = totalskitrackkmdb / 1000;
-                //    mysnowreport.totaltrackskm = String.Format("{0:0}", temptotalskitrackkmdb);
-                //}
+                
+                if (mycrosscountryskisummary != null)
+                {
+                    //activityresponse.Root.Elements("Filters").Elements("EnumCodes").Elements("Item").Where(x => x.Attribute("OrderID").Value.Equals("3")).FirstOrDefault();
+                    mysnowreport.opentracks =
+                        mycrosscountryskisummary.quantityOpen != null
+                            ? mycrosscountryskisummary.quantityOpen.ToString()
+                            : noinfotext;
+                    mysnowreport.totaltracks =
+                        mycrosscountryskisummary.quantity != null
+                            ? mycrosscountryskisummary.quantity.ToString()
+                            : noinfotext;                    
+                }
 
                 //Read Sledge infos from Summaries
-                //var myrodelsummary = snowdatalts
-                //    .Filters.Tagging.Tags.FirstOrDefault()
-                //    .Item.Where(x =>
-                //        x.ItemValue.FirstOrDefault().RID == "F3B08D06569646F38462EDCA506D81D4"
-                //    )
-                //    .FirstOrDefault();
-                ////activityresponse.Root.Elements("Filters").Elements("EnumCodes").Elements("Item").Where(x => x.Attribute("OrderID").Value.Equals("4")).FirstOrDefault();
-                //if (myrodelsummary != null)
-                //{
-                //    mysnowreport.opentslides =
-                //        myrodelsummary.CountIsOpen != null
-                //            ? myrodelsummary.CountIsOpen.ToString()
-                //            : noinfotext;
-                //    mysnowreport.totalslides =
-                //        myrodelsummary.Count != null ? myrodelsummary.Count.ToString() : noinfotext;
-                //    mysnowreport.opentslideskm =
-                //        myrodelsummary.SumLenghtOpen != null
-                //            ? myrodelsummary.SumLenghtOpen.ToString()
-                //            : noinfotext;
-                //    mysnowreport.totalslideskm =
-                //        myrodelsummary.SumLenght != null
-                //            ? myrodelsummary.SumLenght.ToString()
-                //            : noinfotext;
-                //}
+                if (mysledgesummary != null)
+                {
+                    mysnowreport.opentslides =
+                        mysledgesummary.quantityOpen != null
+                            ? mysledgesummary.quantityOpen.ToString()
+                            : noinfotext;
+                    mysnowreport.totalslides =
+                        mysledgesummary.quantity != null ? mysledgesummary.quantity.ToString() : noinfotext;                    
+                }
 
 
                 mysnowreport.Measuringpoints = measuringpoints

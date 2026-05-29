@@ -29,6 +29,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using OdhApiCore.Controllers.helper;
 
 namespace OdhApiCore.Controllers
 {
@@ -1701,23 +1702,26 @@ namespace OdhApiCore.Controllers
                 }
             }
 
-            //Does not work empty object is returned this way
-            //var skiarea2 = await query.FirstOrDefaultAsync<SkiArea>();
 
-            //This works
-            //var skiareastring = await query.FirstOrDefaultAsync<string>();
-            //var skiareaobject = JsonConvert.DeserializeObject<SkiArea>(skiareastring);
+            //var mysnowreport = GetSnowReport.GetLiveSnowReport(
+            //    lang,
+            //    skiarea!,
+            //    webcamlist,
+            //    "SMG",
+            //    settings.LcsConfig.ServiceUrl,
+            //    settings.LcsConfig.Username,
+            //    settings.LcsConfig.Password,
+            //    settings.LcsConfig.MessagePassword
+            //);
 
-            var mysnowreport = GetSnowReport.GetLiveSnowReport(
-                lang,
-                skiarea!,
-                webcamlist,
-                "SMG",
-                settings.LcsConfig.ServiceUrl,
-                settings.LcsConfig.Username,
-                settings.LcsConfig.Password,
-                settings.LcsConfig.MessagePassword
-            );
+            //Get Measuringpoints
+
+            //Get Summaries
+            var summaries = await SnowReportHelper.GetSummaries(skiarea.AreaIds, settings);
+            var measuringpoints = await SnowReportHelper.GetMeasuringPoints(skiarea.AreaIds, settings);
+
+            var mysnowreport = await SnowReportHelper.ParseMySnowReportData(lang, skiarea, webcamlist, summaries, measuringpoints);
+
 
             mysnowreport.Id = mysnowreport.RID + "_SNOWREPORT";
 
