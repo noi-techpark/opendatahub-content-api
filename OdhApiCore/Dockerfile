@@ -14,7 +14,6 @@ COPY GeoConverter/GeoConverter.csproj GeoConverter/
 COPY Helper/Helper.csproj Helper/
 COPY MOMENTUS/MOMENTUS.csproj MOMENTUS/
 COPY MSS/MSS.csproj MSS/
-COPY LCS/LCS.csproj LCS/
 COPY SIAG/SIAG.csproj SIAG/
 COPY NINJA/NINJA.csproj NINJA/
 COPY RAVEN/RAVEN.csproj RAVEN/

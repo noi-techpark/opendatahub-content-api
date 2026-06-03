@@ -762,100 +762,10 @@ namespace OdhApiCore.Filters
             List<string> bookableaccoIDs,
             string requestsource,
             bool lcscache = false,
-            string apiversion = "v1"
+            string apiversion = "v2"
             )
         {
-            if(apiversion == "v2")
-            {
-                return await GetLTSApiAvailability(language, arrival, departure, boardfilter, roominfo, bookableaccoIDs, requestsource, lcscache);
-            }
-            else
-                return await GetLCSAvailability(language, arrival, departure, boardfilter, roominfo, bookableaccoIDs, requestsource, lcscache);
-        }
-
-        private async Task<MssResult> GetLCSAvailability(
-            string language,
-            string arrival,
-            string departure,
-            string boardfilter,
-            string roominfo,
-            List<string> bookableaccoIDs,
-            string requestsource,
-            bool lcscache = false
-        )
-        {
-            LcsHelper myhelper = LcsHelper.Create(
-                bookableaccoIDs,
-                language,
-                roominfo,
-                boardfilter,
-                arrival,
-                departure,
-                requestsource
-            );
-
-            // Edge Case No Ids Provided, load all of them
-            if ((bookableaccoIDs.Count == 0) && !lcscache)
-            {
-                using var r = new StreamReader(
-                    Path.Combine(settings.JsonConfig.Jsondir, $"AccosAll.json")
-                );
-                string json = await r.ReadToEndAsync();
-                bookableaccoIDs = JsonConvert.DeserializeObject<List<string>>(json) ?? new();
-            }
-
-            if (bookableaccoIDs.Count > 0 || lcscache)
-            {
-                var accosearchrequest =
-                    LCS.GetAccommodationDataLCS.GetAccommodationDataSearchRequest(
-                        resultRID: "",
-                        pageNr: "1",
-                        pageSize: "10000",
-                        language: myhelper.lcsrequestlanguage,
-                        sortingcriterion: "1",
-                        sortingorder: "",
-                        sortingpromotebookable: "",
-                        request: "0",
-                        filters: "0",
-                        timespanstart: myhelper.arrival,
-                        timespanend: myhelper.departure,
-                        checkavailabilitystatus: "1",
-                        onlybookableresults: "0",
-                        mealplans: myhelper.service,
-                        accommodationrids: myhelper.accoidlist,
-                        tourismorg: new List<string>(),
-                        districts: new List<string>(),
-                        marketinggroups: new List<string>(),
-                        lcsroomstay: myhelper.myroomdata,
-                        requestor: requestsource,
-                        messagepswd: settings.LcsConfig.MessagePassword
-                    );
-
-                var myaccosearchlcs = new LCS.GetAccommodationDataLCS(
-                    settings.LcsConfig.ServiceUrl,
-                    settings.LcsConfig.Username,
-                    settings.LcsConfig.Password
-                );
-                var response = await myaccosearchlcs.GetAccommodationDataSearchAsync(
-                    accosearchrequest
-                );
-                var myparsedresponse = LCS.ParseAccoSearchResult.ParsemyLCSResponse(
-                    language,
-                    response,
-                    myhelper.rooms
-                );
-
-                if (myparsedresponse != null)
-                    return myparsedresponse;
-            }
-            return new MssResult()
-            {
-                bookableHotels = 0,
-                CheapestChannel = "",
-                Cheapestprice = 0,
-                ResultId = "",
-                MssResponseShort = new List<MssResponseShort>(),
-            };
+            return await GetLTSApiAvailability(language, arrival, departure, boardfilter, roominfo, bookableaccoIDs, requestsource, lcscache);
         }
 
         private async Task<MssResult> GetLTSApiAvailability(
