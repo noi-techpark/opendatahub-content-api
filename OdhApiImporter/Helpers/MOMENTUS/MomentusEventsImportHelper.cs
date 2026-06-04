@@ -93,7 +93,7 @@ namespace OdhApiImporter.Helpers
                     momentuseventlist.Add(await GetDataFromMomentus.RequestMomentusEventSingle(
                     settings.MomentusConfig.ServiceUrl,
                     null, null, null,
-                    idlist.FirstOrDefault(),
+                    id,
                     authtoken));
                 }
 
