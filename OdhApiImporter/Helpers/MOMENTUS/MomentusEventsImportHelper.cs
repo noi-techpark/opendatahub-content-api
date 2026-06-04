@@ -49,7 +49,7 @@ namespace OdhApiImporter.Helpers
                 settings.MomentusConfig.ClientSecret
             );
 
-            var momentusevents = await RequestMomentusEventsWithallRooms(authtoken);
+            var momentusevents = await RequestMomentusEventsWithallRooms(idlist, authtoken);
             
             var updateresult = await ImportData(momentusevents, authtoken, cancellationToken);
 
@@ -63,25 +63,42 @@ namespace OdhApiImporter.Helpers
             );
         }
 
-        private async Task<IEnumerable<MomentusEvent>> RequestMomentusEventsWithallRooms(MomentusTokenResponse authtoken)
+        private async Task<IEnumerable<MomentusEvent>> RequestMomentusEventsWithallRooms(List<string>? idlist, MomentusTokenResponse authtoken)
         {
-            var momentusrooms = await GetDataFromMomentus.RequestMomentusRooms(
-                settings.MomentusConfig.ServiceUrl,
-                null,null,null, //Token already present
-                authtoken);
+            if (idlist == null)
+            {
+                var momentusrooms = await GetDataFromMomentus.RequestMomentusRooms(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null, //Token already present
+                    authtoken);
 
-            var eventsearchrequest = GetDataFromMomentus.GetEventSearchRequest(
-                DateOnly.FromDateTime(DateTime.Now),
-                DateOnly.FromDateTime(DateTime.Now.AddYears(1)),
-                new List<string> { "venue-1-A" },
-                momentusrooms.Select(x => x.Id).ToList(), //Add all rooms
-                true);
+                var eventsearchrequest = GetDataFromMomentus.GetEventSearchRequest(
+                    DateOnly.FromDateTime(DateTime.Now),
+                    DateOnly.FromDateTime(DateTime.Now.AddYears(1)),
+                    new List<string> { "venue-1-A" },
+                    momentusrooms.Select(x => x.Id).ToList(), //Add all rooms
+                    true);
 
-            return await GetDataFromMomentus.RequestMomentusEvents(
-                settings.MomentusConfig.ServiceUrl,
-                null,null,null,
-                eventsearchrequest,
-                authtoken);
+                return await GetDataFromMomentus.RequestMomentusEvents(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null,
+                    eventsearchrequest,
+                    authtoken);
+            }
+            else
+            {
+                List<MomentusEvent> momentuseventlist = new List<MomentusEvent>();
+                foreach(var id in idlist)
+                {
+                    momentuseventlist.Add(await GetDataFromMomentus.RequestMomentusEventSingle(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null,
+                    idlist.FirstOrDefault(),
+                    authtoken));
+                }
+
+                return momentuseventlist;
+            }
         }
 
         private async Task<IEnumerable<MomentusFunction>> RequestMomentusFunctionByEventId(string eventid, MomentusTokenResponse authtoken)

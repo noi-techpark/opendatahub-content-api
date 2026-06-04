@@ -3196,6 +3196,59 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        [HttpGet, Route("MOMENTUS/Event/Update/{id}")]
+        public async Task<IActionResult> UpdateSingleEventFromMomentus(
+            string id = null,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update MOMENTUS";
+            string updatetype = "single";
+            string source = "momentus";
+            string otherinfo = "event";
+
+            try
+            {
+                MomentusEventsImportHelper eventimporthelper = new MomentusEventsImportHelper(
+                    settings,
+                    QueryFactory,
+                    "events",
+                    UrlGeneratorStatic("MOMENTUS/Event"),
+                    OdhPushnotifier
+                );
+
+                updatedetail = await eventimporthelper.SaveDataToODH(null, new List<string>() { id }, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Events update succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Events update failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
         [HttpGet, Route("MOMENTUS/Venue/Update")]
         public async Task<IActionResult> UpdateVenuesFromMomentus(
             CancellationToken cancellationToken = default
