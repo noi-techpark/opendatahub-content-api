@@ -4,6 +4,7 @@
 
 using DataModel;
 using Helper;
+using DataModel.helpers;
 using Helper.Generic;
 using Helper.Location;
 using Helper.Tagging;
@@ -181,7 +182,11 @@ namespace OdhApiImporter.Helpers
                                     if (!odhactivitypoi.PublishedOn.Contains("sta")) 
                                         odhactivitypoi.PublishedOn.Add("sta");
                                 }
-                                    
+
+                                //Add AdditionalProperties
+                                AdditionalPropertiesHelper.FillStaVendingPointAdditionalProperties(odhactivitypoi);
+
+
                                 //Save to PG
                                 //Check if data exists
                                 var result = await QueryFactory.UpsertData(
