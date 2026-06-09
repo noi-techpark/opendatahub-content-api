@@ -3143,6 +3143,7 @@ namespace OdhApiImporter.Controllers
 
         #region MOMENTUS DATA SYNC (Event)
 
+        //TODO adding Roles
         [HttpGet, Route("MOMENTUS/Event/Update")]
         public async Task<IActionResult> UpdateEventsFromMomentus(
             string? updatetodate = null,
@@ -3196,9 +3197,11 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        [HttpGet, Route("MOMENTUS/Event/Update/{id}")]
+
+        //TODO adding Roles
+        [HttpGet, Route("MOMENTUS/Event/Update/{*id}")]
         public async Task<IActionResult> UpdateSingleEventFromMomentus(
-            string id = null,
+            string id,
             CancellationToken cancellationToken = default
         )
         {
@@ -3210,6 +3213,10 @@ namespace OdhApiImporter.Controllers
 
             try
             {
+                //fix if Open Data Hub ID is used
+                if (id.Contains("urn:event:momentus:"))
+                    id = id.Replace("urn:event:momentus:", "");
+
                 MomentusEventsImportHelper eventimporthelper = new MomentusEventsImportHelper(
                     settings,
                     QueryFactory,
@@ -3249,6 +3256,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        //TODO adding Roles
         [HttpGet, Route("MOMENTUS/Venue/Update")]
         public async Task<IActionResult> UpdateVenuesFromMomentus(
             CancellationToken cancellationToken = default
