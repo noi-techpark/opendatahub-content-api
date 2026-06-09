@@ -1,0 +1,107 @@
+# Test environment values for the tourism-api chart.
+#
+# Non-secret configuration lives here (committed). Sensitive values are listed under
+# `envSecret` with empty placeholders and are filled in at deploy time by the GitHub
+# Actions workflow (yq) from repository secrets, then rendered into a K8s Secret.
+#
+# image.repository / image.tag / image.pullPolicy are also overwritten by the workflow.
+
+image:
+  repository: ghcr.io/noi-techpark/opendatahub-content-api/opendatahub-content-api-api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# The GHCR package is pulled with credentials today (Ansible docker login), so treat it
+# as private. This secret already exists in the `core` namespace (see infra-v2 docs/secrets.md).
+imagePullSecrets:
+  - name: container-registry-r
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetport: http
+  containerport: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+  tls:
+    - hosts:
+        - tourism.api.dev.testingmachine.eu
+      secretName: tls-tourism-api
+  hosts:
+    - host: tourism.api.dev.testingmachine.eu
+      paths:
+        - path: "/"
+          pathType: Prefix
+
+# Non-secret environment (mirrors infrastructure/docker-compose.run.yml).
+env:
+  ASPNETCORE_URLS: "http://+:80"
+  ASPNETCORE_ENVIRONMENT: "Development"
+
+  ASPNETCORE_MssConfig__ServiceUrl: "https://www.easymailing.eu/mss/mss_service.php"
+  ASPNETCORE_LcsConfig__ServiceUrl: "https://lcs.lts.it/api/data.svc"
+  ASPNETCORE_SiagConfig__ServiceUrl: "http://daten.buergernetz.bz.it/services/weather/"
+
+  # XML reference files are baked into the image at /app/xml/ (Dockerfile).
+  ASPNETCORE_XmlConfig__Xmldir: "xml/"
+  ASPNETCORE_XmlConfig__XmldirWeather: "xml/"
+  ASPNETCORE_JsonConfig__Jsondir: "./wwwroot/json/"
+
+  ASPNETCORE_S3ImageresizerConfig__Url: "https://cdn.opendatahub.testingmachine.eu/api/Image/GetImage?imageurl="
+  ASPNETCORE_S3ImageresizerConfig__DocUrl: "https://cdn.opendatahub.testingmachine.eu/api/File/GetFile/"
+
+  ASPNETCORE_OauthServerConfig__Authority: "https://auth.opendatahub.testingmachine.eu/auth/realms/noi/"
+  ASPNETCORE_DataBrowserConfig__Url: "https://frontend.tourism.testingmachine.eu/"
+  ASPNETCORE_RavenConfig__ServiceUrl: "https://service.suedtirol.info/api/"
+
+  ASPNETCORE_FCMConfig__noi-communityapp__ProjectName: "noi-community"
+  ASPNETCORE_FCMConfig__noi-communityapp__FCMServiceAccount: "google-service-account.noicommunity.json"
+
+  ASPNETCORE_S3Config__dc-meteorology-province-forecast__Filename: "SMOS_MCPL-WX_EXP_SIAG.JSON"
+
+  ASPNETCORE_LTSApiIDM__ServiceUrl: "https://go.lts.it/api/v1"
+  ASPNETCORE_LTSApiIDM__Opendata: "false"
+  ASPNETCORE_LTSApiOpen__ServiceUrl: "https://go.lts.it/api/v1"
+  ASPNETCORE_LTSApiOpen__Opendata: "true"
+
+# Sensitive environment. Placeholders only — filled at deploy time by the workflow.
+envSecret:
+  ASPNETCORE_ConnectionStrings__PgConnection: ""
+  ASPNETCORE_MssConfig__Username: ""
+  ASPNETCORE_MssConfig__Password: ""
+  ASPNETCORE_LcsConfig__Username: ""
+  ASPNETCORE_LcsConfig__Password: ""
+  ASPNETCORE_LcsConfig__MessagePassword: ""
+  ASPNETCORE_SiagConfig__Username: ""
+  ASPNETCORE_SiagConfig__Password: ""
+  ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ""
+  ASPNETCORE_S3ImageresizerConfig__AccessKey: ""
+  ASPNETCORE_S3ImageresizerConfig__SecretKey: ""
+  ASPNETCORE_ProxyConfig__CaddyTest: ""
+  ASPNETCORE_ProxyConfig__CaddyProd: ""
+  ASPNETCORE_ElasticSearchConfig__ElasticUrl: ""
+  ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ""
+  ASPNETCORE_RavenConfig__Username: ""
+  ASPNETCORE_RavenConfig__Password: ""
+  ASPNETCORE_FCMConfig__noi-communityapp__ServerKey: ""
+  ASPNETCORE_FCMConfig__noi-communityapp__SenderId: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__Url: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__User: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__Password: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__Header: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__Token: ""
+  ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessKey: ""
+  ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessSecretKey: ""
+  ASPNETCORE_LTSApiIDM__Username: ""
+  ASPNETCORE_LTSApiIDM__Password: ""
+  ASPNETCORE_LTSApiIDM__XLSClientid: ""
+  ASPNETCORE_LTSApiOpen__Username: ""
+  ASPNETCORE_LTSApiOpen__Password: ""
+  ASPNETCORE_LTSApiOpen__XLSClientid: ""
