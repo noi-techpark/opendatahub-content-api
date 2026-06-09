@@ -391,7 +391,6 @@ namespace OdhApiCore.Controllers
                 //Additional Read Filters to Add Check
                 AdditionalFiltersToAdd.TryGetValue("Delete", out var additionalfilter);
 
-                id = id.ToUpper();
                 return await DeleteData<TagLinked>(
                     id,
                     new DataInfo("tags", CRUDOperation.Delete),
