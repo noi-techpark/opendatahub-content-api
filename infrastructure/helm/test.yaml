@@ -32,10 +32,10 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: 50m
   tls:
     - hosts:
-        - tourism.api.dev.testingmachine.eu
+        - tourism.api.opendatahub.testingmachine.eu
       secretName: tls-tourism-api
   hosts:
-    - host: tourism.api.dev.testingmachine.eu
+    - host: tourism.api.opendatahub.testingmachine.eu
       paths:
         - path: "/"
           pathType: Prefix

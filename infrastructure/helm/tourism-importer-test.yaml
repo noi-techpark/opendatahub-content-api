@@ -30,10 +30,10 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: 50m
   tls:
     - hosts:
-        - tourism.importer.dev.testingmachine.eu
+        - tourism.importer.opendatahub.testingmachine.eu
       secretName: tls-tourism-importer
   hosts:
-    - host: tourism.importer.dev.testingmachine.eu
+    - host: tourism.importer.opendatahub.testingmachine.eu
       paths:
         - path: "/"
           pathType: Prefix
