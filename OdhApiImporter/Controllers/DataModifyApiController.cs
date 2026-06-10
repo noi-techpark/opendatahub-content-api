@@ -518,6 +518,30 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("AddSTAPublishedOnToODHActivityPois")]
+        public async Task<IActionResult> AddSTAPublishedOnToODHActivityPois(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(settings, QueryFactory);
+            //var objectscount = await customdataoperation.AddPublishedOnStatoODHActivityPoi(settings.XmlConfig.Xmldir);
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "STA publisher",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message = "Done",
+                    recordsmodified = 0,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
 
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("CleanODHActivityPoiNullTags")]
