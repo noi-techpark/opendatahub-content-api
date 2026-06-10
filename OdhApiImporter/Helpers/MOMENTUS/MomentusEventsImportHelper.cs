@@ -52,14 +52,21 @@ namespace OdhApiImporter.Helpers
 
             var momentusevents = await RequestMomentusEventsWithallRooms(idlist, authtoken);
 
-            var updateresult = await ImportData(momentusevents, authtoken, cancellationToken);            
+            var updateresult = await ImportData(momentusevents, authtoken, cancellationToken);
 
             //Set all Events that are not given by the Interface anymore to Inactive and remove the publisher
-            var deleteresult = await DisableDeletedEvents(momentusevents);
+            if (idlist == null)
+            {
+                var deleteresult = await DisableDeletedEvents(momentusevents);
+
+                return GenericResultsHelper.MergeUpdateDetail(
+                    new List<UpdateDetail>() { updateresult, deleteresult }
+                );
+            }
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult, deleteresult }
-            );
+                    new List<UpdateDetail>() { updateresult }
+                );
         }
 
         private async Task<IEnumerable<MomentusEvent>> RequestMomentusEventsWithallRooms(List<string>? idlist, MomentusTokenResponse authtoken)
