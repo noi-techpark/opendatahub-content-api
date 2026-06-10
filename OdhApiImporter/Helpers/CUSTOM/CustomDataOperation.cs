@@ -22,11 +22,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace OdhApiImporter.Helpers
 {
@@ -767,6 +769,107 @@ namespace OdhApiImporter.Helpers
             }
 
             return i;
+        }
+
+
+        public async Task<int> AddPublishedOnStatoODHActivityPoi(string xmlconfig)
+        {
+
+
+            //string select = $"data->>'Id' as \"Id\", data->'Detail'->'{language}'->>'Title' AS \"Detail.{language}.Title\", data->'ContactInfos'->'{language}'->>'City' AS \"ContactInfos.{language}.City\"";
+            //string select =
+            //    $"data->>'Id' as \"Id\", data->'Detail'->'{language}'->>'Title' AS \"Detail.{language}.Title\", data->'LocationInfo'->'MunicipalityInfo'->'Name'->>'{language}' AS \"ContactInfos.{language}.City\"";
+
+            //string orderby = "data ->>'Shortname' ASC";
+            //List<string> fieldselectorlist = new List<string>() { "Id", "Detail." + language + ".Title", "ContactInfos." + language + ".City" };
+
+            var categoriestoretrieve = GetSTACategoriesToFilter(xmlconfig);
+
+            var query = QueryFactory
+                .Query()
+                .Select("data")
+                .From("smgpois")
+                .ODHActivityPoiWhereExpression(
+                    idlist: new List<string>(),
+                    typelist: new List<string>(),
+                    subtypelist: new List<string>(),
+                    level3typelist: new List<string>(),
+                    smgtaglist: categoriestoretrieve,
+                    smgtaglistand: new List<string>(),
+                    districtlist: new List<string>(),
+                    municipalitylist: new List<string>(),
+                    tourismvereinlist: new List<string>(),
+                    regionlist: new List<string>(),
+                    arealist: new List<string>(),
+                    sourcelist: new List<string>(),
+                    languagelist: new List<string>(),
+                    highlight: null,
+                    activefilter: true,
+                    smgactivefilter: null,
+                    categorycodeslist: new List<string>(),
+                    dishcodeslist: new List<string>(),
+                    ceremonycodeslist: new List<string>(),
+                    facilitycodeslist: new List<string>(),
+                    activitytypelist: new List<string>(),
+                    poitypelist: new List<string>(),
+                    difficultylist: new List<string>(),
+                    distance: false,
+                    distancemin: 0,
+                    distancemax: 0,
+                    duration: false,
+                    durationmin: 0,
+                    durationmax: 0,
+                    altitude: false,
+                    altitudemin: 0,
+                    altitudemax: 0,
+                    hasimage: null,
+                    tagdict: null,
+                    publishedonlist: new List<string>(),
+                    searchfilter: null,
+                    language: null,
+                    lastchange: null,
+                    additionalfilter: null,
+                    userroles: new List<string>() { "STA" }
+                );
+
+            var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
+
+            return 0;
+
+        }
+
+        public static List<string> GetSTACategoriesToFilter(string xmldir)
+        {
+            List<string> categories = new List<string>();
+
+            var staconfig = XDocument.Load(xmldir + "STACategories.xml");
+
+            categories.AddRange(
+                staconfig
+                    .Root?.Element("ODHActivityPois")
+                    ?.Element("Categories")
+                    ?.Elements("Item")
+                    ?.Select(x => x.Value)
+                    ?.ToList() ?? new List<string>()
+            );
+            categories.AddRange(
+                staconfig
+                    .Root?.Element("ODHActivityPois")
+                    ?.Element("SubCategories")
+                    ?.Elements("Item")
+                    ?.Select(x => x.Value)
+                    ?.ToList() ?? new List<string>()
+            );
+            categories.AddRange(
+                staconfig
+                    .Root?.Element("ODHActivityPois")
+                    ?.Element("PoiCategories")
+                    ?.Elements("Item")
+                    ?.Select(x => x.Value)
+                    ?.ToList() ?? new List<string>()
+            );
+
+            return categories;
         }
 
 

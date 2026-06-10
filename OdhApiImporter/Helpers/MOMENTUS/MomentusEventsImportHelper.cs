@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using DataModel;
-using EBMS;
 using Helper;
 using Helper.Extensions;
 using Helper.Generic;
@@ -50,7 +49,7 @@ namespace OdhApiImporter.Helpers
                 settings.MomentusConfig.ClientSecret
             );
 
-            var momentusevents = await RequestMomentusEventsWithallRooms(authtoken);
+            var momentusevents = await RequestMomentusEventsWithallRooms(idlist, authtoken);
             
             var updateresult = await ImportData(momentusevents, authtoken, cancellationToken);
 
@@ -64,25 +63,42 @@ namespace OdhApiImporter.Helpers
             );
         }
 
-        private async Task<IEnumerable<MomentusEvent>> RequestMomentusEventsWithallRooms(MomentusTokenResponse authtoken)
+        private async Task<IEnumerable<MomentusEvent>> RequestMomentusEventsWithallRooms(List<string>? idlist, MomentusTokenResponse authtoken)
         {
-            var momentusrooms = await GetDataFromMomentus.RequestMomentusRooms(
-                settings.MomentusConfig.ServiceUrl,
-                null,null,null, //Token already present
-                authtoken);
+            if (idlist == null)
+            {
+                var momentusrooms = await GetDataFromMomentus.RequestMomentusRooms(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null, //Token already present
+                    authtoken);
 
-            var eventsearchrequest = GetDataFromMomentus.GetEventSearchRequest(
-                DateOnly.FromDateTime(DateTime.Now),
-                DateOnly.FromDateTime(DateTime.Now.AddYears(1)),
-                new List<string> { "venue-1-A" },
-                momentusrooms.Select(x => x.Id).ToList(), //Add all rooms
-                true);
+                var eventsearchrequest = GetDataFromMomentus.GetEventSearchRequest(
+                    DateOnly.FromDateTime(DateTime.Now),
+                    DateOnly.FromDateTime(DateTime.Now.AddYears(1)),
+                    new List<string> { "venue-1-A" },
+                    momentusrooms.Select(x => x.Id).ToList(), //Add all rooms
+                    true);
 
-            return await GetDataFromMomentus.RequestMomentusEvents(
-                settings.MomentusConfig.ServiceUrl,
-                null,null,null,
-                eventsearchrequest,
-                authtoken);
+                return await GetDataFromMomentus.RequestMomentusEvents(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null,
+                    eventsearchrequest,
+                    authtoken);
+            }
+            else
+            {
+                List<MomentusEvent> momentuseventlist = new List<MomentusEvent>();
+                foreach(var id in idlist)
+                {
+                    momentuseventlist.Add(await GetDataFromMomentus.RequestMomentusEventSingle(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null,
+                    id,
+                    authtoken));
+                }
+
+                return momentuseventlist;
+            }
         }
 
         private async Task<IEnumerable<MomentusFunction>> RequestMomentusFunctionByEventId(string eventid, MomentusTokenResponse authtoken)
@@ -313,97 +329,97 @@ namespace OdhApiImporter.Helpers
                     automatictechnologyfields.Add(toassign);
         }
 
-        private async Task<UpdateDetail> DeleteDeletedEvents(
-            List<Tuple<EventShortLinked, EBMSEventREST>> resulttuple,
-            List<EventShortLinked> eventshortinDB
-        )
-        {
-            var deletecounter = 0;
+        //private async Task<UpdateDetail> DeleteDeletedEvents(
+        //    List<Tuple<EventShortLinked, EBMSEventREST>> resulttuple,
+        //    List<EventShortLinked> eventshortinDB
+        //)
+        //{
+        //    var deletecounter = 0;
 
-            if (resulttuple.Select(x => x.Item1).Count() > 0)
-            {
-                List<EventShortLinked> eventshortfromnow = resulttuple
-                    .Select(x => x.Item1)
-                    .ToList();
+        //    if (resulttuple.Select(x => x.Item1).Count() > 0)
+        //    {
+        //        List<EventShortLinked> eventshortfromnow = resulttuple
+        //            .Select(x => x.Item1)
+        //            .ToList();
 
-                var idsonListinDB = eventshortinDB.Select(x => x.EventId).ToList();
-                var idsonService = eventshortfromnow.Select(x => x.EventId).ToList();
+        //        var idsonListinDB = eventshortinDB.Select(x => x.EventId).ToList();
+        //        var idsonService = eventshortfromnow.Select(x => x.EventId).ToList();
 
-                var idstodelete = idsonListinDB.Where(p => !idsonService.Any(p2 => p2 == p));
+        //        var idstodelete = idsonListinDB.Where(p => !idsonService.Any(p2 => p2 == p));
 
-                if (idstodelete.Count() > 0)
-                {
-                    foreach (var idtodelete in idstodelete)
-                    {
-                        //Set to inactive
-                        var eventshorttodeactivate = eventshortinDB
-                            .Where(x => x.EventId == idtodelete)
-                            .FirstOrDefault();
+        //        if (idstodelete.Count() > 0)
+        //        {
+        //            foreach (var idtodelete in idstodelete)
+        //            {
+        //                //Set to inactive
+        //                var eventshorttodeactivate = eventshortinDB
+        //                    .Where(x => x.EventId == idtodelete)
+        //                    .FirstOrDefault();
 
-                        //TODO CHECK IF IT WORKS
-                        if (eventshorttodeactivate != null)
-                        {
-                            //Work With Active instead of deleting....
-                            eventshorttodeactivate.Active = false;
-                            eventshorttodeactivate.LastChange = DateTime.Now;
+        //                //TODO CHECK IF IT WORKS
+        //                if (eventshorttodeactivate != null)
+        //                {
+        //                    //Work With Active instead of deleting....
+        //                    eventshorttodeactivate.Active = false;
+        //                    eventshorttodeactivate.LastChange = DateTime.Now;
 
-                            var updated = await QueryFactory
-                                .Query("eventeuracnoi")
-                                .Where("id", eventshorttodeactivate.Id?.ToLower())
-                                .UpdateAsync(
-                                    new JsonBData()
-                                    {
-                                        id = eventshorttodeactivate.Id?.ToLower() ?? "",
-                                        data = new JsonRaw(eventshorttodeactivate),
-                                    }
-                                );
+        //                    var updated = await QueryFactory
+        //                        .Query("eventeuracnoi")
+        //                        .Where("id", eventshorttodeactivate.Id?.ToLower())
+        //                        .UpdateAsync(
+        //                            new JsonBData()
+        //                            {
+        //                                id = eventshorttodeactivate.Id?.ToLower() ?? "",
+        //                                data = new JsonRaw(eventshorttodeactivate),
+        //                            }
+        //                        );
 
-                            //LOG the Deletion
-                            WriteLog.LogToConsole(
-                                eventshorttodeactivate.Id,
-                                "dataimport",
-                                "single.eventeuracnoi.deactivate",
-                                new ImportLog()
-                                {
-                                    sourceid = eventshorttodeactivate.Id,
-                                    sourceinterface = "ebms.eventeuracnoi",
-                                    success = updated > 0 ? true : false,
-                                    error = "",
-                                }
-                            );
+        //                    //LOG the Deletion
+        //                    WriteLog.LogToConsole(
+        //                        eventshorttodeactivate.Id,
+        //                        "dataimport",
+        //                        "single.eventeuracnoi.deactivate",
+        //                        new ImportLog()
+        //                        {
+        //                            sourceid = eventshorttodeactivate.Id,
+        //                            sourceinterface = "ebms.eventeuracnoi",
+        //                            success = updated > 0 ? true : false,
+        //                            error = "",
+        //                        }
+        //                    );
 
-                            deletecounter++;
-                        }
-                    }
-                }
-            }
+        //                    deletecounter++;
+        //                }
+        //            }
+        //        }
+        //    }
 
-            return new UpdateDetail()
-            {
-                created = 0,
-                updated = 0,
-                deleted = deletecounter,
-                error = 0,
-            };
-        }
+        //    return new UpdateDetail()
+        //    {
+        //        created = 0,
+        //        updated = 0,
+        //        deleted = deletecounter,
+        //        error = 0,
+        //    };
+        //}
 
-        private async Task<IEnumerable<EventShortLinked>> GetAllEventsShort(DateTime now)
-        {
-            var today = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+        //private async Task<IEnumerable<EventShortLinked>> GetAllEventsShort(DateTime now)
+        //{
+        //    var today = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
 
-            var query = QueryFactory
-                .Query("events")
-                .Select("data")
-                .WhereRaw(
-                    "(((to_date(data->> 'EndDate', 'YYYY-MM-DD') >= '"
-                        + String.Format("{0:yyyy-MM-dd}", today)
-                        + "'))) AND(data#>>'\\{Source\\}' = $$)",
-                    "momentus"
-                )
-                .Where("gen_active", true);
+        //    var query = QueryFactory
+        //        .Query("events")
+        //        .Select("data")
+        //        .WhereRaw(
+        //            "(((to_date(data->> 'EndDate', 'YYYY-MM-DD') >= '"
+        //                + String.Format("{0:yyyy-MM-dd}", today)
+        //                + "'))) AND(data#>>'\\{Source\\}' = $$)",
+        //            "momentus"
+        //        )
+        //        .Where("gen_active", true);
 
-            return await query.GetObjectListAsync<EventShortLinked>();
-        }
+        //    return await query.GetObjectListAsync<EventShortLinked>();
+        //}
 
         #endregion
     }

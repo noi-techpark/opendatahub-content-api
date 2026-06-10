@@ -43,7 +43,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EBMS\EBMS.csproj" />
     <ProjectReference Include="..\GeoConverter\GeoConverter.csproj" />
     <ProjectReference Include="..\Helper\Helper.csproj" />
     <ProjectReference Include="..\JsonLDTransformer\JsonLDTransformer.csproj" />

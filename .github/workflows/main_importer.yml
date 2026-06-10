@@ -7,7 +7,7 @@ on:
       - "DataModel/**"
       - "DSS/**"
       - "CDB/**"
-      - "EBMS/**"
+      - "MOMENTUS/**"
       - "LCS/**"
       - "MSS/**"
       - "NINJA/**"
@@ -105,10 +105,7 @@ jobs:
           X_CDB_SERVICEURL: "https://lcs.lts.it/data/cdbdata.asmx"
           X_SIAG_USER: ${{ secrets.SIAG_USER_TEST }}
           X_SIAG_PSWD: ${{ secrets.SIAG_PSWD_TEST }}
-          X_SIAG_SERVICEURL: "http://daten.buergernetz.bz.it/services/weather/"
-          X_EBMS_USER: ${{ secrets.EBMS_USER_TEST }}
-          X_EBMS_PASS: ${{ secrets.EBMS_PASS_TEST }}
-          X_EBMS_SERVICEURL: ${{ secrets.EBMS_URL_TEST }}
+          X_SIAG_SERVICEURL: "http://daten.buergernetz.bz.it/services/weather/"          
           X_DSS_SERVICEURL: "https://www.dolomitisuperski.com/jsonexport/export/"
           X_DSS_USER: ${{ secrets.DSS_USER_TEST }}
           X_DSS_PSWD: ${{ secrets.DSS_PSWD_TEST }}
@@ -302,10 +299,7 @@ jobs:
           X_CDB_SERVICEURL: "https://lcs.lts.it/data/cdbdata.asmx"
           X_SIAG_USER: ${{ secrets.SIAG_USER_TEST }}
           X_SIAG_PSWD: ${{ secrets.SIAG_PSWD_TEST }}
-          X_SIAG_SERVICEURL: "http://daten.buergernetz.bz.it/services/weather/"
-          X_EBMS_USER: ${{ secrets.EBMS_USER_TEST }}
-          X_EBMS_PASS: ${{ secrets.EBMS_PASS_TEST }}
-          X_EBMS_SERVICEURL: ${{ secrets.EBMS_URL_TEST }}
+          X_SIAG_SERVICEURL: "http://daten.buergernetz.bz.it/services/weather/"          
           X_DSS_SERVICEURL: "https://www.dolomitisuperski.com/jsonexport/export/"
           X_DSS_USER: ${{ secrets.DSS_USER_TEST }}
           X_DSS_PSWD: ${{ secrets.DSS_PSWD_TEST }}

@@ -59,9 +59,6 @@ namespace Helper
             if (venue == null)
                 return;
 
-            if (string.Equals(venue.Shortname, "Other", StringComparison.OrdinalIgnoreCase))
-                return;
-
             if (venue.Mapping == null ||
                 !venue.Mapping.TryGetValue("tag", out var tagMapping) ||
                 !tagMapping.TryGetValue("eventlocation", out var eventLocationValue) ||

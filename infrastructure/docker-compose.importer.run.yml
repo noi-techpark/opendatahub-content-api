@@ -14,10 +14,7 @@ services:
       ASPNETCORE_LcsConfig__ServiceUrl: ${LCS_SERVICEURL}
       ASPNETCORE_SiagConfig__Username: ${SIAG_USER}
       ASPNETCORE_SiagConfig__Password: ${SIAG_PSWD}
-      ASPNETCORE_SiagConfig__ServiceUrl: ${SIAG_SERVICEURL}
-      ASPNETCORE_EBMSConfig__Username: ${EBMS_USER}
-      ASPNETCORE_EBMSConfig__Password: ${EBMS_PASS}
-      ASPNETCORE_EBMSConfig__ServiceUrl: ${EBMS_SERVICEURL}
+      ASPNETCORE_SiagConfig__ServiceUrl: ${SIAG_SERVICEURL}      
       ASPNETCORE_DSSConfig__Username: ${DSS_USER}
       ASPNETCORE_DSSConfig__Password: ${DSS_PSWD}
       ASPNETCORE_DSSConfig__ServiceUrl: ${DSS_SERVICEURL}
