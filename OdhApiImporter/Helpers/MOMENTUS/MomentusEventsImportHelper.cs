@@ -10,6 +10,7 @@ using Helper.Tagging;
 using MOMENTUS;
 using MOMENTUS.Model;
 using MOMENTUS.Parser;
+using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Newtonsoft.Json;
 using OdhNotifier;
@@ -49,39 +50,61 @@ namespace OdhApiImporter.Helpers
                 settings.MomentusConfig.ClientSecret
             );
 
-            var momentusevents = await RequestMomentusEventsWithallRooms(authtoken);
-            
+            var momentusevents = await RequestMomentusEventsWithallRooms(idlist, authtoken);
+
             var updateresult = await ImportData(momentusevents, authtoken, cancellationToken);
 
-            //var currenteventshort = await GetAllEventsShort(currentdate);
+            //Set all Events that are not given by the Interface anymore to Inactive and remove the publisher
+            if (idlist == null)
+            {
+                var deleteresult = await DisableDeletedEvents(momentusevents);
 
-            //todo check if resulttuple item1 is null
-            //var deleteresult = await DeleteDeletedEvents(resulttuple, currenteventshort.ToList());
+                return GenericResultsHelper.MergeUpdateDetail(
+                    new List<UpdateDetail>() { updateresult, deleteresult }
+                );
+            }
 
             return GenericResultsHelper.MergeUpdateDetail(
-                new List<UpdateDetail>() { updateresult }
-            );
+                    new List<UpdateDetail>() { updateresult }
+                );
         }
 
-        private async Task<IEnumerable<MomentusEvent>> RequestMomentusEventsWithallRooms(MomentusTokenResponse authtoken)
+        private async Task<IEnumerable<MomentusEvent>> RequestMomentusEventsWithallRooms(List<string>? idlist, MomentusTokenResponse authtoken)
         {
-            var momentusrooms = await GetDataFromMomentus.RequestMomentusRooms(
-                settings.MomentusConfig.ServiceUrl,
-                null,null,null, //Token already present
-                authtoken);
+            if (idlist == null)
+            {
+                var momentusrooms = await GetDataFromMomentus.RequestMomentusRooms(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null, //Token already present
+                    authtoken);
 
-            var eventsearchrequest = GetDataFromMomentus.GetEventSearchRequest(
-                DateOnly.FromDateTime(DateTime.Now),
-                DateOnly.FromDateTime(DateTime.Now.AddYears(1)),
-                new List<string> { "venue-1-A" },
-                momentusrooms.Select(x => x.Id).ToList(), //Add all rooms
-                true);
+                var eventsearchrequest = GetDataFromMomentus.GetEventSearchRequest(
+                    DateOnly.FromDateTime(DateTime.Now),
+                    DateOnly.FromDateTime(DateTime.Now.AddYears(1)),
+                    new List<string> { "venue-1-A" },
+                    momentusrooms.Select(x => x.Id).ToList(), //Add all rooms
+                    true);
 
-            return await GetDataFromMomentus.RequestMomentusEvents(
-                settings.MomentusConfig.ServiceUrl,
-                null,null,null,
-                eventsearchrequest,
-                authtoken);
+                return await GetDataFromMomentus.RequestMomentusEvents(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null,
+                    eventsearchrequest,
+                    authtoken);
+            }
+            else
+            {
+                List<MomentusEvent> momentuseventlist = new List<MomentusEvent>();
+                foreach(var id in idlist)
+                {
+                    momentuseventlist.Add(await GetDataFromMomentus.RequestMomentusEventSingle(
+                    settings.MomentusConfig.ServiceUrl,
+                    null, null, null,
+                    id,
+                    authtoken));
+                }
+
+                return momentuseventlist;
+            }
         }
 
         private async Task<IEnumerable<MomentusFunction>> RequestMomentusFunctionByEventId(string eventid, MomentusTokenResponse authtoken)
@@ -312,97 +335,90 @@ namespace OdhApiImporter.Helpers
                     automatictechnologyfields.Add(toassign);
         }
 
-        //private async Task<UpdateDetail> DeleteDeletedEvents(
-        //    List<Tuple<EventShortLinked, EBMSEventREST>> resulttuple,
-        //    List<EventShortLinked> eventshortinDB
-        //)
-        //{
-        //    var deletecounter = 0;
+        private async Task<UpdateDetail> DisableDeletedEvents(
+            IEnumerable<MomentusEvent> momentusevents
+        )
+        {
+            List<PGCRUDResult> deactivationresultlist = new List<PGCRUDResult>();
 
-        //    if (resulttuple.Select(x => x.Item1).Count() > 0)
-        //    {
-        //        List<EventShortLinked> eventshortfromnow = resulttuple
-        //            .Select(x => x.Item1)
-        //            .ToList();
+            var activeeventsfromNowinDB = await GetAllActiveMomentusEventsFromNow();
 
-        //        var idsonListinDB = eventshortinDB.Select(x => x.EventId).ToList();
-        //        var idsonService = eventshortfromnow.Select(x => x.EventId).ToList();
+            var idsonListinDB = activeeventsfromNowinDB.Select(x => x.Mapping["momentus"]["id"]).ToList();
+            var idsonService = momentusevents.Select(x => x.Id).ToList();
 
-        //        var idstodelete = idsonListinDB.Where(p => !idsonService.Any(p2 => p2 == p));
+            var idstodelete = idsonListinDB.Where(p => !idsonService.Any(p2 => p2 == p));
 
-        //        if (idstodelete.Count() > 0)
-        //        {
-        //            foreach (var idtodelete in idstodelete)
-        //            {
-        //                //Set to inactive
-        //                var eventshorttodeactivate = eventshortinDB
-        //                    .Where(x => x.EventId == idtodelete)
-        //                    .FirstOrDefault();
+            if (idstodelete.Count() > 0)
+            {
+                foreach (var idtodelete in idstodelete)
+                {
+                    //Set to inactive
+                    var eventtodeactivate = activeeventsfromNowinDB
+                        .Where(x => x.Mapping["momentus"]["id"] == idtodelete)
+                        .FirstOrDefault();
 
-        //                //TODO CHECK IF IT WORKS
-        //                if (eventshorttodeactivate != null)
-        //                {
-        //                    //Work With Active instead of deleting....
-        //                    eventshorttodeactivate.Active = false;
-        //                    eventshorttodeactivate.LastChange = DateTime.Now;
+                    //TODO CHECK IF IT WORKS
+                    if (eventtodeactivate != null)
+                    {
+                        //Work With Active instead of deleting....
+                        eventtodeactivate.Active = false;
+                        eventtodeactivate.LastChange = DateTime.Now;
+                        if(eventtodeactivate.PublishedOn != null)
+                            eventtodeactivate.PublishedOn.Clear();
 
-        //                    var updated = await QueryFactory
-        //                        .Query("eventeuracnoi")
-        //                        .Where("id", eventshorttodeactivate.Id?.ToLower())
-        //                        .UpdateAsync(
-        //                            new JsonBData()
-        //                            {
-        //                                id = eventshorttodeactivate.Id?.ToLower() ?? "",
-        //                                data = new JsonRaw(eventshorttodeactivate),
-        //                            }
-        //                        );
 
-        //                    //LOG the Deletion
-        //                    WriteLog.LogToConsole(
-        //                        eventshorttodeactivate.Id,
-        //                        "dataimport",
-        //                        "single.eventeuracnoi.deactivate",
-        //                        new ImportLog()
-        //                        {
-        //                            sourceid = eventshorttodeactivate.Id,
-        //                            sourceinterface = "ebms.eventeuracnoi",
-        //                            success = updated > 0 ? true : false,
-        //                            error = "",
-        //                        }
-        //                    );
+                        var deactivateresult = await QueryFactory.UpsertData<EventLinked>(
+                            eventtodeactivate,
+                            new DataInfo("events", Helper.Generic.CRUDOperation.CreateAndUpdate, true),
+                            new EditInfo("momentus.event.import.deactivate", importerURL),
+                            new CRUDConstraints(),
+                            new CompareConfig(true, false)
+                        );
 
-        //                    deletecounter++;
-        //                }
-        //            }
-        //        }
-        //    }
+                        deactivationresultlist.Add(deactivateresult);
 
-        //    return new UpdateDetail()
-        //    {
-        //        created = 0,
-        //        updated = 0,
-        //        deleted = deletecounter,
-        //        error = 0,
-        //    };
-        //}
+                        WriteLog.LogToConsole(
+                            eventtodeactivate.Id,
+                            "dataimport",
+                            "single.event.deactivate",
+                            new ImportLog()
+                            {
+                                sourceid = idtodelete,
+                                sourceinterface = "momentus.event",
+                                success = true,
+                                error = "",
+                            }
+                        );
+                    }
+                }
+            }
 
-        //private async Task<IEnumerable<EventShortLinked>> GetAllEventsShort(DateTime now)
-        //{
-        //    var today = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
+            return new UpdateDetail()
+            {
+                created = deactivationresultlist.Sum(x => x.created),
+                updated = deactivationresultlist.Sum(x => x.updated),
+                deleted = deactivationresultlist.Sum(x => x.deleted),
+                error = deactivationresultlist.Sum(x => x.error),
+            };
+        }
 
-        //    var query = QueryFactory
-        //        .Query("events")
-        //        .Select("data")
-        //        .WhereRaw(
-        //            "(((to_date(data->> 'EndDate', 'YYYY-MM-DD') >= '"
-        //                + String.Format("{0:yyyy-MM-dd}", today)
-        //                + "'))) AND(data#>>'\\{Source\\}' = $$)",
-        //            "momentus"
-        //        )
-        //        .Where("gen_active", true);
+        private async Task<IEnumerable<EventLinked>> GetAllActiveMomentusEventsFromNow()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Now);
 
-        //    return await query.GetObjectListAsync<EventShortLinked>();
-        //}
+            var query = QueryFactory
+                .Query("events")
+                .Select("data")
+                .WhereRaw(
+                    "(((to_date(data->> 'DateEnd', 'YYYY-MM-DD') >= '"
+                        + String.Format("{0:yyyy-MM-dd}", today)
+                        + "'))) AND(data#>>'\\{Source\\}' = $$)",
+                    "momentus"
+                )
+                .Where("gen_active", true);
+
+            return await query.GetObjectListAsync<EventLinked>();
+        }
 
         #endregion
     }

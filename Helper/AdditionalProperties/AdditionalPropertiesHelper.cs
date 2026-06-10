@@ -212,6 +212,26 @@ namespace Helper.AdditionalProperties
 
                         break;
 
+                    case "EventLTSDataProperties":
+
+                        var resulteventltsdata = CastAs<EventLTSDataProperties>(kvp.Value);
+                        success = resulteventltsdata.Item1;
+                        if (!success)
+                            errorlist.TryAddOrUpdate("error", (string)resulteventltsdata.Item2);
+                        else
+                        {
+                            //Assign the Casted model
+                            if (resulteventltsdata.Item3 != null)
+                            {
+                                data.AdditionalProperties.TryAddOrUpdate(
+                                    "EventLTSDataProperties",
+                                    (EventLTSDataProperties)resulteventltsdata.Item3
+                                );
+                            }
+                        }
+
+                        break;
+
                     default:
                         errorlist.Add("unknown error", "The Type " + kvp.Key + " is not known");
                         break;

@@ -848,7 +848,9 @@ namespace DataModel
         public ICollection<string>? SmgTags { get; set; }
         
         [SwaggerDeprecated("Obsolete, use PublishedOn")]
-        public bool SmgActive { get; set; }      
+        public bool SmgActive { get; set; }
+
+        public ICollection<string>? EventLanguages { get; set; }
     }
 
     //public class EventRaven : Event
