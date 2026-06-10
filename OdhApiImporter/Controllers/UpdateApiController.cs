@@ -3143,6 +3143,7 @@ namespace OdhApiImporter.Controllers
 
         #region MOMENTUS DATA SYNC (Event)
 
+        //TODO adding Roles
         [HttpGet, Route("MOMENTUS/Event/Update")]
         public async Task<IActionResult> UpdateEventsFromMomentus(
             string? updatetodate = null,
@@ -3196,6 +3197,66 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+
+        //TODO adding Roles
+        [HttpGet, Route("MOMENTUS/Event/Update/{*id}")]
+        public async Task<IActionResult> UpdateSingleEventFromMomentus(
+            string id,
+            CancellationToken cancellationToken = default
+        )
+        {
+            UpdateDetail updatedetail = default(UpdateDetail);
+            string operation = "Update MOMENTUS";
+            string updatetype = "single";
+            string source = "momentus";
+            string otherinfo = "event";
+
+            try
+            {
+                //fix if Open Data Hub ID is used
+                if (id.Contains("urn:event:momentus:"))
+                    id = id.Replace("urn:event:momentus:", "");
+
+                MomentusEventsImportHelper eventimporthelper = new MomentusEventsImportHelper(
+                    settings,
+                    QueryFactory,
+                    "events",
+                    UrlGeneratorStatic("MOMENTUS/Event"),
+                    OdhPushnotifier
+                );
+
+                updatedetail = await eventimporthelper.SaveDataToODH(null, new List<string>() { id }, cancellationToken);
+                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Events update succeeded",
+                    otherinfo,
+                    updatedetail,
+                    true
+                );
+
+                return Ok(updateResult);
+            }
+            catch (Exception ex)
+            {
+                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
+                    id,
+                    source,
+                    operation,
+                    updatetype,
+                    "MOMENTUS Events update failed",
+                    otherinfo,
+                    updatedetail,
+                    ex,
+                    true
+                );
+                return BadRequest(updateResult);
+            }
+        }
+
+        //TODO adding Roles
         [HttpGet, Route("MOMENTUS/Venue/Update")]
         public async Task<IActionResult> UpdateVenuesFromMomentus(
             CancellationToken cancellationToken = default

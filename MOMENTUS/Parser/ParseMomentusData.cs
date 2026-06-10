@@ -150,6 +150,9 @@ namespace MOMENTUS.Parser
             if (!string.IsNullOrEmpty(organizerName) && organizerName.StartsWith("NOI - "))
                 tagids = AssignTechnologyfieldsautomatically(organizerName, tagids);
 
+            //If event is inactive remove all publishers
+            if (eventlinked.Active == false)
+                eventlinked.PublishedOn.Clear();
 
             return eventlinked;
         }

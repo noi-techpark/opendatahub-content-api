@@ -18,7 +18,7 @@ jobs:
       with:
         submodules: true
     - name: REUSE Compliance Check
-      uses: fsfe/reuse-action@v1
+      uses: fsfe/reuse-action@v5
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
