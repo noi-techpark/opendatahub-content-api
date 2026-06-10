@@ -1,0 +1,194 @@
+# Test environment values for the tourism-importer chart.
+#
+# Non-secret configuration lives here (committed). Sensitive values are listed under
+# `envSecret` with empty placeholders and are filled in at deploy time by the GitHub
+# Actions workflow (yq) from repository secrets, then rendered into a K8s Secret.
+#
+# image.repository / image.tag / image.pullPolicy are also overwritten by the workflow.
+
+image:
+  repository: ghcr.io/noi-techpark/opendatahub-content-api/opendatahub-content-api-importer
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets:
+  - name: container-registry-r
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+  targetport: http
+  containerport: 80
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+  tls:
+    - hosts:
+        - tourism.importer.dev.testingmachine.eu
+      secretName: tls-tourism-importer
+  hosts:
+    - host: tourism.importer.dev.testingmachine.eu
+      paths:
+        - path: "/"
+          pathType: Prefix
+
+# Non-secret environment (mirrors infrastructure/docker-compose.importer.run.yml).
+env:
+  ASPNETCORE_URLS: "http://+:80"
+  ASPNETCORE_ENVIRONMENT: "Development"
+
+  ASPNETCORE_MssConfig__ServiceUrl: "https://www.easymailing.eu/mss/mss_service.php"
+  ASPNETCORE_LcsConfig__ServiceUrl: "https://lcs.lts.it/api/data.svc"
+  ASPNETCORE_SiagConfig__ServiceUrl: "http://daten.buergernetz.bz.it/services/weather/"
+  ASPNETCORE_DSSConfig__ServiceUrl: "https://www.dolomitisuperski.com/jsonexport/export/"
+  ASPNETCORE_SuedtirolWeinConfig__ServiceUrl: "https://suedtirolwein.secure.consisto.net/"
+  ASPNETCORE_MusportConfig__ServiceUrl: "https://musport.prov.bz.it/musport/services/MuseumsService/"
+  ASPNETCORE_NinjaConfig__ServiceUrl: "https://mobility.api.opendatahub.com/v2/flat/"
+
+  # Sources configured with empty user/password in the current deployment.
+  ASPNETCORE_FeratelConfig__Username: ""
+  ASPNETCORE_FeratelConfig__Password: ""
+  ASPNETCORE_PanocloudConfig__Username: ""
+  ASPNETCORE_PanocloudConfig__Password: ""
+  ASPNETCORE_PanomaxConfig__Username: ""
+  ASPNETCORE_PanomaxConfig__Password: ""
+  ASPNETCORE_SuedtirolWeinConfig__Username: ""
+  ASPNETCORE_SuedtirolWeinConfig__Password: ""
+  ASPNETCORE_MusportConfig__Username: ""
+  ASPNETCORE_MusportConfig__Password: ""
+  ASPNETCORE_NinjaConfig__Username: ""
+  ASPNETCORE_NinjaConfig__Password: ""
+  ASPNETCORE_LoopTecConfig__Username: ""
+  ASPNETCORE_LoopTecConfig__Password: ""
+
+  # XML reference files are baked into the image at /app/xml/ (Dockerfile).
+  ASPNETCORE_XmlConfig__Xmldir: "xml/"
+  ASPNETCORE_XmlConfig__XmldirWeather: "xml/"
+  ASPNETCORE_JsonConfig__Jsondir: "./json/"
+
+  ASPNETCORE_S3ImageresizerConfig__Url: "https://images.tourism.testingmachine.eu/api/Image/GetImage?imageurl="
+  ASPNETCORE_S3ImageresizerConfig__DocUrl: "https://images.tourism.testingmachine.eu/api/File/GetFile/"
+
+  ASPNETCORE_OauthServerConfig__Authority: "https://auth.opendatahub.testingmachine.eu/auth/realms/noi/"
+  ASPNETCORE_DataBrowserConfig__Url: "https://frontend.tourism.testingmachine.eu/"
+  ASPNETCORE_RavenConfig__ServiceUrl: "https://service.suedtirol.info/api/"
+
+  ASPNETCORE_FCMConfig__noi-communityapp__ServerKey: ""
+  ASPNETCORE_FCMConfig__noi-communityapp__SenderId: ""
+  ASPNETCORE_FCMConfig__noi-communityapp__ProjectName: ""
+  ASPNETCORE_FCMConfig__noi-communityapp__FCMServiceAccount: ""
+
+  ASPNETCORE_S3Config__dc-meteorology-province-forecast__Filename: "SMOS_MCPL-WX_EXP_SIAG.JSON"
+
+  ASPNETCORE_LTSApiIDM__ServiceUrl: "https://go.lts.it/api/v1"
+  ASPNETCORE_LTSApiIDM__Opendata: "false"
+  ASPNETCORE_LTSApiOpen__ServiceUrl: "https://go.lts.it/api/v1"
+  ASPNETCORE_LTSApiOpen__Opendata: "true"
+
+  # DigiWay sources (URLs are secret; source/format/srid are static).
+  ASPNETCORE_DigiWayConfig__cyclewaystyrol__Source: "civis.geoserver"
+  ASPNETCORE_DigiWayConfig__cyclewaystyrol__Format: "json"
+  ASPNETCORE_DigiWayConfig__cyclewaystyrol__SRid: "25832"
+  ASPNETCORE_DigiWayConfig__mountainbikeroutes__Source: "civis.geoserver"
+  ASPNETCORE_DigiWayConfig__mountainbikeroutes__Format: "json"
+  ASPNETCORE_DigiWayConfig__mountainbikeroutes__SRid: "25832"
+  ASPNETCORE_DigiWayConfig__hikingtrails__Source: "civis.geoserver"
+  ASPNETCORE_DigiWayConfig__hikingtrails__Format: "json"
+  ASPNETCORE_DigiWayConfig__hikingtrails__SRid: "25832"
+  ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__Source: "civis.geoserver"
+  ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__Format: "json"
+  ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__SRid: "25832"
+  ASPNETCORE_DigiWayConfig__radrouten_tirol__Source: "dservices3.arcgis.com"
+  ASPNETCORE_DigiWayConfig__radrouten_tirol__Format: "xml"
+  ASPNETCORE_DigiWayConfig__radrouten_tirol__SRid: "31254"
+  ASPNETCORE_DigiWayConfig__hikintrail_e5__Source: "dservices3.arcgis.com"
+  ASPNETCORE_DigiWayConfig__hikintrail_e5__Format: "xml"
+  ASPNETCORE_DigiWayConfig__hikintrail_e5__SRid: "3857"
+  ASPNETCORE_DigiWayConfig__mtb_percorsi_v__Source: "siat.provincia.tn.it"
+  ASPNETCORE_DigiWayConfig__mtb_percorsi_v__Format: "geojson"
+  ASPNETCORE_DigiWayConfig__mtb_percorsi_v__SRid: "4326"
+  ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__Source: "siat.provincia.tn.it"
+  ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__Format: "geojson"
+  ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__SRid: "4326"
+  ASPNETCORE_DigiWayConfig__sentieri_della_sat__Source: "siat.provincia.tn.it"
+  ASPNETCORE_DigiWayConfig__sentieri_della_sat__Format: "geojson"
+  ASPNETCORE_DigiWayConfig__sentieri_della_sat__SRid: "4326"
+  ASPNETCORE_DigiWayConfig__accessibletrails_austria__Source: "dservices3.arcgis.com"
+  ASPNETCORE_DigiWayConfig__accessibletrails_austria__Format: "geojson"
+  ASPNETCORE_DigiWayConfig__accessibletrails_austria__SRid: "4326"
+  ASPNETCORE_DigiWayConfig__trailclosures_austria__Source: "tirol.mapservices.eu"
+  ASPNETCORE_DigiWayConfig__trailclosures_austria__Format: "geojson"
+  ASPNETCORE_DigiWayConfig__trailclosures_austria__SRid: "4326"
+
+  ASPNETCORE_ZOHOConfig__AuthUrl: "https://accounts.zoho.com/oauth/v2/token"
+  ASPNETCORE_ZOHOConfig__Scope: "ZohoCreator.report.READ"
+  ASPNETCORE_MomentusConfig__ServiceUrl: "https://api.eu-venueops.com/v1/"
+  ASPNETCORE_MomentusConfig__AuthUrl: "https://auth-api.eu-venueops.com/token"
+
+# Sensitive environment. Placeholders only — filled at deploy time by the workflow.
+envSecret:
+  ASPNETCORE_ConnectionStrings__PgConnection: ""
+  ASPNETCORE_MssConfig__Username: ""
+  ASPNETCORE_MssConfig__Password: ""
+  ASPNETCORE_LcsConfig__Username: ""
+  ASPNETCORE_LcsConfig__Password: ""
+  ASPNETCORE_LcsConfig__MessagePassword: ""
+  ASPNETCORE_SiagConfig__Username: ""
+  ASPNETCORE_SiagConfig__Password: ""
+  ASPNETCORE_DSSConfig__Username: ""
+  ASPNETCORE_DSSConfig__Password: ""
+  ASPNETCORE_A22Config__Username: ""
+  ASPNETCORE_A22Config__Password: ""
+  ASPNETCORE_A22Config__ServiceUrl: ""
+  ASPNETCORE_FeratelConfig__ServiceUrl: ""
+  ASPNETCORE_PanocloudConfig__ServiceUrl: ""
+  ASPNETCORE_PanomaxConfig__ServiceUrl: ""
+  ASPNETCORE_LoopTecConfig__ServiceUrl: ""
+  ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ""
+  ASPNETCORE_S3ImageresizerConfig__AccessKey: ""
+  ASPNETCORE_S3ImageresizerConfig__SecretKey: ""
+  ASPNETCORE_ProxyConfig__CaddyTest: ""
+  ASPNETCORE_ProxyConfig__CaddyProd: ""
+  ASPNETCORE_ElasticSearchConfig__ElasticUrl: ""
+  ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ""
+  ASPNETCORE_RavenConfig__Username: ""
+  ASPNETCORE_RavenConfig__Password: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__Url: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__User: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__Password: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__Header: ""
+  ASPNETCORE_NotifierConfig__idm-marketplace__Token: ""
+  ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessKey: ""
+  ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessSecretKey: ""
+  ASPNETCORE_LTSApiIDM__Username: ""
+  ASPNETCORE_LTSApiIDM__Password: ""
+  ASPNETCORE_LTSApiIDM__XLSClientid: ""
+  ASPNETCORE_LTSApiOpen__Username: ""
+  ASPNETCORE_LTSApiOpen__Password: ""
+  ASPNETCORE_LTSApiOpen__XLSClientid: ""
+  ASPNETCORE_DigiWayConfig__cyclewaystyrol__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__mountainbikeroutes__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__hikingtrails__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__radrouten_tirol__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__hikintrail_e5__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__mtb_percorsi_v__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__sentieri_della_sat__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__accessibletrails_austria__ServiceUrl: ""
+  ASPNETCORE_DigiWayConfig__trailclosures_austria__ServiceUrl: ""
+  ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl: ""
+  ASPNETCORE_ZOHOConfig__ClientId: ""
+  ASPNETCORE_ZOHOConfig__ClientSecret: ""
+  ASPNETCORE_ZOHOConfig__ServiceUrl: ""
+  ASPNETCORE_OutdooractiveConfig__ServiceUrl: ""
+  ASPNETCORE_OutdooractiveConfig__ServiceUrlDetail: ""
+  ASPNETCORE_OutdooractiveConfig__Password: ""
+  ASPNETCORE_MomentusConfig__ClientId: ""
+  ASPNETCORE_MomentusConfig__ClientSecret: ""
