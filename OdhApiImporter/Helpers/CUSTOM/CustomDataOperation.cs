@@ -777,17 +777,17 @@ namespace OdhApiImporter.Helpers
 
 
             //string select = $"data->>'Id' as \"Id\", data->'Detail'->'{language}'->>'Title' AS \"Detail.{language}.Title\", data->'ContactInfos'->'{language}'->>'City' AS \"ContactInfos.{language}.City\"";
-            string select =
-                $"data->>'Id' as \"Id\", data->'Detail'->'{language}'->>'Title' AS \"Detail.{language}.Title\", data->'LocationInfo'->'MunicipalityInfo'->'Name'->>'{language}' AS \"ContactInfos.{language}.City\"";
+            //string select =
+            //    $"data->>'Id' as \"Id\", data->'Detail'->'{language}'->>'Title' AS \"Detail.{language}.Title\", data->'LocationInfo'->'MunicipalityInfo'->'Name'->>'{language}' AS \"ContactInfos.{language}.City\"";
 
-            string orderby = "data ->>'Shortname' ASC";
+            //string orderby = "data ->>'Shortname' ASC";
             //List<string> fieldselectorlist = new List<string>() { "Id", "Detail." + language + ".Title", "ContactInfos." + language + ".City" };
 
             var categoriestoretrieve = GetSTACategoriesToFilter(xmlconfig);
 
             var query = QueryFactory
                 .Query()
-                .SelectRaw(select)
+                .Select("data")
                 .From("smgpois")
                 .ODHActivityPoiWhereExpression(
                     idlist: new List<string>(),
@@ -802,7 +802,7 @@ namespace OdhApiImporter.Helpers
                     regionlist: new List<string>(),
                     arealist: new List<string>(),
                     sourcelist: new List<string>(),
-                    languagelist: new List<string>() { language },
+                    languagelist: new List<string>(),
                     highlight: null,
                     activefilter: true,
                     smgactivefilter: null,
@@ -826,12 +826,11 @@ namespace OdhApiImporter.Helpers
                     tagdict: null,
                     publishedonlist: new List<string>(),
                     searchfilter: null,
-                    language: language,
+                    language: null,
                     lastchange: null,
                     additionalfilter: null,
                     userroles: new List<string>() { "STA" }
-                )
-                .OrderByRaw(orderby);
+                );
 
             var data = await query.GetObjectSingleAsync<ODHActivityPoiLinked>();
 
