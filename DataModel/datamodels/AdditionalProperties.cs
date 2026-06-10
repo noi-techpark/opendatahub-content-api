@@ -143,14 +143,37 @@ namespace DataModel
     public class StaVendingPointsDataProperties
     {
         public bool? HasWebsite { get; set; }
-        public bool? SuedtirolPassServices { get; set; }
-        public bool? SuedtirolpassOver65apply { get; set; }
+
+        public bool? ServiceFlex { get; set; }
+        public bool? ServiceFlexFamily { get; set; }
+        public bool? ServiceFix365 { get; set; }
+        public bool? ServiceFix30 { get; set; }
+        public bool? ServiceEuregioTicketStudent { get; set; }
+        public bool? ServiceEuregioTicket { get; set; }
+        public bool? ServiceU19 { get; set; }
+        public bool? ServiceU26 { get; set; }
+        public bool? ServiceFix30U26 { get; set; }
+        public bool? Service65Plus { get; set; }
+
         public bool? Duplicate { get; set; }
-        public bool? ChargeCard { get; set; }
-        public bool? CityCardBus { get; set; }
         public bool? MobileCard { get; set; }
-        public bool? BikeMobileCard { get; set; }
-        public bool? MuseumMobileCard { get; set; }
+        public bool? SingleTicket { get; set; }
+
+        public bool? DailyTicketBzMe { get; set; }
+        public bool? TicketAnimals { get; set; }
+        public bool? TicketBicycle { get; set; }
+        public bool? TicketSpecificRoute { get; set; }
+        public bool? TicketEuregio2Plus { get; set; }
+        public bool? InfoPoint { get; set; }
+
+        //Old fields to remove
+        //public bool? SuedtirolPassServices { get; set; }
+        //public bool? SuedtirolpassOver65apply { get; set; }        
+        //public bool? ChargeCard { get; set; }
+        //public bool? CityCardBus { get; set; }
+        
+        //public bool? BikeMobileCard { get; set; }
+        //public bool? MuseumMobileCard { get; set; }
     }
 
     //Independent

@@ -770,6 +770,8 @@ namespace OdhApiImporter.Helpers
         }
 
 
+
+
         public async Task<int> CleanODHActivityPoiNullTags()
         {
             //Load all data from PG and resave
