@@ -65,7 +65,7 @@ jobs:
     environment: test
     concurrency: deploy-test-importer
     env:
-      API_URL_IMPORTER: "https://tourism.importer.dev.testingmachine.eu/"
+      API_URL_IMPORTER: "https://tourism.importer.opendatahub.testingmachine.eu/"
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
