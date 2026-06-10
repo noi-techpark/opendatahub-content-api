@@ -55,7 +55,7 @@ namespace OdhApiImporter.Helpers
 
             //var currenteventshort = await GetAllEventsShort(currentdate);
 
-            //todo check if resulttuple item1 is null
+            //TODO set all Events that are not given by the Interface anymore to Inactive and remove the publisher
             //var deleteresult = await DeleteDeletedEvents(resulttuple, currenteventshort.ToList());
 
             return GenericResultsHelper.MergeUpdateDetail(
