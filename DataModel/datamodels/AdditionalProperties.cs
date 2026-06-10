@@ -310,10 +310,11 @@ namespace DataModel
     //LTS Specific
     public class EventLTSDataProperties
     {
-        public EventPublisher EventPublisher { get; set; }
-        public bool SignOn { get; set; }
-        public EventBooking EventBooking { get; set; }
-        public EventPrice EventPrice { get; set; }
+        public ICollection<EventPublisher>? EventPublisher { get; set; }        
+        public EventBooking EventBooking { get; set; }        
+        public ICollection<string>? EventLanguages { get; set; }
+        public ICollection<EventVariant>? EventVariants { get; set; }
+        public EventProperty? EventProperty { get; set; }
     }
 
     //EventShort Specific

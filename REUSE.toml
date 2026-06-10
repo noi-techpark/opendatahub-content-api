@@ -1,0 +1,59 @@
+version = 1
+
+[[annotations]]
+path = [
+  ".github/**",
+  "infrastructure/**",
+  ".gitignore",
+  ".pre-commit-config.yaml",
+  ".dockerignore",
+  ".env.example",
+  ".gitmodules",
+  "docker-compose.dcproj",
+  "OdhApiCore.sln",
+  "*/*.csproj",
+  "*/*.fsproj",
+  "*/appsettings.*",
+  "*/Dockerfile",
+  "*/Properties/*.json",
+  "OdhApiImporter/json/**",
+  "OdhApiCoreTests/xunit.runner.json",
+  "OdhApiCore/Pages/Index.cshtml",
+  "OdhApiCore/wwwroot/images/**",
+  "OdhApiCore/wwwroot/json/**",
+  "OdhApiCore/wwwroot/favicon.ico",
+  "OdhApiCore/docker/**",
+  "LCS/**/ConnectedService.json",
+  "CDB/**/ConnectedService.json",
+  "GeoConverterTests/Files/**",
+]
+SPDX-FileCopyrightText = "(c) NOI Techpark <digital@noi.bz.it>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+  "OdhApiCore/wwwroot/*/*.min.*",
+  "OdhApiCore/pages/Index.cshtml",
+]
+SPDX-FileCopyrightText = "(c) NOI Techpark <digital@noi.bz.it>"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = ["OdhApiCore/wwwroot/lib/bootstrap/**"]
+SPDX-FileCopyrightText = "2011-2016 Twitter, Inc."
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["OdhApiCore/wwwroot/lib/jquery/**"]
+SPDX-FileCopyrightText = "JS Foundation and other contributors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["OdhApiCore/wwwroot/lib/jquery-validation/**"]
+SPDX-FileCopyrightText = "2017 Jörn Zaefferer"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["OdhApiCore/wwwroot/lib/jquery-validation-unobtrusive/**"]
+SPDX-FileCopyrightText = "Microsoft Corporation. All rights reserved."
+SPDX-License-Identifier = "MIT"
