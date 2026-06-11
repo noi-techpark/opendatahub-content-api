@@ -1,0 +1,74 @@
+# Default values for tourism-api.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/noi-techpark/opendatahub-content-api/opendatahub-content-api-api
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  targetport: http
+  containerport: 80
+
+# Liveness/readiness probe tuning. The .NET Settings initialisation is heavy,
+# so give the container some headroom before the first probe.
+health:
+  delay: 15
+  failureThreshold: 6
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  paths:
+    - path: "/"
+      pathType: Prefix
+  tls: []
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# A map of non-sensitive environment variables (key: value).
+env: {}
+
+# A map of sensitive environment variables. Rendered into a Secret and injected
+# into the container via secretKeyRef. Populated at deploy time from CI secrets.
+envSecret: {}
+
+# A list of (name | secret | key) tuples mapping an env var to a key of an
+# existing cluster Secret: env var "name" = secret.key
+envSecretRef: []

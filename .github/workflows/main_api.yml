@@ -30,88 +30,27 @@ jobs:
     - name: Test
       run: dotnet test OdhApiCore --filter Category!=Integration
 
+  # Deploy Test (Kubernetes / EKS)
   deploy-test-api:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
+    needs: test
+    environment: test
+    concurrency: deploy-test-api
     env:
       API_URL: "https://api.tourism.testingmachine.eu/v1/"
-    needs: test
-    concurrency: deploy-test-api
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
           submodules: true
 
-      - name: Create .env file
-        uses: noi-techpark/github-actions/env-file@v2
-        env:
-          X_COMPOSE_PROJECT_NAME: ${{ env.PROJECT_NAME }}
-          X_DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-          X_DOCKER_TAG: ${{ env.DOCKER_TAG }}
-          X_SERVER_PORT: 1011
-
-          X_ASPNETCORE_ENVIRONMENT: "Development"
-          X_PG_CONNECTION: ${{ secrets.PG_CONNECTION_TEST }}
-          X_MSS_USER: ${{ secrets.MSS_USER_TEST }}
-          X_MSS_PSWD: ${{ secrets.MSS_PSWD_TEST }}
-          X_MSS_SERVICEURL: "https://www.easymailing.eu/mss/mss_service.php"
-          X_LCS_USER: ${{ secrets.LCS_USER_TEST }}
-          X_LCS_PSWD: ${{ secrets.LCS_PSWD_TEST }}
-          X_LCS_MSGPSWD: ${{ secrets.LCS_MSGPSWD_TEST }}
-          X_LCS_SERVICEURL: "https://lcs.lts.it/api/data.svc"
-          X_CDB_USER: ${{ secrets.CDB_USER_TEST }}
-          X_CDB_PSWD: ${{ secrets.CDB_PSWD_TEST }}
-          X_CDB_SERVICEURL: "https://lcs.lts.it/data/cdbdata.asmx"       
-          X_SIAG_USER: ${{ secrets.SIAG_USER_TEST }}
-          X_SIAG_PSWD: ${{ secrets.SIAG_PSWD_TEST }}
-          X_SIAG_SERVICEURL: "http://daten.buergernetz.bz.it/services/weather/"
-          X_XMLDIR: ${{ secrets.XMLDIR_TEST }}
-          X_IMG_URL: "https://cdn.opendatahub.testingmachine.eu/api/Image/GetImage?imageurl="
-          X_DOC_URL: "https://cdn.opendatahub.testingmachine.eu/api/File/GetFile/"
-          X_S3_BUCKET_ACCESSPOINT: ${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}
-          X_S3_IMAGEUPLOADER_ACCESSKEY: ${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}
-          X_S3_IMAGEUPLOADER_SECRETKEY: ${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}
-          X_OAUTH_AUTORITY: "https://auth.opendatahub.testingmachine.eu/auth/realms/noi/"
-          X_CADDY_TEST_IP: ${{ secrets.CADDY_TEST_IP }}
-          X_CADDY_PROD_IP: ${{ secrets.CADDY_PROD_IP }}
-          X_ELK_URL: ${{ secrets.ELK_URL_TEST }}
-          X_ELK_TOKEN: ${{ secrets.ELK_TOKEN_TEST }}
-          X_JSONPATH: "./wwwroot/json/"                    
-          X_DATABROWSER_URL: "https://frontend.tourism.testingmachine.eu/"
-          X_RAVEN_SERVICEURL: "https://service.suedtirol.info/api/"
-          X_RAVEN_USER: ${{ secrets.RAVEN_USER_TEST }}
-          X_RAVEN_PSWD: ${{ secrets.RAVEN_PSWD_TEST }}
-          X_API_URL: ${{ env.API_URL }}
-          X_NOICOMMUNITY_SERVERKEY: ${{ secrets.NOICOMMUNITY_SERVERKEY_TEST }}
-          X_NOICOMMUNITY_SENDERID: ${{ secrets.NOICOMMUNITY_SENDERID_TEST }}
-          X_NOICOMMUNITY_PROJECTNAME: "noi-community"
-          X_NOICOMMUNITY_FCMSERVICEACCOUNT: "google-service-account.noicommunity.json"
-          X_S3_WEATHERFORECAST_FILENAME: "SMOS_MCPL-WX_EXP_SIAG.JSON"
-          X_S3_WEATHERFORECAST_ACCESSKEY: ${{ secrets.S3_WEATHERFORECAST_ACCESSKEY }}
-          X_S3_WEATHERFORECAST_SECRET: ${{ secrets.S3_WEATHERFORECAST_SECRET }}
-          X_MARKETPLACE_PUSH_URL: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_URL }}
-          X_MARKETPLACE_PUSH_USER: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_USERNAME }}
-          X_MARKETPLACE_PUSH_PSWD: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_PASSWORD }}
-          X_MARKETPLACE_PUSH_HEADER: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_HEADER }}
-          X_MARKETPLACE_PUSH_TOKEN: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_TOKEN }}
-          X_LTSAPI_IDM_XLTSCLIENTID: ${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}
-          X_LTSAPI_IDM_SERVICEURL: "https://go.lts.it/api/v1"
-          X_LTSAPI_IDM_USERNAME: ${{ secrets.LTSAPI_IDM_USERNAME }}
-          X_LTSAPI_IDM_PASSWORD: ${{ secrets.LTSAPI_IDM_PASSWORD }}
-          X_LTSAPI_IDM_OPENDATA: false
-          X_LTSAPI_OPENDATA_XLTSCLIENTID: ${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}
-          X_LTSAPI_OPENDATA_SERVICEURL: "https://go.lts.it/api/v1"
-          X_LTSAPI_OPENDATA_USERNAME: ${{ secrets.LTSAPI_NOI_USERNAME }}
-          X_LTSAPI_OPENDATA_PASSWORD: ${{ secrets.LTSAPI_NOI_PASSWORD }}
-          X_LTSAPI_OPENDATA_OPENDATA: true          
-
       - name: Setup config
         run: |
             echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_NOICOMMUNITY }}" > google-service-account.noicommunity.json
             chmod +r google-service-account.noicommunity.json
 
-      - name: Build and push 
+      - name: Build and push
         uses: noi-techpark/github-actions/docker-build-and-push@v2
         with:
           docker-username: ${{ github.actor }}
@@ -119,14 +58,66 @@ jobs:
           working-directory: OdhApiCore
           docker-compose-file: docker-compose.yml
 
-      - name: Deploy application
-        uses: noi-techpark/github-actions/docker-deploy@v2
+      # https://github.com/shrink/actions-docker-registry-tag
+      - name: Add an "unstable" docker tag
+        uses: shrink/actions-docker-registry-tag@v4
         with:
-          hosts: 'test'
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          docker-username: 'noi-techpark-bot'
-          docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          project-name: ${{ env.PROJECT_NAME }}
+          registry: ghcr.io
+          repository: ${{ github.repository }}/${{ github.event.repository.name }}-api
+          target: ${{ env.DOCKER_TAG }}
+          tags: |
+            unstable
+
+      - name: Customize test.yaml
+        run: |
+          yq -i '.image.repository="${{ env.DOCKER_IMAGE }}"' infrastructure/helm/test.yaml
+          yq -i '.image.tag="${{ env.DOCKER_TAG }}"' infrastructure/helm/test.yaml
+          yq -i '.image.pullPolicy="IfNotPresent"' infrastructure/helm/test.yaml
+
+          yq -i '.envSecret.ASPNETCORE_ConnectionStrings__PgConnection="${{ secrets.PG_CONNECTION_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_MssConfig__Username="${{ secrets.MSS_USER_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_MssConfig__Password="${{ secrets.MSS_PSWD_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LcsConfig__Username="${{ secrets.LCS_USER_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LcsConfig__Password="${{ secrets.LCS_PSWD_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LcsConfig__MessagePassword="${{ secrets.LCS_MSGPSWD_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_SiagConfig__Username="${{ secrets.SIAG_USER_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_SiagConfig__Password="${{ secrets.SIAG_PSWD_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint="${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__AccessKey="${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__SecretKey="${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_ProxyConfig__CaddyTest="${{ secrets.CADDY_TEST_IP }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_ProxyConfig__CaddyProd="${{ secrets.CADDY_PROD_IP }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticUrl="${{ secrets.ELK_URL_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken="${{ secrets.ELK_TOKEN_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_RavenConfig__Username="${{ secrets.RAVEN_USER_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_RavenConfig__Password="${{ secrets.RAVEN_PSWD_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_FCMConfig__noi-communityapp__ServerKey"]="${{ secrets.NOICOMMUNITY_SERVERKEY_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_FCMConfig__noi-communityapp__SenderId"]="${{ secrets.NOICOMMUNITY_SENDERID_TEST }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Url"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_URL }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__User"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_USERNAME }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Password"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_PASSWORD }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Header"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_HEADER }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Token"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_TOKEN }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessKey"]="${{ secrets.S3_WEATHERFORECAST_ACCESSKEY }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret["ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessSecretKey"]="${{ secrets.S3_WEATHERFORECAST_SECRET }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiIDM__Username="${{ secrets.LTSAPI_IDM_USERNAME }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiIDM__Password="${{ secrets.LTSAPI_IDM_PASSWORD }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiIDM__XLSClientid="${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiOpen__Username="${{ secrets.LTSAPI_NOI_USERNAME }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiOpen__Password="${{ secrets.LTSAPI_NOI_PASSWORD }}"' infrastructure/helm/test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiOpen__XLSClientid="${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}"' infrastructure/helm/test.yaml
+
+      - name: Deploy on cluster
+        uses: noi-techpark/github-actions/helm-deploy@v2
+        with:
+          k8s-name: tourism-api
+          k8s-namespace: core
+          chart-path: infrastructure/helm/tourism-api
+          values-file: infrastructure/helm/test.yaml
+          aws-access-key-id: ${{ secrets[vars.AWS_KEY_ID] }}
+          aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
+          aws-eks-cluster-name: aws-main-eu-01
+          aws-region: eu-west-1
 
       - name: Generate Json
         run: |
@@ -174,7 +165,7 @@ jobs:
           X_CDB_SERVICEURL: "https://lcs.lts.it/data/cdbdata.asmx"
           X_SIAG_USER: ${{ secrets.SIAG_USER_TEST }}
           X_SIAG_PSWD: "http://daten.buergernetz.bz.it/services/weather/"
-          X_SIAG_SERVICEURL: ${{ secrets.SIAG_URL_TEST }}          
+          X_SIAG_SERVICEURL: ${{ secrets.SIAG_URL_TEST }}
           X_XMLDIR: ${{ secrets.XMLDIR_TEST }}
           X_IMG_URL: "https://cdn.opendatahub.com/api/Image/GetImage?imageurl="
           X_DOC_URL: "https://cdn.opendatahub.com/api/File/GetFile/"
@@ -186,7 +177,7 @@ jobs:
           X_CADDY_PROD_IP: ${{ secrets.CADDY_PROD_IP }}
           X_ELK_URL: ${{ secrets.ELK_URL_TEST }}
           X_ELK_TOKEN: ${{ secrets.ELK_TOKEN_TEST }}
-          X_JSONPATH: "./wwwroot/json/"          
+          X_JSONPATH: "./wwwroot/json/"
           X_DATABROWSER_URL: "https://databrowser.opendatahub.com/"
           X_RAVEN_SERVICEURL: "https://service.suedtirol.info/api/"
           X_RAVEN_USER: ${{ secrets.RAVEN_USER_TEST }}
@@ -213,14 +204,14 @@ jobs:
           X_LTSAPI_OPENDATA_SERVICEURL: "https://go.lts.it/api/v1"
           X_LTSAPI_OPENDATA_USERNAME: ${{ secrets.LTSAPI_NOI_USERNAME }}
           X_LTSAPI_OPENDATA_PASSWORD: ${{ secrets.LTSAPI_NOI_PASSWORD }}
-          X_LTSAPI_OPENDATA_OPENDATA: true          
-          
+          X_LTSAPI_OPENDATA_OPENDATA: true
+
       - name: Setup config
         run: |
               echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_NOICOMMUNITY }}" > google-service-account.noicommunity.json
               chmod +r google-service-account.noicommunity.json
-  
-      - name: Build and push 
+
+      - name: Build and push
         uses: noi-techpark/github-actions/docker-build-and-push@v2
         with:
           docker-username: ${{ github.actor }}

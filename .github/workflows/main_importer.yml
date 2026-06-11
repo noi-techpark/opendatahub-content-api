@@ -57,168 +57,22 @@ jobs:
     - name: Build OdhApiCore Solution
       run: dotnet build OdhApiCore.sln --no-restore
 
+  # Deploy Test (Kubernetes / EKS)
   deploy-test-importer:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
-    env:
-      API_URL: "https://api.tourism.testingmachine.eu/v1/"
-      API_URL_IMPORTER: "https://importer.tourism.testingmachine.eu/"
     needs: test
+    environment: test
     concurrency: deploy-test-importer
+    env:
+      API_URL_IMPORTER: "https://tourism.importer.opendatahub.testingmachine.eu/"
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
           submodules: true
 
-      - name: Create .env file
-        uses: noi-techpark/github-actions/env-file@v2
-        env:
-          X_COMPOSE_PROJECT_NAME: ${{ env.PROJECT_NAME }}
-          X_DOCKER_IMAGE: ${{ env.DOCKER_IMAGE }}
-          X_DOCKER_TAG: ${{ env.DOCKER_TAG }}
-          X_SERVER_PORT: 1029
-
-          X_ASPNETCORE_ENVIRONMENT: "Development"
-          X_PG_CONNECTION: ${{ secrets.PG_CONNECTION_TEST }}
-          X_XMLDIR: ${{ secrets.XMLDIR_TEST }}
-          X_IMG_URL: "https://images.tourism.testingmachine.eu/api/Image/GetImage?imageurl="
-          X_DOC_URL: "https://images.tourism.testingmachine.eu/api/File/GetFile/"
-          X_S3_BUCKET_ACCESSPOINT: ${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}
-          X_S3_IMAGEUPLOADER_ACCESSKEY: ${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}
-          X_S3_IMAGEUPLOADER_SECRETKEY: ${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}
-          X_OAUTH_AUTORITY: "https://auth.opendatahub.testingmachine.eu/auth/realms/noi/"
-          X_CADDY_TEST_IP: ${{ secrets.CADDY_TEST_IP }}
-          X_CADDY_PROD_IP: ${{ secrets.CADDY_PROD_IP }}
-          X_ELK_URL: ${{ secrets.ELK_URL_TEST }}
-          X_ELK_TOKEN: ${{ secrets.ELK_TOKEN_TEST }}
-          X_JSONPATH: "./json/"
-          X_MSS_USER: ${{ secrets.MSS_USER_TEST }}
-          X_MSS_PSWD: ${{ secrets.MSS_PSWD_TEST }}
-          X_MSS_SERVICEURL: "https://www.easymailing.eu/mss/mss_service.php"
-          X_LCS_USER: ${{ secrets.LCS_USER_TEST }}
-          X_LCS_PSWD: ${{ secrets.LCS_PSWD_TEST }}
-          X_LCS_MSGPSWD: ${{ secrets.LCS_MSGPSWD_TEST }}
-          X_LCS_SERVICEURL: "https://lcs.lts.it/api/data.svc"
-          X_CDB_USER: ${{ secrets.CDB_USER_TEST }}
-          X_CDB_PSWD: ${{ secrets.CDB_PSWD_TEST }}
-          X_CDB_SERVICEURL: "https://lcs.lts.it/data/cdbdata.asmx"
-          X_SIAG_USER: ${{ secrets.SIAG_USER_TEST }}
-          X_SIAG_PSWD: ${{ secrets.SIAG_PSWD_TEST }}
-          X_SIAG_SERVICEURL: "http://daten.buergernetz.bz.it/services/weather/"          
-          X_DSS_SERVICEURL: "https://www.dolomitisuperski.com/jsonexport/export/"
-          X_DSS_USER: ${{ secrets.DSS_USER_TEST }}
-          X_DSS_PSWD: ${{ secrets.DSS_PSWD_TEST }}
-          X_A22_USER: ${{ secrets.A22_USER_TEST }}
-          X_A22_PSWD: ${{ secrets.A22_PSWD_TEST }}
-          X_A22_SERVICEURL: ${{ secrets.A22_URL_TEST }}
-          X_FERATEL_USER: ""
-          X_FERATEL_PSWD: ""
-          X_FERATEL_SERVICEURL: ${{ secrets.FERATEL_URL_TEST }}
-          X_PANOMAX_USER: ""
-          X_PANOMAX_PSWD: ""
-          X_PANOMAX_SERVICEURL: ${{ secrets.PANOMAX_URL_TEST }}
-          X_PANOCLOUD_USER: ""
-          X_PANOCLOUD_PSWD: ""
-          X_PANOCLOUD_SERVICEURL: ${{ secrets.PANOCLOUD_URL_TEST }}
-          X_LOOPTEC_USER: ""
-          X_LOOPTEC_PSWD: ""
-          X_LOOPTEC_SERVICEURL: ${{ secrets.LOOPTEC_URL_TEST }}
-          X_SUEDTIROLWEIN_USER: ""
-          X_SUEDTIROLWEIN_PSWD: ""
-          X_SUEDTIROLWEIN_SERVICEURL: "https://suedtirolwein.secure.consisto.net/"
-          X_MUSPORT_USER: ""
-          X_MUSPORT_PSWD: ""
-          X_MUSPORT_SERVICEURL: "https://musport.prov.bz.it/musport/services/MuseumsService/"
-          X_NINJA_USER: ""
-          X_NINJA_PSWD: ""
-          X_NINJA_SERVICEURL: "https://mobility.api.opendatahub.com/v2/flat/"
-          X_DATABROWSER_URL: "https://frontend.tourism.testingmachine.eu/"
-          X_RAVEN_SERVICEURL: "https://service.suedtirol.info/api/"
-          X_RAVEN_USER: ${{ secrets.RAVEN_USER_TEST }}
-          X_RAVEN_PSWD: ${{ secrets.RAVEN_PSWD_TEST }}         
-          X_API_URL: ${{ env.API_URL }}
-          X_S3_WEATHERFORECAST_FILENAME: "SMOS_MCPL-WX_EXP_SIAG.JSON"
-          X_S3_WEATHERFORECAST_ACCESSKEY: ${{ secrets.S3_WEATHERFORECAST_ACCESSKEY }}
-          X_S3_WEATHERFORECAST_SECRET: ${{ secrets.S3_WEATHERFORECAST_SECRET }}
-          X_MARKETPLACE_PUSH_URL: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_URL }}
-          X_MARKETPLACE_PUSH_USER: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_USERNAME }}
-          X_MARKETPLACE_PUSH_PSWD: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_PASSWORD }}
-          X_MARKETPLACE_PUSH_HEADER: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_HEADER }}
-          X_MARKETPLACE_PUSH_TOKEN: ${{ secrets.IDM_MARKETPLACE_PUSH_DEV_TOKEN }}
-          X_NOICOMMUNITY_SERVERKEY: ""
-          X_NOICOMMUNITY_SENDERID: ""
-          X_NOICOMMUNITY_PROJECTNAME: ""
-          X_NOICOMMUNITY_FCMSERVICEACCOUNT: ""
-          X_LTSAPI_IDM_XLTSCLIENTID: ${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}
-          X_LTSAPI_IDM_SERVICEURL: "https://go.lts.it/api/v1"
-          X_LTSAPI_IDM_USERNAME: ${{ secrets.LTSAPI_IDM_USERNAME }}
-          X_LTSAPI_IDM_PASSWORD: ${{ secrets.LTSAPI_IDM_PASSWORD }}
-          X_LTSAPI_IDM_OPENDATA: false
-          X_LTSAPI_OPENDATA_XLTSCLIENTID: ${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}
-          X_LTSAPI_OPENDATA_SERVICEURL: "https://go.lts.it/api/v1"
-          X_LTSAPI_OPENDATA_USERNAME: ${{ secrets.LTSAPI_NOI_USERNAME }}
-          X_LTSAPI_OPENDATA_PASSWORD: ${{ secrets.LTSAPI_NOI_PASSWORD }}
-          X_LTSAPI_OPENDATA_OPENDATA: true
-          X_DIGIWAY_CYCLEWAYSTIROL_URL: ${{ secrets.DIGIWAY_CYCLEWAYSTIROL_URL }}
-          X_DIGIWAY_CYCLEWAYSTIROL_SOURCE: "civis.geoserver"
-          X_DIGIWAY_CYCLEWAYSTIROL_FORMAT: "json"
-          X_DIGIWAY_CYCLEWAYSTIROL_SRID: "25832"
-          X_DIGIWAY_MTBROUTES_URL: ${{ secrets.DIGIWAY_MTBROUTES_URL }}
-          X_DIGIWAY_MTBROUTES_SOURCE: "civis.geoserver"
-          X_DIGIWAY_MTBROUTES_FORMAT: "json"
-          X_DIGIWAY_MTBROUTES_SRID: "25832"
-          X_DIGIWAY_HIKINGTRAILS_URL: ${{ secrets.DIGIWAY_HIKINGTRAILS_URL }}
-          X_DIGIWAY_HIKINGTRAILS_SOURCE: "civis.geoserver"
-          X_DIGIWAY_HIKINGTRAILS_FORMAT: "json"
-          X_DIGIWAY_HIKINGTRAILS_SRID: "25832"
-          X_DIGIWAY_INTERMUNICIPALCYCLINGROUTES_URL: ${{ secrets.DIGIWAY_INTERMUNICIPALCYCLINGROUTES_URL }}
-          X_DIGIWAY_INTERMUNICIPALCYCLINGROUTES_SOURCE: "civis.geoserver"
-          X_DIGIWAY_INTERMUNICIPALCYCLINGROUTES_FORMAT: "json"
-          X_DIGIWAY_INTERMUNICIPALCYCLINGROUTES_SRID: "25832"
-          X_DIGIWAY_RADROUTENTYROL_URL: ${{ secrets.DIGIWAY_RADROUTENTYROL_URL }}
-          X_DIGIWAY_RADROUTENTYROL_SOURCE: "dservices3.arcgis.com"
-          X_DIGIWAY_RADROUTENTYROL_FORMAT: "xml"
-          X_DIGIWAY_RADROUTENTYROL_SRID: "31254"
-          X_DIGIWAY_HIKINGTRAILE5_URL: ${{ secrets.DIGIWAY_HIKINGTRAILE5_URL }}
-          X_DIGIWAY_HIKINGTRAILE5_SOURCE: "dservices3.arcgis.com"
-          X_DIGIWAY_HIKINGTRAILE5_FORMAT: "xml"
-          X_DIGIWAY_HIKINGTRAILE5_SRID: "3857"
-          X_DIGIWAY_TNMTB_URL: ${{ secrets.DIGIWAY_TNMTB_URL }}
-          X_DIGIWAY_TNMTB_SOURCE: "siat.provincia.tn.it"
-          X_DIGIWAY_TNMTB_FORMAT: "geojson"
-          X_DIGIWAY_TNMTB_SRID: "4326"
-          X_DIGIWAY_TNCYCLINGROUTE_URL: ${{ secrets.DIGIWAY_TNCYCLINGROUTE_URL }}
-          X_DIGIWAY_TNCYCLINGROUTE_SOURCE: "siat.provincia.tn.it"
-          X_DIGIWAY_TNCYCLINGROUTE_FORMAT: "geojson"
-          X_DIGIWAY_TNCYCLINGROUTE_SRID: "4326"
-          X_DIGIWAY_TNHIKINGTRAIL_URL: ${{ secrets.DIGIWAY_TNHIKINGTRAIL_URL }}
-          X_DIGIWAY_TNHIKINGTRAIL_SOURCE: "siat.provincia.tn.it"
-          X_DIGIWAY_TNHIKINGTRAIL_FORMAT: "geojson"
-          X_DIGIWAY_TNHIKINGTRAIL_SRID: "4326"
-          X_GTFSAPI_STATIMETABLES_URL: ${{ secrets.GTFSAPI_STATIMETABLES_URL }}
-          X_DIGIWAY_ZOHO_CLIENTID: ${{ secrets.DIGIWAY_ZOHO_CLIENTID }}
-          X_DIGIWAY_ZOHO_CLIENTSECRET: ${{ secrets.DIGIWAY_ZOHO_CLIENTSECRET }}
-          X_DIGIWAY_ZOHO_SERVICEURL: ${{ secrets.DIGIWAY_ZOHO_SERVICEURL }}
-          X_DIGIWAY_ZOHO_AUTHURL: "https://accounts.zoho.com/oauth/v2/token"
-          X_DIGIWAY_ZOHO_SCOPE: "ZohoCreator.report.READ"
-          X_DIGIWAY_ATACCESSIBLETRAIL_URL: ${{ secrets.DIGIWAY_ATACCESSIBLETRAIL_URL }}
-          X_DIGIWAY_ATACCESSIBLETRAIL_SOURCE: "dservices3.arcgis.com"
-          X_DIGIWAY_ATACCESSIBLETRAIL_FORMAT: "geojson"
-          X_DIGIWAY_ATACCESSIBLETRAIL_SRID: "4326"
-          X_DIGIWAY_ATTRAILCLOSURE_URL: ${{ secrets.DIGIWAY_ATTRAILCLOSURE_URL }}
-          X_DIGIWAY_ATTRAILCLOSURE_SOURCE: "tirol.mapservices.eu"
-          X_DIGIWAY_ATTRAILCLOSURE_FORMAT: "geojson"
-          X_DIGIWAY_ATTRAILCLOSURE_SRID: "4326"
-          X_OUTDOORACTIVE_SERVICE_URL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL }}
-          X_OUTDOORACTIVE_SERVICE_URL_DETAIL: ${{ secrets.OUTDOORACTIVE_SERVICE_URL_DETAIL }}
-          X_OUTDOORACTIVE_PSWD: ${{ secrets.OUTDOORACTIVE_PSWD }}
-          X_MOMENTUS_CLIENTID: ${{ secrets.MOMENTUS_CLIENTID }}
-          X_MOMENTUS_CLIENTSECRET: ${{ secrets.MOMENTUS_CLIENTSECRET }}
-          X_MOMENTUS_SERVICEURL: "https://api.eu-venueops.com/v1/"
-          X_MOMENTUS_AUTHURL: "https://auth-api.eu-venueops.com/token"
-
-      - name: Build and push 
+      - name: Build and push
         uses: noi-techpark/github-actions/docker-build-and-push@v2
         with:
           docker-username: ${{ github.actor }}
@@ -226,16 +80,84 @@ jobs:
           working-directory: OdhApiImporter
           docker-compose-file: docker-compose.yml
 
-      - name: Deploy application
-        uses: noi-techpark/github-actions/docker-deploy@v2
+      - name: Customize test.yaml
+        run: |
+          yq -i '.image.repository="${{ env.DOCKER_IMAGE }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.image.tag="${{ env.DOCKER_TAG }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.image.pullPolicy="IfNotPresent"' infrastructure/helm/tourism-importer-test.yaml
+
+          yq -i '.envSecret.ASPNETCORE_ConnectionStrings__PgConnection="${{ secrets.PG_CONNECTION_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_MssConfig__Username="${{ secrets.MSS_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_MssConfig__Password="${{ secrets.MSS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LcsConfig__Username="${{ secrets.LCS_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LcsConfig__Password="${{ secrets.LCS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LcsConfig__MessagePassword="${{ secrets.LCS_MSGPSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_SiagConfig__Username="${{ secrets.SIAG_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_SiagConfig__Password="${{ secrets.SIAG_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DSSConfig__Username="${{ secrets.DSS_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DSSConfig__Password="${{ secrets.DSS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_A22Config__Username="${{ secrets.A22_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_A22Config__Password="${{ secrets.A22_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_A22Config__ServiceUrl="${{ secrets.A22_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_FeratelConfig__ServiceUrl="${{ secrets.FERATEL_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_PanocloudConfig__ServiceUrl="${{ secrets.PANOCLOUD_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_PanomaxConfig__ServiceUrl="${{ secrets.PANOMAX_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LoopTecConfig__ServiceUrl="${{ secrets.LOOPTEC_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint="${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__AccessKey="${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__SecretKey="${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_ProxyConfig__CaddyTest="${{ secrets.CADDY_TEST_IP }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_ProxyConfig__CaddyProd="${{ secrets.CADDY_PROD_IP }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticUrl="${{ secrets.ELK_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken="${{ secrets.ELK_TOKEN_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_RavenConfig__Username="${{ secrets.RAVEN_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_RavenConfig__Password="${{ secrets.RAVEN_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Url"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__User"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_USERNAME }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Password"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_PASSWORD }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Header"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_HEADER }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Token"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_TOKEN }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret["ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessKey"]="${{ secrets.S3_WEATHERFORECAST_ACCESSKEY }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret["ASPNETCORE_S3Config__dc-meteorology-province-forecast__AccessSecretKey"]="${{ secrets.S3_WEATHERFORECAST_SECRET }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiIDM__Username="${{ secrets.LTSAPI_IDM_USERNAME }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiIDM__Password="${{ secrets.LTSAPI_IDM_PASSWORD }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiIDM__XLSClientid="${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiOpen__Username="${{ secrets.LTSAPI_NOI_USERNAME }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiOpen__Password="${{ secrets.LTSAPI_NOI_PASSWORD }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_LTSApiOpen__XLSClientid="${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__cyclewaystyrol__ServiceUrl="${{ secrets.DIGIWAY_CYCLEWAYSTIROL_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__mountainbikeroutes__ServiceUrl="${{ secrets.DIGIWAY_MTBROUTES_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__hikingtrails__ServiceUrl="${{ secrets.DIGIWAY_HIKINGTRAILS_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__intermunicipalcyclingroutes__ServiceUrl="${{ secrets.DIGIWAY_INTERMUNICIPALCYCLINGROUTES_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__radrouten_tirol__ServiceUrl="${{ secrets.DIGIWAY_RADROUTENTYROL_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__hikintrail_e5__ServiceUrl="${{ secrets.DIGIWAY_HIKINGTRAILE5_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__mtb_percorsi_v__ServiceUrl="${{ secrets.DIGIWAY_TNMTB_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__elementi_cicloviari_v__ServiceUrl="${{ secrets.DIGIWAY_TNCYCLINGROUTE_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__sentieri_della_sat__ServiceUrl="${{ secrets.DIGIWAY_TNHIKINGTRAIL_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__accessibletrails_austria__ServiceUrl="${{ secrets.DIGIWAY_ATACCESSIBLETRAIL_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_DigiWayConfig__trailclosures_austria__ServiceUrl="${{ secrets.DIGIWAY_ATTRAILCLOSURE_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_GTFSApiConfig__StaTimetables__ServiceUrl="${{ secrets.GTFSAPI_STATIMETABLES_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_ZOHOConfig__ClientId="${{ secrets.DIGIWAY_ZOHO_CLIENTID }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_ZOHOConfig__ClientSecret="${{ secrets.DIGIWAY_ZOHO_CLIENTSECRET }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_ZOHOConfig__ServiceUrl="${{ secrets.DIGIWAY_ZOHO_SERVICEURL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__ServiceUrl="${{ secrets.OUTDOORACTIVE_SERVICE_URL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__ServiceUrlDetail="${{ secrets.OUTDOORACTIVE_SERVICE_URL_DETAIL }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__Password="${{ secrets.OUTDOORACTIVE_PSWD }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_MomentusConfig__ClientId="${{ secrets.MOMENTUS_CLIENTID }}"' infrastructure/helm/tourism-importer-test.yaml
+          yq -i '.envSecret.ASPNETCORE_MomentusConfig__ClientSecret="${{ secrets.MOMENTUS_CLIENTSECRET }}"' infrastructure/helm/tourism-importer-test.yaml
+
+      - name: Deploy on cluster
+        uses: noi-techpark/github-actions/helm-deploy@v2
         with:
-          hosts: 'test'
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          docker-username: 'noi-techpark-bot'
-          docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          project-name: ${{ env.PROJECT_NAME }}
-          playbook-file: 'deploy.importer.yml'
-          
+          k8s-name: tourism-importer
+          k8s-namespace: core
+          chart-path: infrastructure/helm/tourism-importer
+          values-file: infrastructure/helm/tourism-importer-test.yaml
+          aws-access-key-id: ${{ secrets[vars.AWS_KEY_ID] }}
+          aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
+          aws-eks-cluster-name: aws-main-eu-01
+          aws-region: eu-west-1
+
       - name: Generate Json
         run: |
           curl "${{ env.API_URL_IMPORTER }}ODH/Taglist"
@@ -245,7 +167,7 @@ jobs:
           curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
           curl "${{ env.API_URL_IMPORTER }}ODH/ActivityPoiDatalist"
           curl "${{ env.API_URL_IMPORTER }}ODH/AccommodationFeatures"
-          
+
   deploy-prod-importer:
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/prod'
