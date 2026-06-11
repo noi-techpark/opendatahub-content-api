@@ -55,7 +55,7 @@ namespace OdhApiImporter.Helpers
             var updateresult = await ImportData(momentusevents, authtoken, cancellationToken);
 
             //Set all Events that are not given by the Interface anymore to Inactive and remove the publisher
-            if (idlist == null)
+            if (idlist == null && momentusevents != null && momentusevents.Count() > 0)
             {
                 var deleteresult = await DisableDeletedEvents(momentusevents);
 
