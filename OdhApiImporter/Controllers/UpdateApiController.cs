@@ -3198,6 +3198,15 @@ namespace OdhApiImporter.Controllers
         }
 
 
+        [HttpPost, Route("MOMENTUS/Event/Update/{*id}")]
+        public async Task<IActionResult> UpdateSingleEventFromMomentusPOST(
+            string id,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return await UpdateSingleEventFromMomentus(id, cancellationToken);
+        }
+
         //TODO adding Roles
         [HttpGet, Route("MOMENTUS/Event/Update/{*id}")]
         public async Task<IActionResult> UpdateSingleEventFromMomentus(
