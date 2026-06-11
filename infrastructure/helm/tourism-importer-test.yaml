@@ -16,6 +16,17 @@ imagePullSecrets:
 
 replicaCount: 1
 
+# Memory request == limit so the pod is protected from node-pressure eviction
+# (usage can never exceed the request); it is OOM-killed only if it exceeds the limit.
+# The importer was evicted while using ~1.6Gi with request 0 — 2Gi covers that with
+# headroom. Raise the limit if big imports OOMKill.
+resources:
+  requests:
+    cpu: 100m
+    memory: 2Gi
+  limits:
+    memory: 2Gi
+
 service:
   type: ClusterIP
   port: 80
