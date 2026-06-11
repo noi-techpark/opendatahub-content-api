@@ -38,7 +38,7 @@ jobs:
     environment: test
     concurrency: deploy-test-api
     env:
-      API_URL: "https://tourism.api.opendatahub.testingmachine.eu/v1/"
+      API_URL: "https://api.tourism.testingmachine.eu/v1/"
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
