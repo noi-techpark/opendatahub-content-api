@@ -16,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using OdhApiCore.Filters;
 using OdhApiCore.Responses;
 using OdhNotifier;
-using ServiceReferenceLCS;
 using SqlKata;
 using SqlKata.Execution;
 

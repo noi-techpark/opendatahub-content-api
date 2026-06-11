@@ -4,7 +4,6 @@
 
 using AspNetCore.CacheOutput;
 using DataModel;
-using Geo.Measure;
 using Helper;
 using Helper.Generic;
 using Helper.Identity;
@@ -13,13 +12,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NetTopologySuite.Utilities;
-using NuGet.Protocol.Core.Types;
-using OdhApiCore.Controllers.api;
-using OdhApiCore.Responses;
 using OdhNotifier;
-using Schema.NET;
-using ServiceReferenceLCS;
 using SqlKata.Execution;
 using System;
 using System.Collections.Generic;

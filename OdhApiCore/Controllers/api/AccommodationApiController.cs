@@ -145,7 +145,7 @@ namespace OdhApiCore.Controllers
             string? msssource = "sinfo",
             string? availabilitychecklanguage = "en",
             string? detail = "0",
-            string? ltsapiversion = "v1",
+            string? ltsapiversion = "v2",
             string? tagfilter = null,
             LegacyBool availabilitycheck = null!,
             string? latitude = null,
@@ -323,7 +323,7 @@ namespace OdhApiCore.Controllers
             string? roominfo = "1-18,18",
             string? bokfilter = "hgv",
             string? msssource = "sinfo",
-            string? ltsapiversion = "v1",
+            string? ltsapiversion = "v2",
             LegacyBool availabilitycheck = null!,
             string? detail = "0",
             [ModelBinder(typeof(CommaSeparatedArrayBinder))] string[]? fields = null,
@@ -716,7 +716,7 @@ namespace OdhApiCore.Controllers
             bool usemsscache = false,
             bool uselcscache = true,
             string removeduplicatesfrom = null, //only valid for availability only?
-            string? ltsapiversion = "v1",
+            string? ltsapiversion = "v2",
             CancellationToken cancellationToken = default
         )
         {
@@ -912,7 +912,7 @@ namespace OdhApiCore.Controllers
             bool usemsscache = false,
             bool uselcscache = false,
             string? removeduplicatesfrom = null,
-            string? ltsapiversion = "v1",
+            string? ltsapiversion = "v2",
             CancellationToken cancellationToken = default
         )
         {
