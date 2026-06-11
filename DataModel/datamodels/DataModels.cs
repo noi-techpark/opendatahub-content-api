@@ -2105,19 +2105,31 @@ namespace DataModel
         //Slopes Lifts
         public string? totalskilift { get; set; }
         public string? openskilift { get; set; }
+
+        [Obsolete("deprecated not available")]
         public string? totalskiliftkm { get; set; }
+        [Obsolete("deprecated not available")]
         public string? openskiliftkm { get; set; }
         public string? totalskislopes { get; set; }
         public string? openskislopes { get; set; }
+        [Obsolete("deprecated not available")]
         public string? totalskislopeskm { get; set; }
+        [Obsolete("deprecated not available")]
         public string? openskislopeskm { get; set; }
         public string? totaltracks { get; set; }
         public string? opentracks { get; set; }
+        [Obsolete("deprecated not available")] 
         public string? totaltrackskm { get; set; }
+        [Obsolete("deprecated not available")] 
         public string? opentrackskm { get; set; }
-        public string? totalslides { get; set; }
-        public string? opentslides { get; set; }
+        public string? totalslides { get; set; }        
+        public string? openslides { get; set; }
+        [Obsolete("deprecated compatibilityreasons")]
+        public string? opentslides { get{ return this.openslides; } }
+
+        [Obsolete("deprecated not available")] 
         public string? totalslideskm { get; set; }
+        [Obsolete("deprecated not available")] 
         public string? opentslideskm { get; set; }
         public string? totaliceskating { get; set; }
         public string? openiceskating { get; set; }
