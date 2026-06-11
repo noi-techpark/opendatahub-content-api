@@ -266,7 +266,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 {
                     //Get the Active Accommodations list with filter[onlyActive]=1&fields=rid&filter[onlyTourismOrganizationMember]=0&filter[representationMode]=full
 
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_marketingGroupRids = "9E72B78AC5B14A9DB6BED6C2592483BF", filter_representationMode = "full" };
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_marketingGroupRids = "9E72B78AC5B14A9DB6BED6C2592483BF", filter_representationMode = "minimal" };
 
                     if (lastchanged != null)
                         qs.filter_lastUpdate = lastchanged;

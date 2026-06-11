@@ -3143,7 +3143,7 @@ namespace OdhApiImporter.Controllers
 
         #region MOMENTUS DATA SYNC (Event)
 
-        //TODO adding Roles
+        [Authorize(Roles = "DataPush")]
         [HttpGet, Route("MOMENTUS/Event/Update")]
         public async Task<IActionResult> UpdateEventsFromMomentus(
             string? updatetodate = null,
@@ -3197,8 +3197,17 @@ namespace OdhApiImporter.Controllers
             }
         }
 
+        [Authorize(Roles = "DataPush")]
+        [HttpPost, Route("MOMENTUS/Event/Update/{*id}")]
+        public async Task<IActionResult> UpdateSingleEventFromMomentusPOST(
+            string id,
+            CancellationToken cancellationToken = default
+        )
+        {
+            return await UpdateSingleEventFromMomentus(id, cancellationToken);
+        }
 
-        //TODO adding Roles
+        [Authorize(Roles = "DataPush")]
         [HttpGet, Route("MOMENTUS/Event/Update/{*id}")]
         public async Task<IActionResult> UpdateSingleEventFromMomentus(
             string id,
@@ -3256,7 +3265,7 @@ namespace OdhApiImporter.Controllers
             }
         }
 
-        //TODO adding Roles
+        [Authorize(Roles = "DataPush")]
         [HttpGet, Route("MOMENTUS/Venue/Update")]
         public async Task<IActionResult> UpdateVenuesFromMomentus(
             CancellationToken cancellationToken = default
