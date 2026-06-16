@@ -259,7 +259,7 @@ namespace DataModel
         //Logic shifted to RelatedContent
         //public ICollection<Webcam>? Webcam { get; set; }
 
-        public IDictionary<string, List<PoiProperty>> PoiProperty { get; set; }
+        public IDictionary<string, List<PoiProperty>>? PoiProperty { get; set; }
 
         [SwaggerDeprecated("Obsolete")]
         public ICollection<string>? PoiServices { get; set; }
