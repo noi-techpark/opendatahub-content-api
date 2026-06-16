@@ -93,8 +93,6 @@ envSecret:
   ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ""
   ASPNETCORE_S3ImageresizerConfig__AccessKey: ""
   ASPNETCORE_S3ImageresizerConfig__SecretKey: ""
-  ASPNETCORE_ProxyConfig__CaddyTest: ""
-  ASPNETCORE_ProxyConfig__CaddyProd: ""
   ASPNETCORE_ElasticSearchConfig__ElasticUrl: ""
   ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ""
   ASPNETCORE_RavenConfig__Username: ""

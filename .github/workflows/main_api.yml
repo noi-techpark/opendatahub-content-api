@@ -85,8 +85,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint="${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__AccessKey="${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__SecretKey="${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}"' infrastructure/helm/test.yaml
-          yq -i '.envSecret.ASPNETCORE_ProxyConfig__CaddyTest="${{ secrets.CADDY_TEST_IP }}"' infrastructure/helm/test.yaml
-          yq -i '.envSecret.ASPNETCORE_ProxyConfig__CaddyProd="${{ secrets.CADDY_PROD_IP }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticUrl="${{ secrets.ELK_URL_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken="${{ secrets.ELK_TOKEN_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_RavenConfig__Username="${{ secrets.RAVEN_USER_TEST }}"' infrastructure/helm/test.yaml

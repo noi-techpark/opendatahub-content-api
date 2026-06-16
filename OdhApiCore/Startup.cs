@@ -515,16 +515,34 @@ namespace OdhApiCore
         {
             //app.UseForwardedHeaders();
             
-            app.UseForwardedHeaders(new ForwardedHeadersOptions()
+            // The API runs behind a TLS-terminating reverse proxy that sets X-Forwarded-Proto:
+            //   - docker (prod): Caddy -> API container        => Caddy is the immediate peer,
+            //                                                      so pin its IP(s) via ProxyConfig.
+            //   - k8s   (test):  Caddy -> NLB -> nginx-ingress -> API pod
+            //                                                   => the immediate peer is the
+            //                                                      nginx-ingress pod (a dynamic
+            //                                                      in-cluster IP) which can't be pinned.
+            // Gate on whether any Caddy IP is configured: if none are set (k8s), trust the immediate
+            // upstream instead — safe because the pod is only reachable through the ingress (ClusterIP).
+            // k8s additionally needs the ingress to forward the header (use-forwarded-headers=true).
+            var forwardedHeadersOptions = new ForwardedHeadersOptions()
             {
-                ForwardedHeaders = ForwardedHeaders.XForwardedProto,                
-                KnownProxies =
-                {
-                    // Caddy Test
-                    IPAddress.Parse(Configuration.GetSection("ProxyConfig").GetValue<string>("CaddyTest")),
-                    IPAddress.Parse(Configuration.GetSection("ProxyConfig").GetValue<string>("CaddyProd")),
-                },                
-            });
+                ForwardedHeaders = ForwardedHeaders.XForwardedProto,
+            };
+            var proxyConfig = Configuration.GetSection("ProxyConfig");
+            var caddyTest = proxyConfig.GetValue<string>("CaddyTest");
+            var caddyProd = proxyConfig.GetValue<string>("CaddyProd");
+            if (!string.IsNullOrWhiteSpace(caddyTest))
+                forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(caddyTest));
+            if (!string.IsNullOrWhiteSpace(caddyProd))
+                forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(caddyProd));
+            if (forwardedHeadersOptions.KnownProxies.Count == 0)
+            {
+                // No proxy IP configured (k8s): trust the immediate in-cluster upstream.
+                forwardedHeadersOptions.KnownNetworks.Clear();
+                forwardedHeadersOptions.KnownProxies.Clear();
+            }
+            app.UseForwardedHeaders(forwardedHeadersOptions);
 
             //// TODO: Move to Production
             //app.UseClientRateLimiting();
