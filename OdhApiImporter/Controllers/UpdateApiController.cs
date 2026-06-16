@@ -2826,7 +2826,7 @@ namespace OdhApiImporter.Controllers
 
         //Generic Update Single Dataset
         [HttpGet, Route("LTS/{datatype}/Update/{id}")]
-        [Authorize(Roles = "DataPush")]
+        [Authorize(Roles = "DataPush,LTSDataPush")]
         public async Task<IActionResult> UpdateDataFromLTS(
             string id,
             string datatype,
