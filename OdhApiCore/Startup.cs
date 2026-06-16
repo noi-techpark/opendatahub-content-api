@@ -515,34 +515,43 @@ namespace OdhApiCore
         {
             //app.UseForwardedHeaders();
             
-            // The API runs behind a TLS-terminating reverse proxy that sets X-Forwarded-Proto:
-            //   - docker (prod): Caddy -> API container        => Caddy is the immediate peer,
-            //                                                      so pin its IP(s) via ProxyConfig.
+            // The API always runs behind a TLS-terminating reverse proxy:
+            //   - docker (prod): Caddy -> API container          => Caddy is the immediate peer, so
+            //                                                        pin its IP(s) and honour the
+            //                                                        X-Forwarded-Proto it sends.
             //   - k8s   (test):  Caddy -> NLB -> nginx-ingress -> API pod
-            //                                                   => the immediate peer is the
-            //                                                      nginx-ingress pod (a dynamic
-            //                                                      in-cluster IP) which can't be pinned.
-            // Gate on whether any Caddy IP is configured: if none are set (k8s), trust the immediate
-            // upstream instead — safe because the pod is only reachable through the ingress (ClusterIP).
-            // k8s additionally needs the ingress to forward the header (use-forwarded-headers=true).
-            var forwardedHeadersOptions = new ForwardedHeadersOptions()
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedProto,
-            };
+            //                                                     => nginx-ingress doesn't forward the
+            //                                                        original scheme by default and the
+            //                                                        immediate peer is a dynamic pod IP.
+            // Gate on whether any Caddy IP is configured. With Caddy IPs (docker) use ForwardedHeaders.
+            // Without them (k8s) the public endpoint always terminates TLS at Caddy, so just force the
+            // scheme to https for correct URL generation (pagination/swagger) — contained to this app,
+            // no cluster-wide ingress change needed.
             var proxyConfig = Configuration.GetSection("ProxyConfig");
             var caddyTest = proxyConfig.GetValue<string>("CaddyTest");
             var caddyProd = proxyConfig.GetValue<string>("CaddyProd");
-            if (!string.IsNullOrWhiteSpace(caddyTest))
-                forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(caddyTest));
-            if (!string.IsNullOrWhiteSpace(caddyProd))
-                forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(caddyProd));
-            if (forwardedHeadersOptions.KnownProxies.Count == 0)
+            if (!string.IsNullOrWhiteSpace(caddyTest) || !string.IsNullOrWhiteSpace(caddyProd))
             {
-                // No proxy IP configured (k8s): trust the immediate in-cluster upstream.
-                forwardedHeadersOptions.KnownNetworks.Clear();
-                forwardedHeadersOptions.KnownProxies.Clear();
+                var forwardedHeadersOptions = new ForwardedHeadersOptions()
+                {
+                    ForwardedHeaders = ForwardedHeaders.XForwardedProto,
+                };
+                if (!string.IsNullOrWhiteSpace(caddyTest))
+                    forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(caddyTest));
+                if (!string.IsNullOrWhiteSpace(caddyProd))
+                    forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(caddyProd));
+                app.UseForwardedHeaders(forwardedHeadersOptions);
             }
-            app.UseForwardedHeaders(forwardedHeadersOptions);
+            else
+            {
+                app.Use(
+                    (context, next) =>
+                    {
+                        context.Request.Scheme = "https";
+                        return next();
+                    }
+                );
+            }
 
             //// TODO: Move to Production
             //app.UseClientRateLimiting();
