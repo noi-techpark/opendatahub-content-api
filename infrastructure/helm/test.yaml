@@ -48,6 +48,10 @@ ingress:
       paths:
         - path: "/"
           pathType: Prefix
+    - host: content.api.opendatahub.testingmachine.eu
+      paths:
+        - path: "/"
+          pathType: Prefix
 
 # Non-secret environment (mirrors infrastructure/docker-compose.run.yml).
 env:
