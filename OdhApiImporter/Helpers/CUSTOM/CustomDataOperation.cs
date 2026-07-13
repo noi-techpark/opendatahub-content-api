@@ -729,48 +729,47 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
-        public async Task<int> UpdateAllSTAVendingpointsAdditionalProps()
-        {
-            //Load all data from PG and resave
-            var query = QueryFactory
-                .Query()
-                .SelectRaw("data")
-                .From("smgpois")
-                .Where("gen_source", "sta");
+        //public async Task<int> UpdateAllSTAVendingpointsAdditionalProps()
+        //{
+        //    //Load all data from PG and resave
+        //    var query = QueryFactory
+        //        .Query()
+        //        .SelectRaw("data")
+        //        .From("smgpois")
+        //        .Where("gen_source", "sta");
 
-            var data = await query.GetObjectListAsync<ODHActivityPoiLinked>();
-            int i = 0;
+        //    var data = await query.GetObjectListAsync<ODHActivityPoiLinked>();
+        //    int i = 0;
 
-            foreach (var stapoi in data)
-            {
-                //Setting MetaInfo
-                stapoi._Meta.Reduced = false;
-                stapoi.Source = "sta";
+        //    foreach (var stapoi in data)
+        //    {
+        //        //Setting MetaInfo
+        //        stapoi._Meta.Reduced = false;
+        //        stapoi.Source = "sta";
 
-                if (stapoi.SyncSourceInterface == "gtfsapi")
-                    stapoi.AdditionalProperties = new Dictionary<string, dynamic>();
-                else
-                    AdditionalPropertiesHelper.FillStaVendingPointAdditionalProperties(stapoi);
+        //        if (stapoi.SyncSourceInterface == "gtfsapi")
+        //            stapoi.AdditionalProperties = new Dictionary<string, dynamic>();
+        //        else
+        //            AdditionalPropertiesHelper.FillStaVendingPointAdditionalProperties(stapoi);
 
-                //Save tp DB
-                //TODO CHECK IF THIS WORKS
-                var queryresult = await QueryFactory
-                    .Query("smgpois")
-                    .Where("id", stapoi.Id)
-                    .UpdateAsync(
-                        new JsonBData()
-                        {
-                            id = stapoi.Id,
-                            data = new JsonRaw(stapoi),
-                        }
-                    );
+        //        //Save tp DB
+        //        //TODO CHECK IF THIS WORKS
+        //        var queryresult = await QueryFactory
+        //            .Query("smgpois")
+        //            .Where("id", stapoi.Id)
+        //            .UpdateAsync(
+        //                new JsonBData()
+        //                {
+        //                    id = stapoi.Id,
+        //                    data = new JsonRaw(stapoi),
+        //                }
+        //            );
 
-                i++;
-            }
+        //        i++;
+        //    }
 
-            return i;
-        }
-
+        //    return i;
+        //}
 
         public async Task<int> AddPublishedOnStatoODHActivityPoi(string xmlconfig)
         {

@@ -1137,61 +1137,61 @@ namespace OdhApiImporter.Controllers
 
         #region STA POI DATA SYNC
 
-        //[Authorize(Roles = "DataWriter,STAPoiImport")]
-        [HttpPost, Route("STA/VendingPoints/Update")]
-        public async Task<IActionResult> SendVendingPointsFromSTA(
-            CancellationToken cancellationToken
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Import Vendingpoints";
-            string updatetype = GetUpdateType(null);
-            string source = "xls";
-            string otherinfo = "STA";
+        ////[Authorize(Roles = "DataWriter,STAPoiImport")]
+        //[HttpPost, Route("STA/VendingPoints/Update")]
+        //public async Task<IActionResult> SendVendingPointsFromSTA(
+        //    CancellationToken cancellationToken
+        //)
+        //{
+        //    UpdateDetail updatedetail = default(UpdateDetail);
+        //    string operation = "Import Vendingpoints";
+        //    string updatetype = GetUpdateType(null);
+        //    string source = "xls";
+        //    string otherinfo = "STA";
 
-            try
-            {
-                StaVendingpointsImportHelper staimporthelper = new StaVendingpointsImportHelper(
-                    settings,
-                    QueryFactory,
-                    UrlGeneratorStatic("STA/Vendingpoints")
-                );
+        //    try
+        //    {
+        //        StaVendingpointsImportHelper staimporthelper = new StaVendingpointsImportHelper(
+        //            settings,
+        //            QueryFactory,
+        //            UrlGeneratorStatic("STA/Vendingpoints")
+        //        );
 
-                updatedetail = await staimporthelper.PostVendingPointsFromSTA(
-                    Request,
-                    cancellationToken
-                );
+        //        updatedetail = await staimporthelper.PostVendingPointsFromSTA(
+        //            Request,
+        //            cancellationToken
+        //        );
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    "",
-                    source,
-                    operation,
-                    updatetype,
-                    "Import Vendingpoints succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
+        //        var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+        //            "",
+        //            source,
+        //            operation,
+        //            updatetype,
+        //            "Import Vendingpoints succeeded",
+        //            otherinfo,
+        //            updatedetail,
+        //            true
+        //        );
 
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
-                    "",
-                    source,
-                    operation,
-                    updatetype,
-                    "Import Vendingpoints failed",
-                    otherinfo,
-                    updatedetail,
-                    ex,
-                    true
-                );
+        //        return Ok(updateResult);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+        //            "",
+        //            source,
+        //            operation,
+        //            updatetype,
+        //            "Import Vendingpoints failed",
+        //            otherinfo,
+        //            updatedetail,
+        //            ex,
+        //            true
+        //        );
 
-                return BadRequest(errorResult);
-            }
-        }
+        //        return BadRequest(errorResult);
+        //    }
+        //}
 
         #endregion
 
