@@ -169,7 +169,7 @@ namespace DataModel
         public bool? ChargeCard { get; set; }
 
         
-        public string? PickupPoint { get; set; }
+        public bool? PickupPoint { get; set; }
         public string? PickupPointId { get; set; }
         public int? PickupPointIndex { get; set; }
 
