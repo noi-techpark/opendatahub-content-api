@@ -470,53 +470,53 @@ namespace OdhApiImporter.Controllers
             );
         }
 
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("ModifySTAVendingpoint")]
-        public async Task<IActionResult> ModifySTAVendingpoint(CancellationToken cancellationToken)
-        {
-            //CustomDataOperation customdataoperation = new CustomDataOperation(settings, QueryFactory);
-            //var objectscount = await customdataoperation.UpdateAllSTAVendingpoints();
+        //[Authorize(Roles = "DataPush")]
+        //[HttpGet, Route("ModifySTAVendingpoint")]
+        //public async Task<IActionResult> ModifySTAVendingpoint(CancellationToken cancellationToken)
+        //{
+        //    //CustomDataOperation customdataoperation = new CustomDataOperation(settings, QueryFactory);
+        //    //var objectscount = await customdataoperation.UpdateAllSTAVendingpoints();
 
-            return Ok(
-                new UpdateResult
-                {
-                    operation = "Modify STA Vendingpoint",
-                    updatetype = "custom",
-                    otherinfo = "",
-                    message = "Done",
-                    recordsmodified = 0,
-                    created = 0,
-                    deleted = 0,
-                    id = "",
-                    updated = 0,
-                    success = true,
-                }
-            );
-        }
+        //    return Ok(
+        //        new UpdateResult
+        //        {
+        //            operation = "Modify STA Vendingpoint",
+        //            updatetype = "custom",
+        //            otherinfo = "",
+        //            message = "Done",
+        //            recordsmodified = 0,
+        //            created = 0,
+        //            deleted = 0,
+        //            id = "",
+        //            updated = 0,
+        //            success = true,
+        //        }
+        //    );
+        //}
 
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("ModifySTAVendingpointAdditionalProperties")]
-        public async Task<IActionResult> ModifySTAVendingpointAdditionalProperties(CancellationToken cancellationToken)
-        {
-            CustomDataOperation customdataoperation = new CustomDataOperation(settings, QueryFactory);
-            var objectscount = await customdataoperation.UpdateAllSTAVendingpointsAdditionalProps();
+        //[Authorize(Roles = "DataPush")]
+        //[HttpGet, Route("ModifySTAVendingpointAdditionalProperties")]
+        //public async Task<IActionResult> ModifySTAVendingpointAdditionalProperties(CancellationToken cancellationToken)
+        //{
+        //    CustomDataOperation customdataoperation = new CustomDataOperation(settings, QueryFactory);
+        //    var objectscount = await customdataoperation.UpdateAllSTAVendingpointsAdditionalProps();
 
-            return Ok(
-                new UpdateResult
-                {
-                    operation = "Modify STA Vendingpoint Additionalproperties",
-                    updatetype = "custom",
-                    otherinfo = "",
-                    message = "Done",
-                    recordsmodified = objectscount,
-                    created = 0,
-                    deleted = 0,
-                    id = "",
-                    updated = 0,
-                    success = true,
-                }
-            );
-        }
+        //    return Ok(
+        //        new UpdateResult
+        //        {
+        //            operation = "Modify STA Vendingpoint Additionalproperties",
+        //            updatetype = "custom",
+        //            otherinfo = "",
+        //            message = "Done",
+        //            recordsmodified = objectscount,
+        //            created = 0,
+        //            deleted = 0,
+        //            id = "",
+        //            updated = 0,
+        //            success = true,
+        //        }
+        //    );
+        //}
 
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("AddSTAPublishedOnToODHActivityPois")]

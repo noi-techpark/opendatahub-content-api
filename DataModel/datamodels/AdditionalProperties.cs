@@ -166,12 +166,21 @@ namespace DataModel
         public bool? TicketEuregio2Plus { get; set; }
         public bool? InfoPoint { get; set; }
 
+        public bool? ChargeCard { get; set; }
+
+        
+        public string? PickupPoint { get; set; }
+        public string? PickupPointId { get; set; }
+        public int? PickupPointIndex { get; set; }
+
+
+
         //Old fields to remove
         //public bool? SuedtirolPassServices { get; set; }
         //public bool? SuedtirolpassOver65apply { get; set; }        
-        //public bool? ChargeCard { get; set; }
+
         //public bool? CityCardBus { get; set; }
-        
+
         //public bool? BikeMobileCard { get; set; }
         //public bool? MuseumMobileCard { get; set; }
     }
