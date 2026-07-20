@@ -233,7 +233,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
 
                     if (lastchanged != null)
+                    {
                         qs.filter_lastUpdate = lastchanged;
+
+                        //Add this to get also Events which are not visible in EventFinder
+                        qs.filter_onlyVisibleInEventFinder = false;
+                    }                        
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
@@ -255,7 +260,12 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.MaxValue.ToString("yyyy-MM-dd"), filter_startDate = DateTime.MinValue.ToString("yyyy-MM-dd") };
 
                     if (activelist != null)
+                    {
                         qs.filter_onlyActive = activelist;
+
+                        //Add this to get also Events which are not visible in EventFinder
+                        qs.filter_onlyVisibleInEventFinder = false;
+                    }
 
                     var dict = ltsapi.GetLTSQSDictionary(qs);
 
