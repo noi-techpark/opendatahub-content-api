@@ -106,7 +106,7 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_LTSApiOpen__XLSClientid="${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}"' infrastructure/helm/test.yaml
 
       - name: Deploy on cluster
-        uses: noi-techpark/github-actions/helm-deploy@v2
+        uses: noi-techpark/github-actions/helm-deploy@v3
         with:
           k8s-name: tourism-api
           k8s-namespace: core

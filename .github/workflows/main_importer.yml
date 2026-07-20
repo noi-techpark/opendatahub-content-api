@@ -147,7 +147,7 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_MomentusConfig__ClientSecret="${{ secrets.MOMENTUS_CLIENTSECRET }}"' infrastructure/helm/tourism-importer-test.yaml
 
       - name: Deploy on cluster
-        uses: noi-techpark/github-actions/helm-deploy@v2
+        uses: noi-techpark/github-actions/helm-deploy@v3
         with:
           k8s-name: tourism-importer
           k8s-namespace: core
