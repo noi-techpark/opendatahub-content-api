@@ -230,7 +230,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
                 else if (lastchanged != null)
                 {
-                    var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
+                    //var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd"), filter_startDate = DateTime.Now.AddMonths(-6).ToString("yyyy-MM-dd") };
+                    //Remove the period request in the past appears the LTS service returns only changed events with a period in the future
+                    var qs = new LTSQueryStrings() { fields = "rid", filter_endDate = DateTime.Now.AddYears(1).ToString("yyyy-MM-dd") };
 
                     if (lastchanged != null)
                     {
