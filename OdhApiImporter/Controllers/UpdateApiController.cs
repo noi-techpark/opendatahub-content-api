@@ -23,6 +23,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,129 +55,129 @@ namespace OdhApiImporter.Controllers
             this.OdhPushnotifier = odhpushnotifier;
         }
 
-        #region UPDATE FROM RAVEN INSTANCE
+        //#region UPDATE FROM RAVEN INSTANCE
 
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("Raven/{datatype}/Update/{id}")]
-        public async Task<IActionResult> UpdateDataFromRaven(
-            string id,
-            string datatype,
-            CancellationToken cancellationToken = default
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Update Raven";
-            string updatetype = "single";
-            string source = "api";
-            string otherinfo = datatype.ToLower();
+        //[Authorize(Roles = "DataPush")]
+        //[HttpGet, Route("Raven/{datatype}/Update/{id}")]
+        //public async Task<IActionResult> UpdateDataFromRaven(
+        //    string id,
+        //    string datatype,
+        //    CancellationToken cancellationToken = default
+        //)
+        //{
+        //    UpdateDetail updatedetail = default(UpdateDetail);
+        //    string operation = "Update Raven";
+        //    string updatetype = "single";
+        //    string source = "api";
+        //    string otherinfo = datatype.ToLower();
 
-            try
-            {
-                RavenImportHelper ravenimporthelper = new RavenImportHelper(
-                    settings,
-                    QueryFactory,
-                    UrlGeneratorStatic("Raven/" + datatype),
-                    OdhPushnotifier
-                );
-                var resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
-                    id,
-                    datatype,
-                    cancellationToken
-                );
-                updatedetail = resulttuple.Item2;
+        //    try
+        //    {
+        //        RavenImportHelper ravenimporthelper = new RavenImportHelper(
+        //            settings,
+        //            QueryFactory,
+        //            UrlGeneratorStatic("Raven/" + datatype),
+        //            OdhPushnotifier
+        //        );
+        //        var resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
+        //            id,
+        //            datatype,
+        //            cancellationToken
+        //        );
+        //        updatedetail = resulttuple.Item2;
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    resulttuple.Item1,
-                    source,
-                    operation,
-                    updatetype,
-                    "Update Raven succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
+        //        var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+        //            resulttuple.Item1,
+        //            source,
+        //            operation,
+        //            updatetype,
+        //            "Update Raven succeeded",
+        //            otherinfo,
+        //            updatedetail,
+        //            true
+        //        );
 
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
-                    id,
-                    source,
-                    operation,
-                    updatetype,
-                    "Update Raven failed",
-                    otherinfo,
-                    updatedetail,
-                    ex,
-                    true
-                );
+        //        return Ok(updateResult);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+        //            id,
+        //            source,
+        //            operation,
+        //            updatetype,
+        //            "Update Raven failed",
+        //            otherinfo,
+        //            updatedetail,
+        //            ex,
+        //            true
+        //        );
 
-                return BadRequest(errorResult);
-            }
-        }
+        //        return BadRequest(errorResult);
+        //    }
+        //}
 
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("Raven/{datatype}/Delete/{id}")]
-        public async Task<IActionResult> DeleteDataFromRaven(
-            string id,
-            string datatype,
-            CancellationToken cancellationToken = default
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Delete Raven";
-            string updatetype = "single";
-            string source = "api";
-            string otherinfo = datatype.ToLower();
+        //[Authorize(Roles = "DataPush")]
+        //[HttpGet, Route("Raven/{datatype}/Delete/{id}")]
+        //public async Task<IActionResult> DeleteDataFromRaven(
+        //    string id,
+        //    string datatype,
+        //    CancellationToken cancellationToken = default
+        //)
+        //{
+        //    UpdateDetail updatedetail = default(UpdateDetail);
+        //    string operation = "Delete Raven";
+        //    string updatetype = "single";
+        //    string source = "api";
+        //    string otherinfo = datatype.ToLower();
 
-            try
-            {
-                RavenImportHelper ravenimporthelper = new RavenImportHelper(
-                    settings,
-                    QueryFactory,
-                    UrlGeneratorStatic("Raven/" + datatype),
-                    OdhPushnotifier
-                );
-                var resulttuple = await ravenimporthelper.DeletePGObject(
-                    id,
-                    datatype,
-                    cancellationToken
-                );
-                updatedetail = resulttuple.Item2;
+        //    try
+        //    {
+        //        RavenImportHelper ravenimporthelper = new RavenImportHelper(
+        //            settings,
+        //            QueryFactory,
+        //            UrlGeneratorStatic("Raven/" + datatype),
+        //            OdhPushnotifier
+        //        );
+        //        var resulttuple = await ravenimporthelper.DeletePGObject(
+        //            id,
+        //            datatype,
+        //            cancellationToken
+        //        );
+        //        updatedetail = resulttuple.Item2;
 
-                var deleteResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    resulttuple.Item1,
-                    source,
-                    operation,
-                    updatetype,
-                    "Delete Raven succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
+        //        var deleteResult = GenericResultsHelper.GetSuccessUpdateResult(
+        //            resulttuple.Item1,
+        //            source,
+        //            operation,
+        //            updatetype,
+        //            "Delete Raven succeeded",
+        //            otherinfo,
+        //            updatedetail,
+        //            true
+        //        );
 
-                return Ok(deleteResult);
-            }
-            catch (Exception ex)
-            {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
-                    id,
-                    source,
-                    operation,
-                    updatetype,
-                    "Delete Raven failed",
-                    otherinfo,
-                    updatedetail,
-                    ex,
-                    true
-                );
+        //        return Ok(deleteResult);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+        //            id,
+        //            source,
+        //            operation,
+        //            updatetype,
+        //            "Delete Raven failed",
+        //            otherinfo,
+        //            updatedetail,
+        //            ex,
+        //            true
+        //        );
 
-                return BadRequest(errorResult);
-            }
-        }
+        //        return BadRequest(errorResult);
+        //    }
+        //}
 
-        #endregion
+        //#endregion
 
         #region REPROCESS PUSH FAILURE QUEUE
         [Authorize(Roles = "DataPush")]
@@ -209,6 +210,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Elaborate Failurequeue succeeded",
@@ -224,6 +226,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Elaborate Failurequeue failed",
@@ -280,6 +283,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Custom Update succeeded",
@@ -295,6 +299,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Custom Update failed",
@@ -337,6 +342,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Ninja Events update succeeded",
@@ -352,6 +358,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Ninja Events update failed",
@@ -389,6 +396,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Ninja Echarging update succeeded",
@@ -404,6 +412,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Ninja Echarging update failed",
@@ -444,6 +453,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import Weather data succeeded",
@@ -459,6 +469,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import Weather data failed",
@@ -499,6 +510,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import Weather data succeeded id:" + id.ToString(),
@@ -514,6 +526,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),                    
                     operation,
                     updatetype,
                     "Import Weather data failed id:" + id.ToString(),
@@ -556,6 +569,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SIAG Museum data succeeded",
@@ -571,6 +585,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SIAG Museum data failed",
@@ -609,6 +624,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SIAG Museum Tag data succeeded",
@@ -624,6 +640,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SIAG Museum Tag data failed",
@@ -667,6 +684,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SuedtirolWein Company data succeeded",
@@ -682,6 +700,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SuedtirolWein Company data failed",
@@ -721,6 +740,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SuedtirolWein WineAward data succeeded",
@@ -736,6 +756,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SuedtirolWein WineAward data failed",
@@ -779,6 +800,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SkiArea To ODHActivityPoi data succeeded",
@@ -794,6 +816,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import SkiArea To ODHActivityPoi data failed",
@@ -920,6 +943,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodation CinCode data succeeded",
@@ -935,6 +959,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodation CinCode data failed",
@@ -983,6 +1008,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update HGV succeeded",
@@ -998,6 +1024,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update HGV failed",
@@ -1042,6 +1069,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update HGV succeeded",
@@ -1057,6 +1085,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update HGV failed",
@@ -1105,6 +1134,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update HGV succeeded",
@@ -1120,6 +1150,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update HGV failed",
@@ -1252,6 +1283,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "DSS " + dssentity + " update succeeded",
@@ -1267,6 +1299,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "DSS " + dssentity + " update failed",
@@ -1307,6 +1340,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "DSS skiarea update succeeded",
@@ -1322,6 +1356,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "DSS skiarea update failed",
@@ -1369,6 +1404,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import Looptec Ejobs succeeded",
@@ -1384,6 +1420,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import Looptec Ejobs failed",
@@ -1430,6 +1467,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import PANOMAX Webcam succeeded",
@@ -1445,6 +1483,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import PANOMAX Webcam failed",
@@ -1491,6 +1530,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import PANOCLOUD Webcam succeeded",
@@ -1506,6 +1546,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import PANOCLOUD Webcam failed",
@@ -1552,6 +1593,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import FERATEL Wecam succeeded",
@@ -1567,6 +1609,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import FERATEL Wecam failed",
@@ -1655,6 +1698,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import A22 " + a22entity + " succeeded",
@@ -1670,6 +1714,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import A22 " + a22entity + " failed",
@@ -1714,6 +1759,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS SuedtirolGuestpass Cardtypes succeeded",
@@ -1729,6 +1775,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS SuedtirolGuestpass Cardtypes data failed",
@@ -1769,6 +1816,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Events Tags succeeded",
@@ -1784,6 +1832,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Events Tags data failed",
@@ -1825,6 +1874,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Events Tags succeeded",
@@ -1840,6 +1890,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Events Tags data failed",
@@ -1881,6 +1932,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Events Categories succeeded",
@@ -1896,6 +1948,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Events Categories data failed",
@@ -1937,6 +1990,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Events Classifications succeeded",
@@ -1952,6 +2006,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Events Classifications data failed",
@@ -1993,6 +2048,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Gastronomies Categories succeeded",
@@ -2008,6 +2064,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Gastronomies Categories data failed",
@@ -2049,6 +2106,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Gastronomies Facilities succeeded",
@@ -2064,6 +2122,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Gastronomies Facilities data failed",
@@ -2105,6 +2164,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Gastronomies CeremonyCodes succeeded",
@@ -2120,6 +2180,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Gastronomies CeremonyCodes data failed",
@@ -2161,6 +2222,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Gastronomies DishCodes succeeded",
@@ -2176,6 +2238,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Gastronomies DishCodes data failed",
@@ -2217,6 +2280,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodations Categories succeeded",
@@ -2232,6 +2296,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodations Categories data failed",
@@ -2273,6 +2338,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodations Mealplans succeeded",
@@ -2288,6 +2354,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodations Mealplans data failed",
@@ -2329,6 +2396,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodation Types succeeded",
@@ -2344,6 +2412,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodation Types data failed",
@@ -2384,6 +2453,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodations Amenities succeeded",
@@ -2399,6 +2469,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodations Amenities data failed",
@@ -2439,6 +2510,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodations AmenitiesToAccommodationFeatures succeeded",
@@ -2454,6 +2526,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Accommodations AmenitiesToAccommodationFeatures data failed",
@@ -2495,6 +2568,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Venues Categories succeeded",
@@ -2510,6 +2584,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Venues Categories data failed",
@@ -2551,6 +2626,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Venues HallFeatures succeeded",
@@ -2566,6 +2642,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS Venues HallFeatures data failed",
@@ -2606,6 +2683,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS ODHActivityPois Tags succeeded",
@@ -2621,6 +2699,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS ODHActivityPois Tags data failed",
@@ -2661,6 +2740,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS ODHActivityPois TagProperties succeeded",
@@ -2676,6 +2756,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import LTS ODHActivityPois TagProperties data failed",
@@ -2770,6 +2851,7 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     UrlGeneratorStatic("LTS/" + datatypecalculated),
+                    GetEditIdentifier(),
                     OdhPushnotifier
                 );
 
@@ -2784,6 +2866,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     resulttuple.Item1,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS succeeded",
@@ -2799,6 +2882,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS failed",
@@ -2845,6 +2929,7 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     UrlGeneratorStatic("LTS/" + datatype),
+                    GetEditIdentifier(),
                     OdhPushnotifier
                 );
                 var resulttuple = await ltsapiimporthelper.UpdateSingleDataFromLTSApi(
@@ -2857,6 +2942,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     resulttuple.Item1,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS succeeded",
@@ -2872,6 +2958,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS failed",
@@ -2916,6 +3003,7 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     UrlGeneratorStatic("LTS/" + datatype),
+                    GetEditIdentifier(),
                     OdhPushnotifier
                 );
                 var result = await ltsapiimporthelper.UpdateLastChangedDataFromLTSApi(
@@ -2927,6 +3015,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     result.Item1,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS succeeded",
@@ -2941,6 +3030,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS failed",
@@ -2979,6 +3069,7 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     UrlGeneratorStatic("LTS/" + datatype),
+                    GetEditIdentifier(),
                     OdhPushnotifier
                 );
                 var result = await ltsapiimporthelper.UpdateDeletedDataFromLTSApi(
@@ -2990,6 +3081,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     result.Item1,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS succeeded",
@@ -3004,6 +3096,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS failed",
@@ -3038,6 +3131,7 @@ namespace OdhApiImporter.Controllers
                      settings,
                      QueryFactory,
                      UrlGeneratorStatic("LTS/" + datatype),
+                     GetEditIdentifier(),
                      OdhPushnotifier
                  );
                 var result = await ltsapiimporthelper.UpdateActiveInactiveDataFromLTSApi(
@@ -3049,6 +3143,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     result.Item1,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS succeeded",
@@ -3063,6 +3158,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Update LTS failed",
@@ -3098,6 +3194,7 @@ namespace OdhApiImporter.Controllers
                     settings,
                     QueryFactory,
                     UrlGeneratorStatic("LTS/" + datatype),
+                    GetEditIdentifier(),
                     OdhPushnotifier
                 );
                 var result = await ltsapiimporthelper.DeleteSingleDataFromLTSApi(
@@ -3110,6 +3207,7 @@ namespace OdhApiImporter.Controllers
                 var deleteResult = GenericResultsHelper.GetSuccessUpdateResult(
                     result.Item1,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Delete LTS succeeded",
@@ -3125,6 +3223,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Delete LTS failed",
@@ -3170,6 +3269,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "MOMENTUS Events update succeeded",
@@ -3185,6 +3285,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "MOMENTUS Events update failed",
@@ -3238,6 +3339,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "MOMENTUS Events update succeeded",
@@ -3253,6 +3355,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "MOMENTUS Events update failed",
@@ -3291,6 +3394,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "MOMENTUS Venues update succeeded",
@@ -3306,6 +3410,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "MOMENTUS Venues update failed",
@@ -3363,6 +3468,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     $"Import Outdooractive {datatype} succeeded",
@@ -3378,6 +3484,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                      $"Import Outdooractive {datatype} failed",
@@ -3561,6 +3668,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                         null,
                         source,
+                        GetEditIdentifier(),
                         operation,
                         updatetype,
                         "Import DIGIWAY " + identifier + " succeeded",
@@ -3576,6 +3684,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import DIGIWAY " + identifier + " failed",
@@ -3623,6 +3732,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                         "",
                         source,
+                        GetEditIdentifier(),
                         operation,
                         updatetype,
                         $"Import Zoho TrailClosures succeeded",
@@ -3638,6 +3748,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     $"Import Zoho TrailClosures failed",
@@ -3685,6 +3796,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import GTFSAPI StaTimeTablesStops succeeded",
@@ -3700,6 +3812,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetErrorUpdateResult(
                     null,
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     "Import GTFSAPI StaTimeTablesStops failed",
@@ -3745,6 +3858,7 @@ namespace OdhApiImporter.Controllers
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                         "",
                         source,
+                        GetEditIdentifier(),
                         operation,
                         updatetype,
                         $"Import HDS {type} succeeded",
@@ -3760,6 +3874,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     "",
                     source,
+                    GetEditIdentifier(),
                     operation,
                     updatetype,
                     $"Import HDS {type} failed",
@@ -3785,6 +3900,15 @@ namespace OdhApiImporter.Controllers
                     return location.AbsoluteUri;
                 };
             }
+        }
+
+        protected string GetEditIdentifier()
+        {
+            //Get the Name Identifier
+            return
+                this.User != null && this.User.Claims != null ?
+                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
+                    : "anonymous";
         }
 
         private static string GetUpdateType(List<string>? idlist, string lastchange = null)
@@ -3834,5 +3958,7 @@ namespace OdhApiImporter.Controllers
             var zone = TimeZoneInfo.FindSystemTimeZoneById(zoneId);
             return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zone);
         }
+
+        
     }
 }

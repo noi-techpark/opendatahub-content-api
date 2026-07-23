@@ -295,14 +295,7 @@ namespace OdhApiCore.Controllers
                 && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
             )
             {
-                editsource = HttpContext.Request.Headers["Referer"];
-
-                //Hack if Referer is infrastructure v2 api make an upsert
-                if (HttpContext.Request.Headers["Referer"] == "https://tourism.importer.v2")
-                {
-                    datainfo.ErrorWhendataExists = false;
-                    datainfo.ErrorWhendataIsNew = false;
-                }
+                editsource = HttpContext.Request.Headers["Referer"];                
             }
 
             var result = await QueryFactory.UpsertData<T>(
@@ -320,7 +313,7 @@ namespace OdhApiCore.Controllers
             //return ReturnCRUDResult(result);
 
             //Use newer UpdateResult ?
-            return ReturnUpdateResult(result, editsource, "", true);
+            return ReturnUpdateResult(result, editsource, editor, "", true);
         }
         
         #endregion
@@ -333,9 +326,8 @@ namespace OdhApiCore.Controllers
             string editsource = "api"
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
-        {
-            //TODO Username and provenance of the insert/edit
-            //Get the Name Identifier TO CHECK what about service accounts?
+        {            
+            //Get the Name Identifier
             string editor =
                 this.User != null && this.User.Claims != null ? 
                 this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
@@ -360,7 +352,10 @@ namespace OdhApiCore.Controllers
             //push modified data to all published Channels
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
 
-            return ReturnCRUDResult(result);
+            //return ReturnCRUDResult(result);
+
+            //Use newer UpdateResult ?
+            return ReturnUpdateResult(result, editsource, editor, "", true);
         }
 
         //BATCH CREATE and UPDATE data
@@ -544,10 +539,10 @@ namespace OdhApiCore.Controllers
             }
         }
 
-        protected IActionResult ReturnUpdateResult(PGCRUDResult pgcrudresult, string source, string message, bool createlog)
+        protected IActionResult ReturnUpdateResult(PGCRUDResult pgcrudresult, string source, string editedby, string message, bool createlog)
         {
             //Use UpdateResult here
-            var result = GenericResultsHelper.GetUpdateResultFromPGCRUDResult(source, message, pgcrudresult, createlog);
+            var result = GenericResultsHelper.GetUpdateResultFromPGCRUDResult(source, editedby, message, pgcrudresult, createlog);
 
             ///Give shorter Error messages to display directly in the databrowser
             ///TODO some optimizations

@@ -2,6 +2,9 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using Microsoft.AspNetCore.Components.Forms;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +13,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace DataModel
 {
@@ -49,6 +50,8 @@ namespace DataModel
         public string stacktrace { get; init; }
 
         public string source { get; init; }
+
+        public string editedby { get; init; }
     }
 
     public struct UpdateDetail
@@ -101,6 +104,8 @@ namespace DataModel
         public string stacktrace { get; init; }
 
         public string source { get; init; }
+
+        public string editedby { get; init; }
     }
 
     public struct UpdateDetailFailureQueue
@@ -380,6 +385,7 @@ namespace DataModel
         public static UpdateResult GetSuccessUpdateResult(
             string id,
             string source,
+            string editedby,
             string operation,
             string updatetype,
             string message,
@@ -392,6 +398,7 @@ namespace DataModel
             {
                 id = id,
                 source = source,
+                editedby = editedby,
                 operation = operation,
                 updatetype = updatetype,
                 otherinfo = otherinfo,
@@ -423,7 +430,7 @@ namespace DataModel
 
         public static UpdateResult GetUpdateResultFromPGCRUDResult(           
            string source,
-           //string updatetype, not needed single on PGCRUDResult
+           string editedby,
            string message,
            //string otherinfo, not needed we choose odhtype
            PGCRUDResult pgcrudresult,
@@ -434,6 +441,7 @@ namespace DataModel
             {
                 id = pgcrudresult.id,
                 source = source,
+                editedby = editedby,
                 operation = pgcrudresult.operation,
                 updatetype = "single",
                 otherinfo = pgcrudresult.odhtype,
@@ -466,6 +474,7 @@ namespace DataModel
         public static UpdateResult GetErrorUpdateResult(
             string id,
             string source,
+            string editedby,
             string operation,
             string updatetype,
             string message,
@@ -479,6 +488,7 @@ namespace DataModel
             {
                 id = id,
                 source = source,
+                editedby = editedby,
                 operation = operation,
                 updatetype = updatetype,
                 otherinfo = otherinfo,
@@ -509,6 +519,7 @@ namespace DataModel
         public static UpdateResultFailureQueue GetSuccessUpdateResult(
             string id,
             string source,
+            string editedby,
             string operation,
             string updatetype,
             string message,
@@ -521,6 +532,7 @@ namespace DataModel
             {
                 id = id,
                 source = source,
+                editedby = editedby,
                 operation = operation,
                 updatetype = updatetype,
                 otherinfo = otherinfo,
@@ -543,6 +555,7 @@ namespace DataModel
         public static UpdateResultFailureQueue GetErrorUpdateResult(
             string id,
             string source,
+            string editedby,
             string operation,
             string updatetype,
             string message,
@@ -556,6 +569,7 @@ namespace DataModel
             {
                 id = id,
                 source = source,
+                editedby = editedby,
                 operation = operation,
                 updatetype = updatetype,
                 otherinfo = otherinfo,

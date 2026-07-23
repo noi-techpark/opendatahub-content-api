@@ -706,6 +706,7 @@ namespace Helper
                 GenericResultsHelper.GetErrorUpdateResult(
                     data.Id,
                     "api",
+                    editinfo.Editor,
                     "Insert Rawchanges",
                     "single",
                     "Insert Rawchanges failed, " + equalityresult.patch != null ? equalityresult.patch.ToString() : "no change",

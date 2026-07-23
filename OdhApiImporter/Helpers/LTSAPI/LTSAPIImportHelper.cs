@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -25,11 +26,13 @@ namespace OdhApiImporter.Helpers
         private readonly ISettings settings;
         private string importerURL;
         private IOdhPushNotifier OdhPushnotifier;
+        private string editorid;
 
         public LTSAPIImportHelper(
             ISettings settings,
             QueryFactory queryfactory,
             string importerURL,
+            string editorid,
             IOdhPushNotifier odhpushnotifier
         )
         {
@@ -37,6 +40,7 @@ namespace OdhApiImporter.Helpers
             this.settings = settings;
             this.importerURL = importerURL;
             this.OdhPushnotifier = odhpushnotifier;
+            this.editorid = editorid;
         }
 
         //Update Single Data                
@@ -552,6 +556,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
@@ -589,6 +594,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
@@ -626,6 +632,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
@@ -663,6 +670,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
@@ -700,6 +708,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
@@ -737,6 +746,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
@@ -774,6 +784,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
@@ -811,6 +822,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             resulttuple.Item1,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.lastchanged",
                             "Update LTS succeeded",
@@ -885,6 +897,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             id,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
@@ -950,6 +963,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             id,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
@@ -1015,6 +1029,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             id,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
@@ -1080,6 +1095,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             id,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
@@ -1145,6 +1161,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             id,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
@@ -1210,6 +1227,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             id,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
@@ -1275,6 +1293,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             id,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
@@ -1339,6 +1358,7 @@ namespace OdhApiImporter.Helpers
                         GenericResultsHelper.GetSuccessUpdateResult(
                             id,
                             "api",
+                            editorid,
                             "Update LTS",
                             "single.deleted",
                             "Update LTS succeeded",
@@ -1457,6 +1477,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     id,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.inactivesync",
                                     "Update LTS succeeded",
@@ -1489,6 +1510,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     resulttuple.Item1,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.activesync",
                                     "Update LTS succeeded",
@@ -1570,6 +1592,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     id,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.inactivesync",
                                     "Update LTS succeeded",
@@ -1608,6 +1631,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     resulttuple.Item1,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.activesync",
                                     "Update LTS succeeded",
@@ -1690,6 +1714,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     id,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.inactivesync",
                                     "Update LTS succeeded",
@@ -1727,6 +1752,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     resulttuple.Item1,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.activesync",
                                     "Update LTS succeeded",
@@ -1809,6 +1835,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     id,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.inactivesync",
                                     "Update LTS succeeded",
@@ -1846,6 +1873,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     resulttuple.Item1,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.activesync",
                                     "Update LTS succeeded",
@@ -1928,6 +1956,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     id,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.inactivesync",
                                     "Update LTS succeeded",
@@ -1965,6 +1994,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     resulttuple.Item1,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.activesync",
                                     "Update LTS succeeded",
@@ -2047,6 +2077,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     id,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.inactivesync",
                                     "Update LTS succeeded",
@@ -2084,6 +2115,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     resulttuple.Item1,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.activesync",
                                     "Update LTS succeeded",
@@ -2166,6 +2198,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     id,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.inactivesync",
                                     "Update LTS succeeded",
@@ -2203,6 +2236,7 @@ namespace OdhApiImporter.Helpers
                                 GenericResultsHelper.GetSuccessUpdateResult(
                                     resulttuple.Item1,
                                     "api",
+                                    editorid,
                                     "Update LTS",
                                     "single.activesync",
                                     "Update LTS succeeded",
@@ -2286,6 +2320,7 @@ namespace OdhApiImporter.Helpers
                             GenericResultsHelper.GetSuccessUpdateResult(
                                 id,
                                 "api",
+                                editorid,
                                 "Update LTS",
                                 "single.inactivesync",
                                 "Update LTS succeeded",
@@ -2318,6 +2353,7 @@ namespace OdhApiImporter.Helpers
                             GenericResultsHelper.GetSuccessUpdateResult(
                                 resulttuple.Item1,
                                 "api",
+                                editorid,
                                 "Update LTS",
                                 "single.activesync",
                                 "Update LTS succeeded",
@@ -2472,6 +2508,7 @@ namespace OdhApiImporter.Helpers
 
             return myxmlfiles;
         }
+
     }
 }
 
