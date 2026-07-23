@@ -282,9 +282,8 @@ namespace OdhApiCore.Controllers
             string editsource = "api"
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
-        {
-            //TODO Username and provenance of the insert/edit
-            //Get the Name Identifier TO CHECK what about service accounts?
+        {            
+            //Get the Identifier of the User that modfies the data
             string editor =
                 this.User != null && this.User.Claims != null ?
                 this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
@@ -308,11 +307,7 @@ namespace OdhApiCore.Controllers
 
             //push modified data to all published Channels
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
-
-
-            //return ReturnCRUDResult(result);
-
-            //Use newer UpdateResult ?
+                       
             return ReturnUpdateResult(result, editsource, editor, "", true);
         }
         
@@ -326,8 +321,8 @@ namespace OdhApiCore.Controllers
             string editsource = "api"
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
-        {            
-            //Get the Name Identifier
+        {
+            //Get the Identifier of the User that modfies the data
             string editor =
                 this.User != null && this.User.Claims != null ? 
                 this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
@@ -351,10 +346,7 @@ namespace OdhApiCore.Controllers
 
             //push modified data to all published Channels
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
-
-            //return ReturnCRUDResult(result);
-
-            //Use newer UpdateResult ?
+            
             return ReturnUpdateResult(result, editsource, editor, "", true);
         }
 
@@ -429,6 +421,7 @@ namespace OdhApiCore.Controllers
             //push modified data to all published Channels
             result.pushed = await PushDeletedObject(result, result.id, result.odhtype);
 
+            //TODO change to ReturnUpdateResult 
             return ReturnCRUDResult(result);
         }
 
