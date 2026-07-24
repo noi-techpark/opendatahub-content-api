@@ -226,11 +226,13 @@ namespace OdhApiCore
             {
                 options.ClearProviders();
 
+                var configuredDefaultLevel = Configuration.GetValue(
+                    "Logging:LogLevel:Default",
+                    CurrentEnvironment.IsDevelopment() ? LogEventLevel.Debug : LogEventLevel.Warning
+                );
                 var levelSwitch = new LoggingLevelSwitch
                 {
-                    MinimumLevel = CurrentEnvironment.IsDevelopment()
-                        ? LogEventLevel.Debug
-                        : LogEventLevel.Warning,
+                    MinimumLevel = configuredDefaultLevel,
                 };
                 var loggerConfiguration = new LoggerConfiguration()
                     .MinimumLevel.ControlledBy(levelSwitch)
