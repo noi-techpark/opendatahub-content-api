@@ -13,14 +13,16 @@
       "commandName": "IISExpress",
       "launchUrl": "api/status",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Logging__LogLevel__Default": "Debug"
       }
     },
     "OdhApiCore": {
       "commandName": "Project",
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"   
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Logging__LogLevel__Default": "Debug"
       },
       "applicationUrl": "https://localhost:5001;http://localhost:5000"
     },
@@ -33,14 +35,18 @@
         "ASPNETCORE_URLS": "http://+:80",
         "ASPNETCORE_ConnectionStrings__PgConnection": "PG_CONNECTION",
         "ASPNETCORE_JsonConfig__Jsondir": "wwwroot/json/",
-        "ASPNETCORE_Xmldir__Xmldir": "XMLDIR"
+        "ASPNETCORE_Xmldir__Xmldir": "XMLDIR",
+        "Logging__LogLevel__Default": "Debug"
       },
       "httpPort": 8001,
       "useSSL": false
     },
     "dotnet": {
       "commandName": "Project",
-      "hotReloadProfile": "aspnetcore"
+      "hotReloadProfile": "aspnetcore",
+      "environmentVariables": {
+        "Logging__LogLevel__Default": "Debug"
+      }
     }
   }
 }
