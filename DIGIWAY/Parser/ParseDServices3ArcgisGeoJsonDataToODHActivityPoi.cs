@@ -151,6 +151,7 @@ namespace DIGIWAY
             var result = identifier switch
             {
                 "accessibletrails_austria" => ParseAccessibleTrailsAustriaToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "hikintrail_e5" => ParseHikingTrailsE5ToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
                 "_" => null
             };
 
@@ -207,7 +208,7 @@ namespace DIGIWAY
             spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
             {
                 Title = digiwaydata.Attributes["NAME"].ToString() != null ? digiwaydata.Attributes["NAME"].ToString() : null,                
-                Language = "it"
+                Language = "de"
             });
 
             spatialdata.Source = source;
@@ -217,6 +218,65 @@ namespace DIGIWAY
             spatialdata.TagIds.Add(identifier);
             spatialdata.TagIds.Add("hiking");
             spatialdata.TagIds.Add("barrier-free");
+
+            //Add each Geojson Featurecollection to Mapping
+            spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
+
+            Dictionary<string, string> additionalvalues = new Dictionary<string, string>();
+            foreach (var feature in digiwaydata.Attributes)
+            {
+                if (feature.Value != null)
+                    additionalvalues.Add(feature.Key, feature.Value?.ToString());
+            }
+            spatialdata.Mapping.TryAddOrUpdate(source, additionalvalues);
+
+            spatialdata.Geo = ParseGeoServerGeodataToWKTAndPosition(digiwaydata, srid);
+
+            return spatialdata;
+        }
+
+        private static SpatialData ParseHikingTrailsE5ToSpatialData(
+            SpatialData? spatialdata,
+            GeoJsonFeature digiwaydata,
+            string identifier,
+            string source,
+            string srid
+        )
+        {
+            if (spatialdata == null)
+                spatialdata = new SpatialData();
+
+            spatialdata.Id = "urn:" + source + ":" + identifier + ":" + digiwaydata.Attributes["OBJECTID"].ToString().ToLower() + ":" + digiwaydata.Attributes["PATH_CODE"].ToString().ToLower();
+
+            spatialdata.Active = true;
+            spatialdata.FirstImport = spatialdata.FirstImport == null ? DateTime.Now : spatialdata.FirstImport;
+            spatialdata.LastChange = spatialdata.LastChange == null ? DateTime.Now : spatialdata.LastChange;
+            spatialdata.HasLanguage = new List<string>() { "de", "it", "en" };
+            spatialdata.Shortname = digiwaydata.Attributes["PATH_E"] != null ? digiwaydata.Attributes["PATH_E"].ToString() : null;
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("de", new DetailGeneric()
+            {
+                Title = digiwaydata.Attributes["PATH_D"].ToString() != null ? digiwaydata.Attributes["PATH_D"].ToString() + " - " + digiwaydata.Attributes["RESPORGDIGIWAY_D"].ToString() : null,
+                Language = "de"
+            });
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("it", new DetailGeneric()
+            {
+                Title = digiwaydata.Attributes["PATH_I"].ToString() != null ? digiwaydata.Attributes["PATH_I"].ToString() + " - " + digiwaydata.Attributes["RESPORGDIGIWAY_I"].ToString() : null,                
+                Language = "it"
+            });
+            spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>("en", new DetailGeneric()
+            {
+                Title = digiwaydata.Attributes["PATH_E"].ToString() != null ? digiwaydata.Attributes["PATH_E"].ToString() + " - " + digiwaydata.Attributes["RESPORGDIGIWAY_E"].ToString() : null,
+                Language = "en"
+            });
+
+            spatialdata.Source = source;
+
+            //Add Tags
+            spatialdata.TagIds = new List<string>();
+            spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds.Add("hiking");            
 
             //Add each Geojson Featurecollection to Mapping
             spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
