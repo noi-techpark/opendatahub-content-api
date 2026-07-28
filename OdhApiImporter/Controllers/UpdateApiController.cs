@@ -2775,7 +2775,7 @@ namespace OdhApiImporter.Controllers
 
         //Dispatcher (to redirect type odhactivitypoi to the right interface)
         [HttpGet, Route("SyncDataFromLTS/{datatype}/{id}")]
-        [Authorize(Roles = "DataPush")]
+        [Authorize(Roles = "DataPush,LTSDataPush")]
         public async Task<IActionResult> SyncDataFromLTSDispatcher(
             string id,
             string datatype,
@@ -2897,7 +2897,7 @@ namespace OdhApiImporter.Controllers
         }
 
         [HttpPost, Route("SyncDataFromLTS/{datatype}/{id}")]
-        [Authorize(Roles = "DataPush")]
+        [Authorize(Roles = "DataPush,LTSDataPush")]
         public async Task<IActionResult> SyncDataFromLTSDispatcherPost(
             string id,
             string datatype,
