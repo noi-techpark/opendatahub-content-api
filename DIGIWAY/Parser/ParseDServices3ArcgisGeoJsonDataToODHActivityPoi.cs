@@ -151,7 +151,7 @@ namespace DIGIWAY
             var result = identifier switch
             {
                 "accessibletrails_austria" => ParseAccessibleTrailsAustriaToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
-                "hikintrail_e5" => ParseHikingTrailsE5ToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
+                "hikingtrail_e5" => ParseHikingTrailsE5ToSpatialData(spatialdata, digiwaydata, identifier, source, srid),
                 "_" => null
             };
 
