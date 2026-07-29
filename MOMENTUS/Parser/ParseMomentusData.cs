@@ -14,7 +14,7 @@ namespace MOMENTUS.Parser
 {
     public class ParseMomentusData
     {
-        public static EventLinked? ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist, EventLinked? eventlinked, VenueV2? venuelinked)
+        public static EventLinked? ParseMomentusEvent(MomentusEvent mevent, IEnumerable<MomentusFunction> functionlist, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist, EventLinked? eventlinked, VenueV2? venuelinked, bool optimizedays = false)
         {
             if (eventlinked == null)
                 eventlinked = new EventLinked();
@@ -45,6 +45,12 @@ namespace MOMENTUS.Parser
             eventlinked.LastChange = DateTime.Now;
             eventlinked.FirstImport = firstimport ?? DateTime.Now;
 
+            // Date range: start from event-level dates+times, then refine from non-private booked spaces
+            eventlinked.DateBegin = mevent.Start?.ToDateTime(
+                TimeSpan.TryParse(mevent.StartTime, out var st) ? TimeOnly.FromTimeSpan(st) : TimeOnly.MinValue);
+            eventlinked.DateEnd = mevent.End?.ToDateTime(
+                TimeSpan.TryParse(mevent.EndTime, out var et) ? TimeOnly.FromTimeSpan(et) : TimeOnly.MinValue);
+
             // Save existing BaseTexts before rebuilding Detail (may be cleared if lang entry is re-created)
             var existingBaseTexts = eventlinked.Detail
                 .Where(kv => !string.IsNullOrEmpty(kv.Value.BaseText))
@@ -66,6 +72,10 @@ namespace MOMENTUS.Parser
 
             // EventDates from booked spaces (one entry per day, rooms resolved via venue mapping)
             eventlinked.EventDate = BuildEventDates(mevent, venuelinked, bookedspacelist);
+
+            // Recalculate root DateBegin/DateEnd from active EventDates
+            if (optimizedays)
+                RefineRootDatesFromEventDates(eventlinked);
 
             // ContactInfos from first contact role
             if (mevent.ContactRoles != null && mevent.ContactRoles.Count > 0)
@@ -201,6 +211,23 @@ namespace MOMENTUS.Parser
             }
 
             return publishers;
+        }
+
+        private static void RefineRootDatesFromEventDates(EventLinked eventlinked)
+        {
+            var active = eventlinked.EventDate?.Where(ed => ed.Active == true).ToList();
+            if (active == null || active.Count == 0)
+                return;
+
+            var first = active.OrderBy(ed => ed.From).First();
+            eventlinked.DateBegin = first.Begin.HasValue
+                ? first.From.Date + first.Begin.Value
+                : first.From.Date;
+
+            var last = active.OrderBy(ed => ed.To).Last();
+            eventlinked.DateEnd = last.End.HasValue
+                ? last.To.Date + last.End.Value
+                : last.To.Date;
         }
 
         private static void BuildDetailFromFunctions(EventLinked eventlinked, IEnumerable<MomentusFunction> functionlist, string? description)
