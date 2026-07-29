@@ -678,13 +678,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             //Reorder Event Dates
             eventNew.EventDate = eventNew.EventDate.OrderBy(x => x.From).ToList();
 
-            //Set Begindate to the first possible date
-            if(eventNew.EventDate.Count > 0)
-                eventNew.DateBegin = eventNew.EventDate.Select(x => x.From).Min();
-
-            //Set Enddate to the last possible date
-            if(eventNew.EventDate.Count > 0)
-                eventNew.DateEnd = eventNew.EventDate.Select(x => x.To).Max();
+            //DateBegin/DateEnd are now calculated automatically from the Active EventDates
         }
 
         private async Task MergeEventTags(EventLinked eventNew, EventLinked eventOld)
