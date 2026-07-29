@@ -770,10 +770,25 @@ namespace DataModel
         public DistanceInfo? DistanceInfo { get; set; }
 
 
-        [SwaggerSchema("First Date when the Event occurs, Detailed Eventdates in Section EventDates")]
-        public DateTime? DateBegin { get; set; }
-        [SwaggerSchema("Last Date when the Event occurs, Detailed Eventdates in Section EventDates")]
-        public DateTime? DateEnd { get; set; }
+        [SwaggerSchema(Description = "First Date when the Event occurs, calculated from the first Active EventDate, Detailed Eventdates in Section EventDates", ReadOnly = true)]
+        public DateTime? DateBegin
+        {
+            get
+            {
+                var first = this.EventDate?.Where(x => x.Active != false).OrderBy(x => x.From).FirstOrDefault();
+                return first != null ? first.From.Date + (first.Begin ?? TimeSpan.Zero) : null;
+            }
+        }
+
+        [SwaggerSchema(Description = "Last Date when the Event occurs, calculated from the last Active EventDate, Detailed Eventdates in Section EventDates", ReadOnly = true)]
+        public DateTime? DateEnd
+        {
+            get
+            {
+                var last = this.EventDate?.Where(x => x.Active != false).OrderBy(x => x.To).LastOrDefault();
+                return last != null ? last.To.Date + (last.End ?? TimeSpan.Zero) : null;
+            }
+        }
 
 
         //GPS Info

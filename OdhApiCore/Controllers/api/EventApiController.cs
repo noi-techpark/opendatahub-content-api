@@ -660,6 +660,10 @@ namespace OdhApiCore.Controllers
                 else if (String.IsNullOrEmpty(odhevent.Id))
                     throw new Exception("Id is null");
 
+                //DateBegin/DateEnd are calculated from EventDate, at least one entry is required
+                if (odhevent.EventDate == null || odhevent.EventDate.Count == 0)
+                    throw new Exception("At least one EventDate is required");
+
                 //GENERATE HasLanguage
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo
@@ -708,6 +712,10 @@ namespace OdhApiCore.Controllers
                 AdditionalFiltersToAdd.TryGetValue("Update", out var additionalfilter);
 
                 odhevent.Id = Helper.IdGenerator.CheckIdFromType<EventLinked>(id);
+
+                //DateBegin/DateEnd are calculated from EventDate, at least one entry is required
+                if (odhevent.EventDate == null || odhevent.EventDate.Count == 0)
+                    throw new Exception("At least one EventDate is required");
 
                 //GENERATE HasLanguage
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
