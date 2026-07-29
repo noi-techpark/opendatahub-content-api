@@ -770,24 +770,34 @@ namespace DataModel
         public DistanceInfo? DistanceInfo { get; set; }
 
 
-        [SwaggerSchema(Description = "First Date when the Event occurs, calculated from the first Active EventDate, Detailed Eventdates in Section EventDates", ReadOnly = true)]
+        private DateTime? _dateBegin;
+        [SwaggerSchema("First Date when the Event occurs, calculated from the first Active EventDate if not explicitly set, Detailed Eventdates in Section EventDates")]
         public DateTime? DateBegin
         {
             get
             {
+                if (_dateBegin != null)
+                    return _dateBegin;
+
                 var first = this.EventDate?.Where(x => x.Active != false).OrderBy(x => x.From).FirstOrDefault();
                 return first != null ? first.From.Date + (first.Begin ?? TimeSpan.Zero) : null;
             }
+            set { _dateBegin = value; }
         }
 
-        [SwaggerSchema(Description = "Last Date when the Event occurs, calculated from the last Active EventDate, Detailed Eventdates in Section EventDates", ReadOnly = true)]
+        private DateTime? _dateEnd;
+        [SwaggerSchema("Last Date when the Event occurs, calculated from the last Active EventDate if not explicitly set, Detailed Eventdates in Section EventDates")]
         public DateTime? DateEnd
         {
             get
             {
+                if (_dateEnd != null)
+                    return _dateEnd;
+
                 var last = this.EventDate?.Where(x => x.Active != false).OrderBy(x => x.To).LastOrDefault();
                 return last != null ? last.To.Date + (last.End ?? TimeSpan.Zero) : null;
             }
+            set { _dateEnd = value; }
         }
 
 
