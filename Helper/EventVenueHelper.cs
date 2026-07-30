@@ -73,6 +73,30 @@ namespace Helper
                 odhevent.TagIds = odhevent.TagIds.Append(eventLocationValue).ToList();
         }
 
+        public static async Task AssignGpsInfoFromVenue(this EventLinked odhevent, QueryFactory queryFactory)
+        {
+            if (odhevent.VenueIds == null || odhevent.VenueIds.Count == 0)
+                return;
+
+            var venueId = odhevent.VenueIds.First();
+
+            var venueRaw = await queryFactory
+                .Query("venues")
+                .Select("data")
+                .Where("id", "ILIKE", venueId)
+                .FirstOrDefaultAsync<JsonRaw?>();
+
+            if (venueRaw == null)
+                return;
+
+            var venue = JsonConvert.DeserializeObject<VenueV2>(venueRaw.Value);
+
+            if (venue == null)
+                return;
+
+            odhevent.GpsInfo = venue.GpsInfo;
+        }
+
         public static void GenerateRoomDetailIds(this VenueV2 venue)
         {
             if (venue.RoomDetails == null)
