@@ -35,10 +35,6 @@ namespace OdhApiCore.Controllers
     [NullStringParameterActionFilter]
     public class EventController : OdhController
     {
-        //Sources whose importers calculate/manage DateBegin/DateEnd themselves,
-        //so the API should not overwrite them with the EventDate-based calculation
-        private static readonly string[] ImporterManagedEventSources = { "momentus", "lts", "trevilab", "drin" };
-
         public EventController(
             IWebHostEnvironment env,
             ISettings settings,
@@ -668,14 +664,6 @@ namespace OdhApiCore.Controllers
                 if (odhevent.EventDate == null || odhevent.EventDate.Count == 0)
                     throw new Exception("At least one EventDate is required");
 
-                //Recalculate DateBegin/DateEnd from the Active EventDates, unless the Event
-                //comes from an importer that manages these fields itself
-                if (!ImporterManagedEventSources.Contains(odhevent.Source ?? "", StringComparer.OrdinalIgnoreCase))
-                {
-                    odhevent.DateBegin = null;
-                    odhevent.DateEnd = null;
-                }
-
                 //GENERATE HasLanguage
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
                 //POPULATE LocationInfo
@@ -728,14 +716,6 @@ namespace OdhApiCore.Controllers
                 //DateBegin/DateEnd are calculated from EventDate, at least one entry is required
                 if (odhevent.EventDate == null || odhevent.EventDate.Count == 0)
                     throw new Exception("At least one EventDate is required");
-
-                //Recalculate DateBegin/DateEnd from the Active EventDates, unless the Event
-                //comes from an importer that manages these fields itself
-                if (!ImporterManagedEventSources.Contains(odhevent.Source ?? "", StringComparer.OrdinalIgnoreCase))
-                {
-                    odhevent.DateBegin = null;
-                    odhevent.DateEnd = null;
-                }
 
                 //GENERATE HasLanguage
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });

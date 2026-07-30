@@ -45,11 +45,11 @@ namespace MOMENTUS.Parser
             eventlinked.LastChange = DateTime.Now;
             eventlinked.FirstImport = firstimport ?? DateTime.Now;
 
-            // Date range: start from event-level dates+times, then refine from non-private booked spaces
-            eventlinked.DateBegin = mevent.Start?.ToDateTime(
-                TimeSpan.TryParse(mevent.StartTime, out var st) ? TimeOnly.FromTimeSpan(st) : TimeOnly.MinValue);
-            eventlinked.DateEnd = mevent.End?.ToDateTime(
-                TimeSpan.TryParse(mevent.EndTime, out var et) ? TimeOnly.FromTimeSpan(et) : TimeOnly.MinValue);
+            //DateBegin/DateEnd are now calculated on the datamodel side from the Active EventDates
+            //eventlinked.DateBegin = mevent.Start?.ToDateTime(
+            //    TimeSpan.TryParse(mevent.StartTime, out var st) ? TimeOnly.FromTimeSpan(st) : TimeOnly.MinValue);
+            //eventlinked.DateEnd = mevent.End?.ToDateTime(
+            //    TimeSpan.TryParse(mevent.EndTime, out var et) ? TimeOnly.FromTimeSpan(et) : TimeOnly.MinValue);
 
             // Save existing BaseTexts before rebuilding Detail (may be cleared if lang entry is re-created)
             var existingBaseTexts = eventlinked.Detail
@@ -73,9 +73,9 @@ namespace MOMENTUS.Parser
             // EventDates from booked spaces (one entry per day, rooms resolved via venue mapping)
             eventlinked.EventDate = BuildEventDates(mevent, venuelinked, bookedspacelist);
 
-            // Recalculate root DateBegin/DateEnd from active EventDates
-            if (optimizedays)
-                RefineRootDatesFromEventDates(eventlinked);
+            //DateBegin/DateEnd are now calculated on the datamodel side from the Active EventDates
+            //if (optimizedays)
+            //    RefineRootDatesFromEventDates(eventlinked);
 
             // ContactInfos from first contact role
             if (mevent.ContactRoles != null && mevent.ContactRoles.Count > 0)
@@ -100,6 +100,10 @@ namespace MOMENTUS.Parser
                 ["id"] = mevent.Id ?? "",
                 ["eventTypeId"] = mevent.EventTypeId ?? "",
                 ["eventTypeName"] = mevent.EventTypeName ?? "",
+                ["start"] = mevent.Start?.ToString("yyyy-MM-dd") ?? "",
+                ["end"] = mevent.End?.ToString("yyyy-MM-dd") ?? "",
+                ["starttime"] = mevent.StartTime ?? "",
+                ["endtime"] = mevent.EndTime ?? "",
             };
             if (mevent.ExternalIds != null)
             {
@@ -213,22 +217,23 @@ namespace MOMENTUS.Parser
             return publishers;
         }
 
-        private static void RefineRootDatesFromEventDates(EventLinked eventlinked)
-        {
-            var active = eventlinked.EventDate?.Where(ed => ed.Active == true).ToList();
-            if (active == null || active.Count == 0)
-                return;
+        //DateBegin/DateEnd are now calculated on the datamodel side from the Active EventDates
+        //private static void RefineRootDatesFromEventDates(EventLinked eventlinked)
+        //{
+        //    var active = eventlinked.EventDate?.Where(ed => ed.Active == true).ToList();
+        //    if (active == null || active.Count == 0)
+        //        return;
 
-            var first = active.OrderBy(ed => ed.From).First();
-            eventlinked.DateBegin = first.Begin.HasValue
-                ? first.From.Date + first.Begin.Value
-                : first.From.Date;
+        //    var first = active.OrderBy(ed => ed.From).First();
+        //    eventlinked.DateBegin = first.Begin.HasValue
+        //        ? first.From.Date + first.Begin.Value
+        //        : first.From.Date;
 
-            var last = active.OrderBy(ed => ed.To).Last();
-            eventlinked.DateEnd = last.End.HasValue
-                ? last.To.Date + last.End.Value
-                : last.To.Date;
-        }
+        //    var last = active.OrderBy(ed => ed.To).Last();
+        //    eventlinked.DateEnd = last.End.HasValue
+        //        ? last.To.Date + last.End.Value
+        //        : last.To.Date;
+        //}
 
         private static void BuildDetailFromFunctions(EventLinked eventlinked, IEnumerable<MomentusFunction> functionlist, string? description)
         {
