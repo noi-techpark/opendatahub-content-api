@@ -41,8 +41,9 @@ namespace Helper.Converters
             eventv1.GpsInfo = eventshort.GpsInfo;
             eventv1.Mapping = eventshort.Mapping;
 
-            eventv1.DateBegin = eventshort.StartDate;
-            eventv1.DateEnd = eventshort.EndDate;
+            //DateBegin/DateEnd are now calculated on the datamodel side from the Active EventDates
+            //eventv1.DateBegin = eventshort.StartDate;
+            //eventv1.DateEnd = eventshort.EndDate;
 
             eventv1.FirstImport = eventshort.FirstImport;
             eventv1.LastChange = eventshort.LastChange;
