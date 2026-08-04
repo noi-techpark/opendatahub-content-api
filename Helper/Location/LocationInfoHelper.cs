@@ -323,7 +323,7 @@ namespace Helper.Location
                                 isinsouthtyrol = await queryFactory
                                     .Query()
                                     .SelectRaw(
-                                        $"ST_Contains((select geometry4326 from geoshapes where name = 'Bolzano'), st_setsrid(st_makepoint(({gps.Longitude.GetValueOrDefault(0).ToString(culture)})::double precision, ({gps.Latitude.GetValueOrDefault(0).ToString(culture)})::double precision), 4326))"
+                                        $"ST_Contains((select geometry4326 from geoshapes where name = 'Bolzano' limit 1), st_setsrid(st_makepoint(({gps.Longitude.GetValueOrDefault(0).ToString(culture)})::double precision, ({gps.Latitude.GetValueOrDefault(0).ToString(culture)})::double precision), 4326))"
                                     )
                                     .FirstOrDefaultAsync<bool>();
                             }
