@@ -1688,7 +1688,65 @@ namespace OdhApiImporter.Helpers
 
             return i;
         }
-     
+
+        public async Task<int> FillEventVideoUrlToEvents()
+        {
+            //Load all EventShorts that have a VideoUrl set
+            var query = QueryFactory.Query().SelectRaw("data").From("eventeuracnoi");
+
+            var data = await query.GetObjectListAsync<EventShortLinked>();
+            int i = 0;
+
+            var eventshortswithvideo = data.Where(x => !String.IsNullOrEmpty(x.VideoUrl)).ToList();
+
+            foreach (var eventshort in eventshortswithvideo)
+            {
+                //The Event Id is built as "urn:event:<source>:<eventshort id without the 'eventshort-' prefix>"
+                //(see EventEventShortConverter), so a suffix match is enough to find the corresponding Event
+                var eventidsuffix = eventshort.Id.Replace("eventshort-", "");
+
+                var eventdata = await QueryFactory
+                    .Query("events")
+                    .Select("data")
+                    .WhereRaw("id ILIKE $$", "%" + eventidsuffix)
+                    .GetObjectSingleAsync<EventLinked>();
+
+                if (eventdata == null)
+                    continue;
+
+                if (eventdata.VideoItems == null)
+                    eventdata.VideoItems = new Dictionary<string, ICollection<VideoItems>>();
+
+                var languages =
+                    eventshort.HasLanguage != null && eventshort.HasLanguage.Count > 0
+                        ? eventshort.HasLanguage
+                        : new List<string>() { "de", "it", "en" };
+
+                foreach (var language in languages)
+                {
+                    var videoitem = new VideoItems() { Url = eventshort.VideoUrl, Language = language, Active = true };
+
+                    if (
+                        eventdata.VideoItems.TryGetValue(language, out var existingvideoitems)
+                        && existingvideoitems != null
+                    )
+                        existingvideoitems.Add(videoitem);
+                    else
+                        eventdata.VideoItems[language] = new List<VideoItems>() { videoitem };
+                }
+
+                var queryresult = await QueryFactory
+                    .Query("events")
+                    .Where("id", eventdata.Id.ToLower())
+                    .UpdateAsync(
+                        new JsonBData() { id = eventdata.Id.ToLower(), data = new JsonRaw(eventdata) }
+                    );
+
+                i += queryresult;
+            }
+
+            return i;
+        }
 
         #endregion
 
