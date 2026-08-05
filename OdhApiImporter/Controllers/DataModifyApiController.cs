@@ -861,6 +861,130 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("RemoveUpdateSourceFromHistory/{type}")]
+        public async Task<IActionResult> RemoveUpdateSourceFromHistory(
+            string type,
+            string updatesource,
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                CustomDataOperation customdataoperation = new CustomDataOperation(
+                    settings,
+                    QueryFactory
+                );
+
+                if (String.IsNullOrEmpty(updatesource))
+                    throw new Exception("updatesource must not be empty");
+
+                var table = ODHTypeHelper.TranslateTypeString2Table(type);
+
+                var result = default(Tuple<int, int>);
+
+                switch (type)
+                {
+                    case "accommodation":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<AccommodationLinked>(table, updatesource);
+                        break;
+                    case "accommodationroom":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<AccommodationRoomLinked>(table, updatesource);
+                        break;
+                    case "odhactivitypoi":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<ODHActivityPoiLinked>(table, updatesource);
+                        break;
+                    case "event":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<EventLinked>(table, updatesource);
+                        break;
+                    case "eventshort":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<EventShortLinked>(table, updatesource);
+                        break;
+                    case "article":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<ArticlesLinked>(table, updatesource);
+                        break;
+                    case "venue":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<VenueLinked>(table, updatesource);
+                        break;
+                    case "webcam":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<WebcamInfoLinked>(table, updatesource);
+                        break;
+                    case "wineaward":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<WineLinked>(table, updatesource);
+                        break;
+                    case "weatherhistory":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<WeatherHistoryLinked>(table, updatesource);
+                        break;
+                    case "area":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<AreaLinked>(table, updatesource);
+                        break;
+                    case "municipality":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<MunicipalityLinked>(table, updatesource);
+                        break;
+                    case "district":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<DistrictLinked>(table, updatesource);
+                        break;
+                    case "region":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<RegionLinked>(table, updatesource);
+                        break;
+                    case "tourismassociation":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<TourismvereinLinked>(table, updatesource);
+                        break;
+                    case "skiarea":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<SkiAreaLinked>(table, updatesource);
+                        break;
+                    case "skiregion":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<SkiRegionLinked>(table, updatesource);
+                        break;
+                    case "tag":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<TagLinked>(table, updatesource);
+                        break;
+                    case "odhtag":
+                        result = await customdataoperation.RemoveUpdateSourceFromHistory<ODHTagLinked>(table, updatesource);
+                        break;
+                    default:
+                        throw new Exception("unsupported Type");
+                }
+
+                return Ok(
+                    new
+                    {
+                        operation = "RemoveUpdateSourceFromHistory " + type,
+                        updatetype = "custom",
+                        otherinfo = updatesource,
+                        message = "Done",
+                        recordschecked = result.Item1,
+                        recordsmodified = result.Item2,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = result.Item2,
+                        success = true,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(
+                    new UpdateResult
+                    {
+                        operation = "RemoveUpdateSourceFromHistory " + type,
+                        updatetype = "custom",
+                        otherinfo = updatesource,
+                        message = "Error",
+                        recordsmodified = 0,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = 0,
+                        success = false,
+                        error = 1,
+                        exception = ex.Message,
+                    }
+                );
+            }
+        }
+
         #endregion
 
         #region ODHTag
