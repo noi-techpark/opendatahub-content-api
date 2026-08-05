@@ -344,12 +344,3 @@ jobs:
           docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           project-name: ${{ env.PROJECT_NAME }}
           playbook-file: 'deploy.importer.yml'
-      - name: Generate Json
-        run: |
-          curl "${{ env.API_URL_IMPORTER }}ODH/Taglist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagAutoPublishlist"
-          # curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagCategorieslist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/ActivityPoiDatalist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/AccommodationFeatures"
