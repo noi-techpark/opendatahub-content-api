@@ -344,16 +344,12 @@ jobs:
           docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           project-name: ${{ env.PROJECT_NAME }}
           playbook-file: 'deploy.importer.yml'
-
-      # No longer needed: JsonGeneratorStartupService now generates these on pod boot.
-      # Kept here (disabled) as a fallback since prod's docker-deploy has no readiness-gated
-      # routing like the k8s test deploy does - re-enable if that turns out to still be needed.
-      # - name: Generate Json
-      #   run: |
-      #     curl "${{ env.API_URL_IMPORTER }}ODH/Taglist"
-      #     curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagAutoPublishlist"
-      #     # curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagCategorieslist"
-      #     curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
-      #     curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
-      #     curl "${{ env.API_URL_IMPORTER }}ODH/ActivityPoiDatalist"
-      #     curl "${{ env.API_URL_IMPORTER }}ODH/AccommodationFeatures"
+      - name: Generate Json
+        run: |
+          curl "${{ env.API_URL_IMPORTER }}ODH/Taglist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagAutoPublishlist"
+          # curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagCategorieslist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/ActivityPoiDatalist"
+          curl "${{ env.API_URL_IMPORTER }}ODH/AccommodationFeatures"
