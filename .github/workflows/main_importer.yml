@@ -158,16 +158,6 @@ jobs:
           aws-eks-cluster-name: aws-main-eu-01
           aws-region: eu-west-1
 
-      - name: Generate Json
-        run: |
-          curl "${{ env.API_URL_IMPORTER }}ODH/Taglist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagAutoPublishlist"
-          # curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagCategorieslist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/GastronomyCategorieslist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/OdhTagSourceLTSIDMlist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/ActivityPoiDatalist"
-          curl "${{ env.API_URL_IMPORTER }}ODH/AccommodationFeatures"
-
   deploy-prod-importer:
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/prod'
