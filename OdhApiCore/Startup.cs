@@ -25,6 +25,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using OdhApiCore.Controllers;
+using OdhApiCore.Helpers;
 using OdhApiCore.Swagger;
 using OdhNotifier;
 using Serilog;
@@ -97,7 +98,12 @@ namespace OdhApiCore
                 .AddNpgSql(
                     Configuration.GetConnectionString("PgConnection"),
                     tags: new[] { "services" }
-                );
+                )
+                .AddCheck<JsonFilesReadyHealthCheck>("jsonfiles", tags: new[] { "services" });
+
+            //Generates the json files the frontends/STA need as soon as the pod boots, so /ready only
+            //turns healthy (and Kubernetes only starts routing traffic) once they actually exist
+            services.AddHostedService<JsonGeneratorStartupService>();
 
             //TO Remove old Quota Config
 

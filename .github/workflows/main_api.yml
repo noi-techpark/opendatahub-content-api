@@ -117,17 +117,6 @@ jobs:
           aws-eks-cluster-name: aws-main-eu-01
           aws-region: eu-west-1
 
-      - name: Generate Json
-        run: |
-          curl "${{ env.API_URL }}STA/JsonPoi"
-          curl "${{ env.API_URL }}STA/JsonAccommodation"
-          curl "${{ env.API_URL }}ODH/AccommodationBooklist"
-          curl "${{ env.API_URL }}ODH/AccommodationFulllist"
-          curl "${{ env.API_URL }}ODH/Taglist"
-          curl "${{ env.API_URL }}ODH/OdhTagAutoPublishlist"
-          curl "${{ env.API_URL }}ODH/OdhTagCategorieslist"
-          curl "${{ env.API_URL }}ODH/WeatherForecast"
-
   deploy-prod-api:
     runs-on: ubuntu-22.04
     if: github.ref == 'refs/heads/prod'
@@ -225,14 +214,3 @@ jobs:
           docker-username: 'noi-techpark-bot'
           docker-password: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           project-name: ${{ env.PROJECT_NAME }}
-
-      - name: Generate Json
-        run: |
-          curl "${{ env.API_URL }}STA/JsonPoi"
-          curl "${{ env.API_URL }}STA/JsonAccommodation"
-          curl "${{ env.API_URL }}ODH/AccommodationBooklist"
-          curl "${{ env.API_URL }}ODH/AccommodationFulllist"
-          curl "${{ env.API_URL }}ODH/Taglist"
-          curl "${{ env.API_URL }}ODH/OdhTagAutoPublishlist"
-          curl "${{ env.API_URL }}ODH/OdhTagCategorieslist"
-          curl "${{ env.API_URL }}ODH/WeatherForecast"
