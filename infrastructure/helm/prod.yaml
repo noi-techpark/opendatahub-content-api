@@ -51,6 +51,10 @@ ingress:
       paths:
         - path: "/"
           pathType: Prefix
+    - host: tourism.opendatahub.com
+      paths:
+        - path: "/"
+          pathType: Prefix
 
 # Non-secret environment (mirrors the docker prod deployment).
 env:
