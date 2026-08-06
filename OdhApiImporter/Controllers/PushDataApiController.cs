@@ -2,13 +2,6 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using DataModel;
 using Helper;
 using Microsoft.AspNetCore.Authorization;
@@ -23,6 +16,14 @@ using OdhApiImporter.Helpers;
 using OdhNotifier;
 using RAVEN;
 using SqlKata.Execution;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace OdhApiImporter.Controllers
 {
@@ -103,6 +104,7 @@ namespace OdhApiImporter.Controllers
                             success = true,
                             pushed = result.Value,
                             source = "api",
+                            editedby = GetEditIdentifier(),
                             pushchannels = result.Value.Keys,
                             objectcompared = 0,
                             objectchanges = null,
@@ -120,6 +122,7 @@ namespace OdhApiImporter.Controllers
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     ids ?? tags,
                     "api",
+                    GetEditIdentifier(),
                     type + ".push." + notificationchannel,
                     "custom",
                     "Push to Marketplace failed",
@@ -133,5 +136,14 @@ namespace OdhApiImporter.Controllers
         }
 
         #endregion
+
+        protected string GetEditIdentifier()
+        {
+            //Get the Name Identifier
+            return
+                this.User != null && this.User.Claims != null ?
+                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
+                    : "anonymous";
+        }
     }
 }

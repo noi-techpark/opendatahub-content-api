@@ -1,0 +1,11 @@
+apiVersion: v2
+name: tourism-importer
+description: Helm chart for the OpenDataHub Tourism content importer
+
+type: application
+
+# Chart version — bump on chart/template changes.
+version: 1.0.0
+
+# Application version.
+appVersion: "1.0.0"

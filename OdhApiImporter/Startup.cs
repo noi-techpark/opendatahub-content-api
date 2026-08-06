@@ -19,6 +19,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using OdhApiImporter.Helpers;
 using OdhNotifier;
 using Serilog;
 using Serilog.Core;
@@ -52,7 +53,12 @@ namespace OdhApiImporter
                 .AddNpgSql(
                     Configuration.GetConnectionString("PgConnection"),
                     tags: new[] { "services" }
-                );
+                )
+                .AddCheck<JsonFilesReadyHealthCheck>("jsonfiles", tags: new[] { "services" });
+
+            //Generates the json files the importers need as soon as the pod boots, so /ready only
+            //turns healthy (and Kubernetes only starts routing traffic) once they actually exist
+            services.AddHostedService<JsonGeneratorStartupService>();
 
             //Logging Config
             services.AddLogging(options =>

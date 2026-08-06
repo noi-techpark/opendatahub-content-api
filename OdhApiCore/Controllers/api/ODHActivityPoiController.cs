@@ -715,6 +715,9 @@ namespace OdhApiCore.Controllers.api
 
                 //TODO check for Reduced Data
 
+                //TODO assign the Publisher (to check if this can be enabled by parameter)
+                
+
                 //Trim all strings
                 odhactivitypoi.TrimStringProperties();
 

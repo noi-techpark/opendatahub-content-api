@@ -1883,6 +1883,60 @@ namespace OdhApiImporter.Helpers
 
         #endregion
 
+        #region UpdateHistory
+
+        /// <summary>
+        /// Loads all data of the given table and removes every UpdateHistory entry
+        /// whose UpdateSource matches the passed value. Used to clean up wrong/legacy
+        /// UpdateSource entries (e.g. after an importer url change).
+        /// </summary>
+        public async Task<Tuple<int, int>> RemoveUpdateSourceFromHistory<T>(
+            string table,
+            string updatesourcetoremove
+        )
+            where T : IIdentifiable, IMetaData
+        {
+            //Load all data from PG
+            var query = QueryFactory.Query().SelectRaw("data").From(table);
+
+            var list = await query.GetObjectListAsync<T>();
+
+            int recordschecked = list.Count();
+            int recordsmodified = 0;
+
+            foreach (var entity in list)
+            {
+                var updatehistory = entity._Meta?.UpdateInfo?.UpdateHistory;
+
+                if (updatehistory == null || updatehistory.Count == 0)
+                    continue;
+
+                var toremove = updatehistory
+                    .Where(h => h.UpdateSource == updatesourcetoremove)
+                    .ToList();
+
+                if (toremove.Count == 0)
+                    continue;
+
+                foreach (var historyentry in toremove)
+                    updatehistory.Remove(historyentry);
+
+                //Save to DB
+                var queryresult = await QueryFactory
+                    .Query(table)
+                    .Where("id", entity.Id)
+                    .UpdateAsync(
+                        new JsonBData() { id = entity.Id ?? "", data = new JsonRaw(entity) }
+                    );
+
+                recordsmodified++;
+            }
+
+            return Tuple.Create(recordschecked, recordsmodified);
+        }
+
+        #endregion
+
         #region Tags
 
         public async Task<int> ResaveTags()

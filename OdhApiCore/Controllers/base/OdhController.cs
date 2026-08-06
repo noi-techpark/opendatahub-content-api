@@ -5,6 +5,7 @@
 using DataModel;
 using Helper;
 using Helper.Generic;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -271,6 +272,28 @@ namespace OdhApiCore.Controllers
             });
         }
 
+        protected string GetEditIdentifier()
+        {
+            //Get the Identifier of the User that modfies the data
+            return
+                this.User != null && this.User.Claims != null && this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier) != null ?
+                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
+                    : "anonymous";
+        }
+
+        protected string GetEditSource(string editsource)
+        {
+            if (
+                 HttpContext.Request.Headers.ContainsKey("Referer")
+                 && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
+             )
+            {
+                editsource = HttpContext.Request.Headers["Referer"];
+            }
+
+            return editsource;
+        }
+
         //CREATE and UPDATE data
         #region LEGACY UpsertData
 
@@ -283,27 +306,10 @@ namespace OdhApiCore.Controllers
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
-            //TODO Username and provenance of the insert/edit
-            //Get the Name Identifier TO CHECK what about service accounts?
-            string editor =
-                this.User != null && this.User.Claims != null ?
-                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
-                    : "anonymous";
-
-            if (
-                HttpContext.Request.Headers.ContainsKey("Referer")
-                && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
-            )
-            {
-                editsource = HttpContext.Request.Headers["Referer"];
-
-                //Hack if Referer is infrastructure v2 api make an upsert
-                if (HttpContext.Request.Headers["Referer"] == "https://tourism.importer.v2")
-                {
-                    datainfo.ErrorWhendataExists = false;
-                    datainfo.ErrorWhendataIsNew = false;
-                }
-            }
+            //Get the Identifier of the User that modfies the data
+            string editor = GetEditIdentifier();
+            //Check if a Referer Header exists and use this as editsource if available
+            editsource = GetEditSource(editsource);
 
             var result = await QueryFactory.UpsertData<T>(
                 data,
@@ -315,12 +321,8 @@ namespace OdhApiCore.Controllers
 
             //push modified data to all published Channels
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
-
-
-            //return ReturnCRUDResult(result);
-
-            //Use newer UpdateResult ?
-            return ReturnUpdateResult(result, editsource, "", true);
+                       
+            return ReturnUpdateResult(result, editsource, editor, "", true);
         }
         
         #endregion
@@ -334,20 +336,10 @@ namespace OdhApiCore.Controllers
         )
             where T : IIdentifiable, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
-            //TODO Username and provenance of the insert/edit
-            //Get the Name Identifier TO CHECK what about service accounts?
-            string editor =
-                this.User != null && this.User.Claims != null ? 
-                this.User.Claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value
-                    : "anonymous";
-
-            if (
-                HttpContext.Request.Headers.ContainsKey("Referer")
-                && !String.IsNullOrEmpty(HttpContext.Request.Headers["Referer"])
-            )
-            {
-                editsource = HttpContext.Request.Headers["Referer"];
-            }
+            //Get the Identifier of the User that modfies the data
+            string editor = GetEditIdentifier();
+            //Check if a Referer Header exists and use this as editsource if available
+            editsource = GetEditSource(editsource);
 
             var result = await QueryFactory.UpsertData<T>(
                 data,
@@ -359,8 +351,8 @@ namespace OdhApiCore.Controllers
 
             //push modified data to all published Channels
             result.pushed = await CheckIfObjectChangedAndPush(result, result.id, result.odhtype);
-
-            return ReturnCRUDResult(result);
+            
+            return ReturnUpdateResult(result, editsource, editor, "", true);
         }
 
         //BATCH CREATE and UPDATE data
@@ -430,11 +422,16 @@ namespace OdhApiCore.Controllers
             //Return forbitten 403 if
             //Return 401 if unauthorized
 
+            //Get the Identifier of the User that modfies the data
+            string editor = GetEditIdentifier();
+            //Check if a Referer Header exists and use this as editsource if available
+            string editsource = GetEditSource("api");
+
             var result = await QueryFactory.DeleteData<T>(id, datainfo, crudconstraints);
             //push modified data to all published Channels
             result.pushed = await PushDeletedObject(result, result.id, result.odhtype);
-
-            return ReturnCRUDResult(result);
+            
+            return ReturnUpdateResult(result, editsource, editor, "", true);
         }
 
         //PUSH Modified data
@@ -544,10 +541,10 @@ namespace OdhApiCore.Controllers
             }
         }
 
-        protected IActionResult ReturnUpdateResult(PGCRUDResult pgcrudresult, string source, string message, bool createlog)
+        protected IActionResult ReturnUpdateResult(PGCRUDResult pgcrudresult, string source, string editedby, string message, bool createlog)
         {
             //Use UpdateResult here
-            var result = GenericResultsHelper.GetUpdateResultFromPGCRUDResult(source, message, pgcrudresult, createlog);
+            var result = GenericResultsHelper.GetUpdateResultFromPGCRUDResult(source, editedby, message, pgcrudresult, createlog);
 
             ///Give shorter Error messages to display directly in the databrowser
             ///TODO some optimizations

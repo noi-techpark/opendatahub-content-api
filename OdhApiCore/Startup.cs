@@ -25,6 +25,7 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using OdhApiCore.Controllers;
+using OdhApiCore.Helpers;
 using OdhApiCore.Swagger;
 using OdhNotifier;
 using Serilog;
@@ -97,7 +98,12 @@ namespace OdhApiCore
                 .AddNpgSql(
                     Configuration.GetConnectionString("PgConnection"),
                     tags: new[] { "services" }
-                );
+                )
+                .AddCheck<JsonFilesReadyHealthCheck>("jsonfiles", tags: new[] { "services" });
+
+            //Generates the json files the frontends/STA need as soon as the pod boots, so /ready only
+            //turns healthy (and Kubernetes only starts routing traffic) once they actually exist
+            services.AddHostedService<JsonGeneratorStartupService>();
 
             //TO Remove old Quota Config
 
@@ -226,11 +232,13 @@ namespace OdhApiCore
             {
                 options.ClearProviders();
 
+                var configuredDefaultLevel = Configuration.GetValue(
+                    "Logging:LogLevel:Default",
+                    CurrentEnvironment.IsDevelopment() ? LogEventLevel.Debug : LogEventLevel.Warning
+                );
                 var levelSwitch = new LoggingLevelSwitch
                 {
-                    MinimumLevel = CurrentEnvironment.IsDevelopment()
-                        ? LogEventLevel.Debug
-                        : LogEventLevel.Warning,
+                    MinimumLevel = configuredDefaultLevel,
                 };
                 var loggerConfiguration = new LoggerConfiguration()
                     .MinimumLevel.ControlledBy(levelSwitch)
@@ -515,16 +523,43 @@ namespace OdhApiCore
         {
             //app.UseForwardedHeaders();
             
-            app.UseForwardedHeaders(new ForwardedHeadersOptions()
+            // The API always runs behind a TLS-terminating reverse proxy:
+            //   - docker (prod): Caddy -> API container          => Caddy is the immediate peer, so
+            //                                                        pin its IP(s) and honour the
+            //                                                        X-Forwarded-Proto it sends.
+            //   - k8s   (test):  Caddy -> NLB -> nginx-ingress -> API pod
+            //                                                     => nginx-ingress doesn't forward the
+            //                                                        original scheme by default and the
+            //                                                        immediate peer is a dynamic pod IP.
+            // Gate on whether any Caddy IP is configured. With Caddy IPs (docker) use ForwardedHeaders.
+            // Without them (k8s) the public endpoint always terminates TLS at Caddy, so just force the
+            // scheme to https for correct URL generation (pagination/swagger) — contained to this app,
+            // no cluster-wide ingress change needed.
+            var proxyConfig = Configuration.GetSection("ProxyConfig");
+            var caddyTest = proxyConfig.GetValue<string>("CaddyTest");
+            var caddyProd = proxyConfig.GetValue<string>("CaddyProd");
+            if (!string.IsNullOrWhiteSpace(caddyTest) || !string.IsNullOrWhiteSpace(caddyProd))
             {
-                ForwardedHeaders = ForwardedHeaders.XForwardedProto,                
-                KnownProxies =
+                var forwardedHeadersOptions = new ForwardedHeadersOptions()
                 {
-                    // Caddy Test
-                    IPAddress.Parse(Configuration.GetSection("ProxyConfig").GetValue<string>("CaddyTest")),
-                    IPAddress.Parse(Configuration.GetSection("ProxyConfig").GetValue<string>("CaddyProd")),
-                },                
-            });
+                    ForwardedHeaders = ForwardedHeaders.XForwardedProto,
+                };
+                if (!string.IsNullOrWhiteSpace(caddyTest))
+                    forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(caddyTest));
+                if (!string.IsNullOrWhiteSpace(caddyProd))
+                    forwardedHeadersOptions.KnownProxies.Add(IPAddress.Parse(caddyProd));
+                app.UseForwardedHeaders(forwardedHeadersOptions);
+            }
+            else
+            {
+                app.Use(
+                    (context, next) =>
+                    {
+                        context.Request.Scheme = "https";
+                        return next();
+                    }
+                );
+            }
 
             //// TODO: Move to Production
             //app.UseClientRateLimiting();
