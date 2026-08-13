@@ -7,8 +7,6 @@
 
 -- 1. Create Extensions
 -- These extensions are required for geo-spatial queries and text searching.
-CREATE EXTENSION IF NOT EXISTS cube;
-CREATE EXTENSION IF NOT EXISTS earthdistance;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS postgis;
 

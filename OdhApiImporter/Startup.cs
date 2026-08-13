@@ -140,9 +140,13 @@ namespace OdhApiImporter
                     };
                     jwtBearerOptions.Events = new JwtBearerEvents()
                     {
-                        OnAuthenticationFailed = c =>
+                        // Writing the response here (instead of OnAuthenticationFailed) and calling
+                        // HandleResponse() stops JwtBearerHandler.HandleChallengeAsync from also trying
+                        // to set the status code afterwards, which previously threw "StatusCode cannot
+                        // be set because the response has already started." on every invalid/expired token.
+                        OnChallenge = c =>
                         {
-                            c.NoResult();
+                            c.HandleResponse();
                             c.Response.StatusCode = 401;
                             c.Response.ContentType = "text/plain";
 
