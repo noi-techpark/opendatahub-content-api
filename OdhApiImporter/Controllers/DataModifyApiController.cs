@@ -1737,14 +1737,23 @@ namespace OdhApiImporter.Controllers
                         objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MetaRegionLinked>(table);
                         break;
                     //Add further IGeoAware types here as they get wired up, e.g.:
-                    //case "municipality":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MunicipalityLinked>(table);
+                    //case "odhactivitypoi":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<ODHActivityPoiLinked>(table);
                     //    break;
-                    //case "region":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<RegionLinked>(table);
+                    //case "event":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<EventLinked>(table);
                     //    break;
-                    //case "tourismassociation":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<TourismvereinLinked>(table);
+                    //case "accommodation":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<AccommodationV2>(table);
+                    //    break;
+                    //case "venue":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
+                    //    break;
+                    //case "measuringpoint":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
+                    //    break;
+                    //case "webcam":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
                     //    break;
                     default:
                         throw new Exception("unsupported Type");
