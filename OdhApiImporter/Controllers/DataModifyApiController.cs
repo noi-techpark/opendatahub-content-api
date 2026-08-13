@@ -1733,6 +1733,9 @@ namespace OdhApiImporter.Controllers
                     case "district":
                         objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<DistrictLinked>(table);
                         break;
+                    case "metaregion":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MetaRegionLinked>(table);
+                        break;
                     //Add further IGeoAware types here as they get wired up, e.g.:
                     //case "municipality":
                     //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MunicipalityLinked>(table);

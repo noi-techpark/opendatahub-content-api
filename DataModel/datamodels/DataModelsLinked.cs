@@ -1581,7 +1581,7 @@ namespace DataModel
         public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class MetaRegionLinked : MetaRegion, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties //IGeoAware
+    public class MetaRegionLinked : MetaRegion, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -1731,7 +1731,7 @@ namespace DataModel
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
 
-        //public IDictionary<string, GpsInfo> Geo { get; set; }
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public class ExperienceAreaLinked : ExperienceArea, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties

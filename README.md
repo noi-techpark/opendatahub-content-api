@@ -82,8 +82,6 @@ Postgres 15. The data is stored as Json Datatype in a single Column.
 
 Extensions active on DB
 
-* extension earthdistance;
-* extension cube;
 * extension pg_trgm;
 * extension postgis
 
@@ -175,12 +173,6 @@ http://localhost:5000
 
 Activate extensions
 
-```
-CREATE EXTENSION cube;
-```
-```
-CREATE EXTENSION earthdistance;
-```
 ```
 CREATE EXTENSION pg_trgm;
 ```
