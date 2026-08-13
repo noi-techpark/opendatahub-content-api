@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Geo Column State of Datatypes
 
 Maps every `odhtype` handled by `Helper/Generic/ODHTypeHelper.cs` (`TranslateTypeString2Type` / `TranslateTypeString2Table`) to its geo-related model fields and the Postgres geometry column actually used for distance sort and polygon search.
