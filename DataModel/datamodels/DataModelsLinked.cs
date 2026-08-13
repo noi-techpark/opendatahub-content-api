@@ -1036,7 +1036,7 @@ namespace DataModel
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class DistrictLinked : District, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties //IGeoAware
+    public class DistrictLinked : District, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -1184,7 +1184,7 @@ namespace DataModel
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
 
-        //public IDictionary<string, GpsInfo> Geo { get; set; }
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public class MunicipalityLinked : Municipality, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware

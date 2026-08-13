@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -2998,6 +2999,80 @@ namespace OdhApiImporter.Helpers
             return Tuple.Create(updatedcount, String.Join(",", failed));
         }
 
+
+        #endregion
+
+        #region Geo
+
+        /// <summary>
+        /// Backfills the PostGIS "geo" column from the existing GpsInfo array: takes the GpsInfo entry
+        /// with Gpstype "position" (building its WKT Point from Latitude/Longitude if not already set),
+        /// marks it Default and stores it under the "position" key in Geo, then upserts the entity so the
+        /// "geo" (and any derived generated column, e.g. gen_center_position) gets populated.
+        /// Generic over T so it can be reused for any type once it implements IGeoAware/IGPSInfoAware
+        /// (e.g. odhactivitypoi, accommodation) - just pass the matching table name.
+        /// </summary>
+        public async Task<int> MigrateGpsInfoPositionToGeo<T>(string table)
+            where T : IIdentifiable, IGPSInfoAware, IGeoAware, IImportDateassigneable, IMetaData, ILicenseInfo, new()
+        {
+            var query = QueryFactory.Query().SelectRaw("data").From(table);
+
+            var list = await query.GetObjectListAsync<T>();
+            int i = 0;
+
+            foreach (var entity in list)
+            {
+                var positiongpsinfo = entity.GpsInfo?.FirstOrDefault(x => x.Gpstype == "position");
+
+                if (positiongpsinfo == null)
+                    continue;
+
+                //Build the WKT Point from Lat/Long if the GpsInfo entry doesn't already carry a Geometry
+                if (
+                    String.IsNullOrEmpty(positiongpsinfo.Geometry)
+                    && positiongpsinfo.Latitude != null
+                    && positiongpsinfo.Longitude != null
+                )
+                {
+                    positiongpsinfo.Geometry =
+                        $"POINT ({positiongpsinfo.Longitude.Value.ToString(CultureInfo.InvariantCulture)} {positiongpsinfo.Latitude.Value.ToString(CultureInfo.InvariantCulture)})";
+                }
+
+                if (!positiongpsinfo.IsValidGeometry)
+                    continue;
+
+                positiongpsinfo.Default = true;
+
+                entity.Geo = new Dictionary<string, GpsInfo> { { "position", positiongpsinfo } };
+
+                var upsertable = new QueryFactoryExtension.Upsertable<T>(
+                    entity,
+                    new Dictionary<string, object>
+                    {
+                        {
+                            "geo",
+                            new SqlKata.UnsafeLiteral(
+                                $"ST_SetSRID(ST_GeomFromText('{positiongpsinfo.Geometry}'), 4326)",
+                                false
+                            )
+                        }
+                    }
+                );
+
+                var pgcrudresult = await QueryFactory.UpsertData<T>(
+                    upsertable,
+                    new DataInfo(table, CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                    new EditInfo("geo.migration.gpsinfo", "importer"),
+                    new CRUDConstraints(),
+                    new CompareConfig(false, false)
+                );
+
+                if (pgcrudresult.error == 0)
+                    i++;
+            }
+
+            return i;
+        }
 
         #endregion
     }

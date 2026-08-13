@@ -1709,6 +1709,82 @@ namespace OdhApiImporter.Controllers
             );
         }
 
-        #endregion        
+        #endregion
+
+        #region Geo
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("MigrateGpsInfoToGeo/{type}")]
+        public async Task<IActionResult> MigrateGpsInfoToGeo(string type, CancellationToken cancellationToken)
+        {
+            try
+            {
+                CustomDataOperation customdataoperation = new CustomDataOperation(
+                    settings,
+                    QueryFactory
+                );
+
+                var table = ODHTypeHelper.TranslateTypeString2Table(type);
+
+                var objectscount = 0;
+
+                switch (type)
+                {
+                    case "district":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<DistrictLinked>(table);
+                        break;
+                    //Add further IGeoAware types here as they get wired up, e.g.:
+                    //case "municipality":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MunicipalityLinked>(table);
+                    //    break;
+                    //case "region":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<RegionLinked>(table);
+                    //    break;
+                    //case "tourismassociation":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<TourismvereinLinked>(table);
+                    //    break;
+                    default:
+                        throw new Exception("unsupported Type");
+                }
+
+                return Ok(
+                    new UpdateResult
+                    {
+                        operation = "MigrateGpsInfoToGeo " + type,
+                        updatetype = "custom",
+                        otherinfo = "",
+                        message = "Done",
+                        recordsmodified = objectscount,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = objectscount,
+                        success = true,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(
+                    new UpdateResult
+                    {
+                        operation = "MigrateGpsInfoToGeo " + type,
+                        updatetype = "custom",
+                        otherinfo = "",
+                        message = "Error",
+                        recordsmodified = 0,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = 0,
+                        success = false,
+                        error = 1,
+                        exception = ex.Message,
+                    }
+                );
+            }
+        }
+
+        #endregion
     }
 }

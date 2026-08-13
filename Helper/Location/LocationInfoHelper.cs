@@ -421,8 +421,8 @@ namespace Helper.Location
             string? tvid = null
         )
         {
-            string wheregeo = PostgresSQLHelper.GetGeoWhereSimple(latitude, longitude, radius);
-            string orderbygeo = PostgresSQLHelper.GetGeoOrderBySimple(latitude, longitude);
+            string wheregeo = PostgresSQLHelper.GetGeoWhereSimple_GeneratedColumns(latitude, longitude, radius);
+            string orderbygeo = PostgresSQLHelper.GetGeoOrderBySimple_GeneratedColumns(latitude, longitude);
 
             var query = QueryFactory
                 .Query("districts")

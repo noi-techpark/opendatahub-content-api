@@ -92,7 +92,7 @@ namespace Helper
             (geosearchresult, rawsort) switch
             {
                 (PGGeoSearchResult geosr, _) when geosr.geosearch =>
-                    query.GeoSearchFilterAndOrderby(geosr),
+                    query.GeoSearchFilterAndOrderby_GeneratedColumns(geosr),
                 (_, string raw) => query.OrderByRaw(RawQueryParser.Transformer.TransformSort(raw)),
                 _ => query.OrderBySeed(
                     ref seed,
@@ -129,7 +129,7 @@ namespace Helper
             (geosearchresult, rawsort) switch
             {
                 (PGGeoSearchResult geosr, _) when geosr.geosearch =>
-                    query.GeoSearchFilterAndOrderby(geosr),
+                    query.GeoSearchFilterAndOrderby_GeneratedColumns(geosr),
                 (_, string raw) => query.OrderByRaw(RawQueryParser.Transformer.TransformSort(raw)),
                 _ => query.OrderByRaw(
                     overwritestandardorder != null

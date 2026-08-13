@@ -21,6 +21,12 @@ namespace Helper
     {
         #region Geo Helpers
 
+        // Disabled: cube/earthdistance based geo helpers, superseded by the PostGIS gen_position
+        // based "_GeneratedColumns" helpers below. All former callers (LocationInfoHelper.GetNearestDistrictbyGPS,
+        // AvailabilitySearchInterceptorAttribute, PostgresSQLOrderByBuilder.ApplyOrdering) have been
+        // migrated to the PostGIS versions - kept commented out for reference, safe to delete later.
+        /*
+
         //For Activities Pois and Smgpois
 
         public static string GetGeoWhereSimple(double latitude, double longitude, int radius)
@@ -179,19 +185,38 @@ namespace Helper
             }
         }
 
+        */
+
         #endregion
 
         #region Geo Helpers Generated Columns
 
         //For Activities Pois and Smgpois
 
+        /// <summary>
+        /// WKT point (lon/lat order, matching ST_MakePoint) for the given coordinates, SRID 4326 (WGS84).
+        /// </summary>
+        private static string GetGeoPoint_GeneratedColumns(double latitude, double longitude)
+        {
+            return $"ST_SetSRID(ST_MakePoint({longitude.ToString(CultureInfo.InvariantCulture)}, {latitude.ToString(CultureInfo.InvariantCulture)}), 4326)";
+        }
+
+        private static string GetGeoPoint_GeneratedColumns(string latitude, string longitude)
+        {
+            return $"ST_SetSRID(ST_MakePoint({longitude}, {latitude}), 4326)";
+        }
+
         public static string GetGeoWhereSimple_GeneratedColumns(
             double latitude,
             double longitude,
-            int radius
+            int radius,
+            string geometryColumn = "gen_position"
         )
         {
-            return $"earth_distance(ll_to_earth({latitude.ToString(CultureInfo.InvariantCulture)}, {longitude.ToString(CultureInfo.InvariantCulture)}),ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision)) < {radius.ToString()}";
+            //ST_DWithin on a geography cast computes the great-circle distance in meters and can still use
+            //a GiST index on the underlying geometry column, replacing the old cube/earthdistance based
+            //earth_distance()/ll_to_earth() combo.
+            return $"ST_DWithin({geometryColumn}::geography, {GetGeoPoint_GeneratedColumns(latitude, longitude)}::geography, {radius.ToString(CultureInfo.InvariantCulture)})";
         }
 
         public static string GetGeoWhereInPolygon_GeneratedColumns(
@@ -279,70 +304,86 @@ namespace Helper
                 _ => "ST_Contains",
             };
 
-        public static string GetGeoOrderBySimple_GeneratedColumns(double latitude, double longitude)
+        public static string GetGeoOrderBySimple_GeneratedColumns(
+            double latitude,
+            double longitude,
+            string geometryColumn = "gen_position"
+        )
         {
-            return $"earth_distance(ll_to_earth({latitude.ToString(CultureInfo.InvariantCulture)}, {longitude.ToString(CultureInfo.InvariantCulture)}),ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision))";
+            //Distance in meters, same unit earth_distance() returned
+            return $"ST_Distance({geometryColumn}::geography, {GetGeoPoint_GeneratedColumns(latitude, longitude)}::geography)";
         }
 
         public static string GetGeoWhereExtended_GeneratedColumns(
             double latitude,
             double longitude,
-            int radius
+            int radius,
+            string geometryColumn = "gen_position"
         )
         {
-            return $"earth_distance(ll_to_earth({latitude.ToString(CultureInfo.InvariantCulture)}, {longitude.ToString(CultureInfo.InvariantCulture)}),ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision)) < {radius.ToString()}";
+            //Kept as a separate overload for source compatibility - "Simple" and "Extended" used to read
+            //Latitude/Longitude from different jsonb paths, both are now backed by the same gen_position column
+            return GetGeoWhereSimple_GeneratedColumns(latitude, longitude, radius, geometryColumn);
         }
 
         public static string GetGeoOrderByExtended_GeneratedColumns(
             double latitude,
-            double longitude
+            double longitude,
+            string geometryColumn = "gen_position"
         )
         {
-            return $"earth_distance(ll_to_earth({latitude.ToString(CultureInfo.InvariantCulture)}, {longitude.ToString(CultureInfo.InvariantCulture)}),ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision))";
+            return GetGeoOrderBySimple_GeneratedColumns(latitude, longitude, geometryColumn);
         }
 
         public static string GetGeoOrderByExtended_GeneratedColumns(
             string latitude,
-            string longitude
+            string longitude,
+            string geometryColumn = "gen_position"
         )
         {
-            return $"earth_distance(ll_to_earth({latitude}, {longitude}),ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision))";
+            return $"ST_Distance({geometryColumn}::geography, {GetGeoPoint_GeneratedColumns(latitude, longitude)}::geography)";
         }
 
         public static string GetGeoWhereBoundingBoxes_GeneratedColumns(
             string latitude,
             string longitude,
-            string radius
+            string radius,
+            string geometryColumn = "gen_position"
         )
         {
-            return $"earth_box(ll_to_earth({latitude}, {longitude}), {radius}) @> ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision) and earth_distance(ll_to_earth({latitude}, {longitude}), ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision)) < {radius}";
+            //ST_DWithin already narrows down candidates via the geometry column's GiST index before computing
+            //the exact geography distance, so the separate earth_box() bounding-box pre-filter is no longer needed
+            return $"ST_DWithin({geometryColumn}::geography, {GetGeoPoint_GeneratedColumns(latitude, longitude)}::geography, {radius})";
         }
 
         public static string GetGeoWhereBoundingBoxes_GeneratedColumns(
             double latitude,
             double longitude,
-            int radius
+            int radius,
+            string geometryColumn = "gen_position"
         )
         {
-            return $"earth_box(ll_to_earth({latitude.ToString(CultureInfo.InvariantCulture)}, {longitude.ToString(CultureInfo.InvariantCulture)}), {radius.ToString()}) @> ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision) and earth_distance(ll_to_earth({latitude.ToString(CultureInfo.InvariantCulture)}, {longitude.ToString(CultureInfo.InvariantCulture)}), ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision)) < {radius.ToString()}";
+            return GetGeoWhereSimple_GeneratedColumns(latitude, longitude, radius, geometryColumn);
         }
 
         public static string GetGeoWhereBoundingBoxesExtended_GeneratedColumns(
             string latitude,
             string longitude,
-            string radius
+            string radius,
+            string geometryColumn = "gen_position"
         )
         {
-            return $"earth_box(ll_to_earth({latitude}, {longitude}), {radius}) @> ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision) and earth_distance(ll_to_earth({latitude}, {longitude}), ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision)) < {radius}";
+            return GetGeoWhereBoundingBoxes_GeneratedColumns(latitude, longitude, radius, geometryColumn);
         }
 
         public static string GetGeoWhereBoundingBoxesExtended_GeneratedColumns(
             double latitude,
             double longitude,
-            int radius
+            int radius,
+            string geometryColumn = "gen_position"
         )
         {
-            return $"earth_box(ll_to_earth({latitude.ToString(CultureInfo.InvariantCulture)}, {longitude.ToString(CultureInfo.InvariantCulture)}), {radius.ToString()}) @> ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision) and earth_distance(ll_to_earth({latitude.ToString(CultureInfo.InvariantCulture)}, {longitude.ToString(CultureInfo.InvariantCulture)}), ll_to_earth((gen_latitude)::double precision, (gen_longitude)::double precision)) < {radius.ToString()}";
+            return GetGeoWhereSimple_GeneratedColumns(latitude, longitude, radius, geometryColumn);
         }
 
         //For Accommodations
