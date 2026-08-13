@@ -342,6 +342,18 @@ namespace OdhApiCore
                         //    RoleHelper.AddRoleClaims(context.Principal, "odh-api-core");
                         //    return Task.CompletedTask;
                         //},
+                        // TODO: this OnAuthenticationFailed handler writes the response itself, but doesn't
+                        // suppress the framework's own HandleChallengeAsync that runs afterwards for
+                        // endpoints carrying real [Authorize]/[Authorize(Roles=...)] metadata (as opposed to
+                        // the [AuthorizeODH] MVC filter, which never triggers a Challenge). That second write
+                        // throws "StatusCode cannot be set because the response has already started." on any
+                        // invalid/expired token hitting one of those endpoints (e.g. AlpineBitsApiController,
+                        // FileUploadController, STAController, PushNotificationController).
+                        // Fixed on OdhApiImporter/Startup.cs by moving this logic into OnChallenge + calling
+                        // c.HandleResponse() there. NOT yet applied here because HandleResponse() also skips
+                        // the framework's default WWW-Authenticate header on requests with no token at all
+                        // (not just invalid ones) - need to confirm nothing (Swagger UI auth flow, API
+                        // clients) depends on that header before porting the same fix to this file.
                         OnAuthenticationFailed = c =>
                         {
                             c.NoResult();
