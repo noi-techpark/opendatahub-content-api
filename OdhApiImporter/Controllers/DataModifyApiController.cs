@@ -1736,6 +1736,12 @@ namespace OdhApiImporter.Controllers
                     case "metaregion":
                         objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MetaRegionLinked>(table);
                         break;
+                    case "skiarea":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<SkiAreaLinked>(table);
+                        break;
+                    case "skiregion":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<SkiRegionLinked>(table);
+                        break;
                     //Add further IGeoAware types here as they get wired up, e.g.:
                     //case "odhactivitypoi":
                     //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<ODHActivityPoiLinked>(table);

@@ -1952,7 +1952,7 @@ namespace DataModel
         }
     }
 
-    public class SkiAreaLinked : SkiArea, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
+    public class SkiAreaLinked : SkiArea, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -2114,9 +2114,11 @@ namespace DataModel
 
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class SkiRegionLinked : SkiRegion, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
+    public class SkiRegionLinked : SkiRegion, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -2218,6 +2220,8 @@ namespace DataModel
 
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public class WebcamInfoLinked : WebcamInfo, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties

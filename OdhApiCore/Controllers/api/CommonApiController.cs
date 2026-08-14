@@ -2395,8 +2395,21 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<SkiRegionLinked>(
-                    data,
+                    new UpsertableSkiRegion(data),
                     new DataInfo("skiregions", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2434,8 +2447,21 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<SkiAreaLinked>(
-                    data,
+                    new UpsertableSkiArea(data),
                     new DataInfo("skiareas", CRUDOperation.Create),
                     new CompareConfig(false, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2833,8 +2859,21 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<SkiRegionLinked>(
-                    data,
+                    new UpsertableSkiRegion(data),
                     new DataInfo("skiregions", CRUDOperation.Update, true),
                     new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
@@ -2869,8 +2908,21 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Added GEO Column
+                if (!data.Geo.GeoInfoIsValid())
+                {
+                    return BadRequest(new { error = "Exactly one default GeoInfo must be present" });
+                }
+                foreach (var kvp in data.Geo)
+                {
+                    if (!kvp.Value.IsValidGeometry)
+                    {
+                        return BadRequest(new { error = $"Geo Info <{kvp.Key}> is invalid" });
+                    }
+                }
+
                 return await UpsertData<SkiAreaLinked>(
-                    data,
+                    new UpsertableSkiArea(data),
                     new DataInfo("skiareas", CRUDOperation.Update, true),
                     new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)

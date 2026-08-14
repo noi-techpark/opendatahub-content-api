@@ -17,6 +17,8 @@ Background: as part of moving geo search/sort off the `cube`/`earthdistance` ext
 | municipality | municipalities | Yes | No (commented out) | **Yes** | Yes (computed) | gen_position (default) | gen_position (default) |
 | district | districts | Yes | No (commented out) | **Yes** | Yes (computed) | gen_position (default) | gen_position (default) |
 | metaregion | metaregions | Yes | No (commented out) | **Yes** | Yes (computed) | gen_position (default) | gen_position (default) |
+| skiarea | skiareas | Yes | Yes | **Yes** | Yes (computed) | gen_position (default) | gen_position (default) |
+| skiregion | skiregions | Yes | Yes | **Yes** | Yes (computed) | gen_position (default) | gen_position (default) |
 | announcement | announcements | No | No | **Yes** | No | N/A (geosearch hardcoded false) | **geo** (explicit override) |
 | urbangreen | urbangreens | No | No | **Yes** | No | N/A (geosearch hardcoded false) | **geo** (explicit override) |
 | trip | trips | No | No | **Yes** | No | N/A (geosearch hardcoded false) | **geo** (explicit override) |
@@ -28,8 +30,6 @@ Background: as part of moving geo search/sort off the `cube`/`earthdistance` ext
 | webcam | webcams | Yes | Yes (computed) | No | No | gen_position (default) | gen_position (default) |
 | article | articles | Yes | Yes (computed) | No | No | gen_position (default) | N/A (no polygon call) |
 | venue | venues | Yes | Yes (computed) | No | No | gen_position (default) | gen_position (default) |
-| skiarea | skiareas | Yes | Yes | No | Yes (computed) | gen_position (default) | gen_position (default) |
-| skiregion | skiregions | Yes | Yes | No | Yes (computed) | gen_position (default) | gen_position (default) |
 | geoshape | geoshapes | No | No | No | No | N/A | N/A |
 
 ## Without geo info
@@ -63,8 +63,8 @@ These types carry no GPS/geo data in their model at all, so the geo-sort/polygon
 
 ## Notes
 
-- **`region`, `tourismassociation`, `municipality`, `district`, `metaregion`** all have `Geo` (`IGeoAware`) and their repositories write a `geo` polygon column (presumably backed by a `gen_center_position` centroid, same pattern as municipality). Their controllers are routed generically through `CommonApiController` and call the geo-sort/polygon helpers **without overriding `geometryColumn`**, so they default to `gen_position` — same discrepancy across all five, not just municipality.
-- **`district`, `metaregion`** previously had `Geo`/`IGeoAware` commented out (or, for `metaregion`, no repository at all). Both were wired up to mirror `municipality` exactly: `DistrictLinked`/`MetaRegionLinked` now implement `IGeoAware` (`DataModel/datamodels/DataModelsLinked.cs`), `DistrictRepository.cs`/`MetaRegionRepository.cs` (`UpsertableDistrict`/`UpsertableMetaRegion`) write the `geo` column via `ST_GeomFromText` on the default `GpsInfo`, and their `POST`/`PUT` endpoints in `CommonApiController.cs` now validate `Geo` and use the `Upsertable*` wrapper, same as `Municipality`. The `OdhApiImporter`'s generic `GET /MigrateGpsInfoToGeo/{type}` endpoint (`DataModifyApiController.cs`) supports backfilling `Geo` from existing `GpsInfo` for both `district` and `metaregion`.
+- **`region`, `tourismassociation`, `municipality`, `district`, `metaregion`, `skiarea`, `skiregion`** all have `Geo` (`IGeoAware`) and their repositories write a `geo` polygon column (presumably backed by a `gen_center_position` centroid, same pattern as municipality). Their controllers are routed generically through `CommonApiController` and call the geo-sort/polygon helpers **without overriding `geometryColumn`**, so they default to `gen_position` — same discrepancy across all seven, not just municipality.
+- **`district`, `metaregion`, `skiarea`, `skiregion`** previously had `Geo`/`IGeoAware` commented out or missing entirely (no repository at all). All four were wired up to mirror `municipality` exactly: `DistrictLinked`/`MetaRegionLinked`/`SkiAreaLinked`/`SkiRegionLinked` now implement `IGeoAware` (`DataModel/datamodels/DataModelsLinked.cs`), `DistrictRepository.cs`/`MetaRegionRepository.cs`/`SkiAreaRepository.cs`/`SkiRegionRepository.cs` (`UpsertableDistrict`/`UpsertableMetaRegion`/`UpsertableSkiArea`/`UpsertableSkiRegion`) write the `geo` column via `ST_GeomFromText` on the default `GpsInfo`, and their `POST`/`PUT` endpoints in `CommonApiController.cs` now validate `Geo` and use the `Upsertable*` wrapper, same as `Municipality`. The `OdhApiImporter`'s generic `GET /MigrateGpsInfoToGeo/{type}` endpoint (`DataModifyApiController.cs`) supports backfilling `Geo` from existing `GpsInfo` for `district`, `metaregion`, `skiarea`, and `skiregion`.
 - **`announcement`, `urbangreen`, `trip`, `spatialdata`** already correctly pass `geometryColumn: "geo"` explicitly for polygon search, and have distance-sort disabled entirely (`geosearch` hardcoded `false`, or the ordering call commented out) — not affected by the `gen_position` default mismatch.
 - `ltsactivity`, `ltspoi`, `ltsgastronomy` are commented out in `ODHTypeHelper` and excluded from this table.
 - "Computed" Lat/Long means a deprecated getter like `public new double Latitude { get { ... GpsInfo.FirstOrDefault() ... } }`, not a stored column.
