@@ -38,4 +38,3 @@ CREATE INDEX smgpois_detail_de_title_trgm_idx ON public.smgpois USING gin (((dat
 CREATE INDEX smgpois_detail_en_title_trgm_idx ON public.smgpois USING gin (((data #>> '{Detail,en,Title}'::text[])) gin_trgm_ops);
 CREATE INDEX smgpois_detail_it_title_trgm_idx ON public.smgpois USING gin (((data #>> '{Detail,it,Title}'::text[])) gin_trgm_ops);
 CREATE INDEX smgpois_gen_smgtags ON public.smgpois USING gin (gen_smgtags);
-CREATE INDEX smgpoisearthix ON public.smgpois USING gist (ll_to_earth(((((data -> 'GpsPoints'::text) -> 'position'::text) ->> 'Latitude'::text))::double precision, ((((data -> 'GpsPoints'::text) -> 'position'::text) ->> 'Longitude'::text))::double precision));

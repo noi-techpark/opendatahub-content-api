@@ -7,9 +7,9 @@ using DataModel;
 
 namespace Helper
 {
-    public class UpsertableDistrict : QueryFactoryExtension.Upsertable<DistrictLinked>
+    public class UpsertableSkiArea : QueryFactoryExtension.Upsertable<SkiAreaLinked>
     {
-        public UpsertableDistrict(DistrictLinked data)
+        public UpsertableSkiArea(SkiAreaLinked data)
         : base(
             data,
             new Dictionary<string, object>

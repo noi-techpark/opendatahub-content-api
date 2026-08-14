@@ -1036,7 +1036,7 @@ namespace DataModel
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class DistrictLinked : District, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties //IGeoAware
+    public class DistrictLinked : District, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -1184,7 +1184,7 @@ namespace DataModel
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
 
-        //public IDictionary<string, GpsInfo> Geo { get; set; }
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public class MunicipalityLinked : Municipality, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
@@ -1581,7 +1581,7 @@ namespace DataModel
         public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class MetaRegionLinked : MetaRegion, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties //IGeoAware
+    public class MetaRegionLinked : MetaRegion, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -1731,7 +1731,7 @@ namespace DataModel
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
 
-        //public IDictionary<string, GpsInfo> Geo { get; set; }
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public class ExperienceAreaLinked : ExperienceArea, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
@@ -1952,7 +1952,7 @@ namespace DataModel
         }
     }
 
-    public class SkiAreaLinked : SkiArea, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
+    public class SkiAreaLinked : SkiArea, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -2114,9 +2114,11 @@ namespace DataModel
 
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class SkiRegionLinked : SkiRegion, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
+    public class SkiRegionLinked : SkiRegion, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -2218,6 +2220,8 @@ namespace DataModel
 
         //Additional Properties
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
+
+        public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
     public class WebcamInfoLinked : WebcamInfo, IMetaData, IHasTagInfo, IRelatedContentAware, IHasAdditionalProperties

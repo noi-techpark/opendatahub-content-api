@@ -1709,6 +1709,100 @@ namespace OdhApiImporter.Controllers
             );
         }
 
-        #endregion        
+        #endregion
+
+        #region Geo
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("MigrateGpsInfoToGeo/{type}")]
+        public async Task<IActionResult> MigrateGpsInfoToGeo(string type, CancellationToken cancellationToken)
+        {
+            try
+            {
+                CustomDataOperation customdataoperation = new CustomDataOperation(
+                    settings,
+                    QueryFactory
+                );
+
+                var table = ODHTypeHelper.TranslateTypeString2Table(type);
+
+                var objectscount = 0;
+
+                switch (type)
+                {
+                    case "district":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<DistrictLinked>(table);
+                        break;
+                    case "metaregion":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MetaRegionLinked>(table);
+                        break;
+                    case "skiarea":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<SkiAreaLinked>(table);
+                        break;
+                    case "skiregion":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<SkiRegionLinked>(table);
+                        break;
+                    //Add further IGeoAware types here as they get wired up, e.g.:
+                    //case "odhactivitypoi":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<ODHActivityPoiLinked>(table);
+                    //    break;
+                    //case "event":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<EventLinked>(table);
+                    //    break;
+                    //case "accommodation":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<AccommodationV2>(table);
+                    //    break;
+                    //case "venue":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
+                    //    break;
+                    //case "measuringpoint":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
+                    //    break;
+                    //case "webcam":
+                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
+                    //    break;
+                    default:
+                        throw new Exception("unsupported Type");
+                }
+
+                return Ok(
+                    new UpdateResult
+                    {
+                        operation = "MigrateGpsInfoToGeo " + type,
+                        updatetype = "custom",
+                        otherinfo = "",
+                        message = "Done",
+                        recordsmodified = objectscount,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = objectscount,
+                        success = true,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(
+                    new UpdateResult
+                    {
+                        operation = "MigrateGpsInfoToGeo " + type,
+                        updatetype = "custom",
+                        otherinfo = "",
+                        message = "Error",
+                        recordsmodified = 0,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = 0,
+                        success = false,
+                        error = 1,
+                        exception = ex.Message,
+                    }
+                );
+            }
+        }
+
+        #endregion
     }
 }
