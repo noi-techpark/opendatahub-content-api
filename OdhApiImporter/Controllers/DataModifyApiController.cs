@@ -1607,8 +1607,9 @@ namespace OdhApiImporter.Controllers
         //}
 
         [Authorize(Roles = "DataPush")]
-        [HttpPost, Route("RecalculateEventLocationInfo")]
-        public async Task<IActionResult> RecalculateEventLocationInfo(
+        [HttpPost, Route("RecalculateLocationInfo/{type}")]
+        public async Task<IActionResult> RecalculateLocationInfo(
+            string type,
             [FromBody] List<string> idlist,
             CancellationToken cancellationToken
         )
@@ -1620,12 +1621,24 @@ namespace OdhApiImporter.Controllers
                     QueryFactory
                 );
 
-                var objectscount = await customdataoperation.RecalculateEventLocationInfo(idlist);
+                var objectscount = default(Tuple<int, string>);
+
+                switch (type)
+                {
+                    case "event":
+                        objectscount = await customdataoperation.RecalculateLocationInfo<EventLinked>(type, idlist);
+                        break;
+                    case "odhactivitypoi":
+                        objectscount = await customdataoperation.RecalculateLocationInfo<ODHActivityPoiLinked>(type, idlist);
+                        break;
+                    default:
+                        throw new Exception("unsupported Type");
+                }
 
                 return Ok(
                     new UpdateResult
                     {
-                        operation = "RecalculateEventLocationInfo",
+                        operation = "RecalculateLocationInfo " + type,
                         updatetype = "custom",
                         otherinfo = "",
                         message = "Done, failed ids:" + objectscount.Item2,
@@ -1643,7 +1656,7 @@ namespace OdhApiImporter.Controllers
                 return BadRequest(
                     new UpdateResult
                     {
-                        operation = "RecalculateEventLocationInfo",
+                        operation = "RecalculateLocationInfo " + type,
                         updatetype = "custom",
                         otherinfo = "",
                         message = "Error",
