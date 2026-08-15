@@ -8,6 +8,7 @@ using Helper;
 using Helper.Converters;
 using Helper.Generic;
 using Helper.JsonHelpers;
+using Helper.Location;
 using Helper.Tagging;
 using LTSAPI;
 using LTSAPI.Parser;
@@ -1747,6 +1748,66 @@ namespace OdhApiImporter.Helpers
             }
 
             return i;
+        }
+
+        #endregion
+
+        #region Event
+
+        /// <summary>
+        /// Recalculates LocationInfo (+ the dependent DistanceInfo) for the given Event ids, the same way
+        /// LTSApiEventImportHelper does it on import (LocationInfoHelper.UpdateLocationInfoExtension /
+        /// UpdateDistanceCalculation), and saves the result. Restricted at query level to LTS opendata
+        /// ("reduced") Events only (gen_source = "lts" AND gen_reduced = true), since that's the only
+        /// Source/flag combination this was reported broken for; ids not matching that (or not found) are
+        /// skipped and reported as failed. Events that already have a LocationInfo.DistrictInfo.Id are left
+        /// untouched (silently skipped, not counted as updated or failed) rather than recalculated.
+        /// </summary>
+        public async Task<Tuple<int, string>> RecalculateEventLocationInfo(List<string> idlist)
+        {
+            int i = 0;
+            List<string> failed = new List<string>();
+
+            foreach (var id in idlist)
+            {
+                var eventdata = await QueryFactory
+                    .Query("events")
+                    .Select("data")
+                    .Where("id", id)
+                    .Where("gen_source", "lts")
+                    .Where("gen_reduced", true)
+                    .GetObjectSingleAsync<EventLinked>();
+
+                if (eventdata == null)
+                {
+                    failed.Add(id);
+                    continue;
+                }
+
+                //Don't touch it if a DistrictInfo is already set - only fix the ones missing it
+                if (!String.IsNullOrEmpty(eventdata.LocationInfo?.DistrictInfo?.Id))
+                    continue;
+
+                //Recalculate LocationInfo the same way LTSApiEventImportHelper does on import
+                eventdata.LocationInfo = await eventdata.UpdateLocationInfoExtension(QueryFactory);
+
+                //DistanceCalculation depends on the (now recalculated) LocationInfo
+                await eventdata.UpdateDistanceCalculation(QueryFactory);
+
+                var queryresult = await QueryFactory
+                    .Query("events")
+                    .Where("id", eventdata.Id)
+                    .UpdateAsync(
+                        new JsonBData() { id = eventdata.Id, data = new JsonRaw(eventdata) }
+                    );
+
+                if (queryresult > 0)
+                    i++;
+                else
+                    failed.Add(id);
+            }
+
+            return Tuple.Create(i, String.Join(",", failed));
         }
 
         #endregion

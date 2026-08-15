@@ -1606,6 +1606,60 @@ namespace OdhApiImporter.Controllers
         //    );
         //}
 
+        [Authorize(Roles = "DataPush")]
+        [HttpPost, Route("RecalculateEventLocationInfo")]
+        public async Task<IActionResult> RecalculateEventLocationInfo(
+            [FromBody] List<string> idlist,
+            CancellationToken cancellationToken
+        )
+        {
+            try
+            {
+                CustomDataOperation customdataoperation = new CustomDataOperation(
+                    settings,
+                    QueryFactory
+                );
+
+                var objectscount = await customdataoperation.RecalculateEventLocationInfo(idlist);
+
+                return Ok(
+                    new UpdateResult
+                    {
+                        operation = "RecalculateEventLocationInfo",
+                        updatetype = "custom",
+                        otherinfo = "",
+                        message = "Done, failed ids:" + objectscount.Item2,
+                        recordsmodified = objectscount.Item1,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = objectscount.Item1,
+                        success = true,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(
+                    new UpdateResult
+                    {
+                        operation = "RecalculateEventLocationInfo",
+                        updatetype = "custom",
+                        otherinfo = "",
+                        message = "Error",
+                        recordsmodified = 0,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = 0,
+                        success = false,
+                        error = 1,
+                        exception = ex.Message,
+                    }
+                );
+            }
+        }
+
         #endregion
 
         #region WineAward
