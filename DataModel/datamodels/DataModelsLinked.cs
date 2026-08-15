@@ -1036,7 +1036,7 @@ namespace DataModel
         public IDictionary<string, dynamic>? AdditionalProperties { get; set; }
     }
 
-    public class DistrictLinked : District, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
+    public class DistrictLinked : District, IMetaData, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -1111,7 +1111,11 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo != null ? this.Geo.Values.ToList() : null; }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1187,7 +1191,7 @@ namespace DataModel
         public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class MunicipalityLinked : Municipality, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
+    public class MunicipalityLinked : Municipality, IMetaData, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -1247,7 +1251,11 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo != null ? this.Geo.Values.ToList() : null; }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1323,7 +1331,7 @@ namespace DataModel
         public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class TourismvereinLinked : Tourismverein, IMetaData, IGeoAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
+    public class TourismvereinLinked : Tourismverein, IMetaData, IGeoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -1386,7 +1394,11 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo != null ? this.Geo.Values.ToList() : null; }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1462,7 +1474,7 @@ namespace DataModel
         public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class RegionLinked : Region, IMetaData, IGeoAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties
+    public class RegionLinked : Region, IMetaData, IGeoAware, IRelatedContentAware, IHasAdditionalProperties
     {
         public Metadata? _Meta { get; set; }
 
@@ -1505,7 +1517,11 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo != null ? this.Geo.Values.ToList() : null; }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1581,7 +1597,7 @@ namespace DataModel
         public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class MetaRegionLinked : MetaRegion, IMetaData, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
+    public class MetaRegionLinked : MetaRegion, IMetaData, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -1658,7 +1674,11 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo != null ? this.Geo.Values.ToList() : null; }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1952,7 +1972,7 @@ namespace DataModel
         }
     }
 
-    public class SkiAreaLinked : SkiArea, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
+    public class SkiAreaLinked : SkiArea, IMetaData, IGPSPointsAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -2042,7 +2062,11 @@ namespace DataModel
         public new LocationInfoLinked? LocationInfo { get; set; }
 
         //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo != null ? this.Geo.Values.ToList() : null; }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -2118,7 +2142,7 @@ namespace DataModel
         public IDictionary<string, GpsInfo> Geo { get; set; }
     }
 
-    public class SkiRegionLinked : SkiRegion, IMetaData, IGPSPointsAware, IGPSInfoAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
+    public class SkiRegionLinked : SkiRegion, IMetaData, IGPSPointsAware, IRelatedContentAware, IHasAdditionalProperties, IGeoAware
     {
         public Metadata? _Meta { get; set; }
 
@@ -2148,7 +2172,11 @@ namespace DataModel
         }
 
         //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo != null ? this.Geo.Values.ToList() : null; }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]

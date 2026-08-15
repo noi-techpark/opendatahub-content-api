@@ -1728,42 +1728,29 @@ namespace OdhApiImporter.Controllers
 
                 var objectscount = 0;
 
-                switch (type)
-                {
-                    case "district":
-                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<DistrictLinked>(table);
-                        break;
-                    case "metaregion":
-                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MetaRegionLinked>(table);
-                        break;
-                    case "skiarea":
-                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<SkiAreaLinked>(table);
-                        break;
-                    case "skiregion":
-                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<SkiRegionLinked>(table);
-                        break;
-                    //Add further IGeoAware types here as they get wired up, e.g.:
-                    //case "odhactivitypoi":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<ODHActivityPoiLinked>(table);
-                    //    break;
-                    //case "event":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<EventLinked>(table);
-                    //    break;
-                    //case "accommodation":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<AccommodationV2>(table);
-                    //    break;
-                    //case "venue":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
-                    //    break;
-                    //case "measuringpoint":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
-                    //    break;
-                    //case "webcam":
-                    //    objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<>(table);
-                    //    break;
-                    default:
-                        throw new Exception("unsupported Type");
-                }
+                // "district", "metaregion", "skiarea", "skiregion" no longer supported here: their GpsInfo
+                // is now a computed getter derived from Geo (DataModel/datamodels/DataModelsLinked.cs), so
+                // they no longer implement IGPSInfoAware and can't be migrated FROM GpsInfo anymore - this
+                // endpoint no longer applies to them. If any of those tables still have rows with empty Geo
+                // left over from before that change, they need a different, one-off backfill reading the
+                // raw stored data#>>'{GpsInfo}' JSON directly (bypassing the C# model).
+                //
+                // Add further IGeoAware types here as they get wired up, e.g.:
+                // switch (type)
+                // {
+                //     case "odhactivitypoi":
+                //         objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<ODHActivityPoiLinked>(table);
+                //         break;
+                //     case "event":
+                //         objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<EventLinked>(table);
+                //         break;
+                //     case "accommodation":
+                //         objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<AccommodationV2>(table);
+                //         break;
+                //     default:
+                //         throw new Exception("unsupported Type");
+                // }
+                throw new Exception("unsupported Type");
 
                 return Ok(
                     new UpdateResult
