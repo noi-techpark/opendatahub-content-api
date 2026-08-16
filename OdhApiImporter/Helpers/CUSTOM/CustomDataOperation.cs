@@ -8,6 +8,7 @@ using Helper;
 using Helper.Converters;
 using Helper.Generic;
 using Helper.JsonHelpers;
+using Helper.Location;
 using Helper.Tagging;
 using LTSAPI;
 using LTSAPI.Parser;
@@ -1747,6 +1748,91 @@ namespace OdhApiImporter.Helpers
             }
 
             return i;
+        }
+
+        #endregion
+
+        #region Event
+
+        /// <summary>
+        /// Recalculates LocationInfo (+ the dependent DistanceInfo) for the given ids of type T, the same
+        /// way LTSApiEventImportHelper/LTSApiPoiImportHelper do it on import
+        /// (LocationInfoHelper.UpdateLocationInfoExtension / UpdateDistanceCalculation), and saves the
+        /// result. table/reduced-id-suffix are resolved from the odhtype string via ODHTypeHelper - the
+        /// suffix is uppercase "_REDUCED" for every type except "odhactivitypoi", which uses lowercase
+        /// "_reduced" (matches the casing convention already used elsewhere for smgpois ids).
+        /// Restricted at query level to LTS opendata ("reduced") data only (gen_source = "lts" AND
+        /// gen_reduced = true), since that's the only Source/flag combination this was reported broken for;
+        /// ids not matching that (or not found) are skipped and reported as failed. Entities that already
+        /// have a LocationInfo.DistrictInfo.Id are left untouched (silently skipped, not counted as updated
+        /// or failed) rather than recalculated. Of the remaining ones, only those where recalculation
+        /// actually produced a different LocationInfo get saved (and counted as updated) - a no-op
+        /// recalculation is silently skipped, not written to DB.
+        /// </summary>
+        public async Task<Tuple<int, string>> RecalculateLocationInfo<T>(string type, List<string> idlist)
+            where T : IIdentifiable, IHasLocationInfoLinked, IDistanceInfoAware
+        {
+            var table = ODHTypeHelper.TranslateTypeString2Table(type);
+            var reducedsuffix = type == "odhactivitypoi" ? "_reduced" : "_REDUCED";
+
+            int i = 0;
+            List<string> failed = new List<string>();
+
+            foreach (var id in idlist)
+            {
+                var reducedid = id + reducedsuffix;
+
+                var entitydata = await QueryFactory
+                    .Query(table)
+                    .Select("data")
+                    .Where("id", reducedid)
+                    .Where("gen_source", "lts")
+                    .Where("gen_reduced", true)
+                    .GetObjectSingleAsync<T>();
+
+                if (entitydata == null)
+                {
+                    failed.Add(id);
+                    continue;
+                }
+
+                //Don't touch it if a DistrictInfo is already set - only fix the ones missing it
+                if (!String.IsNullOrEmpty(entitydata.LocationInfo?.DistrictInfo?.Id))
+                    continue;
+
+                //Snapshot as a string BEFORE recalculating: UpdateLocationInfo (called internally by
+                //UpdateLocationInfoExtension for entities that already have partial LocationInfo) reuses and
+                //mutates the same RegionInfo/TvInfo/MunicipalityInfo/DistrictInfo/AreaInfo object instances
+                //in place, so keeping a reference to entitydata.LocationInfo and serializing it afterwards
+                //would already reflect those mutations - not a true "before" snapshot.
+                var oldlocationinfojson = JsonConvert.SerializeObject(entitydata.LocationInfo);
+
+                //Recalculate LocationInfo the same way the LTS importers do on import
+                entitydata.LocationInfo = await entitydata.UpdateLocationInfoExtension(QueryFactory);
+
+                //Only save if the recalculation actually produced a different LocationInfo
+                if (oldlocationinfojson == JsonConvert.SerializeObject(entitydata.LocationInfo))
+                    continue;
+
+                //DistanceCalculation depends on the (now recalculated) LocationInfo
+                await entitydata.UpdateDistanceCalculation(QueryFactory);
+
+                //Note: the DB row id carries the reduced suffix, but the Id inside the stored JSON stays
+                //the plain, non-suffixed id (same as the non-reduced object) - do not touch entitydata.Id.
+                var queryresult = await QueryFactory
+                    .Query(table)
+                    .Where("id", reducedid)
+                    .UpdateAsync(
+                        new JsonBData() { id = reducedid, data = new JsonRaw(entitydata) }
+                    );
+
+                if (queryresult > 0)
+                    i++;
+                else
+                    failed.Add(id);
+            }
+
+            return Tuple.Create(i, String.Join(",", failed));
         }
 
         #endregion
