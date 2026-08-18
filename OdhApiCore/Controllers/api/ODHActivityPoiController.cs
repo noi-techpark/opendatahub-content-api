@@ -724,7 +724,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<ODHActivityPoiLinked>(
                     odhactivitypoi,
                     new DataInfo("smgpois", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
