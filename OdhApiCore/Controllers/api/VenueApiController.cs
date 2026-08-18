@@ -613,7 +613,7 @@ namespace OdhApiCore.Controllers
                 return await UpsertData<VenueV2>(
                     venue,
                     new DataInfo("venues", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });

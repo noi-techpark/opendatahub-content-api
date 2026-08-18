@@ -349,7 +349,7 @@ namespace OdhApiCore.Controllers
                 return await UpsertData<Announcement>(
                     new UpsertableAnnouncement(announcement),
                     new DataInfo("announcements", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(createFilter, UserRolesToFilter)
                 );
             });

@@ -2066,7 +2066,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<MetaRegionLinked>(
                     new UpsertableMetaRegion(data),
                     new DataInfo("metaregions", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2118,7 +2118,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<RegionLinked>(
                     new UpsertableRegion(data),
                     new DataInfo("regions", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2157,7 +2157,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<ExperienceAreaLinked>(
                     data,
                     new DataInfo("experienceareas", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2209,7 +2209,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<TourismvereinLinked>(
                     new UpsertableTourismassociation(data),
                     new DataInfo("tvs", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2268,7 +2268,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<MunicipalityLinked>(
                     new UpsertableMunicipality(data),
                     new DataInfo("municipalities", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2320,7 +2320,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<DistrictLinked>(
                     new UpsertableDistrict(data),
                     new DataInfo("districts", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2359,7 +2359,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<AreaLinked>(
                     data,
                     new DataInfo("areas", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2411,7 +2411,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<SkiRegionLinked>(
                     new UpsertableSkiRegion(data),
                     new DataInfo("skiregions", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2463,7 +2463,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<SkiAreaLinked>(
                     new UpsertableSkiArea(data),
                     new DataInfo("skiareas", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
@@ -2502,7 +2502,7 @@ namespace OdhApiCore.Controllers.api
                 return await UpsertData<WineLinked>(
                     data,
                     new DataInfo("wines", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });

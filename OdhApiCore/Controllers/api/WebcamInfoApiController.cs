@@ -355,7 +355,7 @@ namespace OdhApiCore.Controllers
                 return await UpsertData<WebcamInfoLinked>(
                     webcam,
                     new DataInfo("webcams", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, false),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });

@@ -684,7 +684,7 @@ namespace OdhApiCore.Controllers
                 return await UpsertData<EventLinked>(
                     odhevent,
                     new DataInfo("events", CRUDOperation.Create),
-                    new CompareConfig(false, false),
+                    new CompareConfig(true, true),
                     new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 );
             });
