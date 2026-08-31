@@ -65,8 +65,15 @@ namespace Helper
                 string.IsNullOrEmpty(eventLocationValue))
                 return;
 
-            if (odhevent.TagIds != null)
-                odhevent.TagIds = odhevent.TagIds.Where(t => t != eventLocationValue).ToList();
+            //Remove all currently assigned Tags of Type "eventlocation" (not just the current venue's one),
+            //so only the actually assigned venue's eventlocation Tag stays present
+            var eventLocationTagIds = odhevent.Tags?
+                .Where(t => t.Type == "eventlocation")
+                .Select(t => t.Id)
+                .ToList();
+
+            if (odhevent.TagIds != null && eventLocationTagIds != null)
+                odhevent.TagIds = odhevent.TagIds.Where(t => !eventLocationTagIds.Contains(t)).ToList();
 
             odhevent.TagIds ??= [];
             if (!odhevent.TagIds.Contains(eventLocationValue))
