@@ -28,10 +28,10 @@ namespace SIAG
         public const string serviceurlrealtime =
             @"https://api-weather.services.siag.it/api/v2/station";
 
-        public const string serviceurl =
-            @"http://daten.buergernetz.bz.it/services/weather/bulletin";
-        public const string serviceurlbezirk =
-            @"http://daten.buergernetz.bz.it/services/weather/district/";
+        //public const string serviceurl =
+        //    @"http://daten.buergernetz.bz.it/services/weather/bulletin";
+        //public const string serviceurlbezirk =
+        //    @"http://daten.buergernetz.bz.it/services/weather/district/";
 
         public static async Task<HttpResponseMessage> RequestAsync(
             string lang,
@@ -50,26 +50,26 @@ namespace SIAG
                     format = "json";
                 }
 
-                string requesturl = serviceurl + "?lang=" + lang + "&format=" + format;
+                //string requesturl = serviceurl + "?lang=" + lang + "&format=" + format;
+
+                //if (!String.IsNullOrEmpty(weatherid))
+                //    requesturl =
+                //        serviceurl + "/" + weatherid + "?lang=" + lang + "&format=" + format;
+
+                //if (source == "siag")
+                //{
+                string requesturl = serviceurlsiag + "?lang=" + lang + "&format=" + format;
 
                 if (!String.IsNullOrEmpty(weatherid))
                     requesturl =
-                        serviceurl + "/" + weatherid + "?lang=" + lang + "&format=" + format;
-
-                if (source == "siag")
-                {
-                    requesturl = serviceurlsiag + "?lang=" + lang + "&format=" + format;
-
-                    if (!String.IsNullOrEmpty(weatherid))
-                        requesturl =
-                            serviceurlsiag
-                            + "/"
-                            + weatherid
-                            + "?lang="
-                            + lang
-                            + "&format="
-                            + format;
-                }
+                        serviceurlsiag
+                        + "/"
+                        + weatherid
+                        + "?lang="
+                        + lang
+                        + "&format="
+                        + format;
+                //}
 
                 using (var client = new HttpClient())
                 {
@@ -105,11 +105,11 @@ namespace SIAG
                     format = "json";
                 }
 
-                string requesturl =
-                    serviceurlbezirk + distid + "/bulletin?lang=" + lang + "&format=" + format;
+                //string requesturl =
+                //    serviceurlbezirk + distid + "/bulletin?lang=" + lang + "&format=" + format;
 
-                if (source == "siag")
-                    requesturl =
+                //if (source == "siag")
+                string requesturl =
                         serviceurlbezirksiag
                         + distid
                         + "/bulletin?lang="

@@ -83,7 +83,7 @@ namespace OdhApiCore.Controllers
                     language ?? "en",
                     locfilter,
                     extended,
-                    source ?? "opendata",
+                    source ?? "siag",
                     null,
                     fields: fields ?? Array.Empty<string>(),
                     cancellationToken
@@ -124,7 +124,7 @@ namespace OdhApiCore.Controllers
                     language ?? "en",
                     null,
                     true,
-                    source ?? "opendata",
+                    source ?? "siag",
                     id,
                     fields: fields ?? Array.Empty<string>(),
                     cancellationToken
@@ -269,7 +269,7 @@ namespace OdhApiCore.Controllers
                     pagesize,
                     language ?? "en",
                     locfilter,
-                    source ?? "opendata",
+                    source ?? "siag",
                     fields: fields ?? Array.Empty<string>(),
                     cancellationToken
                 );
@@ -308,7 +308,7 @@ namespace OdhApiCore.Controllers
                     null,
                     language ?? "en",
                     id,
-                    source ?? "opendata",
+                    source ?? "siag",
                     fields: fields ?? Array.Empty<string>(),
                     cancellationToken
                 );
