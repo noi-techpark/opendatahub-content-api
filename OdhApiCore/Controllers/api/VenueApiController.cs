@@ -658,7 +658,8 @@ namespace OdhApiCore.Controllers
                 await venue.UpdateTagsExtension(QueryFactory);
                 
                 //QUick Hack Sort Venue
-                venue.RoomDetails = venue.RoomDetails.OrderBy(x => x.Detail["en"].Title).ToList();
+                if (venue.RoomDetails != null && venue.RoomDetails.Count > 0)
+                    venue.RoomDetails = venue.RoomDetails.OrderBy(x => x.Detail["en"].Title).ToList();
 
                 return await UpsertData<VenueV2>(
                     venue,
