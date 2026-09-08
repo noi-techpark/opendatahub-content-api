@@ -256,6 +256,51 @@ namespace Helper.Location
         /// <returns></returns>
         public static async Task<LocationInfoLinked> UpdateLocationInfoExtension<T>(
             this T data,
+            QueryFactory queryFactory,
+            bool populatedistrictids = false
+        )
+            where T : IHasLocationInfoLinked
+        {
+            var result = await ComputeLocationInfo(data, queryFactory);
+
+            if (populatedistrictids)
+                PopulateDistrictIds(data, result);
+
+            return result;
+        }
+
+        /// <summary>
+        /// If a District was resolved, mirrors its Id onto the entity: DistrictId (via the settable
+        /// IDistrictId interface, if implemented) and DistrictIds (added if not already present). There is
+        /// no common interface for DistrictIds across the types that carry it, so it's checked via
+        /// reflection instead.
+        /// </summary>
+        private static void PopulateDistrictIds<T>(T data, LocationInfoLinked? locationInfo)
+            where T : IHasLocationInfoLinked
+        {
+            var districtId = locationInfo?.DistrictInfo?.Id;
+            if (String.IsNullOrEmpty(districtId))
+                return;
+
+            if (data is IDistrictId districtIdAware)
+                districtIdAware.DistrictId = districtId;
+
+            var districtIdsProperty = data?.GetType().GetProperty("DistrictIds");
+            if (districtIdsProperty == null || !districtIdsProperty.CanRead || !districtIdsProperty.CanWrite)
+                return;
+
+            if (districtIdsProperty.GetValue(data) is not ICollection<string> districtIds)
+            {
+                districtIds = new List<string>();
+                districtIdsProperty.SetValue(data, districtIds);
+            }
+
+            if (!districtIds.Contains(districtId))
+                districtIds.Add(districtId);
+        }
+
+        private static async Task<LocationInfoLinked> ComputeLocationInfo<T>(
+            T data,
             QueryFactory queryFactory
         )
             where T : IHasLocationInfoLinked
