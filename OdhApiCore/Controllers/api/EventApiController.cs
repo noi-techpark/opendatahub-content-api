@@ -647,12 +647,16 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Event")]
-        public Task<IActionResult> Post([FromBody] EventLinked odhevent, bool generateid = true)
+        public Task<IActionResult> Post(
+            [FromBody] EventLinked odhevent,
+            bool generateid = true,
+            bool generategpsfromvenue = false
+        )
         {
             return DoAsyncReturn(async () =>
             {
                 //Additional Filters on the Action Create
-                AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);                
+                AdditionalFiltersToAdd.TryGetValue("Create", out var additionalfilter);
 
                 //Generate Id or use the assigned
                 if (generateid)
@@ -666,6 +670,11 @@ namespace OdhApiCore.Controllers
 
                 //GENERATE HasLanguage
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
+
+                //If no GpsInfo is set and a Venue is assigned, take the Venue's GpsInfo
+                if (generategpsfromvenue)
+                    await odhevent.AssignVenueGpsIfMissing(QueryFactory);
+
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
 
@@ -704,7 +713,11 @@ namespace OdhApiCore.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut, Route("Event/{id}")]
-        public Task<IActionResult> Put(string id, [FromBody] EventLinked odhevent)
+        public Task<IActionResult> Put(
+            string id,
+            [FromBody] EventLinked odhevent,
+            bool generategpsfromvenue = false
+        )
         {
             return DoAsyncReturn(async () =>
             {
@@ -719,6 +732,11 @@ namespace OdhApiCore.Controllers
 
                 //GENERATE HasLanguage
                 odhevent.CheckMyInsertedLanguages(new List<string> { "de", "en", "it" });
+
+                //If no GpsInfo is set and a Venue is assigned, take the Venue's GpsInfo
+                if (generategpsfromvenue)
+                    await odhevent.AssignVenueGpsIfMissing(QueryFactory);
+
                 //POPULATE LocationInfo
                 odhevent.LocationInfo = await odhevent.UpdateLocationInfoExtension(QueryFactory);
 

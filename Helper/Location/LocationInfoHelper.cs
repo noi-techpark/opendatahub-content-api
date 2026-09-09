@@ -260,6 +260,63 @@ namespace Helper.Location
         )
             where T : IHasLocationInfoLinked
         {
+            var result = await ComputeLocationInfo(data, queryFactory);
+
+            PopulateDistrictIds(data, result);
+
+            return result;
+        }
+
+        /// <summary>
+        /// If a District was resolved AND the entity doesn't already have a DistrictId/DistrictIds set,
+        /// mirrors the resolved Id onto it: DistrictId (via the settable IDistrictId interface, if
+        /// implemented) and DistrictIds. There is no common interface for DistrictIds across the types that
+        /// carry it, so it's checked via reflection instead. If either is already populated, nothing is
+        /// touched - this only fills in a missing DistrictId/DistrictIds, it never overwrites one.
+        /// </summary>
+        private static void PopulateDistrictIds<T>(T data, LocationInfoLinked? locationInfo)
+            where T : IHasLocationInfoLinked
+        {
+            var districtId = locationInfo?.DistrictInfo?.Id;
+            if (String.IsNullOrEmpty(districtId))
+                return;
+
+            var districtIdAware = data as IDistrictId;
+            var districtIdsProperty = data?.GetType().GetProperty("DistrictIds");
+
+            var hasDistrictId = !String.IsNullOrEmpty(districtIdAware?.DistrictId);
+            var hasDistrictIds =
+                districtIdsProperty != null
+                && districtIdsProperty.CanRead
+                && districtIdsProperty.GetValue(data) is ICollection<string> existingDistrictIds
+                && existingDistrictIds.Count > 0;
+
+            //Only populate if neither DistrictId nor DistrictIds is already set
+            if (hasDistrictId || hasDistrictIds)
+                return;
+
+            if (districtIdAware != null)
+                districtIdAware.DistrictId = districtId;
+
+            if (districtIdsProperty == null || !districtIdsProperty.CanRead || !districtIdsProperty.CanWrite)
+                return;
+
+            if (districtIdsProperty.GetValue(data) is not ICollection<string> districtIds)
+            {
+                districtIds = new List<string>();
+                districtIdsProperty.SetValue(data, districtIds);
+            }
+
+            if (!districtIds.Contains(districtId))
+                districtIds.Add(districtId);
+        }
+
+        private static async Task<LocationInfoLinked> ComputeLocationInfo<T>(
+            T data,
+            QueryFactory queryFactory
+        )
+            where T : IHasLocationInfoLinked
+        {
             LocationInfoLinked? oldlocationinfo = data.LocationInfo;
 
            
