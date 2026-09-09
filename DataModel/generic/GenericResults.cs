@@ -345,11 +345,9 @@ namespace DataModel
                         }
                     }
                 }
-                else
-                    return null;
             }
 
-            return response;
+            return response.Count > 0 ? response : null;
         }
 
         public static IDictionary<string, NotifierResponse>? MergeNotifierResponse(IDictionary<string, UpdateDetail> updatedetaildict)
@@ -374,11 +372,9 @@ namespace DataModel
                         }
                     }
                 }
-                else
-                    return null;
             }
 
-            return response;
+            return response.Count > 0 ? response : null;
         }
 
 
