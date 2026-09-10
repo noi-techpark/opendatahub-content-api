@@ -1871,5 +1871,113 @@ namespace OdhApiImporter.Controllers
         }
 
         #endregion
+
+        #region Images
+
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("FixImageResizerUrls/{type}")]
+        public async Task<IActionResult> FixImageResizerUrls(string type, CancellationToken cancellationToken)
+        {
+            try
+            {
+                CustomDataOperation customdataoperation = new CustomDataOperation(
+                    settings,
+                    QueryFactory
+                );
+
+                var table = ODHTypeHelper.TranslateTypeString2Table(type);
+
+                var objectscount = 0;
+
+                switch (type)
+                {
+                    case "accommodation":
+                        objectscount = await customdataoperation.FixImageResizerUrls<AccommodationV2>(table);
+                        break;
+                    case "odhactivitypoi":
+                        objectscount = await customdataoperation.FixImageResizerUrls<ODHActivityPoiLinked>(table);
+                        break;
+                    case "event":
+                        objectscount = await customdataoperation.FixImageResizerUrls<EventLinked>(table);
+                        break;
+                    case "article":
+                        objectscount = await customdataoperation.FixImageResizerUrls<ArticlesLinked>(table);
+                        break;
+                    case "venue":
+                        objectscount = await customdataoperation.FixImageResizerUrls<VenueV2>(table);
+                        break;
+                    case "webcam":
+                        objectscount = await customdataoperation.FixImageResizerUrls<WebcamInfoLinked>(table);
+                        break;
+                    case "wineaward":
+                        objectscount = await customdataoperation.FixImageResizerUrls<WineLinked>(table);
+                        break;
+                    case "district":
+                        objectscount = await customdataoperation.FixImageResizerUrls<DistrictLinked>(table);
+                        break;
+                    case "municipality":
+                        objectscount = await customdataoperation.FixImageResizerUrls<MunicipalityLinked>(table);
+                        break;
+                    case "region":
+                        objectscount = await customdataoperation.FixImageResizerUrls<RegionLinked>(table);
+                        break;
+                    case "metaregion":
+                        objectscount = await customdataoperation.FixImageResizerUrls<MetaRegionLinked>(table);
+                        break;
+                    case "tourismassociation":
+                        objectscount = await customdataoperation.FixImageResizerUrls<TourismvereinLinked>(table);
+                        break;
+                    case "experiencearea":
+                        objectscount = await customdataoperation.FixImageResizerUrls<ExperienceAreaLinked>(table);
+                        break;
+                    case "skiarea":
+                        objectscount = await customdataoperation.FixImageResizerUrls<SkiAreaLinked>(table);
+                        break;
+                    case "skiregion":
+                        objectscount = await customdataoperation.FixImageResizerUrls<SkiRegionLinked>(table);
+                        break;
+                    default:
+                        throw new Exception("unsupported Type");
+                }
+
+                return Ok(
+                    new UpdateResult
+                    {
+                        operation = "FixImageResizerUrls " + type,
+                        updatetype = "custom",
+                        otherinfo = "",
+                        message = "Done",
+                        recordsmodified = objectscount,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = objectscount,
+                        success = true,
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(
+                    new UpdateResult
+                    {
+                        operation = "FixImageResizerUrls " + type,
+                        updatetype = "custom",
+                        otherinfo = "",
+                        message = "Error",
+                        recordsmodified = 0,
+                        created = 0,
+                        deleted = 0,
+                        id = "",
+                        updated = 0,
+                        success = false,
+                        error = 1,
+                        exception = ex.Message,
+                    }
+                );
+            }
+        }
+
+        #endregion
     }
 }
