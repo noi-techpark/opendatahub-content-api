@@ -3178,8 +3178,9 @@ namespace OdhApiImporter.Helpers
         /// query parameter and keeping the rest of the path (folders included), e.g.
         /// ".../ImageHandler.ashx?src=images/common/Skiarea/&lt;guid&gt;.jpg" becomes
         /// "https://cdn.opendatahub.com/api/Image/GetImage?imageurl=common/Skiarea/&lt;guid&gt;.jpg". Only entities that
-        /// actually implement IImageGalleryAware/IContactInfosAware are touched; entries with no matching
-        /// url are left untouched and not saved.
+        /// actually implement IImageGalleryAware/IContactInfosAware are touched for those fields; for
+        /// SkiArea entities, SkiAreaMapURL is checked/rewritten the same way. Entries with no matching url
+        /// are left untouched and not saved.
         /// </summary>
         public async Task<int> FixImageResizerUrls<T>(string table)
             where T : IIdentifiable
@@ -3215,6 +3216,17 @@ namespace OdhApiImporter.Helpers
                             continue;
 
                         contactinfo.LogoUrl = fixedurl;
+                        changed = true;
+                    }
+                }
+
+                //SkiArea.SkiAreaMapURL has no common interface, check the concrete type directly
+                if (entity is SkiArea skiArea)
+                {
+                    var fixedurl = FixImageResizerUrl(skiArea.SkiAreaMapURL);
+                    if (fixedurl != null)
+                    {
+                        skiArea.SkiAreaMapURL = fixedurl;
                         changed = true;
                     }
                 }
