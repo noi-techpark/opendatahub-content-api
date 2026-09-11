@@ -649,6 +649,8 @@ namespace OdhApiCore.Controllers
         {
             try
             {
+                bool pagingrequested = PagingRequested(pagenumber, pagesize);
+
                 if (!String.IsNullOrEmpty(skiareaid))
                 {
                     var snowreport = await GetSnowReportBaseData(
@@ -657,11 +659,11 @@ namespace OdhApiCore.Controllers
                         cancellationToken
                     );
 
-                    if (pagenumber != null)
+                    if (pagingrequested)
                     {
                         return Ok(
                             ResponseHelpers.GetResult(
-                                pagenumber.Value,
+                                pagenumber ?? 1,
                                 1,
                                 1,
                                 null,
@@ -685,13 +687,25 @@ namespace OdhApiCore.Controllers
                         .Where("gen_active", true)
                         .Where("gen_source", "idm");
 
-                    var skiareaids = await query.GetAsync<string>();
+                    var skiareaids = (await query.GetAsync<string>()).ToList();
+                    var totalcount = (uint)skiareaids.Count;
+
+                    //Apply paging on the skiareaids (starting point) only if paging was explicitly
+                    //requested (pagenumber and/or pagesize present). When neither is passed, keep the old
+                    //behaviour of returning everything.
+                    IEnumerable<string> pagedskiareaids = skiareaids;
+                    int take = pagesize.Value ?? int.MaxValue;
+                    if (pagingrequested)
+                    {
+                        int skip = (int)((pagenumber ?? 1) - 1) * take;
+                        pagedskiareaids = skiareaids.Skip(skip).Take(take);
+                    }
 
                     List<SnowReportBaseData> snowreportbasedatalist =
                         new List<SnowReportBaseData>();
 
-                    //Fall 1 Getter auf ALL
-                    foreach (var myskiareaid in skiareaids)
+                    //Fall 1 Getter auf ALL (or just the requested page)
+                    foreach (var myskiareaid in pagedskiareaids)
                     {
                         var result = await GetSnowReportBaseData(
                             lang,
@@ -703,13 +717,18 @@ namespace OdhApiCore.Controllers
                             snowreportbasedatalist.Add(result);
                     }
 
-                    if (pagenumber != null)
+                    if (pagingrequested)
                     {
+                        var totalpages = PostgresSQLHelper.PGPagingHelper(
+                            totalcount,
+                            (uint)take
+                        );
+
                         return Ok(
                             ResponseHelpers.GetResult(
-                                pagenumber.Value,
-                                1,
-                                (uint)snowreportbasedatalist.Count,
+                                pagenumber ?? 1,
+                                totalpages,
+                                totalcount,
                                 null,
                                 snowreportbasedatalist,
                                 Url
@@ -869,11 +888,11 @@ namespace OdhApiCore.Controllers
                     )
                 );
 
-                if (pagenumber != null)
+                if (PagingRequested(pagenumber))
                 {
                     return Ok(
                         ResponseHelpers.GetResult(
-                            pagenumber.Value,
+                            pagenumber ?? 1,
                             1,
                             1,
                             null,
@@ -988,11 +1007,11 @@ namespace OdhApiCore.Controllers
                 )
             );
 
-            if (pagenumber != null)
+            if (PagingRequested(pagenumber))
             {
                 return Ok(
                     ResponseHelpers.GetResult(
-                        pagenumber.Value,
+                        pagenumber ?? 1,
                         1,
                         (uint)dataTransformed.Count(),
                         null,
@@ -1076,11 +1095,11 @@ namespace OdhApiCore.Controllers
                 )
             );
 
-            if (pagenumber != null)
+            if (PagingRequested(pagenumber))
             {
                 return Ok(
                     ResponseHelpers.GetResult(
-                        pagenumber.Value,
+                        pagenumber ?? 1,
                         1,
                         (uint)dataTransformed.Count(),
                         null,
@@ -1227,11 +1246,11 @@ namespace OdhApiCore.Controllers
                 )
             );
 
-            if (pagenumber != null)
+            if (PagingRequested(pagenumber))
             {
                 return Ok(
                     ResponseHelpers.GetResult(
-                        pagenumber.Value,
+                        pagenumber ?? 1,
                         1,
                         (uint)dataTransformed.Count(),
                         null,
@@ -1548,7 +1567,7 @@ namespace OdhApiCore.Controllers
                     .ApplyOrdering_GeneratedColumns(ref seed, geosearchresult, rawsort); //.ApplyOrdering(ref seed, geosearchresult, rawsort);
 
                 //Hack Paging on Measuringpoints
-                if (pagenumber != null)
+                if (PagingRequested(pagenumber))
                 {
                     //IF getasidarray set simply return array of ids
                     if (getasidarray)
@@ -1557,7 +1576,7 @@ namespace OdhApiCore.Controllers
                     }
 
                     var data = await query.PaginateAsync<JsonRaw>(
-                        page: (int)pagenumber,
+                        page: (int)(pagenumber ?? 1),
                         perPage: pagesize ?? 25
                     );
 
@@ -1575,7 +1594,7 @@ namespace OdhApiCore.Controllers
                     uint totalcount = (uint)data.Count;
 
                     return ResponseHelpers.GetResult(
-                        pagenumber.Value,
+                        pagenumber ?? 1,
                         totalpages,
                         totalcount,
                         seed,

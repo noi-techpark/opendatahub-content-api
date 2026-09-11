@@ -272,6 +272,28 @@ namespace OdhApiCore.Controllers
             });
         }
 
+        /// <summary>
+        /// Whether the caller actually asked for a paged response. PageSize's model binder always resolves
+        /// to a non-null value (defaults to 10) even when "pagesize" is missing from the query string
+        /// entirely, so checking pagenumber.HasValue alone can't tell "paging requested via pagesize only"
+        /// apart from "nothing passed at all" - PageSize.WasExplicitlySet is what actually distinguishes
+        /// the two, set by PageSizeBinder based on whether the request had the parameter at all.
+        /// </summary>
+        protected bool PagingRequested(uint? pagenumber, PageSize pagesize)
+        {
+            return pagenumber.HasValue || (pagesize?.WasExplicitlySet ?? false);
+        }
+
+        /// <summary>
+        /// Overload for call sites where only a plain int?/nothing is available for pagesize (e.g. private
+        /// helpers that receive an already-unwrapped `int? pagesize` and no longer have the PageSize
+        /// instance in scope) - falls back to checking the raw query string directly.
+        /// </summary>
+        protected bool PagingRequested(uint? pagenumber)
+        {
+            return pagenumber.HasValue || Request.Query.ContainsKey("pagesize");
+        }
+
         protected string GetEditIdentifier()
         {
             //Get the Identifier of the User that modfies the data

@@ -14,9 +14,16 @@ namespace OdhApiCore.Controllers
     {
         public int? Value { get; }
 
-        public PageSize(int? value)
+        /// <summary>
+        /// True if "pagesize" was actually present in the request (any value, including "null"/"-1"/"0"),
+        /// false if the query string didn't contain it at all and Value was defaulted by the binder.
+        /// </summary>
+        public bool WasExplicitlySet { get; }
+
+        public PageSize(int? value, bool wasExplicitlySet = true)
         {
             this.Value = value;
+            this.WasExplicitlySet = wasExplicitlySet;
         }
 
         public static implicit operator int?(PageSize pagesize)
@@ -43,7 +50,13 @@ namespace OdhApiCore.Controllers
                 bindingContext.ModelName
             );
             var firstValue = valueProviderResult.FirstValue;
-            if (firstValue == null || firstValue == "null") // "null" exists for compatibility reasons
+            if (firstValue == null) // genuinely missing from the request
+            {
+                bindingContext.Result = ModelBindingResult.Success(
+                    new PageSize(10, wasExplicitlySet: false)
+                );
+            }
+            else if (firstValue == "null") // "null" exists for compatibility reasons
             {
                 bindingContext.Result = ModelBindingResult.Success(new PageSize(10));
             }
