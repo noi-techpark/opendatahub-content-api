@@ -3161,5 +3161,110 @@ namespace OdhApiImporter.Helpers
         }
 
         #endregion
+
+        #region Images
+
+        private static readonly string[] ImageResizerPrefixes = new[]
+        {
+            "http://service.suedtirol.info/imageresizer/",
+            "https://service.suedtirol.info/imageresizer/",
+        };
+
+        /// <summary>
+        /// Loads all data of the given type/table and rewrites any ImageGallery.ImageUrl or
+        /// ContactInfos.[lang].LogoUrl still pointing at the old suedtirol.info imageresizer
+        /// (http(s)://service.suedtirol.info/imageresizer/ImageHandler.ashx?src=...) to the new
+        /// cdn.opendatahub.com Image API, dropping only the leading "images/" segment from the old "src"
+        /// query parameter and keeping the rest of the path (folders included), e.g.
+        /// ".../ImageHandler.ashx?src=images/common/Skiarea/&lt;guid&gt;.jpg" becomes
+        /// "https://cdn.opendatahub.com/api/Image/GetImage?imageurl=common/Skiarea/&lt;guid&gt;.jpg". Only entities that
+        /// actually implement IImageGalleryAware/IContactInfosAware are touched; entries with no matching
+        /// url are left untouched and not saved.
+        /// </summary>
+        public async Task<int> FixImageResizerUrls<T>(string table)
+            where T : IIdentifiable
+        {
+            var query = QueryFactory.Query().SelectRaw("data").From(table);
+            var list = await query.GetObjectListAsync<T>();
+
+            int i = 0;
+
+            foreach (var entity in list)
+            {
+                bool changed = false;
+
+                if (entity is IImageGalleryAware imageGalleryAware && imageGalleryAware.ImageGallery != null)
+                {
+                    foreach (var image in imageGalleryAware.ImageGallery)
+                    {
+                        var fixedurl = FixImageResizerUrl(image.ImageUrl);
+                        if (fixedurl == null)
+                            continue;
+
+                        image.ImageUrl = fixedurl;
+                        changed = true;
+                    }
+                }
+
+                if (entity is IContactInfosAware contactInfosAware && contactInfosAware.ContactInfos != null)
+                {
+                    foreach (var contactinfo in contactInfosAware.ContactInfos.Values)
+                    {
+                        var fixedurl = FixImageResizerUrl(contactinfo.LogoUrl);
+                        if (fixedurl == null)
+                            continue;
+
+                        contactinfo.LogoUrl = fixedurl;
+                        changed = true;
+                    }
+                }
+
+                if (!changed)
+                    continue;
+
+                var queryresult = await QueryFactory
+                    .Query(table)
+                    .Where("id", entity.Id)
+                    .UpdateAsync(new JsonBData() { id = entity.Id, data = new JsonRaw(entity) });
+
+                if (queryresult > 0)
+                    i++;
+            }
+
+            return i;
+        }
+
+        private static string? FixImageResizerUrl(string? url)
+        {
+            if (String.IsNullOrEmpty(url))
+                return null;
+
+            if (!ImageResizerPrefixes.Any(p => url.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+                return null;
+
+            //Extract the "src" query parameter's value (path to the source image on the old imageresizer)
+            var srcindex = url.IndexOf("src=", StringComparison.OrdinalIgnoreCase);
+            if (srcindex < 0)
+                return null;
+
+            var srcvalue = url.Substring(srcindex + "src=".Length);
+
+            //Strip any further query parameters that might follow "src"
+            var ampindex = srcvalue.IndexOf('&');
+            if (ampindex >= 0)
+                srcvalue = srcvalue.Substring(0, ampindex);
+
+            //Drop only the leading "images/" segment, keep the rest of the path intact,
+            //e.g. "images/common/Skiarea/<guid>.jpg" -> "common/Skiarea/<guid>.jpg"
+            if (srcvalue.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+                srcvalue = srcvalue.Substring("images/".Length);
+
+            if (String.IsNullOrEmpty(srcvalue))
+                return null;
+
+            return "https://cdn.opendatahub.com/api/Image/GetImage?imageurl=" + srcvalue;
+        }
+
+        #endregion
     }
 }
