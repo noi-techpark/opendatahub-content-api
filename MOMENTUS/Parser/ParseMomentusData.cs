@@ -73,6 +73,9 @@ namespace MOMENTUS.Parser
             // EventDates from booked spaces (one entry per day, rooms resolved via venue mapping)
             eventlinked.EventDate = BuildEventDates(mevent, venuelinked, bookedspacelist);
 
+            // Per-EventDate subtitles from room/date-specific functions
+            BuildDetailFromFunctionsForEventDates(eventlinked.EventDate, functionlist, venuelinked);
+
             //DateBegin/DateEnd are now calculated on the datamodel side from the Active EventDates
             //if (optimizedays)
             //    RefineRootDatesFromEventDates(eventlinked);
@@ -242,6 +245,10 @@ namespace MOMENTUS.Parser
             {
                 foreach (var function in functionlist.Where(f => !string.IsNullOrEmpty(f.FunctionTypeName)))
                 {
+                    // Only event-wide functions (no specific room) set the root title/subtitle
+                    if (function.RoomId != null || !function.IsEventWide)
+                        continue;
+
                     switch (function.FunctionTypeName!.Trim())
                     {
                         case "EN Title":
@@ -269,6 +276,72 @@ namespace MOMENTUS.Parser
                         detail.BaseText = description;
                 }
             }
+        }
+
+        // Per-EventDate subtitles from room/date-specific SUBtitle functions.
+        // Functions carrying a RoomId and start/end date+time identify a specific EventDate rather
+        // than the whole event; their Name is stored as DetailGeneric.Title since DetailGeneric has
+        // no SubHeader field of its own.
+        private static void BuildDetailFromFunctionsForEventDates(ICollection<EventDate>? eventdates, IEnumerable<MomentusFunction> functionlist, VenueV2? venuelinked)
+        {
+            if (functionlist == null || eventdates == null || eventdates.Count == 0)
+                return;
+
+            foreach (var function in functionlist.Where(f => !string.IsNullOrEmpty(f.FunctionTypeName)))
+            {
+                string? lang = function.FunctionTypeName!.Trim() switch
+                {
+                    "EN SUBtitle" => "en",
+                    "DE SUBtitle" => "de",
+                    "IT SUBtitle" => "it",
+                    _ => null
+                };
+
+                if (lang == null)
+                    continue;
+
+                var eventdate = FindMatchingEventDate(eventdates, function, venuelinked);
+                if (eventdate == null)
+                    continue;
+
+                eventdate.Detail[lang] = new DetailGeneric() { Language = lang, Title = function.Name };
+            }
+        }
+
+        private static EventDate? FindMatchingEventDate(ICollection<EventDate> eventdates, MomentusFunction function, VenueV2? venuelinked)
+        {
+            if (function.StartDate == null)
+                return null;
+
+            var from = function.StartDate.Value.ToDateTime(TimeOnly.MinValue);
+            var to = function.EndDate.HasValue ? function.EndDate.Value.ToDateTime(TimeOnly.MinValue) : from;
+
+            TimeSpan? begin = TimeSpan.TryParse(function.StartTime, out var beginparsed) ? beginparsed : null;
+            TimeSpan? end = TimeSpan.TryParse(function.EndTime, out var endparsed) ? endparsed : null;
+
+            var roomId = ResolveRoomId(venuelinked, function.RoomId);
+
+            return eventdates.FirstOrDefault(ed =>
+                ed.From == from &&
+                ed.To == to &&
+                ed.Begin == begin &&
+                ed.End == end &&
+                (roomId == null || (ed.VenueRoomDetailsIds != null && ed.VenueRoomDetailsIds.Contains(roomId))));
+        }
+
+        // Resolves a Momentus room id to the corresponding VenueRoomDetails id via the venue's "momentus" mapping
+        private static string? ResolveRoomId(VenueV2? venuelinked, string? momentusRoomId)
+        {
+            if (venuelinked?.RoomDetails == null || momentusRoomId == null)
+                return null;
+
+            var room = venuelinked.RoomDetails.FirstOrDefault(r =>
+                r.Mapping != null &&
+                r.Mapping.ContainsKey("momentus") &&
+                r.Mapping["momentus"].ContainsKey("id") &&
+                r.Mapping["momentus"]["id"] == momentusRoomId);
+
+            return room?.Id;
         }
 
         private static Detail EnsureDetail(EventLinked eventlinked, string lang)
@@ -327,17 +400,9 @@ namespace MOMENTUS.Parser
                 if (TimeSpan.TryParse(space.EndTime, out var end))
                     eventdate.End = end;
 
-                if (venuelinked?.RoomDetails != null && space.RoomId != null)
-                {
-                    var room = venuelinked.RoomDetails.FirstOrDefault(r =>
-                        r.Mapping != null &&
-                        r.Mapping.ContainsKey("momentus") &&
-                        r.Mapping["momentus"].ContainsKey("id") &&
-                        r.Mapping["momentus"]["id"] == space.RoomId);
-
-                    if (room?.Id != null)
-                        eventdate.VenueRoomDetailsIds = [room.Id];
-                }
+                var roomId = ResolveRoomId(venuelinked, space.RoomId);
+                if (roomId != null)
+                    eventdate.VenueRoomDetailsIds = [roomId];
 
                 eventdates.Add(eventdate);
             }

@@ -959,6 +959,11 @@ namespace DataModel
 
     public class EventDate : IEventDate
     {
+        public EventDate()
+        {
+            Detail = new Dictionary<string, DetailGeneric>();
+        }
+
         public string? EventDateId { get; set; }
 
         [SwaggerDeprecated("Deprecated use EventDateId")]
@@ -972,9 +977,11 @@ namespace DataModel
         }
 
         public ICollection<EventDateCalculatedDay>? EventCalculatedDays { get; set; }
-        
+
         //includes cancellationDescription, guide, description, registrationWithin
         public Dictionary<string, EventDateAdditionalInfo>? EventDateAdditionalInfo { get; set; }
+
+        public IDictionary<string, DetailGeneric> Detail { get; set; }
         [SwaggerSchema("refers to LTS field: minAmount")]
         public double? PriceFrom { get; set; }
         //startDate, endDate
@@ -1037,6 +1044,8 @@ namespace DataModel
         //            : new List<VenueLink>();
         //    }
         //}
+
+        
     }
 
     public class EventDateCalculatedDay
