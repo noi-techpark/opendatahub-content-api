@@ -92,7 +92,8 @@ Custom Functions on DB
 * json_array_to_pg_array
 * extract_keys_from_jsonb_object_array
 * text2ts
-* json_array_to_pg_array
+* text2tstz
+* json_array_to_pg_array_lower
 * extract_keys_from_jsonb_object_array
 * extract_tags
 * extract_tagkeys
@@ -260,6 +261,25 @@ CREATE OR REPLACE FUNCTION text2ts(text)
  IMMUTABLE
 AS $function$SELECT CASE WHEN $1 ~'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(?:Z|\+\d{2}:\d{2})?$' THEN CAST($1 AS timestamp without time zone) END; $function$;
 ```
+
+* text2tstz
+
+```sql
+CREATE OR REPLACE FUNCTION public.text2tstz(input_text text)
+ RETURNS timestamp with time zone
+ LANGUAGE sql
+ IMMUTABLE
+AS $function$
+    -- This attempts a direct cast. If the input is RFC 3339 compliant (with offset),
+    -- it works perfectly. If the input has no offset, it will fall back to
+    -- using the current session timezone, but since we declared it IMMUTABLE,
+    -- PostgreSQL TRUSTS us that this operation is safe.
+    SELECT input_text::timestamptz;
+$function$
+;
+```
+
+
 * json_array_to_pg_array
 
 ```sql
@@ -268,6 +288,15 @@ CREATE OR REPLACE FUNCTION json_array_to_pg_array(jsonarray jsonb)
  LANGUAGE plpgsql
  IMMUTABLE STRICT
 AS $function$ begin if jsonarray <> 'null' then return (select array(select jsonb_array_elements_text(jsonarray))); else return null; end if; end; $function$;
+```
+
+```sql
+CREATE OR REPLACE FUNCTION public.json_array_to_pg_array_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE STRICT
+AS $function$ begin if jsonarray <> 'null' then return (select array(select lower(jsonb_array_elements_text(jsonarray)))); else return null; end if; end; $function$
+;
 ```
 
 * extract_keys_from_jsonb_object_array
