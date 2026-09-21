@@ -422,7 +422,7 @@ namespace OdhApiCore.Controllers
                 //If we want to have the data denormalized use the function to denormalize events
                 var list = denormalize == true
                     ? data.List
-                        .SelectMany(jr => DeNormalizeEventLinked(JsonConvert.DeserializeObject<EventLinked>(jr.Value), myeventhelper.begin, myeventhelper.end, optimizedates)!)
+                        .SelectMany(jr => DeNormalizeEventLinked(JsonConvert.DeserializeObject<EventLinked>(jr.Value), myeventhelper.begin, myeventhelper.end, optimizedates, myeventhelper.publishedonlist)!)
                         .OrderBy(jw => jw.DateBegin)
                         .Select(jr => new JsonRaw(jr))
                     : data.List;
@@ -458,18 +458,23 @@ namespace OdhApiCore.Controllers
             EventLinked eventLinked,
             DateTime? start,
             DateTime? end,
-            bool? removeinactiverooms
+            bool? removeinactiverooms,
+            IReadOnlyCollection<string>? publishedonlist = null
         )
         {
+            bool filterpublishedon = publishedonlist != null && publishedonlist.Count > 0;
+
             // Denormalize by EventDate and add only Elements with EndDate higher than the provided enddate
             var byEventDate = eventLinked.DenormalizeBy(
                 e => e.EventDate,
                 (e, val) => e.EventDate = val,
                 //Start + Enddate, check if room.EndDate >= start AND room.StartDate <= end
                 //If removeinactiverooms set to true remove all room.Active = false
-                removeinactiverooms.HasValue && removeinactiverooms.Value ? 
-                    item => ((DateTime)(item.To.Date + (item.End ?? TimeSpan.Zero))) >= start && ((DateTime)(item.From.Date + (item.Begin ?? TimeSpan.Zero))) <= end && item.Active == true 
-                    : item => ((DateTime)(item.To.Date + (item.End ?? TimeSpan.Zero))) >= start && ((DateTime)(item.From.Date + (item.Begin ?? TimeSpan.Zero))) <= end,
+                //If publishedonlist set keep rooms without PublishedOn (null) or with at least one matching PublishedOn (OR)
+                item => ((DateTime)(item.To.Date + (item.End ?? TimeSpan.Zero))) >= start
+                    && ((DateTime)(item.From.Date + (item.Begin ?? TimeSpan.Zero))) <= end
+                    && (removeinactiverooms != true || item.Active == true)
+                    && (!filterpublishedon || (item.PublishedOn == null || item.PublishedOn.Any(p => publishedonlist!.Contains(p, StringComparer.OrdinalIgnoreCase)))),
                 item => item.From
             );
             return byEventDate;
