@@ -158,8 +158,12 @@ $RECYCLE.BIN/
 /OdhApiCore/docker/postgres/dumps
 
 # Docker
-/.env
 /.vscode
+
+# Environment files (real secrets) - matches at any depth (root, OdhApiCore/,
+# OdhApiImporter/, and any future project). Templates (*.env.example) are
+# intentionally NOT matched by this pattern and are committed.
+.env
 
 .fake
 .ionide
@@ -175,8 +179,6 @@ $RECYCLE.BIN/
 /OdhApiCore/GenericTags.json
 /OdhApiCore/wwwroot/json/swagger.json
 /OdhApiCore/wwwroot/json
-/OdhApiCore/.env
-/OdhApiImporter/.env
 /OdhApiImporter/json/SMOS_MCPL-WX_EXP_SIAG.JSON
 /PushServer/files/noi-community-firebase-adminsdk-qv1b9-5c488d5e06.json
 /google-service-account.noicommunity.json

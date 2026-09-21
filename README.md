@@ -122,53 +122,50 @@ Different Indices used
 
 ## Getting started:
 
-Clone the repository  
-Copy `.env.example` to `.env`  
-Set the needed environment variables
+Clone the repository, then set up your environment variables (see below), then either run via Docker or via the .Net Core CLI.
 
 ### Environment Variables
 
-* PG_CONNECTION (Connection to Postgres Database)
-* MSS_USER; (Optional User to retrieve availability request from HGV Mss)
-* MSS_PSWD; (Optional Pswd to retrieve availability request from HGV Mss)
-* LCS_USER; (Optional User to retrieve availability request from Lts)
-* LCS_PSWD; (Optional Pswd to retrieve availability request from Lts)
-* LCS_MSGPSWD; (Optional Messagepswd to retrieve availability requests from LTS)
-* SIAG_USER; (Optional User to retrieve data from Siag)
-* SIAG_PSWD; (Optional Pswd to retrieve data from Siag)
-* XMLDIR; (Directory where xml config file is stored)
-* JSONPATH; (Directory where json files are stored)
-* S3_BUCKET_ACCESSPOINT; (S3 Bucket for Image Upload accesspoint)
-* S3_IMAGEUPLOADER_ACCESSKEY; (S3 Bucket for Image Upload accesskey)
-* S3_IMAGEUPLOADER_SECRETKEY; (S3 Bucket for Image Upload secretkey)
-* OAUTH_AUTORITY; (Oauth Server Authority URL)
-* ELK_URL; (Serilog Elasticsearch Sink Elastic URL)
-* ELK_TOKEN; (Serilog Elasticsearch Access Token)
-* EBMS_USER; (Optional User to access EBMS interface)
-* EBMS_PASS; (Optional Pswd to access EBMS interface)
-* DSS_USER; (Optional User to access DSS interface)
-* DSS_PSWD; (Optional Pswd to access DSS interface)
-* DSS_SERVICEURL; (Optional DSS interface serviceurl)
-* RAVEN_USER; (Optional User to access Raven interface)
-* RAVEN_PSWD; (Optional Pswd to access Raven interface)
-* RAVEN_SERVICEURL; (Optional Raven interface serviceurl)
+Configuration (connection strings, credentials for external interfaces like LTS/Momentus/Zoho/etc.) is provided via layered `.env` files instead of being hardcoded or committed. There are three `.env` files, each with a matching `.env.example` template:
 
-### using Docker
+* `.env` (repo root) - values shared identically by **both** `OdhApiCore` and `OdhApiImporter` (e.g. `ConnectionStrings__PgConnection`, `OauthServerConfig__Authority`, LTS/LCS/CDB/SIAG credentials).
+* `OdhApiCore/.env` - values only `OdhApiCore` needs (S3 imageresizer, Elasticsearch, FCM push, etc.).
+* `OdhApiImporter/.env` - values only `OdhApiImporter` needs (Momentus, Zoho, DigiWay, EBMS, A22, and the other data-collector credentials).
 
-go into \OdhApiCore\ folder \
-`docker-compose up` starts the Open Data Hub Content Api application on http://localhost:8001/
+Setup:
 
-go into \OdhApiImporter\ folder \
-`docker-compose up` starts the  Open Data Hub Content Api application on http://localhost:8002/
+```
+cp .env.example .env
+cp OdhApiCore/.env.example OdhApiCore/.env
+cp OdhApiImporter/.env.example OdhApiImporter/.env
+```
+
+Then fill in the real values in all three `.env` files. All three are gitignored - never commit them. The `.env.example` files are the up-to-date, documented list of every variable each service reads; when you add a new external interface's config, add its keys there too.
+
+**Variable naming**: each variable name is the appsettings config key with `__` (double underscore) as the section separator - e.g. `ConnectionStrings__PgConnection` maps to config key `ConnectionStrings:PgConnection`, and `MomentusConfig__ClientId` maps to `MomentusConfig:ClientId`. This is the same convention ASP.NET Core's built-in environment-variable configuration provider already uses, which is what makes one `.env` format work identically for local runs and Docker (see below).
+
+**Load order**: the repo-root `.env` is loaded first, then the project's own `.env` is loaded on top and overrides any key also defined in the root file. Keep a value in the root file only if it's genuinely identical across both projects; put it in the project file (even if duplicated) if it ever differs.
 
 ### using .Net Core CLI
 
-Install .Net Core SDK 5\
+Install .Net Core SDK 8\
 go into \OdhApiCore\ folder \
 `dotnet run`
 starts the application on 
 https://localhost:5001;
 http://localhost:5000
+
+Both `OdhApiCore` and `OdhApiImporter` load their `.env` files themselves at startup (before the host builds its configuration), using the [DotNetEnv](https://www.nuget.org/packages/DotNetEnv) package - see `LoadDotEnvFiles()` in each project's `Program.cs`. This only ever applies locally: the loader is a no-op when the files aren't present (e.g. in CI or inside a Docker image, where real environment variables are supplied instead), so nothing needs to be conditioned on environment name.
+
+### using Docker
+
+go into \OdhApiCore\ folder \
+`docker-compose up` starts the Open Data Hub Content Api application on http://localhost:8083/
+
+go into \OdhApiImporter\ folder \
+`docker-compose up` starts the  Open Data Hub Content Api application on http://localhost:8002/
+
+Both `docker-compose.yml` files load the same `.env` files as above via `env_file: [../.env, .env]` (same load order/override rule), which docker compose injects directly as container environment variables - no separate Docker-specific variable names or mapping needed. Make sure the three `.env` files exist (see setup above) before running `docker-compose up`.
 
 ### Postgres
 
