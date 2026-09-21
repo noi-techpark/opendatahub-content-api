@@ -70,8 +70,16 @@ namespace MOMENTUS.Parser
             if (venuelinked?.Id != null)
                 eventlinked.VenueIds = [venuelinked.Id];
 
+            // Get eventlocation value from venue Mapping["tag"]["eventlocation"] (e.g. "noi", "ec")
+            string? venueEventLocation = null;
+            if (venuelinked?.Mapping != null &&
+                venuelinked.Mapping.TryGetValue("tag", out var venueTagMap) &&
+                venueTagMap.TryGetValue("eventlocation", out var el) &&
+                !string.IsNullOrEmpty(el))
+                venueEventLocation = el;
+
             // EventDates from booked spaces (one entry per day, rooms resolved via venue mapping)
-            eventlinked.EventDate = BuildEventDates(mevent, venuelinked, bookedspacelist);
+            eventlinked.EventDate = BuildEventDates(mevent, venuelinked, bookedspacelist, venueEventLocation);
 
             // Per-EventDate subtitles from room/date-specific functions
             BuildDetailFromFunctionsForEventDates(eventlinked.EventDate, functionlist, venuelinked);
@@ -128,14 +136,6 @@ namespace MOMENTUS.Parser
                     }
                 ];
             }
-
-            // Get eventlocation value from venue Mapping["tag"]["eventlocation"] (e.g. "noi", "ec")
-            string? venueEventLocation = null;
-            if (venuelinked?.Mapping != null &&
-                venuelinked.Mapping.TryGetValue("tag", out var venueTagMap) &&
-                venueTagMap.TryGetValue("eventlocation", out var el) &&
-                !string.IsNullOrEmpty(el))
-                venueEventLocation = el;
 
             // PublishedOn is derived from SpaceUsageName (from extended booked spaces) and venue eventlocation
             eventlinked.PublishedOn = DeterminePublishedOn(mevent, bookedspacelist, venueEventLocation);
@@ -212,6 +212,41 @@ namespace MOMENTUS.Parser
                 if (isNoi)   publishers.Add("today.noi.bz.it");
             }
             else if (effectiveType == "ROOM")
+            {
+                if (isEurac) publishers.Add("eurac-seminarroom");
+                if (isNoi)   publishers.Add("noi-totem");
+            }
+
+            return publishers;
+        }
+
+        // Per-room variant: the SpaceUsageName of a single booked space decides the publishers
+        private static List<string> DeterminePublishedOnByRoom(string? spaceUsageName, string? venueEventLocation)
+        {
+            if (string.IsNullOrEmpty(spaceUsageName))
+                return [];
+
+            var usage = spaceUsageName.Trim().ToUpperInvariant();
+
+            if (usage.Contains("PRIVATE"))
+                return [];
+
+            bool isEurac = string.Equals(venueEventLocation, "ec", StringComparison.OrdinalIgnoreCase);
+            bool isNoi = string.Equals(venueEventLocation, "noi", StringComparison.OrdinalIgnoreCase);
+
+            var publishers = new List<string>();
+
+            if (usage.Contains("PUBLIC"))
+            {
+                if (isEurac) publishers.AddRange(["eurac-videowall", "eurac-seminarroom"]);
+                if (isNoi)   publishers.AddRange(["noi-totem", "today.noi.bz.it"]);
+            }
+            else if (usage.Contains("VIDEOWALL"))
+            {
+                if (isEurac) publishers.Add("eurac-videowall");
+                if (isNoi)   publishers.Add("today.noi.bz.it");
+            }
+            else if (usage.Contains("ROOM"))
             {
                 if (isEurac) publishers.Add("eurac-seminarroom");
                 if (isNoi)   publishers.Add("noi-totem");
@@ -367,7 +402,7 @@ namespace MOMENTUS.Parser
             }
         }
 
-        private static List<EventDate> BuildEventDates(MomentusEvent mevent, VenueV2? venuelinked, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist)
+        private static List<EventDate> BuildEventDates(MomentusEvent mevent, VenueV2? venuelinked, IEnumerable<MomentusBookedSpaceExtended> bookedspacelist, string? venueEventLocation)
         {
             var eventdates = new List<EventDate>();
 
@@ -393,6 +428,16 @@ namespace MOMENTUS.Parser
                     To = space.EndDate.HasValue ? space.EndDate.Value.ToDateTime(TimeOnly.MinValue) : space.StartDate!.Value.ToDateTime(TimeOnly.MinValue),
                     Active = !isPrivate
                 };
+
+                eventdate.PublishedOn = DeterminePublishedOnByRoom(extendedSpace?.SpaceUsageName, venueEventLocation);
+
+                if (!string.IsNullOrEmpty(extendedSpace?.SpaceUsageName))
+                {
+                    eventdate.Mapping = new Dictionary<string, IDictionary<string, string>>()
+                    {
+                        ["momentus"] = new Dictionary<string, string>() { ["spaceUsageName"] = extendedSpace.SpaceUsageName }
+                    };
+                }
 
                 if (TimeSpan.TryParse(space.StartTime, out var begin))
                     eventdate.Begin = begin;

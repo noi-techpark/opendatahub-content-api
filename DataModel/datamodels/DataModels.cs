@@ -982,6 +982,11 @@ namespace DataModel
         public Dictionary<string, EventDateAdditionalInfo>? EventDateAdditionalInfo { get; set; }
 
         public IDictionary<string, DetailGeneric> Detail { get; set; }
+
+        public ICollection<string>? PublishedOn { get; set; }
+
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+
         [SwaggerSchema("refers to LTS field: minAmount")]
         public double? PriceFrom { get; set; }
         //startDate, endDate
