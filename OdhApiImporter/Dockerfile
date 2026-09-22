@@ -18,7 +18,6 @@ COPY MSS/MSS.csproj MSS/
 COPY SIAG/SIAG.csproj SIAG/
 COPY SuedtirolWein/SuedtirolWein.csproj SuedtirolWein/
 COPY NINJA/NINJA.csproj NINJA/
-COPY RAVEN/RAVEN.csproj RAVEN/
 COPY STA/STA.csproj STA/
 COPY HDS/HDS.csproj HDS/
 COPY ZOHO/ZOHO.csproj ZOHO/

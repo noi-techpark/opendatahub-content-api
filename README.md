@@ -48,7 +48,7 @@ Workerservice which is importing the Data with help of the Data Collectors
 
 Class Library with Extension Methods and other Open Data Hub Tourism Helper Methods
 
-### CDB, DSS, EBMS, LCS, MSS, NINJA, RAVEN, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
+### DSS, EBMS, LCS, MSS, NINJA, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
 
 Data Collectors used by Api and Importer, usually containing classes that retrieve Data, and classes that parse the data to Open Data Hub Objects (defined in DataModel)
 
@@ -149,9 +149,6 @@ Set the needed environment variables
 * DSS_USER; (Optional User to access DSS interface)
 * DSS_PSWD; (Optional Pswd to access DSS interface)
 * DSS_SERVICEURL; (Optional DSS interface serviceurl)
-* RAVEN_USER; (Optional User to access Raven interface)
-* RAVEN_PSWD; (Optional Pswd to access Raven interface)
-* RAVEN_SERVICEURL; (Optional Raven interface serviceurl)
 
 ### using Docker
 

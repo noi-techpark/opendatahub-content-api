@@ -55,130 +55,6 @@ namespace OdhApiImporter.Controllers
             this.OdhPushnotifier = odhpushnotifier;
         }
 
-        //#region UPDATE FROM RAVEN INSTANCE
-
-        //[Authorize(Roles = "DataPush")]
-        //[HttpGet, Route("Raven/{datatype}/Update/{id}")]
-        //public async Task<IActionResult> UpdateDataFromRaven(
-        //    string id,
-        //    string datatype,
-        //    CancellationToken cancellationToken = default
-        //)
-        //{
-        //    UpdateDetail updatedetail = default(UpdateDetail);
-        //    string operation = "Update Raven";
-        //    string updatetype = "single";
-        //    string source = "api";
-        //    string otherinfo = datatype.ToLower();
-
-        //    try
-        //    {
-        //        RavenImportHelper ravenimporthelper = new RavenImportHelper(
-        //            settings,
-        //            QueryFactory,
-        //            UrlGeneratorStatic("Raven/" + datatype),
-        //            OdhPushnotifier
-        //        );
-        //        var resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
-        //            id,
-        //            datatype,
-        //            cancellationToken
-        //        );
-        //        updatedetail = resulttuple.Item2;
-
-        //        var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-        //            resulttuple.Item1,
-        //            source,
-        //            operation,
-        //            updatetype,
-        //            "Update Raven succeeded",
-        //            otherinfo,
-        //            updatedetail,
-        //            true
-        //        );
-
-        //        return Ok(updateResult);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var errorResult = GenericResultsHelper.GetErrorUpdateResult(
-        //            id,
-        //            source,
-        //            operation,
-        //            updatetype,
-        //            "Update Raven failed",
-        //            otherinfo,
-        //            updatedetail,
-        //            ex,
-        //            true
-        //        );
-
-        //        return BadRequest(errorResult);
-        //    }
-        //}
-
-        //[Authorize(Roles = "DataPush")]
-        //[HttpGet, Route("Raven/{datatype}/Delete/{id}")]
-        //public async Task<IActionResult> DeleteDataFromRaven(
-        //    string id,
-        //    string datatype,
-        //    CancellationToken cancellationToken = default
-        //)
-        //{
-        //    UpdateDetail updatedetail = default(UpdateDetail);
-        //    string operation = "Delete Raven";
-        //    string updatetype = "single";
-        //    string source = "api";
-        //    string otherinfo = datatype.ToLower();
-
-        //    try
-        //    {
-        //        RavenImportHelper ravenimporthelper = new RavenImportHelper(
-        //            settings,
-        //            QueryFactory,
-        //            UrlGeneratorStatic("Raven/" + datatype),
-        //            OdhPushnotifier
-        //        );
-        //        var resulttuple = await ravenimporthelper.DeletePGObject(
-        //            id,
-        //            datatype,
-        //            cancellationToken
-        //        );
-        //        updatedetail = resulttuple.Item2;
-
-        //        var deleteResult = GenericResultsHelper.GetSuccessUpdateResult(
-        //            resulttuple.Item1,
-        //            source,
-        //            operation,
-        //            updatetype,
-        //            "Delete Raven succeeded",
-        //            otherinfo,
-        //            updatedetail,
-        //            true
-        //        );
-
-        //        return Ok(deleteResult);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var errorResult = GenericResultsHelper.GetErrorUpdateResult(
-        //            id,
-        //            source,
-        //            operation,
-        //            updatetype,
-        //            "Delete Raven failed",
-        //            otherinfo,
-        //            updatedetail,
-        //            ex,
-        //            true
-        //        );
-
-        //        return BadRequest(errorResult);
-        //    }
-        //}
-
-        //#endregion
-
         #region REPROCESS PUSH FAILURE QUEUE
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("PushFailureQueue/Retry/{publishedon}")]
@@ -2830,23 +2706,6 @@ namespace OdhApiImporter.Controllers
 
                 Tuple<string, UpdateDetail> resulttuple = default(Tuple<string, UpdateDetail>);
 
-                //if (datatype == "accommodation")
-                //{
-                //    RavenImportHelper ravenimporthelper = new RavenImportHelper(
-                //        settings,
-                //        QueryFactory,
-                //        UrlGeneratorStatic("Raven/" + datatype),
-                //        OdhPushnotifier
-                //    );
-                //    resulttuple = await ravenimporthelper.GetFromRavenAndTransformToPGObject(
-                //        id,
-                //        datatype,
-                //        cancellationToken
-                //    );
-                //    updatedetail = resulttuple.Item2;
-                //}
-                //else
-                //{
                 LTSAPIImportHelper ltsapiimporthelper = new LTSAPIImportHelper(
                     settings,
                     QueryFactory,
@@ -2861,7 +2720,6 @@ namespace OdhApiImporter.Controllers
                     cancellationToken
                 );
                 updatedetail = resulttuple.Item2;
-                //}
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     resulttuple.Item1,

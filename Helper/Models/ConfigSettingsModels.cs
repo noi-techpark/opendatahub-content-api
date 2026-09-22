@@ -33,8 +33,7 @@ namespace Helper
         MssConfig MssConfig { get; }
         LcsConfig LcsConfig { get; }
         SiagConfig SiagConfig { get; }
-        DSSConfig DSSConfig { get; }        
-        RavenConfig RavenConfig { get; }
+        DSSConfig DSSConfig { get; }
         A22Config A22Config { get; }
         FeratelConfig FeratelConfig { get; }
         PanocloudConfig PanocloudConfig { get; }
@@ -308,20 +307,6 @@ namespace Helper
         public string ServiceUrl { get; private set; }
     }
    
-    public class RavenConfig
-    {
-        public RavenConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
     public class DSSConfig
     {
         public DSSConfig(string user, string password, string serviceurl)

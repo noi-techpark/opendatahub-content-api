@@ -20,8 +20,7 @@ namespace OdhApiImporter
         private readonly SiagConfig siagConfig;
         private readonly XmlConfig xmlConfig;
         private readonly JsonConfig jsonConfig;
-        private readonly S3ImageresizerConfig s3imageresizerConfig;        
-        private readonly RavenConfig ravenConfig;
+        private readonly S3ImageresizerConfig s3imageresizerConfig;
         private readonly DSSConfig dssConfig;
 
         private readonly NinjaConfig ninjaConfig;
@@ -72,12 +71,6 @@ namespace OdhApiImporter
                 siag.GetValue<string>("Username", ""),
                 siag.GetValue<string>("Password", ""),
                 siag.GetValue<string>("ServiceUrl", "")
-            );
-            var raven = this.configuration.GetSection("RavenConfig");
-            this.ravenConfig = new RavenConfig(
-                raven.GetValue<string>("Username", ""),
-                raven.GetValue<string>("Password", ""),
-                raven.GetValue<string>("ServiceUrl", "")
             );
             var dss = this.configuration.GetSection("DSSConfig");
             this.dssConfig = new DSSConfig(
@@ -282,7 +275,6 @@ namespace OdhApiImporter
         public XmlConfig XmlConfig => this.xmlConfig;
         public JsonConfig JsonConfig => this.jsonConfig;
         public S3ImageresizerConfig S3ImageresizerConfig => this.s3imageresizerConfig;
-        public RavenConfig RavenConfig => this.ravenConfig;
         public DSSConfig DSSConfig => this.dssConfig;
 
         public A22Config A22Config => this.a22Config;

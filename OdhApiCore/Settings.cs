@@ -17,7 +17,6 @@ namespace OdhApiCore
         private readonly XmlConfig xmlConfig;
         private readonly JsonConfig jsonConfig;
         private readonly S3ImageresizerConfig s3imageresizerConfig;
-        private readonly RavenConfig ravenConfig;
         private readonly PushServerConfig pushserverConfig;
 
         //private readonly FCMConfig fcmConfig;
@@ -85,12 +84,6 @@ namespace OdhApiCore
                 s3img.GetValue<string>("BucketAccessPoint", ""),
                 s3img.GetValue<string>("AccessKey", ""),
                 s3img.GetValue<string>("SecretKey", "")
-            );
-            var raven = this.configuration.GetSection("RavenConfig");
-            this.ravenConfig = new RavenConfig(
-                raven.GetValue<string>("Username", ""),
-                raven.GetValue<string>("Password", ""),
-                raven.GetValue<string>("ServiceUrl", "")
             );
             var pushserver = this.configuration.GetSection("PushServerConfig");
             this.pushserverConfig = new PushServerConfig(
@@ -326,7 +319,6 @@ namespace OdhApiCore
         public LoopTecConfig LoopTecConfig => throw new NotImplementedException();
         public OutdooractiveConfig OutdooractiveConfig => throw new NotImplementedException();
 
-        public RavenConfig RavenConfig => this.ravenConfig;
         public List<NotifierConfig> NotifierConfig => this.notifierConfig;
         public IDictionary<string, S3Config> S3Config => this.s3Config;
         public IDictionary<string, DigiWayConfig> DigiWayConfig => this.digiwayConfig;

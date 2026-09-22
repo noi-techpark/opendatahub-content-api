@@ -85,8 +85,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__SecretKey="${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticUrl="${{ secrets.ELK_URL_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken="${{ secrets.ELK_TOKEN_TEST }}"' infrastructure/helm/test.yaml
-          yq -i '.envSecret.ASPNETCORE_RavenConfig__Username="${{ secrets.RAVEN_USER_TEST }}"' infrastructure/helm/test.yaml
-          yq -i '.envSecret.ASPNETCORE_RavenConfig__Password="${{ secrets.RAVEN_PSWD_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret["ASPNETCORE_FCMConfig__noi-communityapp__ServerKey"]="${{ secrets.NOICOMMUNITY_SERVERKEY_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret["ASPNETCORE_FCMConfig__noi-communityapp__SenderId"]="${{ secrets.NOICOMMUNITY_SENDERID_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Url"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_URL }}"' infrastructure/helm/test.yaml
@@ -169,8 +167,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__SecretKey="${{ secrets.S3_IMAGEUPLOADER_SECRETKEY_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticUrl="${{ secrets.ELK_URL_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken="${{ secrets.ELK_TOKEN_TEST }}"' infrastructure/helm/prod.yaml
-          yq -i '.envSecret.ASPNETCORE_RavenConfig__Username="${{ secrets.RAVEN_USER_TEST }}"' infrastructure/helm/prod.yaml
-          yq -i '.envSecret.ASPNETCORE_RavenConfig__Password="${{ secrets.RAVEN_PSWD_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret["ASPNETCORE_FCMConfig__noi-communityapp__ServerKey"]="${{ secrets.NOICOMMUNITY_SERVERKEY_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret["ASPNETCORE_FCMConfig__noi-communityapp__SenderId"]="${{ secrets.NOICOMMUNITY_SENDERID_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Url"]="${{ secrets.IDM_MARKETPLACE_PUSH_PROD_URL }}"' infrastructure/helm/prod.yaml
