@@ -124,10 +124,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "metaregions",
                     seed: seed,
@@ -290,10 +290,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "experienceareas",
                     seed: seed,
@@ -454,10 +454,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "regions",
                     seed: seed,
@@ -617,10 +617,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "tvs",
                     seed: seed,
@@ -782,10 +782,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "municipalities",
                     seed: seed,
@@ -947,10 +947,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "districts",
                     seed: seed,
@@ -1092,10 +1092,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "areas",
                     seed: seed,
@@ -1255,10 +1255,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "skiregions",
                     seed: seed,
@@ -1418,10 +1418,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await CommonGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,
                     tablename: "skiareas",
                     seed: seed,
@@ -1567,10 +1567,10 @@ namespace OdhApiCore.Controllers.api
                 cancellationToken
             );
 
-            if (pagenumber.HasValue)
+            if (PagingRequested(pagenumber, pagesize))
             {
                 return await WineGetPagedListHelper(
-                    pagenumber.Value,
+                    pagenumber ?? 1,
                     pagesize,                    
                     tablename: "wines",
                     idlist: idlist,
