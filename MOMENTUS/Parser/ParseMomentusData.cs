@@ -431,11 +431,17 @@ namespace MOMENTUS.Parser
 
                 eventdate.PublishedOn = DeterminePublishedOnByRoom(extendedSpace?.SpaceUsageName, venueEventLocation);
 
+                var momentusMapping = new Dictionary<string, string>();
                 if (!string.IsNullOrEmpty(extendedSpace?.SpaceUsageName))
+                    momentusMapping["spaceUsageName"] = extendedSpace.SpaceUsageName;
+                if (!string.IsNullOrEmpty(space.RoomId))
+                    momentusMapping["roomId"] = space.RoomId;
+
+                if (momentusMapping.Count > 0)
                 {
                     eventdate.Mapping = new Dictionary<string, IDictionary<string, string>>()
                     {
-                        ["momentus"] = new Dictionary<string, string>() { ["spaceUsageName"] = extendedSpace.SpaceUsageName }
+                        ["momentus"] = momentusMapping
                     };
                 }
 
