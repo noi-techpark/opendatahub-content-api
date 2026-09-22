@@ -1656,20 +1656,6 @@ namespace OdhApiCore.Controllers
             });
         }
 
-        //private IActionResult GetFeatureListXML(CancellationToken cancellationToken)
-        //{
-        //    XDocument mytins = GetAccommodationDataCDB.GetTinfromCDB(
-        //        "1",
-        //        settings.CDBConfig.Username,
-        //        settings.CDBConfig.Password,
-        //        settings.CDBConfig.ServiceUrl
-        //    );
-
-        //    //return new ContentResult { Content = mytins.ToString(), ContentType = "text/xml", StatusCode = 200 };
-
-        //    return Ok(mytins);
-        //}
-
         #endregion
 
         #region POST PUT DELETE

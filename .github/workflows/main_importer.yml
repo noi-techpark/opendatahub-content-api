@@ -6,7 +6,6 @@ on:
       - "OdhApiImporter/**"
       - "DataModel/**"
       - "DSS/**"
-      - "CDB/**"
       - "MOMENTUS/**"
       - "LCS/**"
       - "MSS/**"

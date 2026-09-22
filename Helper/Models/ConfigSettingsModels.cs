@@ -32,7 +32,6 @@ namespace Helper
 
         MssConfig MssConfig { get; }
         LcsConfig LcsConfig { get; }
-        CDBConfig CDBConfig { get; }
         SiagConfig SiagConfig { get; }
         DSSConfig DSSConfig { get; }        
         RavenConfig RavenConfig { get; }
@@ -264,21 +263,6 @@ namespace Helper
         public string Username { get; private set; }
         public string Password { get; private set; }
         public string MessagePassword { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
-    public class CDBConfig
-    {
-        public CDBConfig(string username, string password, string serviceurl)
-        {
-            this.Username = username;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string Username { get; private set; }
-        public string Password { get; private set; }
-
         public string ServiceUrl { get; private set; }
     }
 

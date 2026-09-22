@@ -29,7 +29,6 @@ namespace OdhApiCore
 
         private readonly MssConfig mssConfig;
         private readonly LcsConfig lcsConfig;
-        private readonly CDBConfig cdbConfig;
         private readonly SiagConfig siagConfig;
 
         private readonly List<NotifierConfig> notifierConfig;
@@ -65,12 +64,6 @@ namespace OdhApiCore
                 lcs.GetValue<string>("Password", ""),
                 lcs.GetValue<string>("MessagePassword", ""),
                 lcs.GetValue<string>("ServiceUrl", "")
-            );
-            var cdb = this.configuration.GetSection("CDBConfig");
-            this.cdbConfig = new CDBConfig(
-                cdb.GetValue<string>("Username", ""),
-                cdb.GetValue<string>("Password", ""),
-                cdb.GetValue<string>("ServiceUrl", "")
             );
             var siag = this.configuration.GetSection("SiagConfig");
             this.siagConfig = new SiagConfig(
@@ -310,7 +303,6 @@ namespace OdhApiCore
         public string MongoDBConnectionString => this.mongoDBConnectionString.Value;
         public MssConfig MssConfig => this.mssConfig;
         public LcsConfig LcsConfig => this.lcsConfig;
-        public CDBConfig CDBConfig => this.cdbConfig;
         public SiagConfig SiagConfig => this.siagConfig;
         public XmlConfig XmlConfig => this.xmlConfig;
         public JsonConfig JsonConfig => this.jsonConfig;
