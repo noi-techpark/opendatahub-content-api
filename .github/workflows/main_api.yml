@@ -75,9 +75,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_ConnectionStrings__PgConnection="${{ secrets.PG_CONNECTION_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_MssConfig__Username="${{ secrets.MSS_USER_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_MssConfig__Password="${{ secrets.MSS_PSWD_TEST }}"' infrastructure/helm/test.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__Username="${{ secrets.LCS_USER_TEST }}"' infrastructure/helm/test.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__Password="${{ secrets.LCS_PSWD_TEST }}"' infrastructure/helm/test.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__MessagePassword="${{ secrets.LCS_MSGPSWD_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Username="${{ secrets.SIAG_USER_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Password="${{ secrets.SIAG_PSWD_TEST }}"' infrastructure/helm/test.yaml
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint="${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}"' infrastructure/helm/test.yaml
@@ -157,9 +154,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_ConnectionStrings__PgConnection="${{ secrets.PG_CONNECTION_PROD }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret.ASPNETCORE_MssConfig__Username="${{ secrets.MSS_USER_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret.ASPNETCORE_MssConfig__Password="${{ secrets.MSS_PSWD_TEST }}"' infrastructure/helm/prod.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__Username="${{ secrets.LCS_USER_TEST }}"' infrastructure/helm/prod.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__Password="${{ secrets.LCS_PSWD_TEST }}"' infrastructure/helm/prod.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__MessagePassword="${{ secrets.LCS_MSGPSWD_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Username="${{ secrets.SIAG_USER_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Password="${{ secrets.SIAG_PSWD_TEST }}"' infrastructure/helm/prod.yaml
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint="${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}"' infrastructure/helm/prod.yaml

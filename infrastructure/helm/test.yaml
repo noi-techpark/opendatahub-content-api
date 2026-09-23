@@ -59,7 +59,6 @@ env:
   ASPNETCORE_ENVIRONMENT: "Development"
 
   ASPNETCORE_MssConfig__ServiceUrl: "https://www.easymailing.eu/mss/mss_service.php"
-  ASPNETCORE_LcsConfig__ServiceUrl: "https://lcs.lts.it/api/data.svc"
   ASPNETCORE_SiagConfig__ServiceUrl: "http://daten.buergernetz.bz.it/services/weather/"
 
   # XML reference files are baked into the image at /app/xml/ (Dockerfile).
@@ -88,9 +87,6 @@ envSecret:
   ASPNETCORE_ConnectionStrings__PgConnection: ""
   ASPNETCORE_MssConfig__Username: ""
   ASPNETCORE_MssConfig__Password: ""
-  ASPNETCORE_LcsConfig__Username: ""
-  ASPNETCORE_LcsConfig__Password: ""
-  ASPNETCORE_LcsConfig__MessagePassword: ""
   ASPNETCORE_SiagConfig__Username: ""
   ASPNETCORE_SiagConfig__Password: ""
   ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ""

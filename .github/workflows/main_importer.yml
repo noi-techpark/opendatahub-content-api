@@ -7,7 +7,6 @@ on:
       - "DataModel/**"
       - "DSS/**"
       - "MOMENTUS/**"
-      - "LCS/**"
       - "MSS/**"
       - "NINJA/**"
       - "SIAG/**"
@@ -85,9 +84,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_ConnectionStrings__PgConnection="${{ secrets.PG_CONNECTION_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_MssConfig__Username="${{ secrets.MSS_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_MssConfig__Password="${{ secrets.MSS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__Username="${{ secrets.LCS_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__Password="${{ secrets.LCS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__MessagePassword="${{ secrets.LCS_MSGPSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Username="${{ secrets.SIAG_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Password="${{ secrets.SIAG_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_DSSConfig__Username="${{ secrets.DSS_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
@@ -181,9 +177,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_ConnectionStrings__PgConnection="${{ secrets.PG_CONNECTION_PROD }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_MssConfig__Username="${{ secrets.MSS_USER_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_MssConfig__Password="${{ secrets.MSS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__Username="${{ secrets.LCS_USER_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__Password="${{ secrets.LCS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_LcsConfig__MessagePassword="${{ secrets.LCS_MSGPSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Username="${{ secrets.SIAG_USER_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Password="${{ secrets.SIAG_PSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_DSSConfig__Username="${{ secrets.DSS_USER_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml

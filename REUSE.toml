@@ -23,8 +23,6 @@ path = [
   "OdhApiCore/wwwroot/json/**",
   "OdhApiCore/wwwroot/favicon.ico",
   "OdhApiCore/docker/**",
-  "LCS/**/ConnectedService.json",
-  "CDB/**/ConnectedService.json",
   "GeoConverterTests/Files/**",
 ]
 SPDX-FileCopyrightText = "(c) NOI Techpark <digital@noi.bz.it>"

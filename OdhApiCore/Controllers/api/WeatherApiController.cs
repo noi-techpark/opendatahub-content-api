@@ -1720,17 +1720,6 @@ namespace OdhApiCore.Controllers
             }
 
 
-            //var mysnowreport = GetSnowReport.GetLiveSnowReport(
-            //    lang,
-            //    skiarea!,
-            //    webcamlist,
-            //    "SMG",
-            //    settings.LcsConfig.ServiceUrl,
-            //    settings.LcsConfig.Username,
-            //    settings.LcsConfig.Password,
-            //    settings.LcsConfig.MessagePassword
-            //);
-
             //Get Measuringpoints
 
             //Get Summaries
