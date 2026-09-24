@@ -2553,6 +2553,7 @@ namespace DataModel
                 "weatherforecast",
                 "weatherrealtime",
                 "snowreport",
+                "spatialdata",
                 "odhmetadata",
                 "package",
                 "ltsactivity",
