@@ -636,7 +636,6 @@ namespace DIGIWAY
             //Add Tags
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
-            spatialdata.TagIds.Add("cycling");
             spatialdata.TagIds.Add("mountain bike");
 
             //odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag

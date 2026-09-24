@@ -3278,5 +3278,46 @@ namespace OdhApiImporter.Helpers
         }
 
         #endregion
+
+        #region SpatialData
+
+        //Removes the "cycling" TagId from all mountain bike SpatialData
+        public async Task<int> RemoveCyclingTagFromMountainBikeSpatialData()
+        {
+            var query = QueryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("spatialdatas")
+                .WhereRaw("data->'TagIds' @> '\\[\"mountain bike\"\\]'::jsonb");
+
+            var data = await query.GetObjectListAsync<SpatialData>();
+            int i = 0;
+
+            foreach (var spatialdata in data)
+            {
+                if (spatialdata.TagIds == null || !spatialdata.TagIds.Contains("cycling"))
+                    continue;
+
+                while (spatialdata.TagIds.Remove("cycling")) { }
+
+                //Save to DB
+                await QueryFactory
+                    .Query("spatialdatas")
+                    .Where("id", spatialdata.Id)
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = spatialdata.Id,
+                            data = new JsonRaw(spatialdata),
+                        }
+                    );
+
+                i++;
+            }
+
+            return i;
+        }
+
+        #endregion
     }
 }
