@@ -15,7 +15,10 @@ services:
       # Solution-wide shared values first, then this project's own values on
       # top (overriding any shared key). Both files are gitignored - copy
       # them from the matching .env.example before running `docker compose up`.
-      - ../.env
-      - .env
+      # Optional, so the CI build/push (no .env files on the runner) does not fail.
+      - path: ../.env
+        required: false
+      - path: .env
+        required: false
     ports:
       - "8002:80"
