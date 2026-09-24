@@ -38,7 +38,6 @@
     <ProjectReference Include="..\PANOCLOUD\PANOCLOUD.csproj" />
     <ProjectReference Include="..\PANOMAX\PANOMAX.csproj" />
     <ProjectReference Include="..\PushServer\PushServer.csproj" />
-    <ProjectReference Include="..\RAVEN\RAVEN.csproj" />
     <ProjectReference Include="..\SIAG\SIAG.csproj" />
     <ProjectReference Include="..\STA\STA.csproj" />
     <ProjectReference Include="..\SuedtirolWein\SuedtirolWein.csproj" />

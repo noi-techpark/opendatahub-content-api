@@ -219,11 +219,6 @@ namespace DataModel
         public ICollection<RelatedContent>? RelatedContent { get; set; }
     }
 
-    public class SkiAreaRaven : SkiArea
-    {
-        public new LocationInfoLinked? LocationInfo { get; set; }
-    }
-
     public class SkiRegion : BaseInfos, IImageGalleryAware, IGpsPolygonAware, IRelatedContentAware
     {
         public ICollection<GpsPolygon>? GpsPolygon { get; set; }
@@ -508,17 +503,6 @@ namespace DataModel
 
         [SwaggerSchema("Trust You State on LTS")]
         public int? TrustYouState { get; set; }
-    }
-
-    public class AccommodationRaven : Accommodation
-    {
-        public new ICollection<AccoFeatureLinked>? Features { get; set; }
-
-        //Overwrites The Features
-        public new ICollection<AccoRoomInfoLinked>? AccoRoomInfo { get; set; }
-
-        //Overwrites The LocationInfo
-        public new LocationInfoLinked? LocationInfo { get; set; }
     }
 
     public class AccoRoomInfo
@@ -982,6 +966,11 @@ namespace DataModel
         public Dictionary<string, EventDateAdditionalInfo>? EventDateAdditionalInfo { get; set; }
 
         public IDictionary<string, DetailGeneric> Detail { get; set; }
+
+        public ICollection<string>? PublishedOn { get; set; }
+
+        public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
+
         [SwaggerSchema("refers to LTS field: minAmount")]
         public double? PriceFrom { get; set; }
         //startDate, endDate

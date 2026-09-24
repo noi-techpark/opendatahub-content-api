@@ -29,9 +29,6 @@ services:
       ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ${ELK_TOKEN}
       ASPNETCORE_JsonConfig__Jsondir: ${JSONPATH}
       ASPNETCORE_DataBrowserConfig__Url: ${DATABROWSER_URL}
-      ASPNETCORE_RavenConfig__ServiceUrl: ${RAVEN_SERVICEURL}
-      ASPNETCORE_RavenConfig__Username: ${RAVEN_USER}
-      ASPNETCORE_RavenConfig__Password: ${RAVEN_PSWD}
       ASPNETCORE_FCMConfig__noi-communityapp__ServerKey: ${NOICOMMUNITY_SERVERKEY}
       ASPNETCORE_FCMConfig__noi-communityapp__SenderId: ${NOICOMMUNITY_SENDERID}
       ASPNETCORE_FCMConfig__noi-communityapp__ProjectName: ${NOICOMMUNITY_PROJECTNAME}

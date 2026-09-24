@@ -86,7 +86,6 @@ env:
 
   ASPNETCORE_OauthServerConfig__Authority: "https://auth.opendatahub.com/auth/realms/noi/"
   ASPNETCORE_DataBrowserConfig__Url: "https://databrowser.opendatahub.com/"
-  ASPNETCORE_RavenConfig__ServiceUrl: "https://service.suedtirol.info/api/"
 
   ASPNETCORE_FCMConfig__noi-communityapp__ServerKey: ""
   ASPNETCORE_FCMConfig__noi-communityapp__SenderId: ""
@@ -166,8 +165,6 @@ envSecret:
   ASPNETCORE_ProxyConfig__CaddyProd: ""
   ASPNETCORE_ElasticSearchConfig__ElasticUrl: ""
   ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken: ""
-  ASPNETCORE_RavenConfig__Username: ""
-  ASPNETCORE_RavenConfig__Password: ""
   ASPNETCORE_NotifierConfig__idm-marketplace__Url: ""
   ASPNETCORE_NotifierConfig__idm-marketplace__User: ""
   ASPNETCORE_NotifierConfig__idm-marketplace__Password: ""

@@ -48,7 +48,7 @@ Workerservice which is importing the Data with help of the Data Collectors
 
 Class Library with Extension Methods and other Open Data Hub Tourism Helper Methods
 
-### CDB, DSS, EBMS, LCS, MSS, NINJA, RAVEN, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
+### DSS, EBMS, LCS, MSS, NINJA, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
 
 Data Collectors used by Api and Importer, usually containing classes that retrieve Data, and classes that parse the data to Open Data Hub Objects (defined in DataModel)
 
@@ -97,6 +97,8 @@ Custom Functions on DB
 * extract_keys_from_jsonb_object_array
 * extract_tags
 * extract_tagkeys
+* extract_tags_lower
+* extract_tagkeys_lower
 * is_valid_jsonb
 * json_2_tsrange_array
 * convert_tsrange_array_to_tsmultirange
@@ -145,6 +147,35 @@ Then fill in the real values in all three `.env` files. All three are gitignored
 **Variable naming**: each variable name is the appsettings config key with `__` (double underscore) as the section separator - e.g. `ConnectionStrings__PgConnection` maps to config key `ConnectionStrings:PgConnection`, and `MomentusConfig__ClientId` maps to `MomentusConfig:ClientId`. This is the same convention ASP.NET Core's built-in environment-variable configuration provider already uses, which is what makes one `.env` format work identically for local runs and Docker (see below).
 
 **Load order**: the repo-root `.env` is loaded first, then the project's own `.env` is loaded on top and overrides any key also defined in the root file. Keep a value in the root file only if it's genuinely identical across both projects; put it in the project file (even if duplicated) if it ever differs.
+* PG_CONNECTION (Connection to Postgres Database)
+* MSS_USER; (Optional User to retrieve availability request from HGV Mss)
+* MSS_PSWD; (Optional Pswd to retrieve availability request from HGV Mss)
+* LCS_USER; (Optional User to retrieve availability request from Lts)
+* LCS_PSWD; (Optional Pswd to retrieve availability request from Lts)
+* LCS_MSGPSWD; (Optional Messagepswd to retrieve availability requests from LTS)
+* SIAG_USER; (Optional User to retrieve data from Siag)
+* SIAG_PSWD; (Optional Pswd to retrieve data from Siag)
+* XMLDIR; (Directory where xml config file is stored)
+* JSONPATH; (Directory where json files are stored)
+* S3_BUCKET_ACCESSPOINT; (S3 Bucket for Image Upload accesspoint)
+* S3_IMAGEUPLOADER_ACCESSKEY; (S3 Bucket for Image Upload accesskey)
+* S3_IMAGEUPLOADER_SECRETKEY; (S3 Bucket for Image Upload secretkey)
+* OAUTH_AUTORITY; (Oauth Server Authority URL)
+* ELK_URL; (Serilog Elasticsearch Sink Elastic URL)
+* ELK_TOKEN; (Serilog Elasticsearch Access Token)
+* EBMS_USER; (Optional User to access EBMS interface)
+* EBMS_PASS; (Optional Pswd to access EBMS interface)
+* DSS_USER; (Optional User to access DSS interface)
+* DSS_PSWD; (Optional Pswd to access DSS interface)
+* DSS_SERVICEURL; (Optional DSS interface serviceurl)
+
+### using Docker
+
+go into \OdhApiCore\ folder \
+`docker-compose up` starts the Open Data Hub Content Api application on http://localhost:8001/
+
+go into \OdhApiImporter\ folder \
+`docker-compose up` starts the  Open Data Hub Content Api application on http://localhost:8002/
 
 ### using .Net Core CLI
 
@@ -329,6 +360,32 @@ CREATE OR REPLACE FUNCTION public.extract_tagkeys(jsonarray jsonb)
  IMMUTABLE strict
 AS $function$ begin
 	return (array(select distinct unnest(json_array_to_pg_array(jsonb_path_query_array(jsonarray, '$.*[*].Id')))));
+end; $function$
+```
+
+* extract_tags_lower
+
+```sql
+CREATE OR REPLACE FUNCTION public.extract_tags_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE strict
+AS $function$ begin
+	return
+		(select array(select lower(concat(x.tags->>'Source', '.', x.tags->>'Id')) from
+		(select jsonb_path_query(jsonarray, '$.*[*]') tags) x) x);
+end; $function$
+```
+
+* extract_tagkeys_lower
+
+```sql
+CREATE OR REPLACE FUNCTION public.extract_tagkeys_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE strict
+AS $function$ begin
+	return (array(select distinct unnest(json_array_to_pg_array_lower(jsonb_path_query_array(jsonarray, '$.*[*].Id')))));
 end; $function$
 ```
 
