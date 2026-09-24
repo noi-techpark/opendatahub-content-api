@@ -14,7 +14,7 @@ CREATE TABLE public.testdatas (
 	gen_shortname text GENERATED ALWAYS AS (data #>> '{Shortname}'::text[]) STORED NULL,
 	gen_source text GENERATED ALWAYS AS (data #>> '{_Meta,Source}'::text[]) STORED NULL,
 	gen_reduced bool GENERATED ALWAYS AS ((data #> '{_Meta,Reduced}'::text[])::boolean) STORED NULL,
-	gen_tags _text GENERATED ALWAYS AS (json_array_to_pg_array(data #> '{TagIds}'::text[])) STORED NULL,
+	gen_tags _text GENERATED ALWAYS AS (json_array_to_pg_array_lower(data #> '{TagIds}'::text[])) STORED NULL,
 	gen_id text GENERATED ALWAYS AS (data #>> '{Id}'::text[]) STORED NULL,
 	gen_access_role _text GENERATED ALWAYS AS (calculate_access_array(data #>> '{_Meta,Source}'::text[], (data #> '{LicenseInfo,ClosedData}'::text[])::boolean, (data #> '{_Meta,Reduced}'::text[])::boolean)) STORED NULL,
 	CONSTRAINT testdatas_pkey PRIMARY KEY (id)

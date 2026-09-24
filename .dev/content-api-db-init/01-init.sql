@@ -60,6 +60,24 @@ AS $function$ begin
 	return (array(select distinct unnest(json_array_to_pg_array(jsonb_path_query_array(jsonarray, '$[*].Id')))));
 end; $function$;
 
+CREATE OR REPLACE FUNCTION public.extract_tags_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE strict
+AS $function$ begin
+	return
+		(select array(select lower(concat(x.tags->>'Source', '.', x.tags->>'Id')) from
+		(select jsonb_path_query(jsonarray, '$[*]') tags) x) x);
+end; $function$;
+
+CREATE OR REPLACE FUNCTION public.extract_tagkeys_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE strict
+AS $function$ begin
+	return (array(select distinct unnest(json_array_to_pg_array_lower(jsonb_path_query_array(jsonarray, '$[*].Id')))));
+end; $function$;
+
 CREATE OR REPLACE FUNCTION is_valid_jsonb(p_json text) 
 RETURNS JSONB
 AS $$

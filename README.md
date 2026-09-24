@@ -48,7 +48,7 @@ Workerservice which is importing the Data with help of the Data Collectors
 
 Class Library with Extension Methods and other Open Data Hub Tourism Helper Methods
 
-### CDB, DSS, EBMS, LCS, MSS, NINJA, RAVEN, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
+### DSS, EBMS, LCS, MSS, NINJA, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
 
 Data Collectors used by Api and Importer, usually containing classes that retrieve Data, and classes that parse the data to Open Data Hub Objects (defined in DataModel)
 
@@ -97,6 +97,8 @@ Custom Functions on DB
 * extract_keys_from_jsonb_object_array
 * extract_tags
 * extract_tagkeys
+* extract_tags_lower
+* extract_tagkeys_lower
 * is_valid_jsonb
 * json_2_tsrange_array
 * convert_tsrange_array_to_tsmultirange
@@ -149,9 +151,6 @@ Set the needed environment variables
 * DSS_USER; (Optional User to access DSS interface)
 * DSS_PSWD; (Optional Pswd to access DSS interface)
 * DSS_SERVICEURL; (Optional DSS interface serviceurl)
-* RAVEN_USER; (Optional User to access Raven interface)
-* RAVEN_PSWD; (Optional Pswd to access Raven interface)
-* RAVEN_SERVICEURL; (Optional Raven interface serviceurl)
 
 ### using Docker
 
@@ -332,6 +331,32 @@ CREATE OR REPLACE FUNCTION public.extract_tagkeys(jsonarray jsonb)
  IMMUTABLE strict
 AS $function$ begin
 	return (array(select distinct unnest(json_array_to_pg_array(jsonb_path_query_array(jsonarray, '$.*[*].Id')))));
+end; $function$
+```
+
+* extract_tags_lower
+
+```sql
+CREATE OR REPLACE FUNCTION public.extract_tags_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE strict
+AS $function$ begin
+	return
+		(select array(select lower(concat(x.tags->>'Source', '.', x.tags->>'Id')) from
+		(select jsonb_path_query(jsonarray, '$.*[*]') tags) x) x);
+end; $function$
+```
+
+* extract_tagkeys_lower
+
+```sql
+CREATE OR REPLACE FUNCTION public.extract_tagkeys_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE strict
+AS $function$ begin
+	return (array(select distinct unnest(json_array_to_pg_array_lower(jsonb_path_query_array(jsonarray, '$.*[*].Id')))));
 end; $function$
 ```
 

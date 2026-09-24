@@ -23,7 +23,25 @@ CREATE OR REPLACE FUNCTION public.extract_tags(jsonarray jsonb)
 AS $function$ begin return (select array(select concat(x.tags->> 'Source', '.', x.tags->> 'Id') from (select jsonb_path_query(jsonarray, '$[*]') tags) x) x); end; $function$
 ;
 
-ALTER TABLE public.smgpois ADD gen_tags _text NULL GENERATED ALWAYS AS (array_cat(extract_tagkeys(data #> '{Tags}'::text[]), extract_tags(data #> '{Tags}'::text[]))) STORED;
+CREATE OR REPLACE FUNCTION public.extract_tagkeys_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE STRICT
+AS $function$ begin return (array(select distinct unnest(json_array_to_pg_array_lower(jsonb_path_query_array(jsonarray, '$[*].Id'))))); end; $function$
+;
+
+CREATE OR REPLACE FUNCTION public.extract_tags_lower(jsonarray jsonb)
+ RETURNS text[]
+ LANGUAGE plpgsql
+ IMMUTABLE STRICT
+AS $function$ begin return (select array(select lower(concat(x.tags->> 'Source', '.', x.tags->> 'Id')) from (select jsonb_path_query(jsonarray, '$[*]') tags) x) x); end; $function$
+;
+
+-- gen_tags is stored lowercased, the C# filters (WhereArrayInListAnd/Or) compare with lowered values
+-- Migration of an existing column: dropping it also drops its index, recreate it afterwards
+-- ALTER TABLE public.smgpois DROP COLUMN gen_tags;
+ALTER TABLE public.smgpois ADD gen_tags _text NULL GENERATED ALWAYS AS (array_cat(extract_tagkeys_lower(data #> '{Tags}'::text[]), extract_tags_lower(data #> '{Tags}'::text[]))) STORED;
+-- CREATE INDEX smgpois_gen_tags ON public.smgpois USING gin (gen_tags);
 
 CREATE OR REPLACE FUNCTION public.createshapejson(
 id int, 

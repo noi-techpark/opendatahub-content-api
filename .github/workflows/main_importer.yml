@@ -6,12 +6,10 @@ on:
       - "OdhApiImporter/**"
       - "DataModel/**"
       - "DSS/**"
-      - "CDB/**"
       - "MOMENTUS/**"
       - "LCS/**"
       - "MSS/**"
       - "NINJA/**"
-      - "RAVEN/**"
       - "SIAG/**"
       - "STA/**"
       - "LOOPTEC/**"
@@ -108,8 +106,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_ProxyConfig__CaddyProd="${{ secrets.CADDY_PROD_IP }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticUrl="${{ secrets.ELK_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken="${{ secrets.ELK_TOKEN_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_RavenConfig__Username="${{ secrets.RAVEN_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_RavenConfig__Password="${{ secrets.RAVEN_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Url"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_URL }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__User"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_USERNAME }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Password"]="${{ secrets.IDM_MARKETPLACE_PUSH_DEV_PASSWORD }}"' infrastructure/helm/tourism-importer-test.yaml
@@ -206,8 +202,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_ProxyConfig__CaddyProd="${{ secrets.CADDY_PROD_IP }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticUrl="${{ secrets.ELK_URL_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_ElasticSearchConfig__ElasticAuthtoken="${{ secrets.ELK_TOKEN_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_RavenConfig__Username="${{ secrets.RAVEN_USER_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_RavenConfig__Password="${{ secrets.RAVEN_PSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Url"]="${{ secrets.IDM_MARKETPLACE_PUSH_PROD_URL }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__User"]="${{ secrets.IDM_MARKETPLACE_PUSH_PROD_USERNAME }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret["ASPNETCORE_NotifierConfig__idm-marketplace__Password"]="${{ secrets.IDM_MARKETPLACE_PUSH_PROD_PASSWORD }}"' infrastructure/helm/tourism-importer-prod.yaml

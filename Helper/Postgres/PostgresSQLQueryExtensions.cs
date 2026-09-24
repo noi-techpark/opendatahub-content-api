@@ -1605,7 +1605,7 @@ namespace Helper
             {
                 foreach (var source in sourcelist)
                 {
-                    q = q.OrWhere("gen_syncsourceinterface", "ILIKE", source);
+                    q = q.OrWhereRaw("lower(gen_syncsourceinterface) = $$", source.ToLower());
                 }
                 return q;
             });
@@ -1619,7 +1619,7 @@ namespace Helper
             {
                 foreach (var source in sourcelist)
                 {
-                    q = q.OrWhere("gen_source", "ILIKE", source);
+                    q = q.OrWhereRaw("lower(gen_source) = $$", source.ToLower());
                 }
                 return q;
             });
@@ -1633,7 +1633,7 @@ namespace Helper
             {
                 foreach (var source in sourcelist)
                 {
-                    q = q.OrWhere("gen_syncsourceinterface", "ILIKE", source).OrWhere("gen_source", "ILIKE", source);
+                    q = q.OrWhereRaw("lower(gen_syncsourceinterface) = $$", source.ToLower()).OrWhereRaw("lower(gen_source) = $$", source.ToLower());
                 }
                 return q;
             });
@@ -1648,7 +1648,7 @@ namespace Helper
                 foreach (var item in sourcelist)
                 {
                     q = q.OrWhereRaw("$$ ILIKE ANY(gen_sources)", item)
-                        .OrWhere("gen_source", "ILIKE", item);
+                        .OrWhereRaw("lower(gen_source) = $$", item.ToLower());
                 }
                 return q;
             });
@@ -1676,7 +1676,7 @@ namespace Helper
             {
                 foreach (var source in sourcelist)
                 {
-                    q = q.OrWhere("gen_source", "ILIKE", source);
+                    q = q.OrWhereRaw("lower(gen_source) = $$", source.ToLower());
                 }
                 return q;
             });
