@@ -2011,6 +2011,47 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("UpdateCyclingRouteTypeTagsOnSpatialData")]
+        public async Task<IActionResult> UpdateCyclingRouteTypeTagsOnSpatialData(
+            CancellationToken cancellationToken
+        )
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+
+            //Civis cycling routes
+            var objectscountcivis = await customdataoperation.UpdateCyclingRouteTypeTagsOnSpatialData(
+                "civis.geoserver",
+                "cyclewaystyrol",
+                "ROUTE_TYPE"
+            );
+            //Arcgis cycling routes
+            var objectscountarcgis = await customdataoperation.UpdateCyclingRouteTypeTagsOnSpatialData(
+                "dservices3.arcgis.com",
+                "radrouten_tirol",
+                "RouteType"
+            );
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "Update cycling route type Tags on SpatialData",
+                    updatetype = "custom",
+                    otherinfo = "civis.geoserver: " + objectscountcivis + ", dservices3.arcgis.com: " + objectscountarcgis,
+                    message = "Done",
+                    recordsmodified = objectscountcivis + objectscountarcgis,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = objectscountcivis + objectscountarcgis,
+                    success = true,
+                }
+            );
+        }
+
         #endregion
     }
 }

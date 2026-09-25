@@ -583,6 +583,12 @@ namespace DIGIWAY
             spatialdata.TagIds.Add("cycling");
             spatialdata.TagIds.Add("biking biking tours");
 
+            //Correct Tags by Route Type (Single Trail/Mountainbikestrecke are mountain bike routes)
+            DigiWayCyclingRouteTypeTagger.AssignRouteTypeTags(
+                spatialdata.TagIds,
+                digiwaydata.properties.ROUTE_TYPE != null ? Convert.ToString(digiwaydata.properties.ROUTE_TYPE) : null
+            );
+
             //TODO Add each Geojson Featurecollection to Mapping
             spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
 
