@@ -3318,6 +3318,62 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        //Corrects the TagIds of the Tyrol cycling routes by their route type stored in Mapping
+        //civis.geoserver: tag cyclewaystyrol, Mapping key ROUTE_TYPE
+        //dservices3.arcgis.com: tag radrouten_tirol, Mapping key RouteType
+        public async Task<int> UpdateCyclingRouteTypeTagsOnSpatialData(
+            string source,
+            string tag,
+            string routetypekey
+        )
+        {
+            var query = QueryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("spatialdatas")
+                .WhereRaw("data->>'Source' = $$", source)
+                .WhereRaw("data->'TagIds' @> jsonb_build_array($$::text)", tag);
+
+            var data = await query.GetObjectListAsync<SpatialData>();
+            int i = 0;
+
+            foreach (var spatialdata in data)
+            {
+                if (spatialdata.TagIds == null)
+                    continue;
+
+                string? routetype = null;
+                if (
+                    spatialdata.Mapping != null
+                    && spatialdata.Mapping.TryGetValue(source, out var mapping)
+                    && mapping != null
+                )
+                {
+                    mapping.TryGetValue(routetypekey, out routetype);
+                }
+
+                //Skip if nothing changed
+                if (!global::DIGIWAY.DigiWayCyclingRouteTypeTagger.AssignRouteTypeTags(spatialdata.TagIds, routetype))
+                    continue;
+
+                //Save to DB
+                await QueryFactory
+                    .Query("spatialdatas")
+                    .Where("id", spatialdata.Id)
+                    .UpdateAsync(
+                        new JsonBData()
+                        {
+                            id = spatialdata.Id,
+                            data = new JsonRaw(spatialdata),
+                        }
+                    );
+
+                i++;
+            }
+
+            return i;
+        }
+
         #endregion
     }
 }

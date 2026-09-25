@@ -437,7 +437,10 @@ namespace DIGIWAY
             //Add Tags
             spatialdata.TagIds = new List<string>();
             spatialdata.TagIds.Add(identifier);
-            spatialdata.TagIds.Add("cycling");            
+            spatialdata.TagIds.Add("cycling");
+
+            //Correct Tags by Route Type (Single Trail/Mountainbikestrecke are mountain bike routes)
+            DigiWayCyclingRouteTypeTagger.AssignRouteTypeTags(spatialdata.TagIds, digiwaydata.RouteType);
 
             //odhactivitypoi.TagIds.Add("1B9AF4DA6E3A414798890E6723E71EC8"); //LTS MTB Tag
             //odhactivitypoi.TagIds.Add("cycling");
