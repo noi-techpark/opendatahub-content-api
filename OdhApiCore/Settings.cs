@@ -27,7 +27,6 @@ namespace OdhApiCore
         private readonly List<FCMConfig> fcmConfig;
 
         private readonly MssConfig mssConfig;
-        private readonly LcsConfig lcsConfig;
         private readonly SiagConfig siagConfig;
 
         private readonly List<NotifierConfig> notifierConfig;
@@ -56,13 +55,6 @@ namespace OdhApiCore
                 mss.GetValue<string>("Username", ""),
                 mss.GetValue<string>("Password", ""),
                 mss.GetValue<string>("ServiceUrl", "")
-            );
-            var lcs = this.configuration.GetSection("LcsConfig");
-            this.lcsConfig = new LcsConfig(
-                lcs.GetValue<string>("Username", ""),
-                lcs.GetValue<string>("Password", ""),
-                lcs.GetValue<string>("MessagePassword", ""),
-                lcs.GetValue<string>("ServiceUrl", "")
             );
             var siag = this.configuration.GetSection("SiagConfig");
             this.siagConfig = new SiagConfig(
@@ -295,7 +287,6 @@ namespace OdhApiCore
         public string PostgresConnectionString => this.connectionString.Value;
         public string MongoDBConnectionString => this.mongoDBConnectionString.Value;
         public MssConfig MssConfig => this.mssConfig;
-        public LcsConfig LcsConfig => this.lcsConfig;
         public SiagConfig SiagConfig => this.siagConfig;
         public XmlConfig XmlConfig => this.xmlConfig;
         public JsonConfig JsonConfig => this.jsonConfig;

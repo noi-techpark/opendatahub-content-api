@@ -45,6 +45,15 @@ namespace OdhApiCore.Filters
             return false;
         }
 
+        private const string LtsApiV1DeprecatedMessage =
+            "ltsapiversion=v1 is deprecated and no longer supported, the LTS Availability Check uses always the LTS API v2. Remove the parameter or use ltsapiversion=v2";
+
+        //LTS API v1 (LCS) is no longer available
+        private static bool IsDeprecatedLtsApiVersion(string? ltsapiversion)
+        {
+            return String.Equals(ltsapiversion?.Trim(), "v1", StringComparison.OrdinalIgnoreCase);
+        }
+
         public AvailabilitySearchInterceptorAttribute(
             QueryFactory queryFactory,
             IHttpClientFactory httpClientFactory,
@@ -61,6 +70,18 @@ namespace OdhApiCore.Filters
             ActionExecutionDelegate next
         )
         {
+            //Reject deprecated LTS API v1
+            var requestedltsapiversion =
+                context.ActionArguments.TryGetValue("ltsapiversion", out var ltsapiversionargument)
+                    ? ltsapiversionargument as string
+                    : (string?)context.HttpContext.Request.Query["ltsapiversion"];
+
+            if (IsDeprecatedLtsApiVersion(requestedltsapiversion))
+            {
+                context.Result = new BadRequestObjectResult(new { error = LtsApiV1DeprecatedMessage });
+                return;
+            }
+
             var availabilitysearchavailable = CheckAvailabilitySearch(context.HttpContext.User);
 
             // TODO: if Availability Requested and CheckAvailabilitySearch gives false, return a 401 Unauthorized
@@ -216,7 +237,7 @@ namespace OdhApiCore.Filters
                         "ltsapiversion"
                     )
                         ? (string?)actionarguments!["ltsapiversion"]
-                        : "v1";
+                        : "v2";
 
                     if (CheckArrivalAndDeparture(arrival, departure))
                     {
@@ -423,6 +444,13 @@ namespace OdhApiCore.Filters
             ResultExecutionDelegate next
         )
         {
+            //Request was rejected in OnActionExecutionAsync (deprecated LTS API v1), nothing to add
+            if (IsDeprecatedLtsApiVersion((string?)context.HttpContext.Request.Query["ltsapiversion"]))
+            {
+                await next();
+                return;
+            }
+
             bool availabilitysearchavailable = CheckAvailabilitySearch(context.HttpContext.User);
 
             // Getting Action name
@@ -461,7 +489,7 @@ namespace OdhApiCore.Filters
                 string roominfo = (string?)query["roominfo"] ?? "1-18,18";
                 string msssource = (string?)query["msssource"] ?? "sinfo";
                 string detail = (string?)query["detail"] ?? "0";
-                string? ltsapiversion = (string?)query["ltsapiversion"] ?? "v1";
+                string? ltsapiversion = (string?)query["ltsapiversion"] ?? "v2";
 
                 if (CheckArrivalAndDeparture(arrival, departure))
                 {

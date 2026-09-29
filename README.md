@@ -48,7 +48,7 @@ Workerservice which is importing the Data with help of the Data Collectors
 
 Class Library with Extension Methods and other Open Data Hub Tourism Helper Methods
 
-### DSS, EBMS, LCS, MSS, NINJA, SIAG, STA, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
+### DSS, MSS, NINJA, SIAG, STA, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
 
 Data Collectors used by Api and Importer, usually containing classes that retrieve Data, and classes that parse the data to Open Data Hub Objects (defined in DataModel)
 
@@ -130,9 +130,9 @@ Clone the repository, then set up your environment variables (see below), then e
 
 Configuration (connection strings, credentials for external interfaces like LTS/Momentus/Zoho/etc.) is provided via layered `.env` files instead of being hardcoded or committed. There are three `.env` files, each with a matching `.env.example` template:
 
-* `.env` (repo root) - values shared identically by **both** `OdhApiCore` and `OdhApiImporter` (e.g. `ConnectionStrings__PgConnection`, `OauthServerConfig__Authority`, LTS/LCS/CDB/SIAG credentials).
+* `.env` (repo root) - values shared identically by **both** `OdhApiCore` and `OdhApiImporter` (e.g. `ConnectionStrings__PgConnection`, `OauthServerConfig__Authority`, LTS/CDB/SIAG credentials).
 * `OdhApiCore/.env` - values only `OdhApiCore` needs (S3 imageresizer, Elasticsearch, FCM push, etc.).
-* `OdhApiImporter/.env` - values only `OdhApiImporter` needs (Momentus, Zoho, DigiWay, EBMS, A22, and the other data-collector credentials).
+* `OdhApiImporter/.env` - values only `OdhApiImporter` needs (Momentus, Zoho, DigiWay, A22, and the other data-collector credentials).
 
 Setup:
 
@@ -150,9 +150,6 @@ Then fill in the real values in all three `.env` files. All three are gitignored
 * PG_CONNECTION (Connection to Postgres Database)
 * MSS_USER; (Optional User to retrieve availability request from HGV Mss)
 * MSS_PSWD; (Optional Pswd to retrieve availability request from HGV Mss)
-* LCS_USER; (Optional User to retrieve availability request from Lts)
-* LCS_PSWD; (Optional Pswd to retrieve availability request from Lts)
-* LCS_MSGPSWD; (Optional Messagepswd to retrieve availability requests from LTS)
 * SIAG_USER; (Optional User to retrieve data from Siag)
 * SIAG_PSWD; (Optional Pswd to retrieve data from Siag)
 * XMLDIR; (Directory where xml config file is stored)
@@ -163,8 +160,6 @@ Then fill in the real values in all three `.env` files. All three are gitignored
 * OAUTH_AUTORITY; (Oauth Server Authority URL)
 * ELK_URL; (Serilog Elasticsearch Sink Elastic URL)
 * ELK_TOKEN; (Serilog Elasticsearch Access Token)
-* EBMS_USER; (Optional User to access EBMS interface)
-* EBMS_PASS; (Optional Pswd to access EBMS interface)
 * DSS_USER; (Optional User to access DSS interface)
 * DSS_PSWD; (Optional Pswd to access DSS interface)
 * DSS_SERVICEURL; (Optional DSS interface serviceurl)
