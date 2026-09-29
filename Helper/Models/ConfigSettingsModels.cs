@@ -40,7 +40,6 @@ namespace Helper
         PanomaxConfig PanomaxConfig { get; }
         NinjaConfig NinjaConfig { get; }
         MusportConfig MusportConfig { get; }
-        SuedtirolWeinConfig SuedtirolWeinConfig { get; }
         LoopTecConfig LoopTecConfig { get; }
         OutdooractiveConfig OutdooractiveConfig { get; }
         IDictionary<string, DigiWayConfig> DigiWayConfig { get; }
@@ -275,20 +274,6 @@ namespace Helper
         }
 
         public string Username { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
-    public class SuedtirolWeinConfig
-    {
-        public SuedtirolWeinConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
         public string Password { get; private set; }
         public string ServiceUrl { get; private set; }
     }

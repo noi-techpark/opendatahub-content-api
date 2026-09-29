@@ -314,7 +314,6 @@ namespace OdhApiCore
         public PanomaxConfig PanomaxConfig => throw new NotImplementedException();
         public PanocloudConfig PanocloudConfig => throw new NotImplementedException();
         public MusportConfig MusportConfig => throw new NotImplementedException();
-        public SuedtirolWeinConfig SuedtirolWeinConfig => throw new NotImplementedException();
         public NinjaConfig NinjaConfig => throw new NotImplementedException();
         public LoopTecConfig LoopTecConfig => throw new NotImplementedException();
         public OutdooractiveConfig OutdooractiveConfig => throw new NotImplementedException();

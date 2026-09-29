@@ -16,7 +16,6 @@ using OdhApiImporter.Helpers.DSS;
 using OdhApiImporter.Helpers.HGV;
 using OdhApiImporter.Helpers.LOOPTEC;
 using OdhApiImporter.Helpers.LTSAPI;
-using OdhApiImporter.Helpers.SuedtirolWein;
 using OdhNotifier;
 using SqlKata.Execution;
 using System;
@@ -520,122 +519,6 @@ namespace OdhApiImporter.Controllers
                     operation,
                     updatetype,
                     "Import SIAG Museum Tag data failed",
-                    otherinfo,
-                    updatedetail,
-                    ex,
-                    true
-                );
-                return BadRequest(updateResult);
-            }
-        }
-
-        #endregion
-
-        #region SUEDTIROLWEIN DATA SYNC
-
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("SuedtirolWein/Company/Update")]
-        public async Task<IActionResult> ImportSuedtirolWineCompany(
-            CancellationToken cancellationToken = default
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Import SuedtirolWein Company data";
-            string updatetype = GetUpdateType(null);
-            string source = "suedtirolwein";
-            string otherinfo = "actual";
-
-            try
-            {
-                SuedtirolWeinCompanyImportHelper sweinimporthelper =
-                    new SuedtirolWeinCompanyImportHelper(
-                        settings,
-                        QueryFactory,
-                        "smgpois",
-                        UrlGeneratorStatic("SuedtirolWein/Company"),
-                        OdhPushnotifier
-                    );
-                updatedetail = await sweinimporthelper.SaveDataToODH(null, null, cancellationToken);
-
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    null,
-                    source,
-                    GetEditIdentifier(),
-                    operation,
-                    updatetype,
-                    "Import SuedtirolWein Company data succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
-
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
-                    null,
-                    source,
-                    GetEditIdentifier(),
-                    operation,
-                    updatetype,
-                    "Import SuedtirolWein Company data failed",
-                    otherinfo,
-                    updatedetail,
-                    ex,
-                    true
-                );
-                return BadRequest(updateResult);
-            }
-        }
-
-        [Authorize(Roles = "DataPush")]
-        [HttpGet, Route("SuedtirolWein/WineAward/Update")]
-        public async Task<IActionResult> ImportSuedtirolWineAward(
-            CancellationToken cancellationToken = default
-        )
-        {
-            UpdateDetail updatedetail = default(UpdateDetail);
-            string operation = "Import SuedtirolWein WineAward data";
-            string updatetype = GetUpdateType(null);
-            string source = "suedtirolwein";
-            string otherinfo = "actual";
-
-            try
-            {
-                SuedtirolWeinAwardImportHelper sweinimporthelper =
-                    new SuedtirolWeinAwardImportHelper(
-                        settings,
-                        QueryFactory,
-                        "wines",
-                        UrlGeneratorStatic("SuedtirolWein/WineAward"),
-                        OdhPushnotifier
-                    );
-                updatedetail = await sweinimporthelper.SaveDataToODH(null, null, cancellationToken);
-
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
-                    null,
-                    source,
-                    GetEditIdentifier(),
-                    operation,
-                    updatetype,
-                    "Import SuedtirolWein WineAward data succeeded",
-                    otherinfo,
-                    updatedetail,
-                    true
-                );
-
-                return Ok(updateResult);
-            }
-            catch (Exception ex)
-            {
-                var updateResult = GenericResultsHelper.GetErrorUpdateResult(
-                    null,
-                    source,
-                    GetEditIdentifier(),
-                    operation,
-                    updatetype,
-                    "Import SuedtirolWein WineAward data failed",
                     otherinfo,
                     updatedetail,
                     ex,

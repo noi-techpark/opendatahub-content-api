@@ -18,7 +18,6 @@ on:
       - "PANOCLOUD/**"
       - "A22/**"     
       - "DIGIWAY/**"
-      - "SuedtirolWein/**"
       - "Helper/**"
       - "OdhNotifier/**"
       - ".github/workflows/main_importer.yml"

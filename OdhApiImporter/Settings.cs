@@ -25,7 +25,6 @@ namespace OdhApiImporter
 
         private readonly NinjaConfig ninjaConfig;
         private readonly LoopTecConfig looptecConfig;
-        private readonly SuedtirolWeinConfig suedtirolweinConfig;
         private readonly MusportConfig musportConfig;
         private readonly FeratelConfig feratelConfig;
         private readonly PanomaxConfig panomaxConfig;
@@ -77,12 +76,6 @@ namespace OdhApiImporter
                 dss.GetValue<string>("Username", ""),
                 dss.GetValue<string>("Password", ""),
                 dss.GetValue<string>("ServiceUrl", "")
-            );
-            var suedtirolwein = this.configuration.GetSection("SuedtirolWeinConfig");
-            this.suedtirolweinConfig = new SuedtirolWeinConfig(
-                suedtirolwein.GetValue<string>("Username", ""),
-                suedtirolwein.GetValue<string>("Password", ""),
-                suedtirolwein.GetValue<string>("ServiceUrl", "")
             );
             var feratel = this.configuration.GetSection("FeratelConfig");
             this.feratelConfig = new FeratelConfig(
@@ -281,7 +274,6 @@ namespace OdhApiImporter
         public FeratelConfig FeratelConfig => this.feratelConfig;
         public PanocloudConfig PanocloudConfig => this.panocloudConfig;
         public PanomaxConfig PanomaxConfig => this.panomaxConfig;
-        public SuedtirolWeinConfig SuedtirolWeinConfig => this.suedtirolweinConfig;
         public MusportConfig MusportConfig => this.musportConfig;
         public NinjaConfig NinjaConfig => this.ninjaConfig;
         public LoopTecConfig LoopTecConfig => this.looptecConfig;

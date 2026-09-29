@@ -48,7 +48,7 @@ Workerservice which is importing the Data with help of the Data Collectors
 
 Class Library with Extension Methods and other Open Data Hub Tourism Helper Methods
 
-### DSS, EBMS, LCS, MSS, NINJA, SIAG, STA, SuedtirolWein, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
+### DSS, EBMS, LCS, MSS, NINJA, SIAG, STA, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
 
 Data Collectors used by Api and Importer, usually containing classes that retrieve Data, and classes that parse the data to Open Data Hub Objects (defined in DataModel)
 
