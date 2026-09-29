@@ -30,9 +30,6 @@ services:
       ASPNETCORE_PanomaxConfig__Username: ${PANOMAX_USER}
       ASPNETCORE_PanomaxConfig__Password: ${PANOMAX_PSWD}
       ASPNETCORE_PanomaxConfig__ServiceUrl: ${PANOMAX_SERVICEURL}
-      ASPNETCORE_MusportConfig__Username: ${MUSPORT_USER}
-      ASPNETCORE_MusportConfig__Password: ${MUSPORT_PSWD}
-      ASPNETCORE_MusportConfig__ServiceUrl: ${MUSPORT_SERVICEURL}
       ASPNETCORE_NinjaConfig__Username: ${NINJA_USER}
       ASPNETCORE_NinjaConfig__Password: ${NINJA_PSWD}
       ASPNETCORE_NinjaConfig__ServiceUrl: ${NINJA_SERVICEURL}

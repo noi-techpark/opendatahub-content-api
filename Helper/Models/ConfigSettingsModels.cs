@@ -39,7 +39,6 @@ namespace Helper
         PanocloudConfig PanocloudConfig { get; }
         PanomaxConfig PanomaxConfig { get; }
         NinjaConfig NinjaConfig { get; }
-        MusportConfig MusportConfig { get; }
         LoopTecConfig LoopTecConfig { get; }
         OutdooractiveConfig OutdooractiveConfig { get; }
         IDictionary<string, DigiWayConfig> DigiWayConfig { get; }
@@ -278,20 +277,6 @@ namespace Helper
         public string ServiceUrl { get; private set; }
     }
 
-    public class MusportConfig
-    {
-        public MusportConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-   
     public class DSSConfig
     {
         public DSSConfig(string user, string password, string serviceurl)

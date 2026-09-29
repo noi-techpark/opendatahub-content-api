@@ -25,7 +25,6 @@ namespace OdhApiImporter
 
         private readonly NinjaConfig ninjaConfig;
         private readonly LoopTecConfig looptecConfig;
-        private readonly MusportConfig musportConfig;
         private readonly FeratelConfig feratelConfig;
         private readonly PanomaxConfig panomaxConfig;
         private readonly PanocloudConfig panocloudConfig;
@@ -100,12 +99,6 @@ namespace OdhApiImporter
                 a22.GetValue<string>("Username", ""),
                 a22.GetValue<string>("Password", ""),
                 a22.GetValue<string>("ServiceUrl", "")
-            );
-            var musport = this.configuration.GetSection("MusportConfig");
-            this.musportConfig = new MusportConfig(
-                musport.GetValue<string>("Username", ""),
-                musport.GetValue<string>("Password", ""),
-                musport.GetValue<string>("ServiceUrl", "")
             );
             var ninja = this.configuration.GetSection("NinjaConfig");
             this.ninjaConfig = new NinjaConfig(
@@ -274,7 +267,6 @@ namespace OdhApiImporter
         public FeratelConfig FeratelConfig => this.feratelConfig;
         public PanocloudConfig PanocloudConfig => this.panocloudConfig;
         public PanomaxConfig PanomaxConfig => this.panomaxConfig;
-        public MusportConfig MusportConfig => this.musportConfig;
         public NinjaConfig NinjaConfig => this.ninjaConfig;
         public LoopTecConfig LoopTecConfig => this.looptecConfig;
 
