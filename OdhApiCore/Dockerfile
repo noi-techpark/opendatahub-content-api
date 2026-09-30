@@ -12,7 +12,6 @@ COPY DataModel/DataModel.csproj DataModel/
 COPY RawQueryParser/RawQueryParser.fsproj RawQueryParser/
 COPY GeoConverter/GeoConverter.csproj GeoConverter/
 COPY Helper/Helper.csproj Helper/
-COPY MOMENTUS/MOMENTUS.csproj MOMENTUS/
 COPY MSS/MSS.csproj MSS/
 COPY SIAG/SIAG.csproj SIAG/
 COPY NINJA/NINJA.csproj NINJA/
