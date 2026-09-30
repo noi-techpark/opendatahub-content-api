@@ -51,16 +51,9 @@ env:
 
   ASPNETCORE_MssConfig__ServiceUrl: "https://www.easymailing.eu/mss/mss_service.php"
   ASPNETCORE_SiagConfig__ServiceUrl: "http://daten.buergernetz.bz.it/services/weather/"
-  ASPNETCORE_DSSConfig__ServiceUrl: "https://www.dolomitisuperski.com/jsonexport/export/"
   ASPNETCORE_NinjaConfig__ServiceUrl: "https://mobility.api.opendatahub.com/v2/flat/"
 
   # Sources configured with empty user/password in the current deployment.
-  ASPNETCORE_FeratelConfig__Username: ""
-  ASPNETCORE_FeratelConfig__Password: ""
-  ASPNETCORE_PanocloudConfig__Username: ""
-  ASPNETCORE_PanocloudConfig__Password: ""
-  ASPNETCORE_PanomaxConfig__Username: ""
-  ASPNETCORE_PanomaxConfig__Password: ""
   ASPNETCORE_NinjaConfig__Username: ""
   ASPNETCORE_NinjaConfig__Password: ""
   ASPNETCORE_LoopTecConfig__Username: ""
@@ -126,8 +119,6 @@ env:
 
   ASPNETCORE_ZOHOConfig__AuthUrl: "https://accounts.zoho.com/oauth/v2/token"
   ASPNETCORE_ZOHOConfig__Scope: "ZohoCreator.report.READ"
-  ASPNETCORE_MomentusConfig__ServiceUrl: "https://api.eu-venueops.com/v1/"
-  ASPNETCORE_MomentusConfig__AuthUrl: "https://auth-api.eu-venueops.com/token"
 
 # Sensitive environment. Placeholders only — filled at deploy time by the workflow.
 envSecret:
@@ -136,14 +127,9 @@ envSecret:
   ASPNETCORE_MssConfig__Password: ""
   ASPNETCORE_SiagConfig__Username: ""
   ASPNETCORE_SiagConfig__Password: ""
-  ASPNETCORE_DSSConfig__Username: ""
-  ASPNETCORE_DSSConfig__Password: ""
   ASPNETCORE_A22Config__Username: ""
   ASPNETCORE_A22Config__Password: ""
   ASPNETCORE_A22Config__ServiceUrl: ""
-  ASPNETCORE_FeratelConfig__ServiceUrl: ""
-  ASPNETCORE_PanocloudConfig__ServiceUrl: ""
-  ASPNETCORE_PanomaxConfig__ServiceUrl: ""
   ASPNETCORE_LoopTecConfig__ServiceUrl: ""
   ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint: ""
   ASPNETCORE_S3ImageresizerConfig__AccessKey: ""
@@ -183,5 +169,3 @@ envSecret:
   ASPNETCORE_OutdooractiveConfig__ServiceUrl: ""
   ASPNETCORE_OutdooractiveConfig__ServiceUrlDetail: ""
   ASPNETCORE_OutdooractiveConfig__Password: ""
-  ASPNETCORE_MomentusConfig__ClientId: ""
-  ASPNETCORE_MomentusConfig__ClientSecret: ""

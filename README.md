@@ -48,7 +48,7 @@ Workerservice which is importing the Data with help of the Data Collectors
 
 Class Library with Extension Methods and other Open Data Hub Tourism Helper Methods
 
-### DSS, MSS, NINJA, SIAG, STA, A22, FERATEL, LOOPTEC, PANOMAX, PANOCLOUD
+### MSS, NINJA, SIAG, STA, A22, LOOPTEC
 
 Data Collectors used by Api and Importer, usually containing classes that retrieve Data, and classes that parse the data to Open Data Hub Objects (defined in DataModel)
 
@@ -128,11 +128,11 @@ Clone the repository, then set up your environment variables (see below), then e
 
 ### Environment Variables
 
-Configuration (connection strings, credentials for external interfaces like LTS/Momentus/Zoho/etc.) is provided via layered `.env` files instead of being hardcoded or committed. There are three `.env` files, each with a matching `.env.example` template:
+Configuration (connection strings, credentials for external interfaces like LTS/Zoho/etc.) is provided via layered `.env` files instead of being hardcoded or committed. There are three `.env` files, each with a matching `.env.example` template:
 
 * `.env` (repo root) - values shared identically by **both** `OdhApiCore` and `OdhApiImporter` (e.g. `ConnectionStrings__PgConnection`, `OauthServerConfig__Authority`, LTS/CDB/SIAG credentials).
 * `OdhApiCore/.env` - values only `OdhApiCore` needs (S3 imageresizer, Elasticsearch, FCM push, etc.).
-* `OdhApiImporter/.env` - values only `OdhApiImporter` needs (Momentus, Zoho, DigiWay, A22, and the other data-collector credentials).
+* `OdhApiImporter/.env` - values only `OdhApiImporter` needs (Zoho, DigiWay, A22, and the other data-collector credentials).
 
 Setup:
 
@@ -144,7 +144,7 @@ cp OdhApiImporter/.env.example OdhApiImporter/.env
 
 Then fill in the real values in all three `.env` files. All three are gitignored - never commit them. The `.env.example` files are the up-to-date, documented list of every variable each service reads; when you add a new external interface's config, add its keys there too.
 
-**Variable naming**: each variable name is the appsettings config key with `__` (double underscore) as the section separator - e.g. `ConnectionStrings__PgConnection` maps to config key `ConnectionStrings:PgConnection`, and `MomentusConfig__ClientId` maps to `MomentusConfig:ClientId`. This is the same convention ASP.NET Core's built-in environment-variable configuration provider already uses, which is what makes one `.env` format work identically for local runs and Docker (see below).
+**Variable naming**: each variable name is the appsettings config key with `__` (double underscore) as the section separator - e.g. `ConnectionStrings__PgConnection` maps to config key `ConnectionStrings:PgConnection`, and `ZohoConfig__ClientId` maps to `ZohoConfig:ClientId`. This is the same convention ASP.NET Core's built-in environment-variable configuration provider already uses, which is what makes one `.env` format work identically for local runs and Docker (see below).
 
 **Load order**: the repo-root `.env` is loaded first, then the project's own `.env` is loaded on top and overrides any key also defined in the root file. Keep a value in the root file only if it's genuinely identical across both projects; put it in the project file (even if duplicated) if it ever differs.
 * PG_CONNECTION (Connection to Postgres Database)
@@ -160,9 +160,6 @@ Then fill in the real values in all three `.env` files. All three are gitignored
 * OAUTH_AUTORITY; (Oauth Server Authority URL)
 * ELK_URL; (Serilog Elasticsearch Sink Elastic URL)
 * ELK_TOKEN; (Serilog Elasticsearch Access Token)
-* DSS_USER; (Optional User to access DSS interface)
-* DSS_PSWD; (Optional Pswd to access DSS interface)
-* DSS_SERVICEURL; (Optional DSS interface serviceurl)
 
 ### using Docker
 

@@ -20,13 +20,9 @@ namespace OdhApiImporter
         private readonly XmlConfig xmlConfig;
         private readonly JsonConfig jsonConfig;
         private readonly S3ImageresizerConfig s3imageresizerConfig;
-        private readonly DSSConfig dssConfig;
 
         private readonly NinjaConfig ninjaConfig;
         private readonly LoopTecConfig looptecConfig;
-        private readonly FeratelConfig feratelConfig;
-        private readonly PanomaxConfig panomaxConfig;
-        private readonly PanocloudConfig panocloudConfig;
         private readonly A22Config a22Config;
         private readonly OutdooractiveConfig outdooractiveConfig;
 
@@ -39,7 +35,6 @@ namespace OdhApiImporter
         private readonly IDictionary<string, GTFSApiConfig> gtfsapiConfig;
 
         private readonly ZOHOConfig zohoConfig;
-        private readonly MOMENTUSConfig momentusConfig;
 
         public Settings(IConfiguration configuration)
         {
@@ -61,30 +56,6 @@ namespace OdhApiImporter
                 siag.GetValue<string>("Username", ""),
                 siag.GetValue<string>("Password", ""),
                 siag.GetValue<string>("ServiceUrl", "")
-            );
-            var dss = this.configuration.GetSection("DSSConfig");
-            this.dssConfig = new DSSConfig(
-                dss.GetValue<string>("Username", ""),
-                dss.GetValue<string>("Password", ""),
-                dss.GetValue<string>("ServiceUrl", "")
-            );
-            var feratel = this.configuration.GetSection("FeratelConfig");
-            this.feratelConfig = new FeratelConfig(
-                feratel.GetValue<string>("Username", ""),
-                feratel.GetValue<string>("Password", ""),
-                feratel.GetValue<string>("ServiceUrl", "")
-            );
-            var panomax = this.configuration.GetSection("PanomaxConfig");
-            this.panomaxConfig = new PanomaxConfig(
-                panomax.GetValue<string>("Username", ""),
-                panomax.GetValue<string>("Password", ""),
-                panomax.GetValue<string>("ServiceUrl", "")
-            );
-            var panocloud = this.configuration.GetSection("PanocloudConfig");
-            this.panocloudConfig = new PanocloudConfig(
-                panocloud.GetValue<string>("Username", ""),
-                panocloud.GetValue<string>("Password", ""),
-                panocloud.GetValue<string>("ServiceUrl", "")
             );
             var a22 = this.configuration.GetSection("A22Config");
             this.a22Config = new A22Config(
@@ -234,14 +205,6 @@ namespace OdhApiImporter
                 zoho.GetValue<string>("AuthUrl", ""),
                 zoho.GetValue<string>("Scope", "")
             );
-
-            var momentus = this.configuration.GetSection("MomentusConfig");
-            this.momentusConfig = new MOMENTUSConfig(
-                momentus.GetValue<string>("ClientId", ""),
-                momentus.GetValue<string>("ClientSecret", ""),
-                momentus.GetValue<string>("ServiceUrl", ""),
-                momentus.GetValue<string>("AuthUrl", "")
-            );
         }
 
         public string PostgresConnectionString => this.connectionString.Value;
@@ -252,12 +215,8 @@ namespace OdhApiImporter
         public XmlConfig XmlConfig => this.xmlConfig;
         public JsonConfig JsonConfig => this.jsonConfig;
         public S3ImageresizerConfig S3ImageresizerConfig => this.s3imageresizerConfig;
-        public DSSConfig DSSConfig => this.dssConfig;
 
         public A22Config A22Config => this.a22Config;
-        public FeratelConfig FeratelConfig => this.feratelConfig;
-        public PanocloudConfig PanocloudConfig => this.panocloudConfig;
-        public PanomaxConfig PanomaxConfig => this.panomaxConfig;
         public NinjaConfig NinjaConfig => this.ninjaConfig;
         public LoopTecConfig LoopTecConfig => this.looptecConfig;
 
@@ -280,6 +239,5 @@ namespace OdhApiImporter
         public IDictionary<string, GTFSApiConfig> GTFSApiConfig => this.gtfsapiConfig;
 
         public ZOHOConfig ZohoConfig => this.zohoConfig;
-        public MOMENTUSConfig MomentusConfig => this.momentusConfig;
     }
 }

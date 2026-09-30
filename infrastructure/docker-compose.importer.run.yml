@@ -11,21 +11,9 @@ services:
       ASPNETCORE_SiagConfig__Username: ${SIAG_USER}
       ASPNETCORE_SiagConfig__Password: ${SIAG_PSWD}
       ASPNETCORE_SiagConfig__ServiceUrl: ${SIAG_SERVICEURL}      
-      ASPNETCORE_DSSConfig__Username: ${DSS_USER}
-      ASPNETCORE_DSSConfig__Password: ${DSS_PSWD}
-      ASPNETCORE_DSSConfig__ServiceUrl: ${DSS_SERVICEURL}
       ASPNETCORE_A22Config__Username: ${A22_USER}
       ASPNETCORE_A22Config__Password: ${A22_PSWD}
       ASPNETCORE_A22Config__ServiceUrl: ${A22_SERVICEURL}
-      ASPNETCORE_FeratelConfig__Username: ${FERATEL_USER}
-      ASPNETCORE_FeratelConfig__Password: ${FERATEL_PSWD}
-      ASPNETCORE_FeratelConfig__ServiceUrl: ${FERATEL_SERVICEURL}
-      ASPNETCORE_PanocloudConfig__Username: ${PANOCLOUD_USER}
-      ASPNETCORE_PanocloudConfig__Password: ${PANOCLOUD_PSWD}
-      ASPNETCORE_PanocloudConfig__ServiceUrl: ${PANOCLOUD_SERVICEURL}
-      ASPNETCORE_PanomaxConfig__Username: ${PANOMAX_USER}
-      ASPNETCORE_PanomaxConfig__Password: ${PANOMAX_PSWD}
-      ASPNETCORE_PanomaxConfig__ServiceUrl: ${PANOMAX_SERVICEURL}
       ASPNETCORE_NinjaConfig__Username: ${NINJA_USER}
       ASPNETCORE_NinjaConfig__Password: ${NINJA_PSWD}
       ASPNETCORE_NinjaConfig__ServiceUrl: ${NINJA_SERVICEURL}
@@ -121,10 +109,6 @@ services:
       ASPNETCORE_OutdooractiveConfig__ServiceUrl: ${OUTDOORACTIVE_SERVICE_URL}
       ASPNETCORE_OutdooractiveConfig__ServiceUrlDetail: ${OUTDOORACTIVE_SERVICE_URL_DETAIL}
       ASPNETCORE_OutdooractiveConfig__Password: ${OUTDOORACTIVE_PSWD}
-      ASPNETCORE_MomentusConfig__ClientId: ${MOMENTUS_CLIENTID}
-      ASPNETCORE_MomentusConfig__ClientSecret: ${MOMENTUS_CLIENTSECRET}
-      ASPNETCORE_MomentusConfig__ServiceUrl: ${MOMENTUS_SERVICEURL}
-      ASPNETCORE_MomentusConfig__AuthUrl: ${MOMENTUS_AUTHURL}
     restart: unless-stopped
     ports:
       - "${SERVER_PORT}:80"

@@ -5,16 +5,11 @@ on:
     paths:
       - "OdhApiImporter/**"
       - "DataModel/**"
-      - "DSS/**"
-      - "MOMENTUS/**"
       - "MSS/**"
       - "NINJA/**"
       - "SIAG/**"
       - "STA/**"
       - "LOOPTEC/**"
-      - "FERATEL/**"
-      - "PANOMAX/**"
-      - "PANOCLOUD/**"
       - "A22/**"     
       - "DIGIWAY/**"
       - "Helper/**"
@@ -85,14 +80,9 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_MssConfig__Password="${{ secrets.MSS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Username="${{ secrets.SIAG_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Password="${{ secrets.SIAG_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_DSSConfig__Username="${{ secrets.DSS_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_DSSConfig__Password="${{ secrets.DSS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_A22Config__Username="${{ secrets.A22_USER_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_A22Config__Password="${{ secrets.A22_PSWD_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_A22Config__ServiceUrl="${{ secrets.A22_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_FeratelConfig__ServiceUrl="${{ secrets.FERATEL_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_PanocloudConfig__ServiceUrl="${{ secrets.PANOCLOUD_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_PanomaxConfig__ServiceUrl="${{ secrets.PANOMAX_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_LoopTecConfig__ServiceUrl="${{ secrets.LOOPTEC_URL_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint="${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__AccessKey="${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}"' infrastructure/helm/tourism-importer-test.yaml
@@ -132,8 +122,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__ServiceUrl="${{ secrets.OUTDOORACTIVE_SERVICE_URL }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__ServiceUrlDetail="${{ secrets.OUTDOORACTIVE_SERVICE_URL_DETAIL }}"' infrastructure/helm/tourism-importer-test.yaml
           yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__Password="${{ secrets.OUTDOORACTIVE_PSWD }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_MomentusConfig__ClientId="${{ secrets.MOMENTUS_CLIENTID }}"' infrastructure/helm/tourism-importer-test.yaml
-          yq -i '.envSecret.ASPNETCORE_MomentusConfig__ClientSecret="${{ secrets.MOMENTUS_CLIENTSECRET }}"' infrastructure/helm/tourism-importer-test.yaml
 
       - name: Deploy on cluster
         uses: noi-techpark/github-actions/helm-deploy@v3
@@ -178,14 +166,9 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_MssConfig__Password="${{ secrets.MSS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Username="${{ secrets.SIAG_USER_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_SiagConfig__Password="${{ secrets.SIAG_PSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_DSSConfig__Username="${{ secrets.DSS_USER_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_DSSConfig__Password="${{ secrets.DSS_PSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_A22Config__Username="${{ secrets.A22_USER_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_A22Config__Password="${{ secrets.A22_PSWD_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_A22Config__ServiceUrl="${{ secrets.A22_URL_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_FeratelConfig__ServiceUrl="${{ secrets.FERATEL_URL_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_PanocloudConfig__ServiceUrl="${{ secrets.PANOCLOUD_URL_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_PanomaxConfig__ServiceUrl="${{ secrets.PANOMAX_URL_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_LoopTecConfig__ServiceUrl="${{ secrets.LOOPTEC_URL_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__BucketAccessPoint="${{ secrets.S3_BUCKET_ACCESSPOINT_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_S3ImageresizerConfig__AccessKey="${{ secrets.S3_IMAGEUPLOADER_ACCESSKEY_TEST }}"' infrastructure/helm/tourism-importer-prod.yaml
@@ -225,8 +208,6 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__ServiceUrl="${{ secrets.OUTDOORACTIVE_SERVICE_URL }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__ServiceUrlDetail="${{ secrets.OUTDOORACTIVE_SERVICE_URL_DETAIL }}"' infrastructure/helm/tourism-importer-prod.yaml
           yq -i '.envSecret.ASPNETCORE_OutdooractiveConfig__Password="${{ secrets.OUTDOORACTIVE_PSWD }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_MomentusConfig__ClientId="${{ secrets.MOMENTUS_CLIENTID }}"' infrastructure/helm/tourism-importer-prod.yaml
-          yq -i '.envSecret.ASPNETCORE_MomentusConfig__ClientSecret="${{ secrets.MOMENTUS_CLIENTSECRET }}"' infrastructure/helm/tourism-importer-prod.yaml
 
       - name: Deploy on cluster
         uses: noi-techpark/github-actions/helm-deploy@v3

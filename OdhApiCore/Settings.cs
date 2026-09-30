@@ -39,7 +39,6 @@ namespace OdhApiCore
         private readonly LTSCredentials ltsCredentialsOpen;
 
         private readonly ZOHOConfig zohoConfig;
-        private readonly MOMENTUSConfig momentusConfig;
 
         public Settings(IConfiguration configuration)
         {
@@ -274,14 +273,6 @@ namespace OdhApiCore
                 zoho.GetValue<string>("AuthUrl", ""),
                 zoho.GetValue<string>("Scope", "")
             );
-
-            var momentus = this.configuration.GetSection("MomentusConfig");
-            this.momentusConfig = new MOMENTUSConfig(
-                momentus.GetValue<string>("ClientId", ""),
-                momentus.GetValue<string>("ClientSecret", ""),
-                momentus.GetValue<string>("ServiceUrl", ""),
-                momentus.GetValue<string>("AuthUrl", "")
-            );
         }
 
         public string PostgresConnectionString => this.connectionString.Value;
@@ -299,11 +290,7 @@ namespace OdhApiCore
         public List<RateLimitConfig> RateLimitConfig => this.rateLimitConfig;
         public NoRateLimitConfig NoRateLimitConfig => this.noRateLimitConfig;
 
-        public DSSConfig DSSConfig => throw new NotImplementedException();
         public A22Config A22Config => throw new NotImplementedException();
-        public FeratelConfig FeratelConfig => throw new NotImplementedException();
-        public PanomaxConfig PanomaxConfig => throw new NotImplementedException();
-        public PanocloudConfig PanocloudConfig => throw new NotImplementedException();
         public NinjaConfig NinjaConfig => throw new NotImplementedException();
         public LoopTecConfig LoopTecConfig => throw new NotImplementedException();
         public OutdooractiveConfig OutdooractiveConfig => throw new NotImplementedException();
@@ -317,6 +304,5 @@ namespace OdhApiCore
         public LTSCredentials LtsCredentialsOpen => this.ltsCredentialsOpen;
 
         public ZOHOConfig ZohoConfig => this.zohoConfig;
-        public MOMENTUSConfig MomentusConfig => this.momentusConfig;
     }
 }
