@@ -31,7 +31,6 @@ namespace Helper
         IDictionary<string, S3Config> S3Config { get; }
 
         MssConfig MssConfig { get; }
-        LcsConfig LcsConfig { get; }
         SiagConfig SiagConfig { get; }
         DSSConfig DSSConfig { get; }
         A22Config A22Config { get; }
@@ -39,8 +38,6 @@ namespace Helper
         PanocloudConfig PanocloudConfig { get; }
         PanomaxConfig PanomaxConfig { get; }
         NinjaConfig NinjaConfig { get; }
-        MusportConfig MusportConfig { get; }
-        SuedtirolWeinConfig SuedtirolWeinConfig { get; }
         LoopTecConfig LoopTecConfig { get; }
         OutdooractiveConfig OutdooractiveConfig { get; }
         IDictionary<string, DigiWayConfig> DigiWayConfig { get; }
@@ -244,27 +241,6 @@ namespace Helper
         public string ServiceUrl { get; private set; }
     }
 
-    public class LcsConfig
-    {
-        public LcsConfig(
-            string username,
-            string password,
-            string messagepassword,
-            string serviceurl
-        )
-        {
-            this.Username = username;
-            this.Password = password;
-            this.MessagePassword = messagepassword;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string Username { get; private set; }
-        public string Password { get; private set; }
-        public string MessagePassword { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
     public class SiagConfig
     {
         public SiagConfig(string username, string password, string serviceurl)
@@ -279,34 +255,6 @@ namespace Helper
         public string ServiceUrl { get; private set; }
     }
 
-    public class SuedtirolWeinConfig
-    {
-        public SuedtirolWeinConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
-    public class MusportConfig
-    {
-        public MusportConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-   
     public class DSSConfig
     {
         public DSSConfig(string user, string password, string serviceurl)

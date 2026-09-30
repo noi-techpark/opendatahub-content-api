@@ -16,7 +16,6 @@ COPY MOMENTUS/MOMENTUS.csproj MOMENTUS/
 COPY DSS/DSS.csproj DSS/
 COPY MSS/MSS.csproj MSS/
 COPY SIAG/SIAG.csproj SIAG/
-COPY SuedtirolWein/SuedtirolWein.csproj SuedtirolWein/
 COPY NINJA/NINJA.csproj NINJA/
 COPY STA/STA.csproj STA/
 COPY HDS/HDS.csproj HDS/

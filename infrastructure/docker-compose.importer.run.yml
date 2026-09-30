@@ -8,10 +8,6 @@ services:
       ASPNETCORE_MssConfig__Username: ${MSS_USER}
       ASPNETCORE_MssConfig__Password: ${MSS_PSWD}
       ASPNETCORE_MssConfig__ServiceUrl: ${MSS_SERVICEURL}
-      ASPNETCORE_LcsConfig__Username: ${LCS_USER}
-      ASPNETCORE_LcsConfig__Password: ${LCS_PSWD}
-      ASPNETCORE_LcsConfig__MessagePassword: ${LCS_MSGPSWD}
-      ASPNETCORE_LcsConfig__ServiceUrl: ${LCS_SERVICEURL}
       ASPNETCORE_SiagConfig__Username: ${SIAG_USER}
       ASPNETCORE_SiagConfig__Password: ${SIAG_PSWD}
       ASPNETCORE_SiagConfig__ServiceUrl: ${SIAG_SERVICEURL}      
@@ -30,12 +26,6 @@ services:
       ASPNETCORE_PanomaxConfig__Username: ${PANOMAX_USER}
       ASPNETCORE_PanomaxConfig__Password: ${PANOMAX_PSWD}
       ASPNETCORE_PanomaxConfig__ServiceUrl: ${PANOMAX_SERVICEURL}
-      ASPNETCORE_SuedtirolWeinConfig__Username: ${SUEDTIROLWEIN_USER}
-      ASPNETCORE_SuedtirolWeinConfig__Password: ${SUEDTIROLWEIN_PSWD}
-      ASPNETCORE_SuedtirolWeinConfig__ServiceUrl: ${SUEDTIROLWEIN_SERVICEURL}
-      ASPNETCORE_MusportConfig__Username: ${MUSPORT_USER}
-      ASPNETCORE_MusportConfig__Password: ${MUSPORT_PSWD}
-      ASPNETCORE_MusportConfig__ServiceUrl: ${MUSPORT_SERVICEURL}
       ASPNETCORE_NinjaConfig__Username: ${NINJA_USER}
       ASPNETCORE_NinjaConfig__Password: ${NINJA_PSWD}
       ASPNETCORE_NinjaConfig__ServiceUrl: ${NINJA_SERVICEURL}

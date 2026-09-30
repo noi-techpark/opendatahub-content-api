@@ -16,7 +16,6 @@ namespace OdhApiImporter
         private readonly Lazy<string> connectionString;
         private readonly Lazy<string> mongoDBConnectionString;
         private readonly MssConfig mssConfig;
-        private readonly LcsConfig lcsConfig;
         private readonly SiagConfig siagConfig;
         private readonly XmlConfig xmlConfig;
         private readonly JsonConfig jsonConfig;
@@ -25,8 +24,6 @@ namespace OdhApiImporter
 
         private readonly NinjaConfig ninjaConfig;
         private readonly LoopTecConfig looptecConfig;
-        private readonly SuedtirolWeinConfig suedtirolweinConfig;
-        private readonly MusportConfig musportConfig;
         private readonly FeratelConfig feratelConfig;
         private readonly PanomaxConfig panomaxConfig;
         private readonly PanocloudConfig panocloudConfig;
@@ -59,13 +56,6 @@ namespace OdhApiImporter
                 mss.GetValue<string>("Password", ""),
                 mss.GetValue<string>("ServiceUrl", "")
             );
-            var lcs = this.configuration.GetSection("LcsConfig");
-            this.lcsConfig = new LcsConfig(
-                lcs.GetValue<string>("Username", ""),
-                lcs.GetValue<string>("Password", ""),
-                lcs.GetValue<string>("MessagePassword", ""),
-                lcs.GetValue<string>("ServiceUrl", "")
-            );
             var siag = this.configuration.GetSection("SiagConfig");
             this.siagConfig = new SiagConfig(
                 siag.GetValue<string>("Username", ""),
@@ -77,12 +67,6 @@ namespace OdhApiImporter
                 dss.GetValue<string>("Username", ""),
                 dss.GetValue<string>("Password", ""),
                 dss.GetValue<string>("ServiceUrl", "")
-            );
-            var suedtirolwein = this.configuration.GetSection("SuedtirolWeinConfig");
-            this.suedtirolweinConfig = new SuedtirolWeinConfig(
-                suedtirolwein.GetValue<string>("Username", ""),
-                suedtirolwein.GetValue<string>("Password", ""),
-                suedtirolwein.GetValue<string>("ServiceUrl", "")
             );
             var feratel = this.configuration.GetSection("FeratelConfig");
             this.feratelConfig = new FeratelConfig(
@@ -107,12 +91,6 @@ namespace OdhApiImporter
                 a22.GetValue<string>("Username", ""),
                 a22.GetValue<string>("Password", ""),
                 a22.GetValue<string>("ServiceUrl", "")
-            );
-            var musport = this.configuration.GetSection("MusportConfig");
-            this.musportConfig = new MusportConfig(
-                musport.GetValue<string>("Username", ""),
-                musport.GetValue<string>("Password", ""),
-                musport.GetValue<string>("ServiceUrl", "")
             );
             var ninja = this.configuration.GetSection("NinjaConfig");
             this.ninjaConfig = new NinjaConfig(
@@ -270,7 +248,6 @@ namespace OdhApiImporter
         public string MongoDBConnectionString => this.mongoDBConnectionString.Value;
 
         public MssConfig MssConfig => this.mssConfig;
-        public LcsConfig LcsConfig => this.lcsConfig;
         public SiagConfig SiagConfig => this.siagConfig;
         public XmlConfig XmlConfig => this.xmlConfig;
         public JsonConfig JsonConfig => this.jsonConfig;
@@ -281,8 +258,6 @@ namespace OdhApiImporter
         public FeratelConfig FeratelConfig => this.feratelConfig;
         public PanocloudConfig PanocloudConfig => this.panocloudConfig;
         public PanomaxConfig PanomaxConfig => this.panomaxConfig;
-        public SuedtirolWeinConfig SuedtirolWeinConfig => this.suedtirolweinConfig;
-        public MusportConfig MusportConfig => this.musportConfig;
         public NinjaConfig NinjaConfig => this.ninjaConfig;
         public LoopTecConfig LoopTecConfig => this.looptecConfig;
 

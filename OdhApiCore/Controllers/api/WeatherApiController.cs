@@ -1215,6 +1215,9 @@ namespace OdhApiCore.Controllers
                         forecast
                     );
 
+                    //Replace outdated Weather Image Urls
+                    FixWeatherForecastImageUrls(forecast);
+
                     if (municipality != null)
                     {
                         forecast.LocationInfo = new LocationInfoLinked()
@@ -1266,6 +1269,31 @@ namespace OdhApiCore.Controllers
                     return Ok(dataTransformed.FirstOrDefault());
                 else
                     return Ok(dataTransformed);
+            }
+        }
+
+        private const string WeatherImgUrlOld = "https://daten.buergernetz.bz.it/services/weather/";
+        private const string WeatherImgUrlNew = "https://api-weather.services.siag.it/api/v2/";
+
+        /// Replaces the outdated buergernetz Weather Image Url in ForeCastDaily and Forecast3HoursInterval
+        private static void FixWeatherForecastImageUrls(WeatherForecast forecast)
+        {
+            if (forecast.ForeCastDaily != null)
+            {
+                foreach (var daily in forecast.ForeCastDaily)
+                {
+                    if (daily.WeatherImgUrl != null && daily.WeatherImgUrl.Contains(WeatherImgUrlOld))
+                        daily.WeatherImgUrl = daily.WeatherImgUrl.Replace(WeatherImgUrlOld, WeatherImgUrlNew);
+                }
+            }
+
+            if (forecast.Forecast3HoursInterval != null)
+            {
+                foreach (var threehours in forecast.Forecast3HoursInterval)
+                {
+                    if (threehours.WeatherImgUrl != null && threehours.WeatherImgUrl.Contains(WeatherImgUrlOld))
+                        threehours.WeatherImgUrl = threehours.WeatherImgUrl.Replace(WeatherImgUrlOld, WeatherImgUrlNew);
+                }
             }
         }
 
@@ -1719,17 +1747,6 @@ namespace OdhApiCore.Controllers
                 }
             }
 
-
-            //var mysnowreport = GetSnowReport.GetLiveSnowReport(
-            //    lang,
-            //    skiarea!,
-            //    webcamlist,
-            //    "SMG",
-            //    settings.LcsConfig.ServiceUrl,
-            //    settings.LcsConfig.Username,
-            //    settings.LcsConfig.Password,
-            //    settings.LcsConfig.MessagePassword
-            //);
 
             //Get Measuringpoints
 

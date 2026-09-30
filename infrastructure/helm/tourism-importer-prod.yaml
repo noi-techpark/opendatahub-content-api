@@ -53,11 +53,8 @@ env:
   ASPNETCORE_ENVIRONMENT: "Production"
 
   ASPNETCORE_MssConfig__ServiceUrl: "https://www.easymailing.eu/mss/mss_service.php"
-  ASPNETCORE_LcsConfig__ServiceUrl: "https://lcs.lts.it/api/data.svc"
   ASPNETCORE_SiagConfig__ServiceUrl: "http://daten.buergernetz.bz.it/services/weather/"
   ASPNETCORE_DSSConfig__ServiceUrl: "https://www.dolomitisuperski.com/jsonexport/export/"
-  ASPNETCORE_SuedtirolWeinConfig__ServiceUrl: "https://suedtirolwein.secure.consisto.net/"
-  ASPNETCORE_MusportConfig__ServiceUrl: "https://musport.prov.bz.it/musport/services/MuseumsService/"
   ASPNETCORE_NinjaConfig__ServiceUrl: "https://mobility.api.opendatahub.com/v2/flat/"
 
   # Sources configured with empty user/password in the current deployment.
@@ -67,10 +64,6 @@ env:
   ASPNETCORE_PanocloudConfig__Password: ""
   ASPNETCORE_PanomaxConfig__Username: ""
   ASPNETCORE_PanomaxConfig__Password: ""
-  ASPNETCORE_SuedtirolWeinConfig__Username: ""
-  ASPNETCORE_SuedtirolWeinConfig__Password: ""
-  ASPNETCORE_MusportConfig__Username: ""
-  ASPNETCORE_MusportConfig__Password: ""
   ASPNETCORE_NinjaConfig__Username: ""
   ASPNETCORE_NinjaConfig__Password: ""
   ASPNETCORE_LoopTecConfig__Username: ""
@@ -144,9 +137,6 @@ envSecret:
   ASPNETCORE_ConnectionStrings__PgConnection: ""
   ASPNETCORE_MssConfig__Username: ""
   ASPNETCORE_MssConfig__Password: ""
-  ASPNETCORE_LcsConfig__Username: ""
-  ASPNETCORE_LcsConfig__Password: ""
-  ASPNETCORE_LcsConfig__MessagePassword: ""
   ASPNETCORE_SiagConfig__Username: ""
   ASPNETCORE_SiagConfig__Password: ""
   ASPNETCORE_DSSConfig__Username: ""
