@@ -212,9 +212,9 @@ namespace OdhApiCore.Controllers
             {
                 //simple sort bz datebegin
                 if (sort.ToLower() == "asc")
-                    sortifseednull = "gen_nextbegindate ASC";
+                    sortifseednull = "gen_begindate ASC";
                 else if (sort.ToLower() == "desc")
-                    sortifseednull = "gen_nextbegindate DESC";
+                    sortifseednull = "gen_begindate DESC";
                 else if (sort.ToLower().StartsWith("upcoming"))
                 {
                     var sortfromdate = "2000-01-01";
@@ -252,21 +252,7 @@ namespace OdhApiCore.Controllers
                         //    sortifseednull = "get_nearest_tsrange_distance(gen_eventdatearray, ('" + sortfromdate + "')::timestamp, 'asc', true),get_nearest_tsrange(gen_eventdatearray, ('" + sortfromdate + "')::timestamp) DESC";
                         //else
                         //    sortifseednull = "get_nearest_tsrange_distance(gen_eventdatearray, ('" + sortfromdate + "')::timestamp, 'desc', true) DESC,get_nearest_tsrange(gen_eventdatearray, ('" + sortfromdate + "')::timestamp) ASC";
-                    }
-                    if (sort.ToLower() == "upcomingspecial")
-                    {
-                        sortifseednull =
-                            "get_nearest_tsrange_distance(gen_eventdatearray, ('"
-                            + sortfromdate
-                            + "')::timestamp, 'asc', true),lower(get_nearest_tsrange(gen_eventdatearray, ('"
-                            + sortfromdate
-                            + "')::timestamp))";
-
-                        //if (sort.ToLower() == "asc")
-                        //    sortifseednull = "get_nearest_tsrange_distance(gen_eventdatearray, ('" + sortfromdate + "')::timestamp, 'asc', true),get_nearest_tsrange(gen_eventdatearray, ('" + sortfromdate + "')::timestamp) DESC";
-                        //else
-                        //    sortifseednull = "get_nearest_tsrange_distance(gen_eventdatearray, ('" + sortfromdate + "')::timestamp, 'desc', true) DESC,get_nearest_tsrange(gen_eventdatearray, ('" + sortfromdate + "')::timestamp) ASC";
-                    }
+                    }                    
                     if (sort.ToLower() == "upcomingspecialdesc")
                     {
                         sortifseednull =
