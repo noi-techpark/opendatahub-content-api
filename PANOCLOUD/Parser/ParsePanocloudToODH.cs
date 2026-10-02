@@ -12,11 +12,21 @@ using DataModel;
 using Helper;
 using Helper.Extensions;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace PANOCLOUD
 {
     public class ParsePanocloudToODH
     {
+        //Panocloud returns a single object instead of an array when only one element is present (XML to JSON conversion)
+        private static IEnumerable<dynamic> ToList(dynamic token)
+        {
+            if (token == null)
+                return new List<dynamic>();
+
+            return token is JArray ? (IEnumerable<dynamic>)token : new List<dynamic>() { token };
+        }
+
         public static WebcamInfoLinked ParseWebcamToWebcamInfo(
             WebcamInfoLinked webcam,
             dynamic webcamtoparse,
@@ -111,9 +121,11 @@ namespace PANOCLOUD
                 else if (webcamtoparse["Logos"]["Logo"] != null)
                 {
                     //Take the first logo
-                    foreach (var logo in webcamtoparse.Logos.Logo)
+                    foreach (var logo in ToList(webcamtoparse.Logos.Logo))
                     {
-                        contactinfo.LogoUrl = logo["@attributes"]["logoUrl"];
+                        contactinfo.LogoUrl = (
+                            (string)logo["@attributes"]["logoUrl"]
+                        ).AddHttpsPrefixIfNotPresent();
                         break;
                     }
                 }
@@ -143,7 +155,7 @@ namespace PANOCLOUD
             webcam.ImageGallery = new List<ImageGallery>();
             if (webcamtoparse.Images != null)
             {
-                foreach (var imagetoparse in webcamtoparse.Images.image)
+                foreach (var imagetoparse in ToList(webcamtoparse.Images.image))
                 {
                     ImageGallery image = new ImageGallery();
 
@@ -248,7 +260,7 @@ namespace PANOCLOUD
                 {
                     var videoitemslist = new List<VideoItems>();
 
-                    foreach (var videotoparse in webcamtoparse.Videos.video)
+                    foreach (var videotoparse in ToList(webcamtoparse.Videos.video))
                     {
                         VideoItems videoitem = new VideoItems();
                         //"videoClipUrl": "alpenrose-haidersee.panocloud.webcam/clip_current_720p.mp4",

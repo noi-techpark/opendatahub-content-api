@@ -5,6 +5,17 @@
 /// Generates PostgreSQL commands
 module RawQueryParser.Writer
 
+/// Keys containing characters only allowed in double quoted field segments (e.g. "locatedAt.identifier")
+/// are written double quoted, brackets are escaped for SqlKata. Plain identifiers are written unchanged.
+let private needsQuoting (x: string) =
+    x |> Seq.exists (fun c -> c = '.' || c = '[' || c = ']' || c = ':' || c = '/')
+
+let private escapeSqlKataBrackets (x: string) =
+    x.Replace("[", "\[").Replace("]", "\]")
+
+let private writePathSegment x =
+    if needsQuoting x then $"\"{escapeSqlKataBrackets x}\"" else x
+
 /// <summary>
 /// Write a field like
 /// <c>Field ["Detail"; "de"; "Title"]</c>
@@ -14,8 +25,8 @@ module RawQueryParser.Writer
 let writeRawField (Field fields) =
     fields
     |> List.choose (function
-        | IdentifierSegment x -> Some x
-        | IdentifierArraySegment x -> Some x
+        | IdentifierSegment x -> Some (writePathSegment x)
+        | IdentifierArraySegment x -> Some (writePathSegment x)
         | ArraySegment -> None) // Filter away array segment
     |> String.concat ","
     |> sprintf "data#>'\\{%s\\}'"
@@ -23,8 +34,8 @@ let writeRawField (Field fields) =
 let writeFieldEscaped (Field fields) =
     fields
     |> List.choose (function
-        | IdentifierSegment x -> Some x
-        | IdentifierArraySegment x -> Some x
+        | IdentifierSegment x -> Some (writePathSegment x)
+        | IdentifierArraySegment x -> Some (writePathSegment x)
         | ArraySegment -> None) // Filter away array segment
     |> String.concat ","
     |> sprintf "'\\{%s\\}'"
@@ -32,8 +43,8 @@ let writeFieldEscaped (Field fields) =
 let writeJsonPathField (Field fields) =
     fields
     |> List.map (function
-        | IdentifierSegment x -> $".{x}" 
-        | IdentifierArraySegment x -> $".{x}\[*\]"
+        | IdentifierSegment x -> $".{writePathSegment x}"
+        | IdentifierArraySegment x -> $".{writePathSegment x}\[*\]"
         | ArraySegment -> "\[*\]")
     |> String.concat ""
     |> sprintf "$%s"
@@ -47,8 +58,8 @@ let writeJsonPathField (Field fields) =
 let writeTextField (Field fields) =
     fields
     |> List.choose (function
-        | IdentifierSegment x -> Some x
-        | IdentifierArraySegment x -> Some x
+        | IdentifierSegment x -> Some (writePathSegment x)
+        | IdentifierArraySegment x -> Some (writePathSegment x)
         | ArraySegment -> None) // Filter away array segment
     |> String.concat ","
     |> sprintf "data#>>'\\{%s\\}'"
