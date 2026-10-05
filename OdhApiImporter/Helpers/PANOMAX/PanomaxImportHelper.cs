@@ -235,7 +235,7 @@ namespace OdhApiImporter.Helpers
                     importdate = DateTime.Now,
                     license = "open",
                     sourceinterface = "webcams",
-                    sourceurl = settings.PanocloudConfig.ServiceUrl,
+                    sourceurl = settings.PanomaxConfig.ServiceUrl,
                     type = "webcam",
                     sourceid = data.Key,
                     raw = JsonConvert.SerializeObject(data.Value),

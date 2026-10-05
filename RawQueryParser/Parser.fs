@@ -13,11 +13,16 @@ let field =
     let lettersDigitsAndUnderscore c = isAsciiLetter c || isDigit c || c = '_' || c = '-' || c = '@'
     let options = IdentifierOptions(isAsciiIdStart = lettersDigitsAndUnderscore,
                                     isAsciiIdContinue = lettersDigitsAndUnderscore)
+    // Double quoted identifier for keys containing dots or brackets, e.g. Mapping.discoverswiss."locatedAt.identifier"
+    let quotedIdentifier =
+        let quotedChars c = lettersDigitsAndUnderscore c || c = '.' || c = '[' || c = ']' || c = ':' || c = '/'
+        between (skipChar '"') (skipChar '"') (many1Satisfy quotedChars)
+    let anyIdentifier = identifier options <|> quotedIdentifier
     let fieldArraySegment =
-        identifier options .>>? skipString "[*]"
+        anyIdentifier .>>? skipString "[*]"
         |>> (fun x -> IdentifierArraySegment x)
     let arraySegment = skipString "[*]" <|> skipString "[]" >>% ArraySegment
-    let identifierSegment = identifier options |>> IdentifierSegment
+    let identifierSegment = anyIdentifier |>> IdentifierSegment
     sepBy (fieldArraySegment <|> identifierSegment <|> arraySegment) (skipChar '.')
     |>> Field
     <?> "field"

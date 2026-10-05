@@ -53,7 +53,7 @@ namespace Helper.GetData
                 CredentialCache wrCache = new CredentialCache();
                 wrCache.Add(new Uri(serviceurl), "Basic", new NetworkCredential(user, pass));
 
-                using (var handler = new HttpClientHandler { Credentials = wrCache })
+                using (var handler = new HttpClientHandler { Credentials = wrCache, AutomaticDecompression = DecompressionMethods.All })
                 {
                     using (var client = new HttpClient(handler))
                     {
@@ -63,7 +63,7 @@ namespace Helper.GetData
             }
             if (authtype == GetDataAuthenticationOptions.Bearer)
             {
-                using (var client = new HttpClient())
+                using (var client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }))
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
                         "Bearer",
@@ -75,7 +75,7 @@ namespace Helper.GetData
             }
             else
             {
-                using (var client = new HttpClient())
+                using (var client = new HttpClient(new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All }))
                 {
                     return await client.GetAsync(serviceurl);
                 }

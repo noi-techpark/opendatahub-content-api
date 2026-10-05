@@ -76,7 +76,7 @@ namespace PANOMAX
             webcamproperties.ZeroDirection = webcamtoparse.zeroDirection;
             webcamproperties.HtmlEmbed = webcamtoparse.htmlEmbed;
             webcamproperties.TourCam =
-                webcamtoparse.latitude != null ? (bool)webcamtoparse.tourCam : false;
+                webcamtoparse.tourCam != null ? (bool)webcamtoparse.tourCam : false;
 
             webcam.WebCamProperties = webcamproperties;
 
