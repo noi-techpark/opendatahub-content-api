@@ -333,7 +333,8 @@ namespace OdhApiCore.Controllers
             //TODO IGNORE Fields
             //AreaIds, LicenseInfo, SmgTags, WebcamAssignedOn, Meta
             //TO check if this is needed
-            webcam.LicenseInfo = LicenseHelper.GetLicenseforWebcam(webcam);
+            //Preserve an already assigned ClosedData flag, default to opendata
+            webcam.LicenseInfo = LicenseHelper.GetLicenseforWebcam(webcam, !(webcam.LicenseInfo?.ClosedData ?? false));
 
             return DoAsyncReturn(async () =>
             {
@@ -377,7 +378,8 @@ namespace OdhApiCore.Controllers
         [HttpPut, Route("WebcamInfo/{id}")]
         public Task<IActionResult> Put(string id, [FromBody] WebcamInfoLinked webcam)
         {
-            webcam.LicenseInfo = LicenseHelper.GetLicenseforWebcam(webcam);
+            //Preserve an already assigned ClosedData flag, default to opendata
+            webcam.LicenseInfo = LicenseHelper.GetLicenseforWebcam(webcam, !(webcam.LicenseInfo?.ClosedData ?? false));
 
             return DoAsyncReturn(async () =>
             {

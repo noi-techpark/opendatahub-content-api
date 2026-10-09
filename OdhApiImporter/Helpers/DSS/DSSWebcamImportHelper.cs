@@ -323,7 +323,7 @@ namespace OdhApiImporter.Helpers.DSS
             //Set LicenseInfo
             webcam.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<WebcamInfoLinked>(
                 webcam,
-                Helper.LicenseHelper.GetLicenseforWebcam
+                x => Helper.LicenseHelper.GetLicenseforWebcam(x)
             );
 
             var pgcrudresult = await QueryFactory.UpsertData<WebcamInfoLinked>(

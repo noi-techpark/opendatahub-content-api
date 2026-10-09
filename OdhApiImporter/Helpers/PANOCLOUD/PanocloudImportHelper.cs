@@ -191,7 +191,7 @@ namespace OdhApiImporter.Helpers
             //Set LicenseInfo
             webcam.LicenseInfo = Helper.LicenseHelper.GetLicenseInfoobject<WebcamInfoLinked>(
                 webcam,
-                Helper.LicenseHelper.GetLicenseforWebcam
+                x => Helper.LicenseHelper.GetLicenseforWebcam(x)
             );
 
             //PublishedOn Info??
