@@ -854,7 +854,7 @@ namespace OdhApiCore.Filters
                 //What about language
 
                 var ltsavailablilitysearch = await ltsapi.AccommodationAvailabilitySearchRequest(null, body);
-                var myparsedresponse = AccommodationSearchResultParser.ParseLTSAccommodation(ltsavailablilitysearch.FirstOrDefault(), 1);
+                var myparsedresponse = AccommodationSearchResultParser.ParseLTSAccommodation(ltsavailablilitysearch.FirstOrDefault(), myroomdata.Count);
 
                 if (myparsedresponse != null)
                     return myparsedresponse;
