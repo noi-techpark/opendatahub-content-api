@@ -408,16 +408,16 @@ namespace MSS
                                             ? myroomdetail.Element("cancel_policy_id").Value
                                             : null;
                                     string paymenttermid =
-                                        myroomdetail.Element("cancel_policy_id") != null
+                                        myroomdetail.Element("payment_term_id") != null
                                             ? myroomdetail.Element("payment_term_id").Value
                                             : null;
 
                                     if (!String.IsNullOrEmpty(paymenttermid))
                                     {
                                         var mypaymentterm = mychanneloffer
-                                            .Element("payment_terms")
+                                            .Elements("payment_terms")
                                             .Elements("payment_term")
-                                            .Where(x => x.Element("id").Value == paymenttermid)
+                                            .Where(x => x.Element("id")?.Value == paymenttermid)
                                             .FirstOrDefault();
 
                                         if (mypaymentterm != null)
@@ -493,9 +493,9 @@ namespace MSS
                                     if (!String.IsNullOrEmpty(cancelpolicyid))
                                     {
                                         var mycancelpolicy = mychanneloffer
-                                            .Element("cancel_policies")
+                                            .Elements("cancel_policies")
                                             .Elements("cancel_policy")
-                                            .Where(x => x.Element("id").Value == cancelpolicyid)
+                                            .Where(x => x.Element("id")?.Value == cancelpolicyid)
                                             .FirstOrDefault();
 
                                         if (mycancelpolicy != null)
