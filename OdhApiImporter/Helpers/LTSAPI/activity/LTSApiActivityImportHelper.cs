@@ -951,8 +951,8 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                     poiNew.SmgTags.Add("8er Sessellift kuppelbar".ToLower());
                                 break;
                             case "lowProfileSkiLift":
-                                if (!poiNew.SmgTags.Contains("Kleinskilift".ToLower()))
-                                    poiNew.SmgTags.Add("Kleinskilift".ToLower());
+                                if (!poiNew.SmgTags.Contains("Klein-Skilift".ToLower()))
+                                    poiNew.SmgTags.Add("Klein-Skilift".ToLower());
                                 break;                            
                         }
                     }
