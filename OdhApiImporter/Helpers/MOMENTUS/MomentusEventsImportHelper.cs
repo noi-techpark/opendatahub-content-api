@@ -406,14 +406,14 @@ namespace OdhApiImporter.Helpers
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
 
+            //DateEnd is calculated only from Active EventDates and is null when all EventDates are inactive (PRIVATE),
+            //so filter on gen_eventdates which contains all EventDates (same column as the API begindate/enddate filter)
             var query = QueryFactory
                 .Query("events")
                 .Select("data")
+                .WhereRaw("data#>>'\\{Source\\}' = $$", "momentus")
                 .WhereRaw(
-                    "(((to_date(data->> 'DateEnd', 'YYYY-MM-DD') >= '"
-                        + String.Format("{0:yyyy-MM-dd}", today)
-                        + "'))) AND(data#>>'\\{Source\\}' = $$)",
-                    "momentus"
+                    "gen_eventdates && tsrange('\\[" + String.Format("{0:yyyy-MM-dd}", today) + ",)')"
                 )
                 .Where("gen_active", true);
 
