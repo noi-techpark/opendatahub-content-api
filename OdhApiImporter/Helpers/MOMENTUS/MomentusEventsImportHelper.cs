@@ -168,7 +168,7 @@ namespace OdhApiImporter.Helpers
                 var query = QueryFactory
                     .Query("events")
                     .Select("data")
-                    .Where("id", "urn:events:momentus:" + momentusevent.Id);
+                    .Where("id", "urn:event:momentus:" + momentusevent.Id);
 
                 var eventindb = await query.GetObjectSingleAsync<EventLinked>();
 
