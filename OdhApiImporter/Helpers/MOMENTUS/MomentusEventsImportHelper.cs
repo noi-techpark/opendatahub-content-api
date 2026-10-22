@@ -255,8 +255,9 @@ namespace OdhApiImporter.Helpers
             {
                 //Setting LicenseInfo TO CHECK
                 eventtostore.LicenseInfo = LicenseHelper.GetLicenseforEvent(eventtostore, true);
-                //Check Languages TO CHECK
-                eventtostore.CheckMyInsertedLanguages(new List<string>() { "de","it","en" });
+                //Rebuild HasLanguage in the same order as the Event API (de, en, it), the existing order would otherwise be kept
+                eventtostore.HasLanguage = null;
+                eventtostore.CheckMyInsertedLanguages(new List<string>() { "de", "en", "it" });
 
                 //PublishedOn is set by the parser logic
                 //eventshort.CreatePublishedOnList();
