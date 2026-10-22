@@ -51,10 +51,13 @@ namespace MOMENTUS.Parser
             //eventlinked.DateEnd = mevent.End?.ToDateTime(
             //    TimeSpan.TryParse(mevent.EndTime, out var et) ? TimeOnly.FromTimeSpan(et) : TimeOnly.MinValue);
 
-            // Save existing BaseTexts before rebuilding Detail (may be cleared if lang entry is re-created)
-            var existingBaseTexts = eventlinked.Detail
+            // Save existing BaseTexts before rebuilding Detail
+            var existingBaseTexts = (eventlinked.Detail ?? new Dictionary<string, Detail>())
                 .Where(kv => !string.IsNullOrEmpty(kv.Value.BaseText))
                 .ToDictionary(kv => kv.Key, kv => kv.Value.BaseText!);
+
+            // Languages, Titles and SubHeaders always come from Momentus, so removed ones are not kept
+            eventlinked.Detail = new Dictionary<string, Detail>();
 
             // Multilingual detail: titles/subtitles from named functions, description from event
             BuildDetailFromFunctions(eventlinked, functionlist, mevent.Description);
@@ -386,19 +389,13 @@ namespace MOMENTUS.Parser
             return eventlinked.Detail[lang];
         }
 
+        // Restores an existing BaseText only for languages Momentus still delivers without a description
         private static void RestoreBaseTexts(EventLinked eventlinked, Dictionary<string, string> existingBaseTexts)
         {
             foreach (var (lang, baseText) in existingBaseTexts)
             {
-                if (eventlinked.Detail.TryGetValue(lang, out var detail))
-                {
-                    if (string.IsNullOrEmpty(detail.BaseText))
-                        detail.BaseText = baseText;
-                }
-                else
-                {
-                    eventlinked.Detail[lang] = new Detail() { Language = lang, BaseText = baseText };
-                }
+                if (eventlinked.Detail.TryGetValue(lang, out var detail) && string.IsNullOrEmpty(detail.BaseText))
+                    detail.BaseText = baseText;
             }
         }
 

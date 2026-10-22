@@ -168,7 +168,7 @@ namespace OdhApiImporter.Helpers
                 var query = QueryFactory
                     .Query("events")
                     .Select("data")
-                    .Where("id", "urn:events:momentus:" + momentusevent.Id);
+                    .Where("id", "urn:event:momentus:" + momentusevent.Id);
 
                 var eventindb = await query.GetObjectSingleAsync<EventLinked>();
 
@@ -255,8 +255,9 @@ namespace OdhApiImporter.Helpers
             {
                 //Setting LicenseInfo TO CHECK
                 eventtostore.LicenseInfo = LicenseHelper.GetLicenseforEvent(eventtostore, true);
-                //Check Languages TO CHECK
-                eventtostore.CheckMyInsertedLanguages(new List<string>() { "de","it","en" });
+                //Rebuild HasLanguage in the same order as the Event API (de, en, it), the existing order would otherwise be kept
+                eventtostore.HasLanguage = null;
+                eventtostore.CheckMyInsertedLanguages(new List<string>() { "de", "en", "it" });
 
                 //PublishedOn is set by the parser logic
                 //eventshort.CreatePublishedOnList();
@@ -406,14 +407,14 @@ namespace OdhApiImporter.Helpers
         {
             var today = DateOnly.FromDateTime(DateTime.Now);
 
+            //DateEnd is calculated only from Active EventDates and is null when all EventDates are inactive (PRIVATE),
+            //so filter on gen_eventdates which contains all EventDates (same column as the API begindate/enddate filter)
             var query = QueryFactory
                 .Query("events")
                 .Select("data")
+                .WhereRaw("data#>>'\\{Source\\}' = $$", "momentus")
                 .WhereRaw(
-                    "(((to_date(data->> 'DateEnd', 'YYYY-MM-DD') >= '"
-                        + String.Format("{0:yyyy-MM-dd}", today)
-                        + "'))) AND(data#>>'\\{Source\\}' = $$)",
-                    "momentus"
+                    "gen_eventdates && tsrange('\\[" + String.Format("{0:yyyy-MM-dd}", today) + ",)')"
                 )
                 .Where("gen_active", true);
 
