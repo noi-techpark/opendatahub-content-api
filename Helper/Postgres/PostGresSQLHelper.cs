@@ -213,10 +213,40 @@ namespace Helper
             string geometryColumn = "gen_position"
         )
         {
-            //ST_DWithin on a geography cast computes the great-circle distance in meters and can still use
-            //a GiST index on the underlying geometry column, replacing the old cube/earthdistance based
-            //earth_distance()/ll_to_earth() combo.
-            return $"ST_DWithin({geometryColumn}::geography, {GetGeoPoint_GeneratedColumns(latitude, longitude)}::geography, {radius.ToString(CultureInfo.InvariantCulture)})";
+            //ST_DWithin on a geography cast computes the great-circle distance in meters, but the cast prevents
+            //the planner from using the GiST index on the geometry column. A bounding box filter (&&) on the
+            //plain geometry column is added in front so the index narrows down the candidates first.
+            string dwithin = $"ST_DWithin({geometryColumn}::geography, {GetGeoPoint_GeneratedColumns(latitude, longitude)}::geography, {radius.ToString(CultureInfo.InvariantCulture)})";
+            string? boundingbox = GetGeoBoundingBoxFilter_GeneratedColumns(latitude, longitude, radius, geometryColumn);
+
+            return boundingbox != null ? $"({boundingbox} AND {dwithin})" : dwithin;
+        }
+
+        /// <summary>
+        /// Index usable bounding box (in degrees) that contains every point within radius meters of the given coordinates.
+        /// Returns null near the poles or the antimeridian, where a simple lon/lat box does not work.
+        /// </summary>
+        private static string? GetGeoBoundingBoxFilter_GeneratedColumns(
+            double latitude,
+            double longitude,
+            int radius,
+            string geometryColumn
+        )
+        {
+            //One degree is at least ~110574 m (latitude) and ~111320 m * cos(lat) (longitude) on WGS84,
+            //110000 m keeps the box slightly larger than needed
+            const double metersPerDegree = 110000;
+
+            double deltaLatitude = radius / metersPerDegree;
+            double maxLatitude = Math.Abs(latitude) + deltaLatitude;
+            if (maxLatitude >= 89)
+                return null;
+
+            double deltaLongitude = radius / (metersPerDegree * Math.Cos(maxLatitude * Math.PI / 180));
+            if (Math.Abs(longitude) + deltaLongitude >= 180)
+                return null;
+
+            return $"{geometryColumn} && ST_Expand({GetGeoPoint_GeneratedColumns(latitude, longitude)}, {deltaLongitude.ToString(CultureInfo.InvariantCulture)}, {deltaLatitude.ToString(CultureInfo.InvariantCulture)})";
         }
 
         public static string GetGeoWhereInPolygon_GeneratedColumns(
@@ -259,20 +289,43 @@ namespace Helper
             string geometryColumn = "gen_position"
         )
         {
+            //Wrapping the column in ST_Transform/ST_ReducePrecision prevents the use of the GiST index,
+            //in these cases an index usable bounding box filter is added in front
             if (reduceprecision)
             {
                 if (srid != "4326")
-                    return $"{GetPolygonOperator(operation)}(ST_ReducePrecision(ST_GeometryFromText('{wkt}', {srid}),0.00000001), ST_ReducePrecision(ST_Transform({geometryColumn},{srid}),0.00000001))";
+                    return $"({GetGeoPolygonBoundingBoxFilter_GeneratedColumns(wkt, srid, geometryColumn)} AND {GetPolygonOperator(operation)}(ST_ReducePrecision(ST_GeometryFromText('{wkt}', {srid}),0.00000001), ST_ReducePrecision(ST_Transform({geometryColumn},{srid}),0.00000001)))";
                 else
-                    return $"{GetPolygonOperator(operation)}(ST_ReducePrecision(ST_GeometryFromText('{wkt}', 4326),0.00000001), ST_ReducePrecision({geometryColumn},0.00000001))";
+                    return $"({GetGeoPolygonBoundingBoxFilter_GeneratedColumns(wkt, srid, geometryColumn)} AND {GetPolygonOperator(operation)}(ST_ReducePrecision(ST_GeometryFromText('{wkt}', 4326),0.00000001), ST_ReducePrecision({geometryColumn},0.00000001)))";
             }
             else
             {
                 if (srid != "4326")
-                    return $"{GetPolygonOperator(operation)}(ST_GeometryFromText('{wkt}', {srid}), ST_Transform({geometryColumn},{srid}))";
+                    return $"({GetGeoPolygonBoundingBoxFilter_GeneratedColumns(wkt, srid, geometryColumn)} AND {GetPolygonOperator(operation)}(ST_GeometryFromText('{wkt}', {srid}), ST_Transform({geometryColumn},{srid})))";
                 else
                     return $"{GetPolygonOperator(operation)}(ST_GeometryFromText('{wkt}', 4326), {geometryColumn})";
             }
+        }
+
+        /// <summary>
+        /// Index usable bounding box filter (SRID 4326) around the given geometry, slightly enlarged.
+        /// For other SRIDs the envelope is densified before transforming so the curved edges stay inside the box.
+        /// </summary>
+        private static string GetGeoPolygonBoundingBoxFilter_GeneratedColumns(
+            string wkt,
+            string srid,
+            string geometryColumn
+        )
+        {
+            //~10 m margin, covers ST_ReducePrecision snapping and edge curvature after transformation
+            const string margin = "0.0001";
+
+            string geometry = $"ST_GeometryFromText('{wkt}', {srid})";
+            if (srid == "4326")
+                return $"{geometryColumn} && ST_Expand({geometry}, {margin})";
+
+            string segmentlength = $"GREATEST(ST_XMax({geometry}) - ST_XMin({geometry}), ST_YMax({geometry}) - ST_YMin({geometry}), 0.000001) / 50";
+            return $"{geometryColumn} && ST_Expand(ST_Transform(ST_Segmentize(ST_Envelope({geometry}), {segmentlength}), 4326), {margin})";
         }
 
         /// <summary>
@@ -290,7 +343,7 @@ namespace Helper
         )
         {
             if (srid != "4326")
-                return $"{GetPolygonOperator(operation)}(ST_GeometryFromText('{wkt}', {srid}), ST_Transform({geometryColumn},{srid}))";
+                return $"({GetGeoPolygonBoundingBoxFilter_GeneratedColumns(wkt, srid, geometryColumn)} AND {GetPolygonOperator(operation)}(ST_GeometryFromText('{wkt}', {srid}), ST_Transform({geometryColumn},{srid})))";
             else
                 return $"{GetPolygonOperator(operation)}(ST_GeometryFromText('{wkt}', 4326), {geometryColumn})";
         }
@@ -351,8 +404,13 @@ namespace Helper
             string geometryColumn = "gen_position"
         )
         {
-            //ST_DWithin already narrows down candidates via the geometry column's GiST index before computing
-            //the exact geography distance, so the separate earth_box() bounding-box pre-filter is no longer needed
+            if (
+                Double.TryParse(latitude, NumberStyles.Float, CultureInfo.InvariantCulture, out var lat)
+                && Double.TryParse(longitude, NumberStyles.Float, CultureInfo.InvariantCulture, out var lon)
+                && Int32.TryParse(radius, NumberStyles.Integer, CultureInfo.InvariantCulture, out var rad)
+            )
+                return GetGeoWhereSimple_GeneratedColumns(lat, lon, rad, geometryColumn);
+
             return $"ST_DWithin({geometryColumn}::geography, {GetGeoPoint_GeneratedColumns(latitude, longitude)}::geography, {radius})";
         }
 
