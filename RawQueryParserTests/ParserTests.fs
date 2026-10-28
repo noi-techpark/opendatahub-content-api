@@ -46,6 +46,34 @@ let parserTests =
                 let actual = run field "Features[*].Id"
                 Expect.equal actual expected ""
             }
+            test "Field with quoted key containing a dot" {
+                let expected = Ok (Field (List.map IdentifierSegment [ "Mapping"; "discoverswiss"; "locatedAt.identifier" ]))
+                let actual = run field "Mapping.discoverswiss.\"locatedAt.identifier\""
+                Expect.equal actual expected ""
+            }
+            test "Field with quoted key containing brackets" {
+                let expected = Ok (Field (List.map IdentifierSegment [ "Mapping"; "discoverswiss"; "potentialAction[0].additionalType" ]))
+                let actual = run field "Mapping.discoverswiss.\"potentialAction[0].additionalType\""
+                Expect.equal actual expected ""
+            }
+            test "Field with quoted key in the middle" {
+                let expected = Ok (Field (List.map IdentifierSegment [ "Foo"; "a.b"; "Bar" ]))
+                let actual = run field "Foo.\"a.b\".Bar"
+                Expect.equal actual expected ""
+            }
+            test "Field with quoted key and [*] array syntax" {
+                let expected = Ok (Field [IdentifierArraySegment "a.b"; IdentifierSegment "Id"])
+                let actual = run field "\"a.b\"[*].Id"
+                Expect.equal actual expected ""
+            }
+            test "Field with quoted key containing a single quote should fail" {
+                let actual = run Filtering.statement "isnotnull(Foo.\"a'b\")"
+                Expect.isError actual ""
+            }
+            test "Field with empty quoted key should fail" {
+                let actual = run Filtering.statement "isnotnull(Foo.\"\")"
+                Expect.isError actual ""
+            }
         ]
         testList "Sorting" [
             testList "Sort order" [

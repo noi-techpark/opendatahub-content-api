@@ -101,6 +101,20 @@ But it is possible to traverse throgh the document's hierarchy by separating the
 { "Detail": { "ru": { "Title": <value>, ... }, ... }, ... }
 ```
 
+If a key itself contains a dot or brackets, put it in double quotes, so it is not split into a hierarchy.  
+Allowed characters inside the quotes are letters, digits and `_ - @ . [ ] : /`.
+
+`Mapping.discoverswiss."locatedAt.identifier"` matches on a document with the following JSON structure:
+
+```json
+{ "Mapping": { "discoverswiss": { "locatedAt.identifier": <value>, ... }, ... }, ... }
+```
+
+```javascript
+eq(Mapping.discoverswiss."locatedAt.identifier", 'ski_89_bca')
+isnotnull(Mapping.discoverswiss."potentialAction[0].additionalType")
+```
+
 It is also possible to query arrays:   
 `Features.[0].Id`: returns the first Element of the Array as single field  
 `Features.[n].Id`: returns the n-th Element of the Array as single field  

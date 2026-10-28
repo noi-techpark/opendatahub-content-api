@@ -116,6 +116,36 @@ let transfomerTests =
                 let actual = transformFilter "likein(Foo.OdhTags,'Ski')"
                 Expect.equal actual expected ""
             }
+            test "String filter with quoted key containing a dot" {
+                let expected = """data#>>'\{Mapping,discoverswiss,"locatedAt.identifier"\}' = 'ski_89_bca'"""
+                let actual = transformFilter "eq(Mapping.discoverswiss.\"locatedAt.identifier\",'ski_89_bca')"
+                Expect.equal actual expected ""
+            }
+            test "String filter with quoted key containing brackets" {
+                let expected = """data#>>'\{Mapping,discoverswiss,"potentialAction\[0\].additionalType"\}' = 'x'"""
+                let actual = transformFilter "eq(Mapping.discoverswiss.\"potentialAction[0].additionalType\",'x')"
+                Expect.equal actual expected ""
+            }
+            test "NOT NULL with quoted key" {
+                let expected = """data#>>'\{Mapping,discoverswiss,"locatedAt.identifier"\}' IS NOT NULL"""
+                let actual = transformFilter "isnotnull(Mapping.discoverswiss.\"locatedAt.identifier\")"
+                Expect.equal actual expected ""
+            }
+            test "IN with quoted key" {
+                let expected = """(data @> '\{"Mapping":\{"discoverswiss":\{"locatedAt.identifier":"ski_89_bca"\}\}\}')"""
+                let actual = transformFilter "in(Mapping.discoverswiss.\"locatedAt.identifier\",'ski_89_bca')"
+                Expect.equal actual expected ""
+            }
+            test "LIKEIN with quoted key" {
+                let expected = """(jsonb_path_exists(data, '$.Mapping.discoverswiss."locatedAt.identifier" ?(@ like_regex "ski_89" flag "i")'))"""
+                let actual = transformFilter "likein(Mapping.discoverswiss.\"locatedAt.identifier\",'ski_89')"
+                Expect.equal actual expected ""
+            }
+            test "Sort with quoted key" {
+                let expected = """data#>'\{Mapping,discoverswiss,"locatedAt.identifier"\}' DESC"""
+                let actual = Transformer.transformSort "-Mapping.discoverswiss.\"locatedAt.identifier\""
+                Expect.equal actual expected ""
+            }
             test "LIKEIN with nested field and multiple values" {
                 let expected = """(jsonb_path_exists(data, '$.Foo.OdhTags ?(@ like_regex "Ski" flag "i")') OR jsonb_path_exists(data, '$.Foo.OdhTags ?(@ like_regex "Winter" flag "i")'))"""
                 let actual = transformFilter "likein(Foo.OdhTags,'Ski','Winter')"

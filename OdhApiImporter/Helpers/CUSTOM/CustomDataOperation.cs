@@ -3097,21 +3097,42 @@ namespace OdhApiImporter.Helpers
         /// "geo" (and any derived generated column, e.g. gen_center_position) gets populated.
         /// Generic over T so it can be reused for any type once it implements IGeoAware/IGPSInfoAware
         /// (e.g. odhactivitypoi, accommodation) - just pass the matching table name.
+        /// The stored GpsInfo is read from the raw json, because on the area types GpsInfo is generated from Geo.
+        /// Entities that already have Geo are skipped, so other Geo entries (e.g. tracks) are never overwritten.
         /// </summary>
         public async Task<int> MigrateGpsInfoPositionToGeo<T>(string table)
-            where T : IIdentifiable, IGPSInfoAware, IGeoAware, IImportDateassigneable, IMetaData, ILicenseInfo, new()
+            where T : IIdentifiable, IGeoAware, IImportDateassigneable, IMetaData, ILicenseInfo, new()
         {
             var query = QueryFactory.Query().SelectRaw("data").From(table);
 
-            var list = await query.GetObjectListAsync<T>();
+            var list = await query.GetObjectListAsync<Newtonsoft.Json.Linq.JObject>();
             int i = 0;
 
-            foreach (var entity in list)
+            foreach (var rawentity in list)
             {
-                var positiongpsinfo = entity.GpsInfo?.FirstOrDefault(x => x.Gpstype == "position");
+                var entity = rawentity.ToObject<T>();
 
-                if (positiongpsinfo == null)
+                //Already migrated, do not overwrite Geo (would remove other entries like tracks)
+                if (entity == null || (entity.Geo != null && entity.Geo.Count > 0))
                     continue;
+
+                //Read the stored GpsInfo from the raw json
+                var storedpositiongpsinfo = rawentity["GpsInfo"]?
+                    .ToObject<List<GpsInfo>>()?
+                    .FirstOrDefault(x => x.Gpstype == "position");
+
+                if (storedpositiongpsinfo == null)
+                    continue;
+
+                var positiongpsinfo = new GpsInfo()
+                {
+                    Gpstype = "position",
+                    Latitude = storedpositiongpsinfo.Latitude,
+                    Longitude = storedpositiongpsinfo.Longitude,
+                    Altitude = storedpositiongpsinfo.Altitude,
+                    AltitudeUnitofMeasure = storedpositiongpsinfo.AltitudeUnitofMeasure,
+                    Geometry = storedpositiongpsinfo.Geometry,
+                };
 
                 //Build the WKT Point from Lat/Long if the GpsInfo entry doesn't already carry a Geometry
                 if (

@@ -16,6 +16,7 @@ on:
       - "OdhNotifier/**"
       - ".github/workflows/main_importer.yml"
       - "infrastructure/docker-compose.run.yml"
+      - "infrastructure/helm/tourism-importer-*.yaml"
   pull_request:
     paths:
       - "OdhApiImporter/**"

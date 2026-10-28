@@ -38,6 +38,11 @@ ingress:
   className: nginx
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 50m
+    # Imports run synchronously inside the request (HGV ~17 min). Never retry a timed-out
+    # request on the upstream: ingress-nginx would start the same import again (3 runs in parallel).
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-next-upstream: "off"
   hosts:
     - host: tourism.importer.opendatahub.testingmachine.eu
       paths:

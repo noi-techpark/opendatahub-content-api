@@ -227,6 +227,7 @@ namespace OdhApiCore.Controllers.sta
                         false
                     ); //GetMetadata(data.Id, "odhactivitypoi", sourcemeta, data.LastChange);
                     //LicenseInfo                                                                                                                                    //License
+                    //TODO revisit: LicenseInfo is regenerated here, an already assigned LicenseInfo.ClosedData is not considered (see WebcamInfoApiController Post/Put)
                     odhactivitypoi.LicenseInfo = LicenseHelper.GetLicenseforOdhActivityPoi(
                         odhactivitypoi
                     );

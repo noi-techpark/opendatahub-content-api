@@ -418,57 +418,6 @@ namespace Helper
             return GetLicenseInfoobject(licensetype, "", licenseholder, !opendata);
         }
 
-        public static LicenseInfo GetLicenseforWebcam(WebcamInfo data)
-        {
-            var isopendata = false;
-            var licensetype = "Closed";
-            var licenseholder = @"https://www.lts.it";
-
-            if (data.Active == true)
-            {
-                isopendata = true;
-                licensetype = ""; //licensetype = "CC0";
-            }
-
-            if (data.Source?.ToLower() == "content")
-            {
-                isopendata = true;
-                licenseholder = @"https://www.idm-suedtirol.com";
-            }
-
-            if (data.Source?.ToLower() == "dss")
-            {
-                isopendata = true;
-                licenseholder = @"https://www.dolomitisuperski.com";
-            }
-
-            if (data.Source?.ToLower() == "feratel")
-            {
-                isopendata = true;
-                licenseholder = @"https://www.feratel.com/";
-            }
-
-            if (data.Source?.ToLower() == "panomax")
-            {
-                isopendata = true;
-                licenseholder = @"https://www.panomax.com/";
-            }
-
-            if (data.Source?.ToLower() == "panocloud")
-            {
-                isopendata = true;
-                licenseholder = @"https://www.it-wms.com/";
-            }
-
-            if (data.Source?.ToLower() == "a22")
-            {
-                isopendata = true;
-                licenseholder = @"https://www.autobrennero.it/";
-            }
-
-            return GetLicenseInfoobject(licensetype, "", licenseholder, !isopendata);
-        }
-
         public static LicenseInfo GetLicenseforArticle(Article data)
         {
             var isopendata = false;
