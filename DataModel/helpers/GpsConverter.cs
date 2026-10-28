@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NetTopologySuite.Geometries;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -107,6 +108,41 @@ namespace DataModel
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Generates the (readonly) GpsInfo from Geo["position"], Geo is the source of truth.
+        /// Latitude/Longitude are taken from the position entry, if missing they are read from its WKT Point Geometry.
+        /// GpsInfo holds no Geometry, the Geometry is held only in Geo.
+        /// </summary>
+        public static ICollection<GpsInfo>? ToGpsInfoFromGeoPosition(this IDictionary<string, GpsInfo>? geo)
+        {
+            if (geo == null || !geo.TryGetValue("position", out var position) || position == null)
+                return null;
+
+            var latitude = position.Latitude;
+            var longitude = position.Longitude;
+
+            if ((latitude == null || longitude == null) && position.Geometry4326 is Point point)
+            {
+                longitude = point.X;
+                latitude = point.Y;
+            }
+
+            if (latitude == null || longitude == null)
+                return null;
+
+            return new List<GpsInfo>()
+            {
+                new GpsInfo()
+                {
+                    Gpstype = "position",
+                    Latitude = latitude,
+                    Longitude = longitude,
+                    Altitude = position.Altitude,
+                    AltitudeUnitofMeasure = position.AltitudeUnitofMeasure,
+                },
+            };
         }
     }
 }

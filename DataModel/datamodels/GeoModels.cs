@@ -103,6 +103,21 @@ namespace DataModel
             var defaults = geoDictionary.Where(g => g.Value.Default == true);
             return defaults.Count() == 1;
         }
+
+        /// <summary>
+        /// If Geo holds exactly one entry and it is not set as Default, set it as Default.
+        /// A single Geo entry is always the primary one, so the user gets no "default" error for it.
+        /// </summary>
+        public static void SetSingleGeoInfoAsDefault(this IDictionary<string, GpsInfo>? geoDictionary)
+        {
+            if (geoDictionary == null || geoDictionary.Count != 1)
+                return;
+
+            var geoinfo = geoDictionary.Values.First();
+
+            if (geoinfo != null && geoinfo.Default != true)
+                geoinfo.Default = true;
+        }
     }
 
     #region olddeprecated
