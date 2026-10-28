@@ -453,7 +453,7 @@ namespace OdhApiImporter.Helpers
                         var name = municipality.Municipality.Split("-");
 
                         //Search municipality
-                        var municipalityodhquery = QueryFactory.Query("municipality").Select("data")
+                        var municipalityodhquery = QueryFactory.Query("municipalities").Select("data")
                             .SearchFilterWithGenId(PostgresSQLWhereBuilder.TitleFieldsToSearchFor("de"), name[0]);
 
                         var municipalityodh = await municipalityodhquery.GetObjectSingleAsync<MunicipalityLinked>();

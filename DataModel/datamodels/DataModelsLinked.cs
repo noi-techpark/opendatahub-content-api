@@ -1110,8 +1110,19 @@ namespace DataModel
             }
         }
 
-        //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        //GpsInfo generated from Geo["position"], Geo is the source of truth (readonly)
+        [SwaggerSchema(Description = "generated field from Geo position", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo.ToGpsInfoFromGeoPosition(); }
+        }
+
+        //IGPSInfoAware needs a setter, GpsInfo is generated from Geo so the set is ignored
+        ICollection<GpsInfo> IGPSInfoAware.GpsInfo
+        {
+            get { return this.GpsInfo; }
+            set { }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1246,8 +1257,19 @@ namespace DataModel
             }
         }
 
-        //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        //GpsInfo generated from Geo["position"], Geo is the source of truth (readonly)
+        [SwaggerSchema(Description = "generated field from Geo position", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo.ToGpsInfoFromGeoPosition(); }
+        }
+
+        //IGPSInfoAware needs a setter, GpsInfo is generated from Geo so the set is ignored
+        ICollection<GpsInfo> IGPSInfoAware.GpsInfo
+        {
+            get { return this.GpsInfo; }
+            set { }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1385,8 +1407,19 @@ namespace DataModel
             }
         }
 
-        //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        //GpsInfo generated from Geo["position"], Geo is the source of truth (readonly)
+        [SwaggerSchema(Description = "generated field from Geo position", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo.ToGpsInfoFromGeoPosition(); }
+        }
+
+        //IGPSInfoAware needs a setter, GpsInfo is generated from Geo so the set is ignored
+        ICollection<GpsInfo> IGPSInfoAware.GpsInfo
+        {
+            get { return this.GpsInfo; }
+            set { }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1504,8 +1537,19 @@ namespace DataModel
             }
         }
 
-        //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        //GpsInfo generated from Geo["position"], Geo is the source of truth (readonly)
+        [SwaggerSchema(Description = "generated field from Geo position", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo.ToGpsInfoFromGeoPosition(); }
+        }
+
+        //IGPSInfoAware needs a setter, GpsInfo is generated from Geo so the set is ignored
+        ICollection<GpsInfo> IGPSInfoAware.GpsInfo
+        {
+            get { return this.GpsInfo; }
+            set { }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -1657,8 +1701,19 @@ namespace DataModel
             }
         }
 
-        //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        //GpsInfo generated from Geo["position"], Geo is the source of truth (readonly)
+        [SwaggerSchema(Description = "generated field from Geo position", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo.ToGpsInfoFromGeoPosition(); }
+        }
+
+        //IGPSInfoAware needs a setter, GpsInfo is generated from Geo so the set is ignored
+        ICollection<GpsInfo> IGPSInfoAware.GpsInfo
+        {
+            get { return this.GpsInfo; }
+            set { }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -2041,8 +2096,19 @@ namespace DataModel
 
         public new LocationInfoLinked? LocationInfo { get; set; }
 
-        //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        //GpsInfo generated from Geo["position"], Geo is the source of truth (readonly)
+        [SwaggerSchema(Description = "generated field from Geo position", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo.ToGpsInfoFromGeoPosition(); }
+        }
+
+        //IGPSInfoAware needs a setter, GpsInfo is generated from Geo so the set is ignored
+        ICollection<GpsInfo> IGPSInfoAware.GpsInfo
+        {
+            get { return this.GpsInfo; }
+            set { }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]
@@ -2147,8 +2213,19 @@ namespace DataModel
             get { return this.SmgActive; }
         }
 
-        //GpsInfo
-        public ICollection<GpsInfo>? GpsInfo { get; set; }
+        //GpsInfo generated from Geo["position"], Geo is the source of truth (readonly)
+        [SwaggerSchema(Description = "generated field from Geo position", ReadOnly = true)]
+        public ICollection<GpsInfo>? GpsInfo
+        {
+            get { return this.Geo.ToGpsInfoFromGeoPosition(); }
+        }
+
+        //IGPSInfoAware needs a setter, GpsInfo is generated from Geo so the set is ignored
+        ICollection<GpsInfo> IGPSInfoAware.GpsInfo
+        {
+            get { return this.GpsInfo; }
+            set { }
+        }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
         [SwaggerDeprecated("Deprecated, use GpsInfo")]

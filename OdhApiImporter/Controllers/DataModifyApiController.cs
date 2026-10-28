@@ -1800,6 +1800,15 @@ namespace OdhApiImporter.Controllers
                     case "district":
                         objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<DistrictLinked>(table);
                         break;
+                    case "municipality":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MunicipalityLinked>(table);
+                        break;
+                    case "tourismassociation":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<TourismvereinLinked>(table);
+                        break;
+                    case "region":
+                        objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<RegionLinked>(table);
+                        break;
                     case "metaregion":
                         objectscount = await customdataoperation.MigrateGpsInfoPositionToGeo<MetaRegionLinked>(table);
                         break;

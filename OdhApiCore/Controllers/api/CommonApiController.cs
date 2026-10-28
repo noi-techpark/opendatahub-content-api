@@ -2050,6 +2050,9 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Single Geo entry without Default: set it as Default
+                data.Geo.SetSingleGeoInfoAsDefault();
+
                 //Added GEO Column
                 if (!data.Geo.GeoInfoIsValid())
                 {
@@ -2101,6 +2104,9 @@ namespace OdhApiCore.Controllers.api
                 data.TrimStringProperties();
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
+
+                //Single Geo entry without Default: set it as Default
+                data.Geo.SetSingleGeoInfoAsDefault();
 
                 //Added GEO Column
                 if (!data.Geo.GeoInfoIsValid())
@@ -2193,6 +2199,9 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Single Geo entry without Default: set it as Default
+                data.Geo.SetSingleGeoInfoAsDefault();
+
                 //Added GEO Column
                 if (!data.Geo.GeoInfoIsValid())
                 {
@@ -2252,6 +2261,9 @@ namespace OdhApiCore.Controllers.api
                 //    new CRUDConstraints(additionalfilter, UserRolesToFilter)
                 //);
 
+                //Single Geo entry without Default: set it as Default
+                data.Geo.SetSingleGeoInfoAsDefault();
+
                 //Added GEO Column
                 if (!data.Geo.GeoInfoIsValid())
                 {
@@ -2303,6 +2315,9 @@ namespace OdhApiCore.Controllers.api
                 data.TrimStringProperties();
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
+
+                //Single Geo entry without Default: set it as Default
+                data.Geo.SetSingleGeoInfoAsDefault();
 
                 //Added GEO Column
                 if (!data.Geo.GeoInfoIsValid())
@@ -2395,6 +2410,9 @@ namespace OdhApiCore.Controllers.api
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
 
+                //Single Geo entry without Default: set it as Default
+                data.Geo.SetSingleGeoInfoAsDefault();
+
                 //Added GEO Column
                 if (!data.Geo.GeoInfoIsValid())
                 {
@@ -2446,6 +2464,9 @@ namespace OdhApiCore.Controllers.api
                 data.TrimStringProperties();
                 //Populate Tags (Id/Source/Type)
                 await data.UpdateTagsExtension(QueryFactory);
+
+                //Single Geo entry without Default: set it as Default
+                data.Geo.SetSingleGeoInfoAsDefault();
 
                 //Added GEO Column
                 if (!data.Geo.GeoInfoIsValid())

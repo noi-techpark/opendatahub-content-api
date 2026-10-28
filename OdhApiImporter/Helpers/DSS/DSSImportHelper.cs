@@ -339,7 +339,7 @@ namespace OdhApiImporter.Helpers.DSS
                                 if (!String.IsNullOrEmpty(area.MunicipalityId))
                                 {
                                     var mun = await QueryFactory
-                                        .Query("municipality")
+                                        .Query("municipalities")
                                         .Select("data")
                                         .Where("id", area.MunicipalityId.ToUpper())
                                         .GetObjectSingleAsync<Municipality>();
