@@ -32,11 +32,7 @@ namespace Helper
 
         MssConfig MssConfig { get; }
         SiagConfig SiagConfig { get; }
-        DSSConfig DSSConfig { get; }
         A22Config A22Config { get; }
-        FeratelConfig FeratelConfig { get; }
-        PanocloudConfig PanocloudConfig { get; }
-        PanomaxConfig PanomaxConfig { get; }
         NinjaConfig NinjaConfig { get; }
         LoopTecConfig LoopTecConfig { get; }
         OutdooractiveConfig OutdooractiveConfig { get; }
@@ -45,7 +41,6 @@ namespace Helper
         LTSCredentials LtsCredentials { get; }
         LTSCredentials LtsCredentialsOpen { get; }
         ZOHOConfig ZohoConfig { get; }
-        MOMENTUSConfig MomentusConfig { get; }
     }
 
     //Classes for Settings shared between Projects
@@ -255,65 +250,9 @@ namespace Helper
         public string ServiceUrl { get; private set; }
     }
 
-    public class DSSConfig
-    {
-        public DSSConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
     public class A22Config
     {
         public A22Config(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
-    public class FeratelConfig
-    {
-        public FeratelConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
-    public class PanocloudConfig
-    {
-        public PanocloudConfig(string user, string password, string serviceurl)
-        {
-            this.User = user;
-            this.Password = password;
-            this.ServiceUrl = serviceurl;
-        }
-
-        public string User { get; private set; }
-        public string Password { get; private set; }
-        public string ServiceUrl { get; private set; }
-    }
-
-    public class PanomaxConfig
-    {
-        public PanomaxConfig(string user, string password, string serviceurl)
         {
             this.User = user;
             this.Password = password;
@@ -474,22 +413,6 @@ namespace Helper
         public string ServiceUrl { get; private set; }
         public string AuthUrl { get; private set; }
         public string Scope { get; private set; }
-    }
-
-    public class MOMENTUSConfig
-    {
-        public MOMENTUSConfig(string clientid, string clientsecret, string serviceurl, string authurl)
-        {
-            this.ClientId = clientid;
-            this.ClientSecret = clientsecret;
-            this.ServiceUrl = serviceurl;
-            this.AuthUrl = authurl;            
-        }
-
-        public string ClientId { get; private set; }
-        public string ClientSecret { get; private set; }
-        public string ServiceUrl { get; private set; }
-        public string AuthUrl { get; private set; }        
     }
 
 
