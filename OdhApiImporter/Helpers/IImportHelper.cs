@@ -52,14 +52,6 @@ namespace OdhApiImporter.Helpers
             IDictionary<string, bool>? additionalpushinfo = null
         );
 
-        Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
-            PGCRUDResult myupdateresult,
-            string id,
-            string datatype,
-            string pushorigin,
-            IDictionary<string, bool>? additionalpushinfo = null
-        );
-
         //Task<T> LoadDataFromDB<T>(string id, bool reduced);
 
         //Task<UpdateDetail> ImportData(ImportObject importobject, CancellationToken cancellationToken);
@@ -195,7 +187,7 @@ namespace OdhApiImporter.Helpers
         //    where T : IActivateable, IIdentifiable, IImportDateassigneable, IMetaData, ISource, IPublishedOn, new()
         //{
         //    UpdateDetail deletedisableresult = default(UpdateDetail);
-        //    PGCRUDResult result = default(PGCRUDResult);
+        //    UpdateDetail result = default(UpdateDetail);
 
         //    if (delete)
         //    {
@@ -207,7 +199,7 @@ namespace OdhApiImporter.Helpers
         //            new CRUDConstraints()
         //            );
 
-        //        if (result.errorreason != "Data Not Found")
+        //        if (result.exception != "Data Not Found")
         //        {
         //            deletedisableresult = new UpdateDetail()
         //            {
@@ -218,7 +210,7 @@ namespace OdhApiImporter.Helpers
         //                objectchanged = result.objectchanged,
         //                objectimagechanged = result.objectimagechanged,
         //                comparedobjects =
-        //                result.compareobject != null && result.compareobject.Value ? 1 : 0,
+        //                result.comparedobjects,
         //                pushchannels = result.pushchannels,
         //                changes = result.changes,
         //            };
@@ -268,7 +260,7 @@ namespace OdhApiImporter.Helpers
         //                    objectchanged = result.objectchanged,
         //                    objectimagechanged = result.objectimagechanged,
         //                    comparedobjects =
-        //                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
+        //                            result.comparedobjects,
         //                    pushchannels = result.pushchannels,
         //                    changes = result.changes,
         //                };
@@ -400,53 +392,6 @@ namespace OdhApiImporter.Helpers
 
             return pushresults;
         }
-
-        public async Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(            
-            PGCRUDResult myupdateresult,
-            string id,
-            string datatype,
-            string pushorigin,
-            IDictionary<string, bool>? additionalpushinfo = null           
-        )
-        {
-            IDictionary<string, NotifierResponse>? pushresults = default(IDictionary<
-                string,
-                NotifierResponse
-            >);
-
-            //Check if data has changed and Push To all channels
-            if (
-                myupdateresult.objectchanged != null
-                && myupdateresult.objectchanged > 0
-                && myupdateresult.pushchannels != null
-                && myupdateresult.pushchannels.Count > 0
-            )
-            {
-                if (additionalpushinfo == null)
-                    additionalpushinfo = new Dictionary<string, bool>();
-
-                //Check if image has changed and add it to the dictionary
-                if (
-                    myupdateresult.objectimagechanged != null
-                    && myupdateresult.objectimagechanged.Value > 0
-                )
-                    additionalpushinfo.TryAdd("imageschanged", true);
-                else
-                    additionalpushinfo.TryAdd("imageschanged", false);
-
-                pushresults = await OdhPushnotifier.PushToPublishedOnServices(
-                    id,
-                    datatype.ToLower(),
-                    pushorigin,
-                    additionalpushinfo,
-                    false,
-                    "api",
-                    myupdateresult.pushchannels.ToList()
-                );
-            }
-
-            return pushresults;
-        }
     }
 
     public class ImportUtils
@@ -513,57 +458,6 @@ namespace OdhApiImporter.Helpers
         }
 
         //Only here for compatibility
-
-        public static async Task<IDictionary<
-            string,
-            NotifierResponse
-        >?> CheckIfObjectChangedAndPush(
-            IOdhPushNotifier OdhPushnotifier,
-            PGCRUDResult myupdateresult,
-            string id,
-            string datatype,
-            IDictionary<string, bool>? additionalpushinfo = null,
-            string pushorigin = ""
-        )
-        {
-            IDictionary<string, NotifierResponse>? pushresults = default(IDictionary<
-                string,
-                NotifierResponse
-            >);
-
-            //Check if data has changed and Push To all channels
-            if (
-                myupdateresult.objectchanged != null
-                && myupdateresult.objectchanged > 0
-                && myupdateresult.pushchannels != null
-                && myupdateresult.pushchannels.Count > 0
-            )
-            {
-                if (additionalpushinfo == null)
-                    additionalpushinfo = new Dictionary<string, bool>();
-
-                //Check if image has changed and add it to the dictionary
-                if (
-                    myupdateresult.objectimagechanged != null
-                    && myupdateresult.objectimagechanged.Value > 0
-                )
-                    additionalpushinfo.TryAdd("imageschanged", true);
-                else
-                    additionalpushinfo.TryAdd("imageschanged", false);
-
-                pushresults = await OdhPushnotifier.PushToPublishedOnServices(
-                    id,
-                    datatype.ToLower(),
-                    pushorigin,
-                    additionalpushinfo,
-                    false,
-                    "api",
-                    myupdateresult.pushchannels.ToList()
-                );
-            }
-
-            return pushresults;
-        }
 
         public static async Task<IDictionary<
             string,

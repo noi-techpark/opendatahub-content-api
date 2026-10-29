@@ -265,7 +265,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(TagLinked objecttosave, LTSTags data)
+        private async Task<UpdateDetail> InsertDataToDB(TagLinked objecttosave, LTSTags data)
         {
             try
             {

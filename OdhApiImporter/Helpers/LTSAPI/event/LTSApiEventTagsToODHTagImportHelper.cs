@@ -212,7 +212,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             };
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHTagLinked objecttosave,
             LTSEventTag eventtag
         )

@@ -101,7 +101,7 @@ namespace OdhApiImporter.Controllers
                             id = result.Key,
                             updated = 0,
                             success = true,
-                            pushed = result.Value,
+                            pushed = result.Value.ToDictionary(x => x.Key, x => (ICollection<NotifierResponse>)new List<NotifierResponse>() { x.Value }),
                             source = "api",
                             editedby = GetEditIdentifier(),
                             pushchannels = result.Value.Keys,

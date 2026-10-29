@@ -309,7 +309,7 @@ namespace OdhApiCore.Controllers
         /// </summary>
         /// <param name="announcement">Announcement Object</param>
         /// <returns>Http Response</returns>
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [AuthorizeODH(PermissionAction.Create)]
@@ -431,7 +431,7 @@ namespace OdhApiCore.Controllers
         /// <param name="announcement">Announcement Object</param>
         /// <returns>Http Response</returns>
         [AuthorizeODH(PermissionAction.Update)]
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut, Route("Announcement/{id}")]
@@ -475,7 +475,7 @@ namespace OdhApiCore.Controllers
         /// <returns>Http Response</returns>
         //[Authorize(Roles = "DataWriter,DataDelete,AnnouncementManager,AnnouncementDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpDelete, Route("Announcement/{id}")]
