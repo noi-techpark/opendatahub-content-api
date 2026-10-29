@@ -29,6 +29,16 @@ namespace OdhApiCore.Controllers
     [NullStringParameterActionFilter]
     public class SearchController : OdhController
     {
+        //Types with reduced datasets (gen_reduced), same as in their list endpoints
+        private static readonly HashSet<string> typeswithreduceddata = new HashSet<string>()
+        {
+            "accommodation",
+            "odhactivitypoi",
+            "event",
+            "webcam",
+            "venue",
+        };
+
         public SearchController(
             IWebHostEnvironment env,
             ISettings settings,
@@ -285,6 +295,11 @@ namespace OdhApiCore.Controllers
                 .LocFilterTvsFilter(tourismvereinlist)
                 .LocFilterRegionFilter(regionlist)
                 .FilterDataByAccessRoles(UserRolesToFilterEndpoint(endpoint))
+                //Avoid getting the full and the reduced dataset with the same Id
+                .When(
+                    typeswithreduceddata.Contains(entitytype),
+                    q => q.FilterReducedDataByRoles(UserRolesToFilterEndpoint(endpoint))
+                )
                 .When(
                     !String.IsNullOrEmpty(additionalfilter),
                     q => q.FilterAdditionalDataByCondition(additionalfilter)
