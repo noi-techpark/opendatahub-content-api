@@ -85,8 +85,9 @@ namespace OdhApiCore.Controllers
             var fieldstosearchon = filteronfields ?? Array.Empty<string>();
             var searchterm = term ?? searchfilter;
 
+            //No searchterm passed: return an empty result
             if (string.IsNullOrEmpty(searchterm))
-                return BadRequest("term or searchfilter is required");
+                return Ok(new SearchResult<JsonRaw> { SearchTerm = searchterm });
 
             return await Get(
                 language: language ?? "en",
