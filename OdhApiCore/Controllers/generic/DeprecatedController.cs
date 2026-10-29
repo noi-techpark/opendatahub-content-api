@@ -44,7 +44,7 @@ namespace OdhApiCore.Controllers
         /// <param name="pagenumber">Pagenumber</param>
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
-        /// <param name="type">Mandatory search trough Entities (metadata, accommodation, odhactivitypoi, event, webcam, measuringpoint, ltsactivity, ltspoi, ltsgastronomy, article ..... null = search trough all entities) <a href="https://github.com/noi-techpark/odh-docs/wiki/Dataset-Type" target="_blank">Wiki Dataset Type</a></param>
+        /// <param name="type">Search trough Entities (metadata, accommodation, odhactivitypoi, event, webcam, measuringpoint, ltsactivity, ltspoi, ltsgastronomy, article ..... null = search trough all entities) <a href="https://github.com/noi-techpark/odh-docs/wiki/Dataset-Type" target="_blank">Wiki Dataset Type</a></param>
         /// <param name="fields">Mandatory Select a field for the Distinct Query, example fields=Source, arrays are selected with a [*] example HasLanguage[*] / Features[*].Id  (Only one field supported). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawsort</a></param>
@@ -133,18 +133,39 @@ namespace OdhApiCore.Controllers
                     new Dictionary<string, IEnumerable<DeprecationInfo>>();
 
                 if (odhtype == null)
-                    typestocheck = ODHTypeHelper.GetAllTypeStrings().ToList();
+                {
+                    //No type passed: check all types, skip the ones without a model (ltsactivity, ltspoi)
+                    foreach (var typetocheck in ODHTypeHelper.GetAllTypeStrings())
+                    {
+                        Type modeltype;
+                        try
+                        {
+                            modeltype = ODHTypeHelper.TranslateTypeString2Type(typetocheck);
+                        }
+                        catch (Exception)
+                        {
+                            continue;
+                        }
+
+                        resultdict.Add(
+                            typetocheck,
+                            GetDeprecatedFieldsByAttributes.GetDeprecatedFields(modeltype)
+                        );
+                    }
+                }
                 else
+                {
                     typestocheck = odhtype.Split(",").ToList();
 
-                foreach (var typetocheck in typestocheck)
-                {
-                    resultdict.Add(
-                        typetocheck,
-                        GetDeprecatedFieldsByAttributes.GetDeprecatedFields(
-                            ODHTypeHelper.TranslateTypeString2Type(typetocheck)
-                        )
-                    );
+                    foreach (var typetocheck in typestocheck)
+                    {
+                        resultdict.Add(
+                            typetocheck,
+                            GetDeprecatedFieldsByAttributes.GetDeprecatedFields(
+                                ODHTypeHelper.TranslateTypeString2Type(typetocheck)
+                            )
+                        );
+                    }
                 }
 
                 return resultdict;

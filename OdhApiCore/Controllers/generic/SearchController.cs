@@ -43,6 +43,7 @@ namespace OdhApiCore.Controllers
         /// </summary>
         /// <param name="type">Restrict search to Entities (accommodation, odhactivitypoi, event, webcam, measuringpoint, ltsactivity, ltspoi, ltsgastronomy, article ..... ) <a href="https://github.com/noi-techpark/odh-docs/wiki/Dataset-Type" target="_blank">Wiki Dataset Type</a></param>
         /// <param name="term">Term to Search for <a href="https://github.com/noi-techpark/odh-docs/wiki/Search-over-all-Entities-in-ODH-Tourism-api" target="_blank">Wiki</a></param>
+        /// <param name="searchfilter">Alias of term, for compatibility with the searchfilter parameter of the other endpoints (term has precedence)</param>
         /// <param name="language">Language field selector, displays data and fields available in the selected language ('null' all languages are displayed)</param>
         /// <param name="limitto">Limit search to n items per entity</param>
         /// <param name="searchbasetext">Search also trough base text (true/false), caution can slow down the search significantly</param>
@@ -64,7 +65,8 @@ namespace OdhApiCore.Controllers
         [HttpGet, Route("Filter")] //Filter
         //[Authorize(Roles = "DataReader,CommonReader,AccoReader,ActivityReader,PoiReader,ODHPoiReader,PackageReader,GastroReader,EventReader,ArticleReader")]
         public async Task<IActionResult> GetSearchAsync(
-            string term,
+            string? term = null,
+            string? searchfilter = null,
             string? language = "en",
             string? odhtype = null,
             string? type = null,
@@ -81,12 +83,16 @@ namespace OdhApiCore.Controllers
         {
             var fieldstodisplay = fields ?? Array.Empty<string>();
             var fieldstosearchon = filteronfields ?? Array.Empty<string>();
+            var searchterm = term ?? searchfilter;
+
+            if (string.IsNullOrEmpty(searchterm))
+                return BadRequest("term or searchfilter is required");
 
             return await Get(
                 language: language ?? "en",
                 validforentity: odhtype ?? type,
                 fields: fieldstodisplay,
-                searchfilter: term,
+                searchfilter: searchterm,
                 searchontext: searchbasetext,
                 passedfieldstosearchon: fieldstosearchon,
                 locfilter: locfilter,
