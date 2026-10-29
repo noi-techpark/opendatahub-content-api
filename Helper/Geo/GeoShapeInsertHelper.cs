@@ -18,7 +18,7 @@ namespace Helper
 {
     public class GeoShapeInsertHelper
     {
-        public static async Task<PGCRUDResult> InsertDataInShapesDB(QueryFactory queryFactory,
+        public static async Task<UpdateDetail> InsertDataInShapesDB(QueryFactory queryFactory,
               GeoShapeJson data,
               string source,
               string srid
@@ -41,7 +41,7 @@ namespace Helper
                 int insert = 0;
                 int update = 0;
 
-                PGCRUDResult result = default(PGCRUDResult);
+                UpdateDetail result = default(UpdateDetail);
                 if (shapeid == null || shapeid.ToList().Count == 0 )
                 {
                     insert = await queryFactory
@@ -80,7 +80,7 @@ namespace Helper
                    });
                 }
 
-                return new PGCRUDResult()
+                return new UpdateDetail()
                 {
                     id = data.Id,
                     odhtype = data._Meta.Type,
@@ -88,10 +88,10 @@ namespace Helper
                     updated = update,
                     deleted = 0,
                     error = 0,
-                    errorreason = null,
+                    exception = null,
                     operation = "insert shape",
                     changes = null,
-                    compareobject = false,
+                    comparedobjects = 0,
                     objectchanged = 0,
                     objectimagechanged = 0,
                     pushchannels = null,
@@ -99,7 +99,7 @@ namespace Helper
             }
             catch (Exception ex)
             {
-                return new PGCRUDResult()
+                return new UpdateDetail()
                 {
                     id = "",
                     odhtype = data._Meta.Type,
@@ -107,10 +107,10 @@ namespace Helper
                     updated = 0,
                     deleted = 0,
                     error = 1,
-                    errorreason = ex.Message,
+                    exception = ex.Message,
                     operation = "insert shape",
                     changes = null,
-                    compareobject = false,
+                    comparedobjects = 0,
                     objectchanged = 0,
                     objectimagechanged = 0,
                     pushchannels = null,

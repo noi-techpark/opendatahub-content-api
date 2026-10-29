@@ -248,7 +248,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Inserting into DB
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked data,
             KeyValuePair<string, IWFSRoute> digiwaydata
         )
@@ -278,7 +278,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Inserting into SpatialDB
-        private async Task<PGCRUDResult> InsertDataToSpatialDataDB(
+        private async Task<UpdateDetail> InsertDataToSpatialDataDB(
             SpatialData data
         )
         {            

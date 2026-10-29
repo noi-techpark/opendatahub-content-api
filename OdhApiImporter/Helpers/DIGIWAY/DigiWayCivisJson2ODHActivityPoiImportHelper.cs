@@ -232,7 +232,7 @@ namespace OdhApiImporter.Helpers
         }
 
         //Inserting into DB
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             ODHActivityPoiLinked data,
             KeyValuePair<string, IGeoServerCivisData> digiwaydata
         )
@@ -261,7 +261,7 @@ namespace OdhApiImporter.Helpers
             return pgcrudresult;
         }
 
-        private async Task<PGCRUDResult> InsertDataToSpatialDataDB(
+        private async Task<UpdateDetail> InsertDataToSpatialDataDB(
             SpatialData data
         )
         {

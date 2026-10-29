@@ -458,7 +458,7 @@ namespace OdhApiCore.Controllers
 
         //PUSH Modified data
         protected async Task<IDictionary<string, NotifierResponse>?> CheckIfObjectChangedAndPush(
-            PGCRUDResult myupdateresult,
+            UpdateDetail myupdateresult,
             string id,
             string datatype,
             IDictionary<string, bool>? additionalpushinfo = null,
@@ -507,7 +507,7 @@ namespace OdhApiCore.Controllers
 
         //PUSH Deleted data
         private async Task<IDictionary<string, NotifierResponse>?> PushDeletedObject(
-            PGCRUDResult myupdateresult,
+            UpdateDetail myupdateresult,
             string id,
             string datatype,
             string pushorigin = "odh.api.push"
@@ -535,38 +535,22 @@ namespace OdhApiCore.Controllers
             return pushresults;
         }
 
-        protected IActionResult ReturnCRUDResult(PGCRUDResult result)
+        protected IActionResult ReturnUpdateResult(UpdateDetail detail, string source, string editedby, string message, bool createlog)
         {
-            ///Give shorter Error messages to display directly in the databrowser
-            ///TODO some optimizations
-            switch (result.errorreason)
-            {
-                case "":
-                case null:
-                    return Ok(result);
-                case "Not Allowed":
-                    return StatusCode(403, "Not enough permissions");
-                case "Not Found":
-                    return NotFound();
-                case "Bad Request":
-                    return BadRequest();
-                case "No Data":
-                    return BadRequest(result.errorreason);
-                case "Data exists already":
-                    return BadRequest(result.errorreason);
-                case "Data to update Not Found":
-                    return BadRequest(result.errorreason);
-                case "Internal Error":
-                    return StatusCode(500);
-                default:
-                    return BadRequest(result);
-            }
-        }
-
-        protected IActionResult ReturnUpdateResult(PGCRUDResult pgcrudresult, string source, string editedby, string message, bool createlog)
-        {
-            //Use UpdateResult here
-            var result = GenericResultsHelper.GetUpdateResultFromPGCRUDResult(source, editedby, message, pgcrudresult, createlog);
+            //Single record operation, otherinfo is the odhtype, success is false if an error occurred
+            var result = GenericResultsHelper.GetUpdateResult(
+                detail.id,
+                source,
+                editedby,
+                detail.operation,
+                "single",
+                message,
+                detail.odhtype,
+                new List<UpdateDetail>() { detail },
+                null,
+                createlog,
+                success: !(detail.error > 0)
+            );
 
             ///Give shorter Error messages to display directly in the databrowser
             ///TODO some optimizations
@@ -576,11 +560,12 @@ namespace OdhApiCore.Controllers
                 case null:
                     return Ok(result);
                 case "Not Allowed":
-                    return StatusCode(403, "Not enough permissions");
+                    return CustomApiActionResults.ForbiddenValidation("Not enough permissions");
                 case "Not Found":
                     return NotFound();
                 case "Bad Request":
                     return BadRequest();
+                //Keep the plain text body, the collectors (opendatahub-go-sdk clib) match these exact strings
                 case "No Data":
                     return BadRequest(result.exception);
                 case "Data exists already":
@@ -590,7 +575,7 @@ namespace OdhApiCore.Controllers
                 case "Internal Error":
                     return StatusCode(500);
                 default:
-                    return BadRequest(result);
+                    return CustomApiActionResults.BadRequestValidation(result.exception);
             }
         }
 

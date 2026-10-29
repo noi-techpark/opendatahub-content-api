@@ -184,19 +184,7 @@ namespace OdhApiImporter.Helpers.HGV
                                 new Dictionary<string, bool>() { { "roomschanged", false } }
                             );
 
-                        updatedetails.Add(new UpdateDetail()
-                        {
-                            created = result.created,
-                            updated = result.updated,
-                            deleted = result.deleted,
-                            error = result.error,
-                            objectchanged = result.objectchanged,
-                            objectimagechanged = result.objectimagechanged,
-                            comparedobjects =
-                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                            pushchannels = result.pushchannels,
-                            changes = result.changes,
-                        });
+                        updatedetails.Add(result);
 
                         WriteLog.LogToConsole(
                             data.id_lts,
@@ -229,19 +217,7 @@ namespace OdhApiImporter.Helpers.HGV
                                 new Dictionary<string, bool>() { { "roomschanged", false } }
                             );
 
-                        updatedetails.Add(new UpdateDetail()
-                        {
-                            created = deactivateresult.created,
-                            updated = deactivateresult.updated,
-                            deleted = deactivateresult.deleted,
-                            error = deactivateresult.error,
-                            objectchanged = deactivateresult.objectchanged,
-                            objectimagechanged = deactivateresult.objectimagechanged,
-                            comparedobjects =
-                            deactivateresult.compareobject != null && deactivateresult.compareobject.Value ? 1 : 0,
-                            pushchannels = deactivateresult.pushchannels,
-                            changes = deactivateresult.changes,
-                        });
+                        updatedetails.Add(deactivateresult);
 
                         WriteLog.LogToConsole(
                             idtoclear,
@@ -279,7 +255,7 @@ namespace OdhApiImporter.Helpers.HGV
             );
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             AccommodationV2 objecttosave,
             MssResponseBaseSearch data
         )
@@ -374,19 +350,7 @@ namespace OdhApiImporter.Helpers.HGV
                             new Dictionary<string, bool>() { { "roomschanged", false } }
                         );
 
-                    updatedetaillist.Add(new UpdateDetail()
-                    {
-                        created = deactivateresult.created,
-                        updated = deactivateresult.updated,
-                        deleted = deactivateresult.deleted,
-                        error = deactivateresult.error,
-                        objectchanged = deactivateresult.objectchanged,
-                        objectimagechanged = deactivateresult.objectimagechanged,
-                        comparedobjects =
-                        deactivateresult.compareobject != null && deactivateresult.compareobject.Value ? 1 : 0,
-                        pushchannels = deactivateresult.pushchannels,
-                        changes = deactivateresult.changes,
-                    });
+                    updatedetaillist.Add(deactivateresult);
 
                     WriteLog.LogToConsole(
                        idtoclear,
@@ -424,7 +388,7 @@ namespace OdhApiImporter.Helpers.HGV
             return GenericResultsHelper.MergeUpdateDetail(updatedetaillist);
         }
 
-        private async Task<PGCRUDResult> ClearHgvInfoForDataNotInList(string id)
+        private async Task<UpdateDetail> ClearHgvInfoForDataNotInList(string id)
         {
             //Load Accommodation and clear HGV Info                    
             var accommodation = await LoadDataFromDB<AccommodationV2>(id, IDStyle.uppercase);

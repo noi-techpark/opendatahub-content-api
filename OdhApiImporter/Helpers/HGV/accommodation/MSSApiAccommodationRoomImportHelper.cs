@@ -156,19 +156,7 @@ namespace OdhApiImporter.Helpers.HGV
 
                     var result = await InsertDataToDB(data, rawdata);
 
-                    updatedetails.Add(new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    });
+                    updatedetails.Add(result);
                     
 
                     WriteLog.LogToConsole(
@@ -213,7 +201,7 @@ namespace OdhApiImporter.Helpers.HGV
             );
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             AccommodationRoomV2 objecttosave,
             IEnumerable<XElement> hgvdata
         )
