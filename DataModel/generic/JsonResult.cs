@@ -46,14 +46,25 @@ namespace DataModel
         public int AccommodationsRequested { get; set; }
     }
 
-    public class SearchResult<T> : IResponse<T>
+    //Standard paged result with additional search information
+    public class SearchResult<T> : JsonResult<T>
     {
-        public uint TotalResults { get; set; }
-        public uint TotalPages { get; set; }
         public string? SearchTerm { get; set; }
         public Dictionary<string, uint> DetailedResults { get; set; } =
             new Dictionary<string, uint>();
-        public IEnumerable<T> Items { get; set; } = Enumerable.Empty<T>();
+    }
+
+    //Item of the Search over all entities, same shape for every type
+    public class FindResult
+    {
+        public string? Id { get; set; }
+        public string? Name { get; set; }
+        public string? Type { get; set; }
+        public string? Self { get; set; }
+
+        //Additional fields requested with the fields parameter
+        [Newtonsoft.Json.JsonExtensionData]
+        public IDictionary<string, Newtonsoft.Json.Linq.JToken>? AdditionalFields { get; set; }
     }
 
     #region Resultset

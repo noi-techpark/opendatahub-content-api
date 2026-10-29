@@ -42,6 +42,54 @@ namespace OdhApiCore.Responses
             return (previouspage, nextpage);
         }
 
+        /// <summary>
+        /// Pages a list in memory, pagesize int.MaxValue returns all elements on one page
+        /// </summary>
+        public static (IEnumerable<T> items, uint totalpages) PageList<T>(
+            IReadOnlyCollection<T> list,
+            uint pagenumber,
+            int pagesize
+        )
+        {
+            uint page = System.Math.Max(pagenumber, 1);
+            int size = System.Math.Max(pagesize, 1);
+            uint totalpages = (uint)System.Math.Ceiling(list.Count / (double)size);
+            long skip = (long)(page - 1) * size;
+
+            var items = skip >= list.Count ? Enumerable.Empty<T>() : list.Skip((int)skip).Take(size);
+
+            return (items, totalpages);
+        }
+
+        public static SearchResult<T> GetSearchResult<T>(
+            uint pagenumber,
+            uint totalpages,
+            uint totalcount,
+            string? searchterm,
+            Dictionary<string, uint> detailedresults,
+            IEnumerable<T> data,
+            IUrlHelper? url
+        )
+        {
+            var (previouspage, nextpage) = GetPreviousAndNextPage(
+                pagenumber,
+                totalpages,
+                url,
+                null
+            );
+            return new SearchResult<T>
+            {
+                TotalResults = totalcount,
+                TotalPages = totalpages,
+                CurrentPage = pagenumber,
+                PreviousPage = previouspage,
+                NextPage = nextpage,
+                SearchTerm = searchterm,
+                DetailedResults = detailedresults,
+                Items = data,
+            };
+        }
+
         public static JsonResult<T> GetResult<T>(
             uint pagenumber,
             uint totalpages,

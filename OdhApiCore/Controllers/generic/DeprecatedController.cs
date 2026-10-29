@@ -174,14 +174,9 @@ namespace OdhApiCore.Controllers
 
                 //Paging requested: wrap the list in the standard paging response
                 uint page = Math.Max(pagenumber ?? 1, 1);
-                int size = Math.Max(pagesize ?? 10, 1);
-                uint totalcount = (uint)result.Count;
-                uint totalpages = (uint)Math.Ceiling(totalcount / (double)size);
-                long skip = (long)(page - 1) * size;
+                var (items, totalpages) = ResponseHelpers.PageList(result, page, pagesize ?? 10);
 
-                var items = skip >= result.Count ? new List<DeprecationInfo>() : result.Skip((int)skip).Take(size);
-
-                return ResponseHelpers.GetResult(page, totalpages, totalcount, seed, items, Url);
+                return ResponseHelpers.GetResult(page, totalpages, (uint)result.Count, seed, items, Url);
             });
         }
 
