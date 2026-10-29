@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.GenericHelpers;
+using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
 
@@ -50,11 +51,11 @@ namespace OdhApiCore.Controllers
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawsort</a></param>
         /// <param name="getasarray">Get only first selected field as simple string Array</param>
         /// <param name="excludenulloremptyvalues">Exclude empty and null values from output</param>
-        /// <returns>Array of string/object</returns>
+        /// <returns>Array of deprecated fields, each with its entity Type</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<DeprecationInfo>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -86,6 +87,7 @@ namespace OdhApiCore.Controllers
                 rawsort,
                 getasarray,
                 excludenulloremptyvalues,
+                PagingRequested(pagenumber, pagesize),
                 null,
                 cancellationToken
             );
@@ -122,6 +124,7 @@ namespace OdhApiCore.Controllers
             string? rawsort,
             bool? getasarray,
             bool excludenullvalues,
+            bool pagingrequested,
             PGGeoSearchResult geosearchresult,
             CancellationToken cancellationToken
         )
@@ -129,8 +132,7 @@ namespace OdhApiCore.Controllers
             return DoAsyncReturn(async () =>
             {
                 List<string> typestocheck = new List<string>();
-                Dictionary<string, IEnumerable<DeprecationInfo>> resultdict =
-                    new Dictionary<string, IEnumerable<DeprecationInfo>>();
+                List<DeprecationInfo> result = new List<DeprecationInfo>();
 
                 if (odhtype == null)
                 {
@@ -147,9 +149,8 @@ namespace OdhApiCore.Controllers
                             continue;
                         }
 
-                        resultdict.Add(
-                            typetocheck,
-                            GetDeprecatedFieldsByAttributes.GetDeprecatedFields(modeltype)
+                        result.AddRange(
+                            GetDeprecatedFieldsByAttributes.GetDeprecatedFields(modeltype, typetocheck)
                         );
                     }
                 }
@@ -159,16 +160,28 @@ namespace OdhApiCore.Controllers
 
                     foreach (var typetocheck in typestocheck)
                     {
-                        resultdict.Add(
-                            typetocheck,
+                        result.AddRange(
                             GetDeprecatedFieldsByAttributes.GetDeprecatedFields(
-                                ODHTypeHelper.TranslateTypeString2Type(typetocheck)
+                                ODHTypeHelper.TranslateTypeString2Type(typetocheck),
+                                typetocheck
                             )
                         );
                     }
                 }
 
-                return resultdict;
+                if (!pagingrequested)
+                    return result;
+
+                //Paging requested: wrap the list in the standard paging response
+                uint page = Math.Max(pagenumber ?? 1, 1);
+                int size = Math.Max(pagesize ?? 10, 1);
+                uint totalcount = (uint)result.Count;
+                uint totalpages = (uint)Math.Ceiling(totalcount / (double)size);
+                long skip = (long)(page - 1) * size;
+
+                var items = skip >= result.Count ? new List<DeprecationInfo>() : result.Skip((int)skip).Take(size);
+
+                return ResponseHelpers.GetResult(page, totalpages, totalcount, seed, items, Url);
             });
         }
 

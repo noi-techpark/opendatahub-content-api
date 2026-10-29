@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataModel
@@ -47,27 +46,12 @@ namespace DataModel
         public int AccommodationsRequested { get; set; }
     }
 
-    public class JsonResultWithOnlineResultsAndResultIdLowercase<T> : IResponse<T>
-    {
-        public uint totalResults { get; set; }
-        public uint totalPages { get; set; }
-        public uint currentPage { get; set; }
-        public string? previousPage { get; set; }
-        public string? nextPage { get; set; }
-        public string? seed { get; set; }
-        public int onlineResults { get; set; }
-        public string? resultId { get; set; }
-        public IEnumerable<T> items { get; set; } = Enumerable.Empty<T>();
-
-        [JsonIgnore]
-        public IEnumerable<T> Items => items;
-    }
-
     public class SearchResult<T> : IResponse<T>
     {
-        public uint totalResults { get; set; }
-        public string? searchTerm { get; set; }
-        public Dictionary<string, uint> detailedResults { get; set; } =
+        public uint TotalResults { get; set; }
+        public uint TotalPages { get; set; }
+        public string? SearchTerm { get; set; }
+        public Dictionary<string, uint> DetailedResults { get; set; } =
             new Dictionary<string, uint>();
         public IEnumerable<T> Items { get; set; } = Enumerable.Empty<T>();
     }

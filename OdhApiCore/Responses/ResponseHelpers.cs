@@ -131,38 +131,6 @@ namespace OdhApiCore.Responses
             };
         }
 
-        public static JsonResultWithOnlineResultsAndResultIdLowercase<T> GetResultLowercase<T>(
-            uint pagenumber,
-            uint totalpages,
-            uint totalcount,
-            int onlineresults,
-            string resultid,
-            string seed,
-            IEnumerable<T> data,
-            IUrlHelper url
-        )
-            where T : notnull
-        {
-            var (previouspage, nextpage) = GetPreviousAndNextPage(
-                pagenumber,
-                totalpages,
-                url,
-                seed
-            );
-            return new JsonResultWithOnlineResultsAndResultIdLowercase<T>
-            {
-                totalResults = totalcount,
-                totalPages = totalpages,
-                currentPage = pagenumber,
-                previousPage = previouspage,
-                nextPage = nextpage,
-                onlineResults = onlineresults,
-                resultId = resultid,
-                seed = seed,
-                items = data,
-            };
-        }
-
         public static JsonResultWithBookingInfo<T> GetResult<T>(
             uint pagenumber,
             uint totalpages,

@@ -180,10 +180,12 @@ namespace OdhApiCore.Controllers
 
                 return new SearchResult<JsonRaw>
                 {
+                    //Search has no paging, all results are returned on one page
+                    TotalResults = (uint)searchresult.Count,
+                    TotalPages = searchresult.Count > 0 ? 1u : 0u,
                     Items = searchresult,
-                    searchTerm = searchfilter,
-                    totalResults = (uint)searchresult.Count,
-                    detailedResults = searchresultpertype,
+                    SearchTerm = searchfilter,
+                    DetailedResults = searchresultpertype,
                 };
             });
         }
