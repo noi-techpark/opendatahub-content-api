@@ -59,6 +59,8 @@ namespace DataModel
     {
         public string? Id { get; set; }
         public string? Name { get; set; }
+        //Path of the field the Name was taken from, example AccoDetail.de.Name
+        public string? NameField { get; set; }
         public string? Type { get; set; }
         public string? Self { get; set; }
 

@@ -27,12 +27,12 @@ namespace Helper
         };
 
         private static readonly HashSet<string> findresultfields = new HashSet<string>(
-            new[] { "Id", "Name", "Type", "Self" },
+            new[] { "Id", "Name", "NameField", "Type", "Self" },
             StringComparer.OrdinalIgnoreCase
         );
 
         /// <summary>
-        /// Maps a dataset of any odhtype to the same FindResult shape (Id, Name, Type, Self)
+        /// Maps a dataset of any odhtype to the same FindResult shape (Id, Name, NameField, Type, Self)
         /// </summary>
         public static FindResult ToFindResult(
             JToken data,
@@ -42,10 +42,13 @@ namespace Helper
             bool removenullvalues
         )
         {
+            var (name, namefield) = GetName(data, odhtype, language);
+
             var result = new FindResult()
             {
                 Id = AsString(data.SelectToken("Id")),
-                Name = GetName(data, odhtype, language),
+                Name = name,
+                NameField = namefield,
                 Type = AsString(data.SelectToken("_Meta.Type")) ?? odhtype,
                 Self = AsString(data.SelectToken("Self")),
             };
@@ -68,18 +71,20 @@ namespace Helper
 
         /// <summary>
         /// Gets the title of the dataset in the requested language, falls back to other languages and to Shortname
+        /// Returns the title and the path of the field it was taken from
         /// </summary>
-        public static string? GetName(JToken data, string odhtype, string language)
+        public static (string? name, string? namefield) GetName(JToken data, string odhtype, string language)
         {
             foreach (var lang in new[] { language }.Concat(fallbacklanguages).Distinct())
             {
-                var name = AsString(data.SelectToken(ODHTypeHelper.TranslateTypeToTitleField(odhtype, lang)));
+                var field = ODHTypeHelper.TranslateTypeToTitleField(odhtype, lang);
+                var name = AsString(data.SelectToken(field));
                 if (!String.IsNullOrEmpty(name))
-                    return name;
+                    return (name, field);
             }
 
             var shortname = AsString(data.SelectToken("Shortname"));
-            return String.IsNullOrEmpty(shortname) ? null : shortname;
+            return String.IsNullOrEmpty(shortname) ? (null, null) : (shortname, "Shortname");
         }
 
         private static string? AsString(JToken? token) =>

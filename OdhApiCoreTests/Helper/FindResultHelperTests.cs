@@ -57,11 +57,12 @@ namespace OdhApiCoreTests.Helper
             var json = JObject.FromObject(result);
 
             Assert.Equal(
-                new[] { "Id", "Name", "Type", "Self" },
+                new[] { "Id", "Name", "NameField", "Type", "Self" },
                 json.Properties().Select(x => x.Name).ToArray()
             );
             Assert.Equal("ACCO1", result.Id);
             Assert.Equal("Hotel Bolzano", result.Name);
+            Assert.Equal("AccoDetail.en.Name", result.NameField);
             Assert.Equal("accommodation", result.Type);
             Assert.Equal("https://api.example/v1/Accommodation/ACCO1", result.Self);
         }
@@ -78,6 +79,7 @@ namespace OdhApiCoreTests.Helper
             );
 
             Assert.Equal("Hotel Bozen", result.Name);
+            Assert.Equal("AccoDetail.de.Name", result.NameField);
         }
 
         [Fact]
@@ -93,6 +95,7 @@ namespace OdhApiCoreTests.Helper
             );
 
             Assert.Equal("Wanderweg", result.Name);
+            Assert.Equal("Detail.de.Title", result.NameField);
             Assert.Equal("odhactivitypoi", result.Type);
         }
 
@@ -112,6 +115,7 @@ namespace OdhApiCoreTests.Helper
             );
 
             Assert.Equal("Messpunkt", result.Name);
+            Assert.Equal("Shortname", result.NameField);
         }
 
         [Fact]
@@ -128,7 +132,7 @@ namespace OdhApiCoreTests.Helper
             var json = JObject.FromObject(result);
 
             Assert.Equal(
-                new[] { "Id", "Name", "Type", "Self", "Active", "NotExisting" },
+                new[] { "Id", "Name", "NameField", "Type", "Self", "Active", "NotExisting" },
                 json.Properties().Select(x => x.Name).ToArray()
             );
             Assert.True(json["Active"]!.Value<bool>());
@@ -182,7 +186,7 @@ namespace OdhApiCoreTests.Helper
                 1,
                 "bozen",
                 new Dictionary<string, uint>() { { "accommodation", 1 } },
-                new[] { new FindResult() { Id = "ACCO1", Name = "Hotel", Type = "accommodation", Self = "self" } },
+                new[] { new FindResult() { Id = "ACCO1", Name = "Hotel", NameField = "AccoDetail.en.Name", Type = "accommodation", Self = "self" } },
                 null
             );
 
@@ -192,7 +196,7 @@ namespace OdhApiCoreTests.Helper
                 Assert.True(json.ContainsKey(key), key);
 
             Assert.Equal(
-                new[] { "Id", "Name", "Type", "Self" },
+                new[] { "Id", "Name", "NameField", "Type", "Self" },
                 ((JObject)json["Items"]![0]!).Properties().Select(x => x.Name).ToArray()
             );
         }
