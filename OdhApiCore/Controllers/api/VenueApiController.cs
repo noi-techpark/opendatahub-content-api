@@ -579,7 +579,7 @@ namespace OdhApiCore.Controllers
         /// <param name="venue">Venue Object</param>
         /// <returns>Http Response</returns>
         [AuthorizeODH(PermissionAction.Create)]
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost, Route("Venue")]
@@ -629,7 +629,7 @@ namespace OdhApiCore.Controllers
         //[InvalidateCacheOutput(nameof(GetVenueList))]
         //[Authorize(Roles = "DataWriter,DataModify,VenueManager,VenueModify,VenueUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut, Route("Venue/{id}")]
@@ -679,7 +679,7 @@ namespace OdhApiCore.Controllers
         //[InvalidateCacheOutput(nameof(GetVenueList))]
         //[Authorize(Roles = "DataWriter,DataDelete,VenueManager,VenueDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
-        [ProducesResponseType(typeof(PGCRUDResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(UpdateResult), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpDelete, Route("Venue/{id}")]

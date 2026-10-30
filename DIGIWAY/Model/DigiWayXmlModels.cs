@@ -96,12 +96,13 @@ namespace DIGIWAY.Model
         public double? LengthKm { get; set; }
         public string RouteDescriptionEn { get; set; }
         public double? ShapeLength { get; set; }
-        public List<WFSCoordinate> Coordinates { get; set; }
+        //One coordinate list per gml:curveMember
+        public List<List<WFSCoordinate>> Coordinates { get; set; }
         public Geometry Geometry { get; set; }
 
         public MountainBikeRoute()
         {
-            Coordinates = new List<WFSCoordinate>();
+            Coordinates = new List<List<WFSCoordinate>>();
         }        
     }
 
@@ -164,11 +165,10 @@ namespace DIGIWAY.Model
 
                     routes.Add(route);
 
-                    foreach (var myroute in routes)
-                    {
-                        // Create LineString geometry from coordinates
-                        route.Geometry = GeometryHelper.CreateLineString(myroute.Coordinates, GeometryHelper.CommonSRID.AustriaLambert);
-                    }
+                    // Create LineString geometry, MultiLineString if the route has more than one curveMember
+                    route.Geometry = route.Coordinates.Count == 1
+                        ? GeometryHelper.CreateLineString(route.Coordinates[0], GeometryHelper.CommonSRID.AustriaLambert)
+                        : GeometryHelper.CreateMultiLineString(route.Coordinates, GeometryHelper.CommonSRID.AustriaLambert);
                 }
             }
             catch (Exception ex)
@@ -179,19 +179,20 @@ namespace DIGIWAY.Model
             return routes;
         }
 
-        private List<WFSCoordinate> ParseMTBCoordinates(XElement shapeElement, XNamespace gmlNamespace)
+        private List<List<WFSCoordinate>> ParseMTBCoordinates(XElement shapeElement, XNamespace gmlNamespace)
         {
-            var coordinates = new List<WFSCoordinate>();
+            var coordinateGroups = new List<List<WFSCoordinate>>();
 
             try
             {
-                // Navigate through the GML structure: MultiCurve -> curveMember -> LineString -> posList
+                // Navigate through the GML structure: MultiCurve -> curveMember (1..n) -> LineString -> posList
                 var multiCurve = shapeElement.Element(gmlNamespace + "MultiCurve");
                 if (multiCurve != null)
                 {
-                    var curveMember = multiCurve.Element(gmlNamespace + "curveMember");
-                    if (curveMember != null)
+                    foreach (var curveMember in multiCurve.Elements(gmlNamespace + "curveMember"))
                     {
+                        var coordinates = new List<WFSCoordinate>();
+
                         var lineString = curveMember.Element(gmlNamespace + "LineString");
                         if (lineString != null)
                         {
@@ -211,6 +212,9 @@ namespace DIGIWAY.Model
                                 }
                             }
                         }
+
+                        if (coordinates.Count > 0)
+                            coordinateGroups.Add(coordinates);
                     }
                 }
             }
@@ -220,7 +224,7 @@ namespace DIGIWAY.Model
                 Console.WriteLine($"Error parsing coordinates: {ex.Message}");
             }
 
-            return coordinates;
+            return coordinateGroups;
         }
     }
 

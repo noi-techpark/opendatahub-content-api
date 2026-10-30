@@ -39,7 +39,8 @@ namespace DataModel
         //Push Infos
         public ICollection<string>? pushchannels { get; init; }
 
-        public IDictionary<string, NotifierResponse>? pushed { get; init; }
+        //All push responses grouped by channel
+        public IDictionary<string, ICollection<NotifierResponse>>? pushed { get; init; }
 
         public int? error { get; init; }
 
@@ -56,6 +57,11 @@ namespace DataModel
 
     public struct UpdateDetail
     {
+        //Record Info (set on single record operations)
+        public string id { get; init; }
+        public string? odhtype { get; init; }
+        public string operation { get; init; }
+
         //Crud
         public int? updated { get; init; }
         public int? created { get; init; }
@@ -76,80 +82,15 @@ namespace DataModel
 
         public IDictionary<string, NotifierResponse>? pushed { get; set; }
 
-        public string? exception { get; set; }        
-    }
+        public string? exception { get; set; }
 
-    //TO CHECK if this could be unified
-
-    public struct UpdateResultFailureQueue
-    {
-        public string operation { get; init; }
-        public string updatetype { get; init; }
-        public string otherinfo { get; init; }
-        public string message { get; init; }
-        public bool success { get; init; }
-        public int? recordsmodified { get; init; }
-
-        //Push Infos
-        public ICollection<string>? pushchannels { get; init; }
-
-        public IDictionary<string, ICollection<NotifierResponse>>? pushed { get; init; }
-
-        public int? error { get; init; }
-
-        public string id { get; init; }
-
-        public string exception { get; init; }
-
-        public string stacktrace { get; init; }
-
-        public string source { get; init; }
-
-        public string editedby { get; init; }
-    }
-
-    public struct UpdateDetailFailureQueue
-    {
-        //Error
-        public int? error { get; init; }
-
-        //Push Infos
-        public ICollection<string>? pushchannels { get; init; }
-
-        public IDictionary<string, ICollection<NotifierResponse>>? pushed { get; set; }
-    }
-
-    public struct PGCRUDResult
-    {
-        public string id { get; init; }
-
-        public string? odhtype { get; init; }
-        public string operation { get; init; }
-        public int? updated { get; init; }
-        public int? created { get; init; }
-        public int? deleted { get; init; }
-
-        public int? error { get; init; }
-
-        public string? errorreason { get; init; }
-
-        public bool? compareobject { get; init; }
-        public int? objectchanged { get; init; }
-        public int? objectimagechanged { get; init; }
-
-        public ICollection<string>? pushchannels { get; init; }
-
-        public JToken? changes { get; init; }
-
-        public IDictionary<string, NotifierResponse>? pushed { get; set; }
-
-        public static PGCRUDResult Default => new PGCRUDResult
+        public static UpdateDetail Default => new UpdateDetail
         {
             created = 0,
             updated = 0,
             deleted = 0,
             error = 0,
-            compareobject = false,
+            comparedobjects = 0,
             objectchanged = 0,
             objectimagechanged = 0,
             pushchannels = new List<string>(),
@@ -168,218 +109,97 @@ namespace DataModel
 
     public class GenericResultsHelper
     {
+        /// <summary>
+        /// Merges multiple UpdateDetails into one (counters are summed, null counters are ignored)
+        /// </summary>
         public static UpdateDetail MergeUpdateDetail(IEnumerable<UpdateDetail> updatedetails)
         {
-            int? updated = 0;
-            int? created = 0;
-            int? deleted = 0;
-            int? error = 0;
-            int? objectscompared = 0;
-            int? objectchanged = 0;
-            int? objectimagechanged = 0;
-            List<string>? channelstopush = new List<string>();
-            string? exception = null;
-
-            JToken? changes = null;
-
-            IDictionary<string, NotifierResponse> pushed =
-                new Dictionary<string, NotifierResponse>();
-
-            foreach (var updatedetail in updatedetails)
-            {
-                objectscompared = updatedetail.comparedobjects + objectscompared;
-
-                created = updatedetail.created + created;
-                updated = updatedetail.updated + updated;
-                deleted = updatedetail.deleted + deleted;
-                error = updatedetail.error + error;
-                if (updatedetail.objectchanged != null)
-                    objectchanged = updatedetail.objectchanged + objectchanged;
-                if (updatedetail.objectimagechanged != null)
-                    objectimagechanged = updatedetail.objectimagechanged + objectimagechanged;
-
-                if (updatedetail.changes != null)
-                {
-                    if (changes == null)
-                        changes = updatedetail.changes;
-                    else
-                        changes.Append(updatedetail.changes);
-                }
-
-                if (updatedetail.pushchannels != null)
-                {
-                    foreach (var pushchannel in updatedetail.pushchannels)
-                    {
-                        if (!channelstopush.Contains(pushchannel))
-                            channelstopush.Add(pushchannel);
-                    }
-                }
-
-                if (updatedetail.pushed != null)
-                {
-                    foreach (var updatedetailpushed in updatedetail.pushed)
-                        pushed.TryAdd(updatedetailpushed.Key, updatedetailpushed.Value);                    
-                }
-
-                if(!String.IsNullOrEmpty(updatedetail.exception))
-                {
-                    exception = updatedetail.exception + exception;
-                }
-            }
-
-            
+            var details = updatedetails.ToList();
 
             return new UpdateDetail()
             {
-                created = created,
-                updated = updated,
-                deleted = deleted,
-                error = error,
-                comparedobjects = objectscompared,
-                objectchanged = objectchanged,
-                objectimagechanged = objectimagechanged,
-                pushchannels = channelstopush,
-                pushed = MergeNotifierResponse(updatedetails),
-                changes = changes,
-                exception = exception
+                created = SumOrNull(details.Select(x => x.created)),
+                updated = SumOrNull(details.Select(x => x.updated)),
+                deleted = SumOrNull(details.Select(x => x.deleted)),
+                error = SumOrNull(details.Select(x => x.error)),
+                comparedobjects = SumOrNull(details.Select(x => x.comparedobjects)),
+                //objectchanged / objectimagechanged are 0 (not null) if no detail has a value
+                objectchanged = details.Sum(x => x.objectchanged ?? 0),
+                objectimagechanged = details.Sum(x => x.objectimagechanged ?? 0),
+                pushchannels = MergePushChannels(details) ?? new List<string>(),
+                pushed = MergePushedSingle(details),
+                changes = MergeChanges(details),
+                exception = MergeExceptions(details),
             };
         }
 
         public static UpdateDetail MergeUpdateDetail(IDictionary<string, UpdateDetail> updatedetaildict)
         {
-            int? updated = 0;
-            int? created = 0;
-            int? deleted = 0;
-            int? error = 0;
-            int? objectscompared = 0;
-            int? objectchanged = 0;
-            int? objectimagechanged = 0;
-            List<string>? channelstopush = new List<string>();
-            string? exception = null;
+            return MergeUpdateDetail(updatedetaildict.Values);
+        }
 
-            JArray? changes = null;
+        /// <summary>
+        /// Creates the UpdateResult (logged and returned) out of one or more UpdateDetails.
+        /// Counters are summed, push responses are grouped by channel.
+        /// success is false if an Exception is passed, can be overwritten with the success parameter.
+        /// </summary>
+        public static UpdateResult GetUpdateResult(
+            string? id,
+            string source,
+            string editedby,
+            string operation,
+            string updatetype,
+            string message,
+            string otherinfo,
+            IEnumerable<UpdateDetail>? updatedetails,
+            Exception? ex,
+            bool createlog,
+            IDictionary<string, ICollection<NotifierResponse>>? pushed = null,
+            bool? success = null
+        )
+        {
+            var details = updatedetails?.ToList() ?? new List<UpdateDetail>();
 
-            IDictionary<string, NotifierResponse> pushed =
-                new Dictionary<string, NotifierResponse>();
+            int? created = SumOrNull(details.Select(x => x.created));
+            int? updated = SumOrNull(details.Select(x => x.updated));
+            int? deleted = SumOrNull(details.Select(x => x.deleted));
 
-            foreach (var updatedetail in updatedetaildict)
+            var changes = MergeChanges(details);
+
+            var result = new UpdateResult()
             {
-                objectscompared = updatedetail.Value.comparedobjects + objectscompared;
-
-                created = updatedetail.Value.created + created;
-                updated = updatedetail.Value.updated + updated;
-                deleted = updatedetail.Value.deleted + deleted;
-                error = updatedetail.Value.error + error;
-                if (updatedetail.Value.objectchanged != null)
-                    objectchanged = updatedetail.Value.objectchanged + objectchanged;
-                if (updatedetail.Value.objectimagechanged != null)
-                    objectimagechanged = updatedetail.Value.objectimagechanged + objectimagechanged;
-
-                if (updatedetail.Value.changes != null)
-                {
-                    if (changes == null)
-                        changes = new JArray();
-                    
-                    changes.Add(updatedetail.Value.changes);
-                }
-
-                if (updatedetail.Value.pushchannels != null)
-                {
-                    foreach (var pushchannel in updatedetail.Value.pushchannels)
-                    {
-                        if (!channelstopush.Contains(pushchannel))
-                            channelstopush.Add(pushchannel);
-                    }
-                }
-
-                if (updatedetail.Value.pushed != null)
-                {
-                    foreach (var updatedetailpushed in updatedetail.Value.pushed)
-                        pushed.TryAdd(updatedetailpushed.Key, updatedetailpushed.Value);
-                }
-
-                if (!String.IsNullOrEmpty(updatedetail.Value.exception))
-                {
-                    exception = updatedetail.Value.exception + exception;
-                }
-            }
-
-
-
-            return new UpdateDetail()
-            {
+                id = id,
+                source = source,
+                editedby = editedby,
+                operation = operation,
+                updatetype = updatetype,
+                otherinfo = otherinfo,
+                message = message,
+                recordsmodified = created + updated + deleted,
                 created = created,
                 updated = updated,
                 deleted = deleted,
-                error = error,
-                comparedobjects = objectscompared,
-                objectchanged = objectchanged,
-                objectimagechanged = objectimagechanged,
-                pushchannels = channelstopush,
-                pushed = MergeNotifierResponse(updatedetaildict),
-                changes = changes,
-                exception = exception
+                objectcompared = SumOrNull(details.Select(x => x.comparedobjects)),
+                objectchanged = SumOrNull(details.Select(x => x.objectchanged)),
+                objectimagechanged = SumOrNull(details.Select(x => x.objectimagechanged)),
+                objectchanges = null,
+                objectchangestring = ex == null && changes != null ? changes.ToString(Formatting.None) : null,
+                pushchannels = MergePushChannels(details) ?? pushed?.Keys,
+                pushed = MergePushed(details, pushed),
+                error = SumOrNull(details.Select(x => x.error)),
+                success = success ?? ex == null,
+                exception = ex != null ? ex.Message : MergeExceptions(details),
+                stacktrace = ex?.StackTrace,
             };
+
+            if (createlog)
+                Console.WriteLine(JsonConvert.SerializeObject(result));
+
+            return result;
         }
-
-
-        public static IDictionary<string, NotifierResponse>? MergeNotifierResponse(IEnumerable<UpdateDetail> updatedetails)
-        {
-            IDictionary<string, NotifierResponse> response = new Dictionary<string, NotifierResponse>();
-
-            foreach (var updatedetail in updatedetails)
-            {
-                if (updatedetail.pushed != null)
-                {
-                    foreach (var pushed in updatedetail.pushed)
-                    {
-                        if (response.Keys.Contains(pushed.Key))
-                        {
-                            response[pushed.Key].ObjectId = response[pushed.Key].ObjectId + "," + pushed.Value.ObjectId;
-                            response[pushed.Key].Service = response[pushed.Key].Service + "," + pushed.Value.Service;
-                            //response[pushed.Key].Response
-                        }
-                        else
-                        {
-                            response.Add(pushed.Key, pushed.Value);
-                        }
-                    }
-                }
-            }
-
-            return response.Count > 0 ? response : null;
-        }
-
-        public static IDictionary<string, NotifierResponse>? MergeNotifierResponse(IDictionary<string, UpdateDetail> updatedetaildict)
-        {
-            IDictionary<string, NotifierResponse> response = new Dictionary<string, NotifierResponse>();
-
-            foreach (var updatedetail in updatedetaildict)
-            {
-                if (updatedetail.Value.pushed != null)
-                {
-                    foreach (var pushed in updatedetail.Value.pushed)
-                    {
-                        if (response.Keys.Contains(pushed.Key))
-                        {
-                            response[pushed.Key].ObjectId = response[pushed.Key].ObjectId + "," + pushed.Value.ObjectId;
-                            response[pushed.Key].Service = response[pushed.Key].Service + "," + pushed.Value.Service;
-                            //response[pushed.Key].Response
-                        }
-                        else
-                        {
-                            response.Add(pushed.Key, pushed.Value);
-                        }
-                    }
-                }
-            }
-
-            return response.Count > 0 ? response : null;
-        }
-
 
         public static UpdateResult GetSuccessUpdateResult(
-            string id,
+            string? id,
             string source,
             string editedby,
             string operation,
@@ -390,85 +210,11 @@ namespace DataModel
             bool createlog
         )
         {
-            var result = new UpdateResult()
-            {
-                id = id,
-                source = source,
-                editedby = editedby,
-                operation = operation,
-                updatetype = updatetype,
-                otherinfo = otherinfo,
-                message = message,
-                recordsmodified = (detail.created + detail.updated + detail.deleted),
-                created = detail.created,
-                updated = detail.updated,
-                deleted = detail.deleted,
-                objectcompared = detail.comparedobjects,
-                objectchanged = detail.objectchanged,
-                objectimagechanged = detail.objectimagechanged,
-                //objectchanges = detail.changes != null ? JsonConvert.DeserializeObject<dynamic>(detail.changes.ToString(Formatting.None)) : null,
-                objectchanges = null,
-                objectchangestring =
-                    detail.changes != null ? detail.changes.ToString(Formatting.None) : null,
-                pushchannels = detail.pushchannels,
-                pushed = detail.pushed,
-                error = detail.error,
-                success = true,
-                exception = detail.exception,
-                stacktrace = null,
-            };
-
-            if (createlog)
-                Console.WriteLine(JsonConvert.SerializeObject(result));
-
-            return result;
-        }
-
-        public static UpdateResult GetUpdateResultFromPGCRUDResult(           
-           string source,
-           string editedby,
-           string message,
-           //string otherinfo, not needed we choose odhtype
-           PGCRUDResult pgcrudresult,
-           bool createlog
-       )
-        {
-            var result = new UpdateResult()
-            {
-                id = pgcrudresult.id,
-                source = source,
-                editedby = editedby,
-                operation = pgcrudresult.operation,
-                updatetype = "single",
-                otherinfo = pgcrudresult.odhtype,
-                message = message,
-                recordsmodified = (pgcrudresult.created + pgcrudresult.updated + pgcrudresult.deleted),
-                created = pgcrudresult.created,
-                updated = pgcrudresult.updated,
-                deleted = pgcrudresult.deleted,
-                objectcompared = pgcrudresult.compareobject != null && pgcrudresult.compareobject.Value ? 1 : 0,
-                objectchanged = pgcrudresult.objectchanged,
-                objectimagechanged = pgcrudresult.objectimagechanged,
-                //objectchanges = detail.changes != null ? JsonConvert.DeserializeObject<dynamic>(detail.changes.ToString(Formatting.None)) : null,
-                objectchanges = null,
-                objectchangestring =
-                    pgcrudresult.changes != null ? pgcrudresult.changes.ToString(Formatting.None) : null,
-                pushchannels = pgcrudresult.pushchannels,
-                pushed = pgcrudresult.pushed,
-                error = pgcrudresult.error,
-                success =  pgcrudresult.error != null && pgcrudresult.error > 0 ? false : true,
-                exception = pgcrudresult.errorreason,
-                stacktrace = null,
-            };
-
-            if (createlog)
-                Console.WriteLine(JsonConvert.SerializeObject(result));
-
-            return result;
+            return GetUpdateResult(id, source, editedby, operation, updatetype, message, otherinfo, new List<UpdateDetail>() { detail }, null, createlog);
         }
 
         public static UpdateResult GetErrorUpdateResult(
-            string id,
+            string? id,
             string source,
             string editedby,
             string operation,
@@ -480,111 +226,105 @@ namespace DataModel
             bool createlog
         )
         {
-            var result = new UpdateResult()
-            {
-                id = id,
-                source = source,
-                editedby = editedby,
-                operation = operation,
-                updatetype = updatetype,
-                otherinfo = otherinfo,
-                message = message,
-                recordsmodified = (detail.created + detail.updated + detail.deleted),
-                created = detail.created,
-                updated = detail.updated,
-                deleted = detail.deleted,
-                objectcompared = detail.comparedobjects,
-                objectchanged = detail.objectchanged,
-                objectimagechanged = detail.objectimagechanged,
-                objectchanges = null,
-                objectchangestring = null,
-                pushchannels = detail.pushchannels,
-                pushed = detail.pushed,
-                error = detail.error,
-                success = false,
-                exception = ex.Message,
-                stacktrace = ex.StackTrace,
-            };
-
-            if (createlog)
-                Console.WriteLine(JsonConvert.SerializeObject(result));
-
-            return result;
-        }       
-
-        public static UpdateResultFailureQueue GetSuccessUpdateResult(
-            string id,
-            string source,
-            string editedby,
-            string operation,
-            string updatetype,
-            string message,
-            string otherinfo,
-            UpdateDetailFailureQueue detail,
-            bool createlog
-        )
-        {
-            var result = new UpdateResultFailureQueue()
-            {
-                id = id,
-                source = source,
-                editedby = editedby,
-                operation = operation,
-                updatetype = updatetype,
-                otherinfo = otherinfo,
-                message = message,
-                recordsmodified = 0,
-                pushchannels = detail.pushchannels,
-                pushed = detail.pushed,
-                error = detail.error,
-                success = true,
-                exception = null,
-                stacktrace = null,
-            };
-
-            if (createlog)
-                Console.WriteLine(JsonConvert.SerializeObject(result));
-
-            return result;
+            return GetUpdateResult(id, source, editedby, operation, updatetype, message, otherinfo, new List<UpdateDetail>() { detail }, ex, createlog);
         }
 
-        public static UpdateResultFailureQueue GetErrorUpdateResult(
-            string id,
-            string source,
-            string editedby,
-            string operation,
-            string updatetype,
-            string message,
-            string otherinfo,
-            UpdateDetailFailureQueue detail,
-            Exception ex,
-            bool createlog
-        )
+        //Sum ignoring null values, null if all values are null
+        private static int? SumOrNull(IEnumerable<int?> values)
         {
-            var result = new UpdateResultFailureQueue()
-            {
-                id = id,
-                source = source,
-                editedby = editedby,
-                operation = operation,
-                updatetype = updatetype,
-                otherinfo = otherinfo,
-                message = message,
-                recordsmodified = 0,
-                pushchannels = detail.pushchannels,
-                pushed = detail.pushed,
-                error = detail.error,
-                success = false,
-                exception = ex.Message,
-                stacktrace = ex.StackTrace,
-            };
-
-            if (createlog)
-                Console.WriteLine(JsonConvert.SerializeObject(result));
-
-            return result;
+            return values.Any(x => x != null) ? values.Sum() : null;
         }
 
+        private static ICollection<string>? MergePushChannels(IList<UpdateDetail> details)
+        {
+            if (details.Count == 1)
+                return details[0].pushchannels;
+
+            var channels = details.Where(x => x.pushchannels != null).SelectMany(x => x.pushchannels!).Distinct().ToList();
+            return channels.Count > 0 || details.Any(x => x.pushchannels != null) ? channels : null;
+        }
+
+        //UpdateDetail holds one response per channel, on merge the responses of the same channel are joined
+        private static IDictionary<string, NotifierResponse>? MergePushedSingle(IList<UpdateDetail> details)
+        {
+            var response = new Dictionary<string, NotifierResponse>();
+
+            foreach (var pushed in details.Where(x => x.pushed != null).SelectMany(x => x.pushed!))
+            {
+                if (response.TryGetValue(pushed.Key, out var existing))
+                {
+                    response[pushed.Key] = new NotifierResponse()
+                    {
+                        Response = existing.Response,
+                        HttpStatusCode = existing.HttpStatusCode,
+                        Success = existing.Success,
+                        ObjectId = existing.ObjectId + "," + pushed.Value.ObjectId,
+                        Service = existing.Service + "," + pushed.Value.Service,
+                    };
+                }
+                else
+                {
+                    response.Add(pushed.Key, pushed.Value);
+                }
+            }
+
+            return response.Count > 0 ? response : null;
+        }
+
+        //UpdateResult holds all responses per channel
+        private static IDictionary<string, ICollection<NotifierResponse>>? MergePushed(
+            IList<UpdateDetail> details,
+            IDictionary<string, ICollection<NotifierResponse>>? pushed
+        )
+        {
+            var response = new Dictionary<string, ICollection<NotifierResponse>>();
+
+            foreach (var kvp in details.Where(x => x.pushed != null).SelectMany(x => x.pushed!))
+            {
+                if (!response.ContainsKey(kvp.Key))
+                    response.Add(kvp.Key, new List<NotifierResponse>());
+                response[kvp.Key].Add(kvp.Value);
+            }
+
+            if (pushed != null)
+            {
+                foreach (var kvp in pushed)
+                {
+                    if (!response.ContainsKey(kvp.Key))
+                        response.Add(kvp.Key, new List<NotifierResponse>());
+                    foreach (var notifierresponse in kvp.Value)
+                        response[kvp.Key].Add(notifierresponse);
+                }
+            }
+
+            //Keep an empty pushed object if a single detail passed an empty one
+            if (response.Count == 0 && !details.Any(x => x.pushed != null) && pushed == null)
+                return null;
+
+            return response;
+        }
+
+        //One change is kept as it is, multiple changes are collected in an array
+        private static JToken? MergeChanges(IList<UpdateDetail> details)
+        {
+            var changes = details.Where(x => x.changes != null).Select(x => x.changes!).ToList();
+
+            if (changes.Count == 0)
+                return null;
+            if (changes.Count == 1)
+                return changes[0];
+
+            return new JArray(changes);
+        }
+
+        private static string? MergeExceptions(IList<UpdateDetail> details)
+        {
+            if (details.Count == 1)
+                return details[0].exception;
+
+            var exceptions = details.Where(x => !String.IsNullOrEmpty(x.exception)).Select(x => x.exception).ToList();
+            return exceptions.Count > 0 ? String.Join(",", exceptions) : null;
+        }
         public static JsonGenerationResult GetSuccessJsonGenerateResult(
             string operation,
             string type,

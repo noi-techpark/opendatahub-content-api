@@ -15,18 +15,30 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
 
 namespace OdhApiCore.Controllers
 {
     /// <summary>
-    /// <a href="https://github.com/noi-techpark/odh-docs/wiki/Search-over-all-Entities-in-ODH-Tourism-api" target="_blank">Wiki Search Api</a>
+    /// <a href="https://github.com/noi-techpark/odh-docs/wiki/Search-over-all-Entities-in-Open-Data-Hub-Content-api" target="_blank">Wiki Search Api</a>
     /// </summary>
     [EnableCors("CorsPolicy")]
     [NullStringParameterActionFilter]
     public class SearchController : OdhController
     {
+        //Types with reduced datasets (gen_reduced), same as in their list endpoints
+        private static readonly HashSet<string> typeswithreduceddata = new HashSet<string>()
+        {
+            "accommodation",
+            "odhactivitypoi",
+            "event",
+            "webcam",
+            "venue",
+        };
+
         public SearchController(
             IWebHostEnvironment env,
             ISettings settings,
@@ -41,22 +53,25 @@ namespace OdhApiCore.Controllers
         /// <summary>
         /// GET Search over all Entities
         /// </summary>
-        /// <param name="type">Restrict search to Entities (accommodation, odhactivitypoi, event, webcam, measuringpoint, ltsactivity, ltspoi, ltsgastronomy, article ..... ) <a href="https://github.com/noi-techpark/odh-docs/wiki/Dataset-Type" target="_blank">Wiki Dataset Type</a></param>
-        /// <param name="term">Term to Search for <a href="https://github.com/noi-techpark/odh-docs/wiki/Search-over-all-Entities-in-ODH-Tourism-api" target="_blank">Wiki</a></param>
-        /// <param name="language">Language field selector, displays data and fields available in the selected language ('null' all languages are displayed)</param>
-        /// <param name="limitto">Limit search to n items per entity</param>
+        /// <param name="pagenumber">Pagenumber, (default:1)</param>
+        /// <param name="pagesize">Elements per Page, (default: all results on one page)</param>
+        /// <param name="type">Restrict search to Entities, separator ',' (default: accommodation, odhactivitypoi, event, region, skiarea, tourismassociation, webcam, venue; also possible: accommodationroom, ltsactivity, ltspoi, metaregion, municipality, district, skiregion, article, experiencearea, announcement, trip, urbangreen, spatialdata) <a href="https://github.com/noi-techpark/odh-docs/wiki/Dataset-Type" target="_blank">Wiki Dataset Type</a></param>
+        /// <param name="term">Term to Search for <a href="https://github.com/noi-techpark/odh-docs/wiki/Search-over-all-Entities-in-Open-Data-Hub-Content-api" target="_blank">Wiki</a></param>
+        /// <param name="searchfilter">Alias of term, for compatibility with the searchfilter parameter of the other endpoints (term has precedence)</param>
+        /// <param name="language">Language of the search and of the returned Name, if no Name is available in this language another language is used, (default:'en')</param>
+        /// <param name="limitto">Limit search to n items per entity, (default:5)</param>
         /// <param name="searchbasetext">Search also trough base text (true/false), caution can slow down the search significantly</param>
         /// <param name="filteronfields">Search also on this fields, syntax analog to the fields filter</param>
         /// <param name="locfilter">Locfilter SPECIAL Separator ',' possible values: reg + REGIONID = (Filter by Region), reg + REGIONID = (Filter by Region), tvs + TOURISMVEREINID = (Filter by Tourismverein), mun + MUNICIPALITYID = (Filter by Municipality), fra + FRACTIONID = (Filter by Fraction), 'null' = (No Filter), (default:'null') <a href="https://github.com/noi-techpark/odh-docs/wiki/Geosorting-and-Locationfilter-usage#location-filter-locfilter" target="_blank">Wiki locfilter</a></param>
-        /// <param name="fields">Select fields to display, More fields are indicated by separator ',' example fields=Id,Active,Shortname (default:'null' all fields are displayed). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
+        /// <param name="fields">Additional fields to display next to Id, Name, NameField, Type and Self, More fields are indicated by separator ',' example fields=Active,Shortname (default:'null' no additional fields). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawsort</a></param>
         /// <param name="removenullvalues">Remove all Null values from json output. Useful for reducing json size. By default set to false. Documentation on <a href='https://github.com/noi-techpark/odh-docs/wiki/Common-parameters,-fields,-language,-searchfilter,-removenullvalues,-updatefrom#removenullvalues' target="_blank">Opendatahub Wiki</a></param>
-        /// <returns>Collection of ODHTag Objects</returns>
+        /// <returns>Paged result of FindResult Objects (Id, Name, NameField, Type, Self)</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(IEnumerable<JsonRaw>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SearchResult<FindResult>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -64,7 +79,10 @@ namespace OdhApiCore.Controllers
         [HttpGet, Route("Filter")] //Filter
         //[Authorize(Roles = "DataReader,CommonReader,AccoReader,ActivityReader,PoiReader,ODHPoiReader,PackageReader,GastroReader,EventReader,ArticleReader")]
         public async Task<IActionResult> GetSearchAsync(
-            string term,
+            uint? pagenumber = null,
+            PageSize pagesize = null!,
+            string? term = null,
+            string? searchfilter = null,
             string? language = "en",
             string? odhtype = null,
             string? type = null,
@@ -81,12 +99,34 @@ namespace OdhApiCore.Controllers
         {
             var fieldstodisplay = fields ?? Array.Empty<string>();
             var fieldstosearchon = filteronfields ?? Array.Empty<string>();
+            var searchterm = term ?? searchfilter;
+
+            //Paging only if requested, otherwise all results are returned on one page
+            bool pagingrequested = PagingRequested(pagenumber, pagesize);
+            uint page = pagingrequested ? Math.Max(pagenumber ?? 1, 1) : 1;
+            int size = pagingrequested ? (pagesize?.Value ?? 10) : int.MaxValue;
+
+            //No searchterm passed: return an empty result
+            if (string.IsNullOrEmpty(searchterm))
+                return Ok(
+                    ResponseHelpers.GetSearchResult(
+                        page,
+                        0,
+                        0,
+                        searchterm,
+                        new Dictionary<string, uint>(),
+                        Enumerable.Empty<FindResult>(),
+                        Url
+                    )
+                );
 
             return await Get(
+                page: page,
+                pagesize: size,
                 language: language ?? "en",
                 validforentity: odhtype ?? type,
                 fields: fieldstodisplay,
-                searchfilter: term,
+                searchfilter: searchterm,
                 searchontext: searchbasetext,
                 passedfieldstosearchon: fieldstosearchon,
                 locfilter: locfilter,
@@ -106,6 +146,8 @@ namespace OdhApiCore.Controllers
         #region GETTER
 
         private Task<IActionResult> Get(
+            uint page,
+            int pagesize,
             string language,
             string? validforentity,
             string[] fields,
@@ -128,32 +170,19 @@ namespace OdhApiCore.Controllers
             if (myentitytypelist.Count() == 0)
                 myentitytypelist = ODHTypeHelper.GetAllSearchableODHTypes(false);
 
-            var searchresult = new List<JsonRaw>();
+            var searchresult = new List<FindResult>();
             var searchresultpertype = new Dictionary<string, uint>();
 
             return DoAsyncReturn(async () =>
             {
                 foreach (var entitytype in myentitytypelist)
                 {
-                    var customfields = new string[]
-                    {
-                        "Id",
-                        ODHTypeHelper.TranslateTypeToTitleField(entitytype, language),
-                        "_Meta.Type",
-                        "Self",
-                    };
-
-                    foreach (var field in fields)
-                    {
-                        customfields = customfields.AddToStringArray(field);
-                    }
-
                     var result = await SearchTroughEntity(
                         entitytype,
                         ODHTypeHelper.TranslateTypeToSearchField(entitytype),
                         ODHTypeHelper.TranslateTypeString2Table(entitytype),
                         language,
-                        customfields,
+                        fields,
                         searchfilter,
                         searchontext,
                         passedfieldstosearchon,
@@ -172,17 +201,21 @@ namespace OdhApiCore.Controllers
                     }
                 }
 
-                return new SearchResult<JsonRaw>
-                {
-                    Items = searchresult,
-                    searchTerm = searchfilter,
-                    totalResults = (uint)searchresult.Count,
-                    detailedResults = searchresultpertype,
-                };
+                var (items, totalpages) = ResponseHelpers.PageList(searchresult, page, pagesize);
+
+                return ResponseHelpers.GetSearchResult(
+                    page,
+                    totalpages,
+                    (uint)searchresult.Count,
+                    searchfilter,
+                    searchresultpertype,
+                    items,
+                    Url
+                );
             });
         }
 
-        private async Task<IEnumerable<JsonRaw>> SearchTroughEntity(
+        private async Task<IEnumerable<FindResult>> SearchTroughEntity(
             string entitytype,
             Func<string, string[]> fieldsearchfunc,
             string table,
@@ -262,6 +295,11 @@ namespace OdhApiCore.Controllers
                 .LocFilterTvsFilter(tourismvereinlist)
                 .LocFilterRegionFilter(regionlist)
                 .FilterDataByAccessRoles(UserRolesToFilterEndpoint(endpoint))
+                //Avoid getting the full and the reduced dataset with the same Id
+                .When(
+                    typeswithreduceddata.Contains(entitytype),
+                    q => q.FilterReducedDataByRoles(UserRolesToFilterEndpoint(endpoint))
+                )
                 .When(
                     !String.IsNullOrEmpty(additionalfilter),
                     q => q.FilterAdditionalDataByCondition(additionalfilter)
@@ -276,17 +314,17 @@ namespace OdhApiCore.Controllers
 
             var data = await query.GetAsync<JsonRaw>();
 
+            //Map every dataset to the same shape, Self link transformed to the right url
             return data.Select(raw =>
-                    raw.TransformRawData(
+                    FindResultHelper.ToFindResult(
+                        JToken.Parse(raw.Value).TransformSelfLink(UrlGenerator)!,
+                        entitytype,
                         language,
                         fields,
-                        filteroutNullValues: removenullvalues,
-                        urlGenerator: UrlGenerator,
-                        fieldstohide: null
+                        removenullvalues
                     )
                 )
-                .Where(json => json != null)
-                .Select(json => json!);
+                .ToList();
         }
 
         #endregion

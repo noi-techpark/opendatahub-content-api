@@ -147,7 +147,7 @@ namespace DataModel
         public bool Active { get; set; }
 
         //[SwaggerDeprecatedV2Attribute("Obsolete, use PublishedOn", "2024-01-01", "")]
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
         public string? Shortname { get; set; }
         public string? CustomId { get; set; }
@@ -191,7 +191,7 @@ namespace DataModel
 
         public IDictionary<string, string>? SkiRegionName { get; set; }
 
-        [SwaggerDeprecated("Deprecated use AreaIds")]
+        [SwaggerDeprecated("Deprecated use AreaIds", "2025-01-01", "2026-12-31")]
         public HashSet<string>? AreaId { get; set; }
 
         [GetOnlyJsonProperty]
@@ -247,41 +247,41 @@ namespace DataModel
         }
 
         [SwaggerSchema("Id on the primary data Source")]
-        [SwaggerDeprecated("Obsolete use Mapping")]
+        [SwaggerDeprecated("Obsolete use Mapping", "2025-01-01", "2026-12-31")]
         public string? CustomId { get; set; }
 
-        //[SwaggerDeprecated("Use Related Content")]
+        //[SwaggerDeprecated("Use Related Content", "2025-01-01", "2026-12-31")]
         //Logic shifted to RelatedContent
         //public ICollection<Webcam>? Webcam { get; set; }
 
         public IDictionary<string, List<PoiProperty>>? PoiProperty { get; set; }
 
-        [SwaggerDeprecated("Obsolete")]
+        [SwaggerDeprecated("Obsolete", "2025-01-01", "2026-12-31")]
         public ICollection<string>? PoiServices { get; set; }
 
-        [SwaggerDeprecated("Obsolete")]
+        [SwaggerDeprecated("Obsolete", "2025-01-01", "2026-12-31")]
         public string? SyncSourceInterface { get; set; }
         
-        [SwaggerDeprecated("Obsolete")]
+        [SwaggerDeprecated("Obsolete", "2025-01-01", "2026-12-31")]
         public string? SyncUpdateMode { get; set; }
 
         public int? AgeFrom { get; set; }
         public int? AgeTo { get; set; }
 
         //Gastronomy Infos
-        [SwaggerDeprecated("Deprecated, Use Mapping instead")]
+        [SwaggerDeprecated("Deprecated, Use Mapping instead", "2025-01-01", "2026-12-31")]
         public int? MaxSeatingCapacity { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public ICollection<CategoryCodes>? CategoryCodes { get; set; }
         
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public ICollection<DishRates>? DishRates { get; set; }
         
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public ICollection<CapacityCeremony>? CapacityCeremony { get; set; }
         
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public ICollection<Facilities>? Facilities { get; set; }
 
         //End Gastronomy Infos
@@ -290,7 +290,7 @@ namespace DataModel
 
         public IDictionary<string, List<AdditionalContact>>? AdditionalContact { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public IDictionary<string, GpsInfo> GpsPoints
         {
@@ -328,7 +328,7 @@ namespace DataModel
     {
         public string? Id { get; set; }
 
-        //[SwaggerDeprecated("Use the name of the referenced data")]
+        //[SwaggerDeprecated("Use the name of the referenced data", "2025-01-01", "2026-12-31")]
         //public string? Name { get; set; }
 
         [SwaggerEnum(
@@ -410,10 +410,10 @@ namespace DataModel
         [SwaggerSchema("Data is marked as Active by the data provider")]
         public bool Active { get; set; }
 
-        [SwaggerDeprecated("Accommodation ID on the HGV System, use Mapping instead")]
+        [SwaggerDeprecated("Accommodation ID on the HGV System, use Mapping instead", "2025-01-01", "2026-12-31")]
         public string? HgvId { get; set; }
 
-        [SwaggerDeprecated("Use AccoDetail.lang.Name")]
+        [SwaggerDeprecated("Use AccoDetail.lang.Name", "2025-01-01", "2026-12-31")]
         public string? Shortname { get; set; }
 
         //public int Units { get; set; }
@@ -427,7 +427,7 @@ namespace DataModel
         public bool? IsBookable { get; set; }
         public bool? IsAccommodation { get; set; }
 
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
         public bool? TVMember { get; set; }
         public string? TourismVereinId { get; set; }
@@ -784,9 +784,9 @@ namespace DataModel
         public string? DistrictId { get; set; }
         public ICollection<string>? DistrictIds { get; set; }
 
-        [SwaggerDeprecated("Deprecated use Tags of type eventcategory")]
+        [SwaggerDeprecated("Deprecated use Tags of type eventcategory", "2025-01-01", "2026-12-31")]
         public ICollection<string>? TopicRIDs { get; set; }
-        [SwaggerDeprecated("Deprecated use Tags of type eventcategory")]
+        [SwaggerDeprecated("Deprecated use Tags of type eventcategory", "2025-01-01", "2026-12-31")]
         public ICollection<Topic>? Topics { get; set; }
 
         public ICollection<EventPublisher>? EventPublisher { get; set; }
@@ -804,10 +804,10 @@ namespace DataModel
         public EventBooking? EventBooking { get; set; }   
 
 
-        //[SwaggerDeprecated("Obsolete, Dates are stored into EventDates Object Array")]
+        //[SwaggerDeprecated("Obsolete, Dates are stored into EventDates Object Array", "2025-01-01", "2026-12-31")]
         //public DateTime? NextBeginDate { get; set; }
 
-        [SwaggerDeprecated("Deprecated use Mapping.lts.ClassificationRID, EventProperty.EventClassificationId")]
+        [SwaggerDeprecated("Deprecated use Mapping.lts.ClassificationRID, EventProperty.EventClassificationId", "2025-01-01", "2026-12-31")]
         public string? ClassificationRID
         {
             get
@@ -816,7 +816,7 @@ namespace DataModel
             }
         }
        
-        [SwaggerDeprecated("Obsolete, use EventProperty.TicketRequired")]
+        [SwaggerDeprecated("Obsolete, use EventProperty.TicketRequired", "2025-01-01", "2026-12-31")]
         public string? Ticket
         {
             get
@@ -824,7 +824,7 @@ namespace DataModel
                 return this.EventProperty != null ? this.EventProperty.TicketRequired != null ? this.EventProperty.TicketRequired.Value ? "1" : "0" : null : null;
             }
         }
-        [SwaggerDeprecated("Obsolete, use EventProperty.RegistrationRequired")]
+        [SwaggerDeprecated("Obsolete, use EventProperty.RegistrationRequired", "2025-01-01", "2026-12-31")]
         public string? SignOn
         {
             get
@@ -832,21 +832,21 @@ namespace DataModel
                 return this.EventProperty != null ? this.EventProperty.RegistrationRequired != null ? this.EventProperty.RegistrationRequired.Value ? "1" : "0" : null : null;
             }
         }
-        [SwaggerDeprecated("Obsolete, use EventProperty.EventOrganizerId")]
+        [SwaggerDeprecated("Obsolete, use EventProperty.EventOrganizerId", "2025-01-01", "2026-12-31")]
         public string? OrgRID { 
             get {
                 return this.EventProperty != null ? this.EventProperty.EventOrganizerId : "";            
             } 
         }
         
-        [SwaggerDeprecated("Obsolete, use EventVariants")]
+        [SwaggerDeprecated("Obsolete, use EventVariants", "2025-01-01", "2026-12-31")]
         public IDictionary<string, EventPrice>? EventPrice { get; set; } //Stays here for compatibility reasons used in Centro Trevi Sync
         
 
-        //[SwaggerDeprecated("Obsolete, use Tags")] Temporary remove to show it in databrowser
+        //[SwaggerDeprecated("Obsolete, use Tags", "2025-01-01", "2026-12-31")] Temporary remove to show it in databrowser
         public ICollection<string>? SmgTags { get; set; }
         
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
 
         public ICollection<string>? EventLanguages { get; set; }
@@ -876,9 +876,9 @@ namespace DataModel
     //Includes registration, meetingPoint, location
     public class EventAdditionalInfos : IEventAdditionalInfos, ILanguage
     {
-        [SwaggerDeprecated("Deprecated use Meetingplace")]
+        [SwaggerDeprecated("Deprecated use Meetingplace", "2025-01-01", "2026-12-31")]
         public string? Mplace { get { return this.MeetingPoint; } }        
-        [SwaggerDeprecated("Deprecated use Registration")]
+        [SwaggerDeprecated("Deprecated use Registration", "2025-01-01", "2026-12-31")]
         public string? Reg { get { return this.Registration; } }
 
         public string? MeetingPoint { get; set; }
@@ -935,7 +935,7 @@ namespace DataModel
     {
         public string? PublisherRID { get; set; }
         public int? Ranc { get; set; }
-        [SwaggerDeprecated("Old numeric representation of PublicationStatus")]
+        [SwaggerDeprecated("Old numeric representation of PublicationStatus", "2025-01-01", "2026-12-31")]
         public int? Publish { get; set; }
 
         public string? PublicationStatus { get; set; }
@@ -950,10 +950,10 @@ namespace DataModel
 
         public string? EventDateId { get; set; }
 
-        [SwaggerDeprecated("Deprecated use EventDateId")]
+        [SwaggerDeprecated("Deprecated use EventDateId", "2025-01-01", "2026-12-31")]
         public string? DayRID { get; set; }
 
-        [SwaggerDeprecated("Deprecated use EventCalculatedDays")]
+        [SwaggerDeprecated("Deprecated use EventCalculatedDays", "2025-01-01", "2026-12-31")]
         public EventDateCalculatedDay? EventCalculatedDay { get
             {
                 return this.EventCalculatedDays != null ? EventCalculatedDays.FirstOrDefault() : null;
@@ -1014,9 +1014,9 @@ namespace DataModel
 
         //public ICollection<EventDateOpeningHour>? EventDateOpeningInfo { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         public bool? Ticket { get; set; }
-        [SwaggerDeprecated("Deprecated use isCancelled")]
+        [SwaggerDeprecated("Deprecated use isCancelled", "2025-01-01", "2026-12-31")]
         public string? Cancelled { get; set; }
 
         //NEW Venue Assignment
@@ -1040,7 +1040,7 @@ namespace DataModel
     public class EventDateCalculatedDay
     {
         public string? CalculatedDayId { get; set; }
-        [SwaggerDeprecated("Deprecated use CalculatedDayId")]
+        [SwaggerDeprecated("Deprecated use CalculatedDayId", "2025-01-01", "2026-12-31")]
         public string? CDayRID { get; set; }
         public DateTime? Day { get; set; }
         public TimeSpan? Begin { get; set; }
@@ -1198,7 +1198,7 @@ namespace DataModel
 
         public bool Active { get; set; }
 
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
 
         public ICollection<string>? SmgTags { get; set; }
@@ -1218,7 +1218,7 @@ namespace DataModel
         public ICollection<VenueRoomDetails>? RoomDetails { get; set; }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         public IDictionary<string, GpsInfo> GpsPoints
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(true); }
@@ -1289,7 +1289,7 @@ namespace DataModel
         //Activity SubType
         public string? Type { get; set; }
 
-        //[SwaggerDeprecated("Obsolete, use Tags")]
+        //[SwaggerDeprecated("Obsolete, use Tags", "2025-01-01", "2026-12-31")]
         public string? SubType { get; set; }
 
         //für BaseArticle
@@ -1299,7 +1299,7 @@ namespace DataModel
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
 
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
 
         public DateTime? ArticleDate { get; set; }
@@ -1327,7 +1327,7 @@ namespace DataModel
         //NEW Link Info
         public IDictionary<string, ArticleLinkInfo> ArticleLinkInfo { get; set; }
 
-        //[SwaggerDeprecated("Deprecated, use Tags")]
+        //[SwaggerDeprecated("Deprecated, use Tags", "2025-01-01", "2026-12-31")]
         public ICollection<string>? SmgTags { get; set; }
 
         public ICollection<string>? HasLanguage { get; set; }
@@ -1336,7 +1336,7 @@ namespace DataModel
         public DateTime? ExpirationDate { get; set; }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         public IDictionary<string, GpsInfo> GpsPoints
         {
             get
@@ -1379,25 +1379,25 @@ namespace DataModel
             this.Stationdata = new HashSet<Stationdata>();
         }
 
-        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2026-12-31")]
         public DateTime date
         {
             get { return this.Date; }
         }
 
-        [SwaggerDeprecated("Obsolete, use EvolutionTitle", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use EvolutionTitle", "2024-02-28", "2026-12-31")]
         public string? evolutiontitle
         {
             get { return this.EvolutionTitle; }
         }
 
-        [SwaggerDeprecated("Obsolete, use Evolution", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Evolution", "2024-02-28", "2026-12-31")]
         public string? evolution
         {
             get { return this.Evolution; }
         }
 
-        [SwaggerDeprecated("Obsolete, use Language", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Language", "2024-02-28", "2026-12-31")]
         public string? language
         {
             get { return this.Language; }
@@ -1418,25 +1418,25 @@ namespace DataModel
 
     public class Conditions
     {
-        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2026-12-31")]
         public DateTime date
         {
             get { return this.Date; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2026-12-31")]
         public string? Weatherdesc
         {
             get { return this.WeatherDesc; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherImgUrl", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherImgUrl", "2024-02-28", "2026-12-31")]
         public string? WeatherImgurl
         {
             get { return this.WeatherImgUrl; }
         }
 
-        [SwaggerDeprecated("Obsolete, use BulletinStatus", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use BulletinStatus", "2024-02-28", "2026-12-31")]
         public int bulletinStatus
         {
             get { return this.BulletinStatus; }
@@ -1458,25 +1458,25 @@ namespace DataModel
 
     public class Forecast
     {
-        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2026-12-31")]
         public DateTime date
         {
             get { return this.Date; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2026-12-31")]
         public string? Weatherdesc
         {
             get { return this.WeatherDesc; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherCode", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherCode", "2024-02-28", "2026-12-31")]
         public string? Weathercode
         {
             get { return this.WeatherCode; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherImgUrl", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherImgUrl", "2024-02-28", "2026-12-31")]
         public string? WeatherImgurl
         {
             get { return this.WeatherImgUrl; }
@@ -1498,73 +1498,73 @@ namespace DataModel
 
     public class Mountain
     {
-        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2026-12-31")]
         public DateTime date
         {
             get { return this.Date; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2026-12-31")]
         public string? Weatherdesc
         {
             get { return this.WeatherDesc; }
         }
 
-        [SwaggerDeprecated("Obsolete, use MountainImgUrl", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use MountainImgUrl", "2024-02-28", "2026-12-31")]
         public string? MountainImgurl
         {
             get { return this.MountainImgUrl; }
         }
 
-        [SwaggerDeprecated("Obsolete, use NorthCode", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use NorthCode", "2024-02-28", "2026-12-31")]
         public string? Northcode
         {
             get { return this.NorthCode; }
         }
 
-        [SwaggerDeprecated("Obsolete, use NorthDesc", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use NorthDesc", "2024-02-28", "2026-12-31")]
         public string? Northdesc
         {
             get { return this.NorthDesc; }
         }
 
-        [SwaggerDeprecated("Obsolete, use NorthImgUrl", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use NorthImgUrl", "2024-02-28", "2026-12-31")]
         public string? Northimgurl
         {
             get { return this.NorthImgUrl; }
         }
 
-        [SwaggerDeprecated("Obsolete, use SouthCode", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use SouthCode", "2024-02-28", "2026-12-31")]
         public string? Southcode
         {
             get { return this.SouthCode; }
         }
 
-        [SwaggerDeprecated("Obsolete, use SouthDesc", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use SouthDesc", "2024-02-28", "2026-12-31")]
         public string? Southdesc
         {
             get { return this.SouthDesc; }
         }
 
-        [SwaggerDeprecated("Obsolete, use SouthImgUrl", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use SouthImgUrl", "2024-02-28", "2026-12-31")]
         public string? Southimgurl
         {
             get { return this.SouthImgUrl; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WindCode", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WindCode", "2024-02-28", "2026-12-31")]
         public string? Windcode
         {
             get { return this.WindCode; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WindDesc", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WindDesc", "2024-02-28", "2026-12-31")]
         public string? Winddesc
         {
             get { return this.WindDesc; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WindImgUrl", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WindImgUrl", "2024-02-28", "2026-12-31")]
         public string? WindImgurl
         {
             get { return this.WindImgUrl; }
@@ -1606,31 +1606,31 @@ namespace DataModel
 
     public class Stationdata
     {
-        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2026-12-31")]
         public DateTime date
         {
             get { return this.Date; }
         }
 
-        [SwaggerDeprecated("Obsolete, use MaxTemp", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use MaxTemp", "2024-02-28", "2026-12-31")]
         public int Maxtemp
         {
             get { return this.MaxTemp; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherCode", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherCode", "2024-02-28", "2026-12-31")]
         public string? Weathercode
         {
             get { return this.WeatherCode; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2026-12-31")]
         public string? Weatherdesc
         {
             get { return this.WeatherDesc; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherImgUrl", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherImgUrl", "2024-02-28", "2026-12-31")]
         public string? WeatherImgurl
         {
             get { return this.WeatherImgUrl; }
@@ -1664,7 +1664,7 @@ namespace DataModel
         //public Dictionary<string, string>? District { get; set; }
 
 
-        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2026-12-31")]
         public DateTime date
         {
             get { return this.Date; }
@@ -1681,7 +1681,7 @@ namespace DataModel
 
     public class BezirksForecast
     {
-        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use Date", "2024-02-28", "2026-12-31")]
         public DateTime date
         {
             get { return this.Date; }
@@ -1697,19 +1697,19 @@ namespace DataModel
         public string? WeatherImgUrl { get; set; }
 
         //Compatibility
-        [SwaggerDeprecated("Obsolete, use WeatherCode", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherCode", "2024-02-28", "2026-12-31")]
         public string? Weathercode
         {
             get { return this.WeatherCode; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherDesc", "2024-02-28", "2026-12-31")]
         public string? Weatherdesc
         {
             get { return this.WeatherDesc; }
         }
 
-        [SwaggerDeprecated("Obsolete, use WeatherImgUrl", "2024-02-28", "2024-12-31")]
+        [SwaggerDeprecated("Obsolete, use WeatherImgUrl", "2024-02-28", "2026-12-31")]
         public string? WeatherImgurl
         {
             get { return this.WeatherImgUrl; }
@@ -1956,7 +1956,7 @@ namespace DataModel
 
         public bool Active { get; set; }
 
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
         public string? Shortname { get; set; }
 
@@ -2271,7 +2271,7 @@ namespace DataModel
         public string? Shortname { get; set; }
         public bool Active { get; set; }
 
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
         public ICollection<PublishedonObject>? WebcamAssignedOn { get; set; }
 
@@ -2286,7 +2286,7 @@ namespace DataModel
 
         public new ICollection<GpsInfo> GpsInfo { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         public new IDictionary<string, GpsInfo> GpsPoints
         {
             get
@@ -2406,7 +2406,7 @@ namespace DataModel
 
         public bool Active { get; set; }
 
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
 
         public ICollection<string>? HasLanguage { get; set; }
@@ -2617,7 +2617,7 @@ namespace DataModel
 
         public string? Id { get; set; }
 
-        [SwaggerDeprecated("Deprecated, refer to TagName")]
+        [SwaggerDeprecated("Deprecated, refer to TagName", "2025-01-01", "2026-12-31")]
         public string? Shortname { get; set; }
 
         public IDictionary<string, string> TagName { get; set; }
@@ -2628,24 +2628,24 @@ namespace DataModel
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         public Nullable<bool> DisplayAsCategory { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Mapping")]
+        [SwaggerDeprecated("Deprecated, use Mapping", "2025-01-01", "2026-12-31")]
         public IDictionary<string, string>? IDMCategoryMapping { get; set; }
 
         [SwaggerSchema("Deprecated, use Mapping")]
-        [SwaggerDeprecated("Deprecated, use Mapping")]
+        [SwaggerDeprecated("Deprecated, use Mapping", "2025-01-01", "2026-12-31")]
         [Obsolete("Deprecated, use Mapping")]
         public LTSTaggingInfo? LTSTaggingInfo { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use ValidForEntity")]
+        [SwaggerDeprecated("Deprecated, use ValidForEntity", "2025-01-01", "2026-12-31")]
         public string? MainEntity { get; set; }
 
         //Generic Mapping Object
         public IDictionary<string, IDictionary<string, string>>? Mapping { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Mapping")]
+        [SwaggerDeprecated("Deprecated, use Mapping", "2025-01-01", "2026-12-31")]
         public ICollection<string>? MappedTagIds { get; set; }
 
         //obsolete replaced by PublishDataWithTagOn to be more generic
@@ -2845,7 +2845,7 @@ namespace DataModel
         //public DateTime FirstImport { get; set; }
         //public DateTime LastChange { get; set; }
 
-        [SwaggerDeprecated("Obsolete, use PublishedOn")]
+        [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
 
         public ICollection<string>? HasLanguage { get; set; }
@@ -2902,12 +2902,12 @@ namespace DataModel
 
         public string? Id { get; set; }
 
-        [SwaggerDeprecated("Use Mappings")]
+        [SwaggerDeprecated("Use Mappings", "2025-01-01", "2026-12-31")]
         public string? OutdooractiveID { get; set; }
-        [SwaggerDeprecated("Use Mappings")]
+        [SwaggerDeprecated("Use Mappings", "2025-01-01", "2026-12-31")]
         public string? OutdooractiveElevationID { get; set; }
 
-        [SwaggerDeprecated("Use Mappings")]
+        [SwaggerDeprecated("Use Mappings", "2025-01-01", "2026-12-31")]
         public string? SmgId { get; set; }
 
         public bool? CopyrightChecked { get; set; }
@@ -2916,29 +2916,29 @@ namespace DataModel
         public bool Active { get; set; }
         public string? Shortname { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Ratings.Difficulty")]
+        [SwaggerDeprecated("Deprecated, Use Ratings.Difficulty", "2025-01-01", "2026-12-31")]
         public string? Difficulty { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public string? Type { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public string? SubType { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public string? PoiType { get; set; }
 
         public DateTime? FirstImport { get; set; }
         public DateTime? LastChange { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use PublishedOn field")]
+        [SwaggerDeprecated("Deprecated, Use PublishedOn field", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
 
         public LocationInfo? LocationInfo { get; set; }
 
         public string? TourismorganizationId { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use AreaIds")]
+        [SwaggerDeprecated("Deprecated, use AreaIds", "2025-01-01", "2026-12-31")]
         public HashSet<string>? AreaId { get; set; }
 
         [GetOnlyJsonProperty]
@@ -3256,18 +3256,18 @@ namespace DataModel
         //public string Difficulty { get; set; }
         public string? Novelty { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public string? MainType { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public string? SubType { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public string? PoiType { get; set; }
 
         public string? Language { get; set; }
 
-        [SwaggerDeprecated("Deprecated, Use Tags instead")]
+        [SwaggerDeprecated("Deprecated, Use Tags instead", "2025-01-01", "2026-12-31")]
         public List<string>? Categories { get; set; }
     }
 
@@ -3396,7 +3396,7 @@ namespace DataModel
         public bool Wednesday { get; set; }
 
         // Here for compatibility reasons
-        [SwaggerDeprecated("Will be removed within 2023-12-31")]
+        [SwaggerDeprecated("Will be removed after 2026-12-31", "2025-01-01", "2026-12-31")]
         public bool Thuresday
         {
             get { return Thursday; }

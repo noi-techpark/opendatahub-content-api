@@ -83,7 +83,7 @@ namespace DataModel
         //New Rateplans
         public ICollection<RatePlan>? RatePlan { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Review.trustyou")]
+        [SwaggerDeprecated("Deprecated, use Review.trustyou", "2025-01-01", "2026-12-31")]
         public new string? TrustYouID
         {
             get
@@ -94,7 +94,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use Review.trustyou")]
+        [SwaggerDeprecated("Deprecated, use Review.trustyou", "2025-01-01", "2026-12-31")]
         public new double? TrustYouScore
         {
             get
@@ -105,7 +105,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use Review.trustyou")]
+        [SwaggerDeprecated("Deprecated, use Review.trustyou", "2025-01-01", "2026-12-31")]
         public new int? TrustYouResults
         {
             get
@@ -116,7 +116,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use Review.trustyou")]
+        [SwaggerDeprecated("Deprecated, use Review.trustyou", "2025-01-01", "2026-12-31")]
         public new bool? TrustYouActive
         {
             get
@@ -127,7 +127,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use Review.trustyou")]
+        [SwaggerDeprecated("Deprecated, use Review.trustyou", "2025-01-01", "2026-12-31")]
         public new int? TrustYouState
         {
             get
@@ -140,7 +140,7 @@ namespace DataModel
 
         //Accommodation Properties
 
-        [SwaggerDeprecated("Deprecated, use AccoProperties.HasApartment")]
+        [SwaggerDeprecated("Deprecated, use AccoProperties.HasApartment", "2025-01-01", "2026-12-31")]
         public new bool HasApartment
         {
             get
@@ -149,25 +149,25 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use AccoProperties.HasRoom")]
+        [SwaggerDeprecated("Deprecated, use AccoProperties.HasRoom", "2025-01-01", "2026-12-31")]
         public new bool? HasRoom
         {
             get { return this.AccoProperties != null ? this.AccoProperties.HasRoom : null; }
         }
 
-        [SwaggerDeprecated("Deprecated, use AccoProperties.IsCamping")]
+        [SwaggerDeprecated("Deprecated, use AccoProperties.IsCamping", "2025-01-01", "2026-12-31")]
         public new bool? IsCamping
         {
             get { return this.AccoProperties != null ? this.AccoProperties.IsCamping : null; }
         }
 
-        [SwaggerDeprecated("Deprecated, use AccoProperties.IsGastronomy")]
+        [SwaggerDeprecated("Deprecated, use AccoProperties.IsGastronomy", "2025-01-01", "2026-12-31")]
         public bool? IsGastronomy
         {
             get { return this.AccoProperties != null ? this.AccoProperties.IsGastronomy : null; }
         }
 
-        [SwaggerDeprecated("Deprecated, use AccoProperties.IsBookable")]
+        [SwaggerDeprecated("Deprecated, use AccoProperties.IsBookable", "2025-01-01", "2026-12-31")]
         public new bool? IsBookable
         {
             get
@@ -176,13 +176,13 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use AccoProperties.IsAccommodation")]
+        [SwaggerDeprecated("Deprecated, use AccoProperties.IsAccommodation", "2025-01-01", "2026-12-31")]
         public new bool? IsAccommodation
         {
             get { return this.AccoProperties != null ? this.AccoProperties.IsAccommodation : null; }
         }
 
-        [SwaggerDeprecated("Deprecated, use AccoProperties.TVMember")]
+        [SwaggerDeprecated("Deprecated, use AccoProperties.TVMember", "2025-01-01", "2026-12-31")]
         public new bool? TVMember
         {
             get { return this.AccoProperties != null ? this.AccoProperties.TVMember : null; }
@@ -423,7 +423,7 @@ namespace DataModel
 
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public IDictionary<string, GpsInfo> GpsPoints
         {
@@ -512,7 +512,7 @@ namespace DataModel
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         public IDictionary<string, GpsInfo> GpsPoints
         {
             get { return this.GpsInfo.ToGpsPointsDictionary(true); }

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DataModel
@@ -47,29 +46,27 @@ namespace DataModel
         public int AccommodationsRequested { get; set; }
     }
 
-    public class JsonResultWithOnlineResultsAndResultIdLowercase<T> : IResponse<T>
+    //Standard paged result with additional search information
+    public class SearchResult<T> : JsonResult<T>
     {
-        public uint totalResults { get; set; }
-        public uint totalPages { get; set; }
-        public uint currentPage { get; set; }
-        public string? previousPage { get; set; }
-        public string? nextPage { get; set; }
-        public string? seed { get; set; }
-        public int onlineResults { get; set; }
-        public string? resultId { get; set; }
-        public IEnumerable<T> items { get; set; } = Enumerable.Empty<T>();
-
-        [JsonIgnore]
-        public IEnumerable<T> Items => items;
+        public string? SearchTerm { get; set; }
+        public Dictionary<string, uint> DetailedResults { get; set; } =
+            new Dictionary<string, uint>();
     }
 
-    public class SearchResult<T> : IResponse<T>
+    //Item of the Search over all entities, same shape for every type
+    public class FindResult
     {
-        public uint totalResults { get; set; }
-        public string? searchTerm { get; set; }
-        public Dictionary<string, uint> detailedResults { get; set; } =
-            new Dictionary<string, uint>();
-        public IEnumerable<T> Items { get; set; } = Enumerable.Empty<T>();
+        public string? Id { get; set; }
+        public string? Name { get; set; }
+        //Path of the field the Name was taken from, example AccoDetail.de.Name
+        public string? NameField { get; set; }
+        public string? Type { get; set; }
+        public string? Self { get; set; }
+
+        //Additional fields requested with the fields parameter
+        [Newtonsoft.Json.JsonExtensionData]
+        public IDictionary<string, Newtonsoft.Json.Linq.JToken>? AdditionalFields { get; set; }
     }
 
     #region Resultset

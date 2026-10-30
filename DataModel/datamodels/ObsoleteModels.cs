@@ -52,14 +52,14 @@ namespace DataModel
         public string EventLocation { get; set; }
         public int? EventId { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Detail BaseText")]
+        [SwaggerDeprecated("Deprecated, use Detail BaseText", "2025-01-01", "2026-12-31")]
         public IDictionary<string, string> EventText
         {
             get { return this.Detail != null ? this.Detail.ToDictionary(x => x.Key, x => x.Value.BaseText) : null; }
         }
         //public IDictionary<string, string> EventText { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Detail Title")]
+        [SwaggerDeprecated("Deprecated, use Detail Title", "2025-01-01", "2026-12-31")]
         public IDictionary<string, string> EventTitle
         {
             get { return this.Detail != null ? this.Detail.ToDictionary(x => x.Key, x => x.Value.Title) : null; }
@@ -67,44 +67,44 @@ namespace DataModel
         //public IDictionary<string, string> EventTitle { get; set; }
 
 
-        [SwaggerDeprecated("Deprecated, use Detail BaseText")]
+        [SwaggerDeprecated("Deprecated, use Detail BaseText", "2025-01-01", "2026-12-31")]
         public string? EventTextDE
         {
             get { return Detail != null && Detail.ContainsKey("de") ? Detail["de"].BaseText : null; }
         }
 
-        [SwaggerDeprecated("Deprecated, use Detail BaseText")]
+        [SwaggerDeprecated("Deprecated, use Detail BaseText", "2025-01-01", "2026-12-31")]
         public string? EventTextIT
         {
             get { return Detail != null && Detail.ContainsKey("it") ? Detail["it"].BaseText : null; }
         }
 
-        [SwaggerDeprecated("Deprecated, use Detail BaseText")]
+        [SwaggerDeprecated("Deprecated, use Detail BaseText", "2025-01-01", "2026-12-31")]
         public string? EventTextEN
         {
             get { return Detail != null && Detail.ContainsKey("en") ? Detail["en"].BaseText : null; }
         }
 
         //Hauptbeschreibung
-        [SwaggerDeprecated("Deprecated, use EventTitle")]
+        [SwaggerDeprecated("Deprecated, use EventTitle", "2025-01-01", "2026-12-31")]
         public string? EventDescription { get; set; }
 
         //Beschreibung DE
-        [SwaggerDeprecated("Deprecated, use EventTitle")]
+        [SwaggerDeprecated("Deprecated, use EventTitle", "2025-01-01", "2026-12-31")]
         public string? EventDescriptionDE
         {
             get { return Detail != null && Detail.ContainsKey("de") ? Detail["de"].Title : ""; }
         }
 
         //Beschreibung IT
-        [SwaggerDeprecated("Deprecated, use EventTitle")]
+        [SwaggerDeprecated("Deprecated, use EventTitle", "2025-01-01", "2026-12-31")]
         public string? EventDescriptionIT
         {
             get { return Detail != null && Detail.ContainsKey("it") ? Detail["it"].Title : ""; }
         }
 
         //Beschreibung EN
-        [SwaggerDeprecated("Deprecated, use EventTitle")]
+        [SwaggerDeprecated("Deprecated, use EventTitle", "2025-01-01", "2026-12-31")]
         public string? EventDescriptionEN
         {
             get { return Detail != null && Detail.ContainsKey("en") ? Detail["en"].Title : ""; }
@@ -139,44 +139,44 @@ namespace DataModel
 
         //Spezialfelder
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [RegularExpression("Y|N", ErrorMessage = "Only Y and N allowed")]
         [SwaggerEnum(new[] { "Y", "N" })]
         [SwaggerSchema("Active Eurac Videowall")]
         public string? Display1 { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [SwaggerEnum(new[] { "Y", "N" })]
         [SwaggerSchema("Active Eurac Seminarroom")]
         public string? Display2 { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [SwaggerEnum(new[] { "Y", "N" })]
         [SwaggerSchema("Active Today.noi.bz (Totem)")]
         public string? Display3 { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [SwaggerEnum(new[] { "Y", "N" })]
         [SwaggerSchema("Active Today.noi.bz (Videowall)")]
         public string? Display4 { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [SwaggerEnum(new[] { "Y", "N" })]
         public string? Display5 { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [SwaggerEnum(new[] { "Y", "N" })]
         public string? Display6 { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [SwaggerEnum(new[] { "Y", "N" })]
         public string? Display7 { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [SwaggerEnum(new[] { "Y", "N" })]
         public string? Display8 { get; set; }
 
-        [SwaggerDeprecated("Deprecated")]
+        [SwaggerDeprecated("Deprecated", "2025-01-01", "2026-12-31")]
         [SwaggerEnum(new[] { "Y", "N" })]
         public string? Display9 { get; set; }
 
@@ -221,13 +221,13 @@ namespace DataModel
         public ICollection<ImageGallery>? ImageGallery { get; set; }
         public string? VideoUrl { get; set; }
 
-        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         public List<string>? TechnologyFields { get; set; }
 
-        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         public List<string>? CustomTagging { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Documents")]
+        [SwaggerDeprecated("Deprecated, use Documents", "2025-01-01", "2026-12-31")]
         public List<DocumentPDF>? EventDocument
         {
             get
@@ -277,7 +277,7 @@ namespace DataModel
 
         public bool? SoldOut { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use PublishedOn: today.noi.bz.it")]
+        [SwaggerDeprecated("Deprecated, use PublishedOn: today.noi.bz.it", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(" ActiveToday Indicates if Event is shown on the today NOI Website")]
         public bool? ActiveToday
         {
@@ -294,7 +294,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use PublishedOn: noi.bz.it")]
+        [SwaggerDeprecated("Deprecated, use PublishedOn: noi.bz.it", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(
             " ActiveWeb Indicates if Event is shown on the Noi Website Section Events at NOI"
         )]
@@ -313,7 +313,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use PublishedOn: noi-communityapp")]
+        [SwaggerDeprecated("Deprecated, use PublishedOn: noi-communityapp", "2025-01-01", "2026-12-31")]
         [SwaggerSchema("ActiveCommunityApp Indicates if Event is shown on the Noi Community App")]
         public bool? ActiveCommunityApp
         {
@@ -336,7 +336,7 @@ namespace DataModel
 
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public IDictionary<string, GpsInfo> GpsPoints
         {
@@ -427,22 +427,22 @@ namespace DataModel
 
         public IDictionary<string, Detail> Detail { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Detail.Title")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title", "2025-01-01", "2026-12-31")]
         public Dictionary<string, string> EventTitle { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Detail.BaseText")]
+        [SwaggerDeprecated("Deprecated, use Detail.BaseText", "2025-01-01", "2026-12-31")]
         public Dictionary<string, string> EventText { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Detail.Title")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title", "2025-01-01", "2026-12-31")]
         public Dictionary<string, string> EventDescription { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Detail.Title")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title", "2025-01-01", "2026-12-31")]
         public string? EventDescriptionDE { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Detail.Title")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title", "2025-01-01", "2026-12-31")]
         public string? EventDescriptionIT { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use Detail.Title")]
+        [SwaggerDeprecated("Deprecated, use Detail.Title", "2025-01-01", "2026-12-31")]
         public string? EventDescriptionEN { get; set; }
 
         public string? EventAnchorVenue { get; set; }
@@ -463,13 +463,13 @@ namespace DataModel
         public string? VideoUrl { get; set; }
         public Nullable<bool> ActiveWeb { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use EventText")]
+        [SwaggerDeprecated("Deprecated, use EventText", "2025-01-01", "2026-12-31")]
         public string? EventTextDE { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use EventText")]
+        [SwaggerDeprecated("Deprecated, use EventText", "2025-01-01", "2026-12-31")]
         public string? EventTextIT { get; set; }
 
-        [SwaggerDeprecated("Deprecated, use EventText")]
+        [SwaggerDeprecated("Deprecated, use EventText", "2025-01-01", "2026-12-31")]
         public string? EventTextEN { get; set; }
 
         public List<string>? TechnologyFields { get; set; }
@@ -654,7 +654,7 @@ namespace DataModel
 
     //    public ICollection<string>? SmgTags { get; set; }
 
-    //    [SwaggerDeprecated("Obsolete, use PublishedOn")]
+    //    [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
     //    public bool SmgActive { get; set; }
 
     //    public ICollection<string>? HasLanguage { get; set; }

@@ -391,19 +391,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                         foreach (var accommodationroom in accommodationsroomparsed)
                         {
                             var accommodationroominsertresult = await InsertAccommodationRoomDataToDB(accommodationroom, jsondata);
-                            updatedetails.Add($"accommodationroom_lts_{roomcounter}", new UpdateDetail()
-                            {
-                                created = accommodationroominsertresult.created,
-                                updated = accommodationroominsertresult.updated,
-                                deleted = accommodationroominsertresult.deleted,
-                                error = accommodationroominsertresult.error,
-                                objectchanged = accommodationroominsertresult.objectchanged,
-                                objectimagechanged = accommodationroominsertresult.objectimagechanged,
-                                comparedobjects =
-                                    accommodationroominsertresult.compareobject != null && accommodationroominsertresult.compareobject.Value ? 1 : 0,
-                                pushchannels = accommodationroominsertresult.pushchannels,
-                                changes = accommodationroominsertresult.changes,
-                            });
+                            updatedetails.Add($"accommodationroom_lts_{roomcounter}", accommodationroominsertresult);
                             roomcounter++;
                         }
 
@@ -450,19 +438,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
 
                     var result = await InsertDataToDB(accommodationparsed, data.data, jsondata);
 
-                    updatedetails.Add("accommodation_lts", new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                        result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    });
+                    updatedetails.Add("accommodation_lts", result);
 
                     idlistlts.Add(id);
 
@@ -499,7 +475,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             return updatedetails;
         }
 
-        private async Task<PGCRUDResult> InsertDataToDB(
+        private async Task<UpdateDetail> InsertDataToDB(
             AccommodationV2 objecttosave,
             LTSAccoData data,
             IDictionary<string, JArray>? jsonfiles
@@ -566,7 +542,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
             );
         }
 
-        private async Task<PGCRUDResult> InsertAccommodationRoomDataToDB(
+        private async Task<UpdateDetail> InsertAccommodationRoomDataToDB(
             AccommodationRoomV2 objecttosave,            
             IDictionary<string, JArray>? jsonfiles
         )
@@ -615,7 +591,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
-            PGCRUDResult result = default(PGCRUDResult);
+            UpdateDetail result = default(UpdateDetail);
 
             if (delete)
             {
@@ -626,21 +602,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 reduced
                 );
 
-                if (result.errorreason != "Data Not Found")
+                if (result.exception != "Data Not Found")
                 {
-                    deletedisableresult = new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    };
+                    deletedisableresult = result;
                 }
             }
             else
@@ -668,18 +632,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                new CompareConfig(true, false)
                         );
 
-                        deletedisableresult = new UpdateDetail()
-                        {
-                            created = result.created,
-                            updated = result.updated,
-                            deleted = result.deleted,
-                            error = result.error,
-                            objectchanged = result.objectchanged,
-                            objectimagechanged = result.objectimagechanged,
-                            comparedobjects = result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                            pushchannels = result.pushchannels,
-                            changes = result.changes,
-                        };
+                        deletedisableresult = result;
                     }
                 }
             }
@@ -691,7 +644,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
         {
             UpdateDetail deletedisableresult = default(UpdateDetail);
 
-            PGCRUDResult result = default(PGCRUDResult);
+            UpdateDetail result = default(UpdateDetail);
 
             if (delete)
             {
@@ -702,21 +655,9 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 reduced
                 );
 
-                if (result.errorreason != "Data Not Found")
+                if (result.exception != "Data Not Found")
                 {
-                    deletedisableresult = new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        comparedobjects =
-                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                    };
+                    deletedisableresult = result;
                 }
             }
             else
@@ -744,18 +685,7 @@ namespace OdhApiImporter.Helpers.LTSAPI
                                new CompareConfig(true, false)
                         );
 
-                        deletedisableresult = new UpdateDetail()
-                        {
-                            created = result.created,
-                            updated = result.updated,
-                            deleted = result.deleted,
-                            error = result.error,
-                            objectchanged = result.objectchanged,
-                            objectimagechanged = result.objectimagechanged,
-                            comparedobjects = result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                            pushchannels = result.pushchannels,
-                            changes = result.changes,
-                        };
+                        deletedisableresult = result;
                     }
                 }
             }

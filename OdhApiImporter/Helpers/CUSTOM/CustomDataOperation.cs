@@ -1949,7 +1949,7 @@ namespace OdhApiImporter.Helpers
                         //push modified data to all published Channels
                         var pushed = await ImportUtils.CheckIfObjectChangedAndPush(
                             odhpushnotifier,
-                            new PGCRUDResult() { id = jdata.Id, objectchanged = 1, compareobject = true, updated = 1, pushchannels = jdata.PublishedOn },
+                            new UpdateDetail() { id = jdata.Id, objectchanged = 1, comparedobjects = 1, updated = 1, pushchannels = jdata.PublishedOn },
                             jdata.Id,
                             type,
                             null,

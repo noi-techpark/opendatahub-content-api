@@ -62,7 +62,7 @@ namespace OdhApiImporter.Controllers
             CancellationToken cancellationToken = default
         )
         {
-            UpdateDetailFailureQueue updatedetail = default(UpdateDetailFailureQueue);
+            IDictionary<string, ICollection<NotifierResponse>>? pushed = null;
             string operation = "Update Failurequeue";
             string updatetype = "multiple";
             string source = "api";
@@ -75,13 +75,9 @@ namespace OdhApiImporter.Controllers
                     elementstoprocess
                 );
 
-                updatedetail = new UpdateDetailFailureQueue()
-                {
-                    pushchannels = resulttuple.Keys,
-                    pushed = resulttuple,
-                };
+                pushed = resulttuple;
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     GetEditIdentifier(),
@@ -89,15 +85,17 @@ namespace OdhApiImporter.Controllers
                     updatetype,
                     "Elaborate Failurequeue succeeded",
                     otherinfo,
-                    updatedetail,
-                    true
+                    null,
+                    null,
+                    true,
+                    pushed: pushed
                 );
 
                 return Ok(updateResult);
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     GetEditIdentifier(),
@@ -105,9 +103,10 @@ namespace OdhApiImporter.Controllers
                     updatetype,
                     "Elaborate Failurequeue failed",
                     otherinfo,
-                    updatedetail,
+                    null,
                     ex,
-                    true
+                    true,
+                    pushed: pushed
                 );
 
                 return BadRequest(errorResult);
@@ -133,7 +132,7 @@ namespace OdhApiImporter.Controllers
             [FromBody] List<string> idlist
         )
         {
-            UpdateDetailFailureQueue updatedetail = default(UpdateDetailFailureQueue);
+            IDictionary<string, ICollection<NotifierResponse>>? pushed = null;
             string operation = "Update Custom";
             string updatetype = "multiple";
             string source = "api";
@@ -148,13 +147,9 @@ namespace OdhApiImporter.Controllers
                     null
                 );
 
-                updatedetail = new UpdateDetailFailureQueue()
-                {
-                    pushchannels = resulttuple.Keys,
-                    pushed = resulttuple,
-                };
+                pushed = resulttuple;
 
-                var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
+                var updateResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     GetEditIdentifier(),
@@ -162,15 +157,17 @@ namespace OdhApiImporter.Controllers
                     updatetype,
                     "Custom Update succeeded",
                     otherinfo,
-                    updatedetail,
-                    true
+                    null,
+                    null,
+                    true,
+                    pushed: pushed
                 );
 
                 return Ok(updateResult);
             }
             catch (Exception ex)
             {
-                var errorResult = GenericResultsHelper.GetErrorUpdateResult(
+                var errorResult = GenericResultsHelper.GetUpdateResult(
                     "",
                     source,
                     GetEditIdentifier(),
@@ -178,9 +175,10 @@ namespace OdhApiImporter.Controllers
                     updatetype,
                     "Custom Update failed",
                     otherinfo,
-                    updatedetail,
+                    null,
                     ex,
-                    true
+                    true,
+                    pushed: pushed
                 );
 
                 return BadRequest(errorResult);
@@ -568,20 +566,7 @@ namespace OdhApiImporter.Controllers
                         );
                     }
 
-                    updatedetail = new UpdateDetail()
-                    {
-                        created = result.created,
-                        updated = result.updated,
-                        deleted = result.deleted,
-                        error = result.error,
-                        comparedobjects =
-                            result.compareobject != null && result.compareobject.Value ? 1 : 0,
-                        objectchanged = result.objectchanged,
-                        objectimagechanged = result.objectimagechanged,
-                        pushchannels = result.pushchannels,
-                        changes = result.changes,
-                        pushed = result.pushed,
-                    };
+                    updatedetail = result;
                 }
 
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(

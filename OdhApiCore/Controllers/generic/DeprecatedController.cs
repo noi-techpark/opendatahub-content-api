@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using OdhApiCore.Swagger;
 using Microsoft.Extensions.Logging;
 using OdhApiCore.GenericHelpers;
+using OdhApiCore.Responses;
 using OdhNotifier;
 using SqlKata.Execution;
 
@@ -44,17 +45,17 @@ namespace OdhApiCore.Controllers
         /// <param name="pagenumber">Pagenumber</param>
         /// <param name="pagesize">Elements per Page, (default:10)</param>
         /// <param name="seed">Seed '1 - 10' for Random Sorting, '0' generates a Random Seed, 'null' disables Random Sorting, (default:null)</param>
-        /// <param name="type">Mandatory search trough Entities (metadata, accommodation, odhactivitypoi, event, webcam, measuringpoint, ltsactivity, ltspoi, ltsgastronomy, article ..... null = search trough all entities) <a href="https://github.com/noi-techpark/odh-docs/wiki/Dataset-Type" target="_blank">Wiki Dataset Type</a></param>
+        /// <param name="type">Search trough Entities (metadata, accommodation, odhactivitypoi, event, webcam, measuringpoint, ltsactivity, ltspoi, ltsgastronomy, article ..... null = search trough all entities) <a href="https://github.com/noi-techpark/odh-docs/wiki/Dataset-Type" target="_blank">Wiki Dataset Type</a></param>
         /// <param name="fields">Mandatory Select a field for the Distinct Query, example fields=Source, arrays are selected with a [*] example HasLanguage[*] / Features[*].Id  (Only one field supported). <a href="https://github.com/noi-techpark/odh-docs/wiki/Common-parameters%2C-fields%2C-language%2C-searchfilter%2C-removenullvalues%2C-updatefrom#fields" target="_blank">Wiki fields</a></param>
         /// <param name="rawfilter"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawfilter</a></param>
         /// <param name="rawsort"><a href="https://github.com/noi-techpark/opendatahub-docs/wiki/Using-rawfilter-and-rawsort-on-the-Open-Data-Hub-Content-Api#rawfilter" target="_blank">Wiki rawsort</a></param>
         /// <param name="getasarray">Get only first selected field as simple string Array</param>
         /// <param name="excludenulloremptyvalues">Exclude empty and null values from output</param>
-        /// <returns>Array of string/object</returns>
+        /// <returns>Array of deprecated fields, each with its entity Type</returns>
         /// <response code="200">List created</response>
         /// <response code="400">Request Error</response>
         /// <response code="500">Internal Server Error</response>
-        [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(IEnumerable<DeprecationInfo>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         //[OdhCacheOutput(ClientTimeSpan = 0, ServerTimeSpan = 3600, CacheKeyGenerator = typeof(CustomCacheKeyGenerator), MustRevalidate = true)]
@@ -86,6 +87,7 @@ namespace OdhApiCore.Controllers
                 rawsort,
                 getasarray,
                 excludenulloremptyvalues,
+                PagingRequested(pagenumber, pagesize),
                 null,
                 cancellationToken
             );
@@ -122,6 +124,7 @@ namespace OdhApiCore.Controllers
             string? rawsort,
             bool? getasarray,
             bool excludenullvalues,
+            bool pagingrequested,
             PGGeoSearchResult geosearchresult,
             CancellationToken cancellationToken
         )
@@ -129,25 +132,51 @@ namespace OdhApiCore.Controllers
             return DoAsyncReturn(async () =>
             {
                 List<string> typestocheck = new List<string>();
-                Dictionary<string, IEnumerable<DeprecationInfo>> resultdict =
-                    new Dictionary<string, IEnumerable<DeprecationInfo>>();
+                List<DeprecationInfo> result = new List<DeprecationInfo>();
 
                 if (odhtype == null)
-                    typestocheck = ODHTypeHelper.GetAllTypeStrings().ToList();
+                {
+                    //No type passed: check all types, skip the ones without a model (ltsactivity, ltspoi)
+                    foreach (var typetocheck in ODHTypeHelper.GetAllTypeStrings())
+                    {
+                        Type modeltype;
+                        try
+                        {
+                            modeltype = ODHTypeHelper.TranslateTypeString2Type(typetocheck);
+                        }
+                        catch (Exception)
+                        {
+                            continue;
+                        }
+
+                        result.AddRange(
+                            GetDeprecatedFieldsByAttributes.GetDeprecatedFields(modeltype, typetocheck)
+                        );
+                    }
+                }
                 else
+                {
                     typestocheck = odhtype.Split(",").ToList();
 
-                foreach (var typetocheck in typestocheck)
-                {
-                    resultdict.Add(
-                        typetocheck,
-                        GetDeprecatedFieldsByAttributes.GetDeprecatedFields(
-                            ODHTypeHelper.TranslateTypeString2Type(typetocheck)
-                        )
-                    );
+                    foreach (var typetocheck in typestocheck)
+                    {
+                        result.AddRange(
+                            GetDeprecatedFieldsByAttributes.GetDeprecatedFields(
+                                ODHTypeHelper.TranslateTypeString2Type(typetocheck),
+                                typetocheck
+                            )
+                        );
+                    }
                 }
 
-                return resultdict;
+                if (!pagingrequested)
+                    return result;
+
+                //Paging requested: wrap the list in the standard paging response
+                uint page = Math.Max(pagenumber ?? 1, 1);
+                var (items, totalpages) = ResponseHelpers.PageList(result, page, pagesize ?? 10);
+
+                return ResponseHelpers.GetResult(page, totalpages, (uint)result.Count, seed, items, Url);
             });
         }
 

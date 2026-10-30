@@ -448,7 +448,7 @@ namespace DataModel
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         //Overwrite Latitude/Longitude/
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -460,7 +460,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double Latitude
         {
@@ -472,7 +472,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double Longitude
         {
@@ -484,7 +484,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new Nullable<double> Altitude
         {
@@ -496,7 +496,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -508,7 +508,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public IDictionary<string, GpsInfo> GpsPoints
         {
@@ -556,7 +556,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        [SwaggerDeprecated("Obsolete")]
+        [SwaggerDeprecated("Obsolete", "2025-01-01", "2026-12-31")]
         public List<DateTime>? EventDatesBegin
         {
             get
@@ -566,7 +566,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        [SwaggerDeprecated("Obsolete")]
+        [SwaggerDeprecated("Obsolete", "2025-01-01", "2026-12-31")]
         public List<DateTime>? EventDatesEnd
         {
             get
@@ -576,7 +576,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
-        [SwaggerDeprecated("Obsolete")]
+        [SwaggerDeprecated("Obsolete", "2025-01-01", "2026-12-31")]
         public int? EventDateCounter
         {
             get { return this.EventDate != null ? this.EventDate.Count : 0; }
@@ -612,14 +612,14 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated use PublishedOn")]
+        [SwaggerDeprecated("Deprecated use PublishedOn", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public bool? OdhActive
         {
             get { return this.SmgActive; }
         }
 
-        [SwaggerDeprecated("Deprecated use Tags of type eventcategory")]
+        [SwaggerDeprecated("Deprecated use Tags of type eventcategory", "2025-01-01", "2026-12-31")]
         public new ICollection<TopicLinked>? Topics { get; set; }
 
         //Overwrites The LocationInfo
@@ -632,7 +632,7 @@ namespace DataModel
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -644,7 +644,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double Latitude
         {
@@ -656,7 +656,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double Longitude
         {
@@ -668,7 +668,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Altitude
         {
@@ -680,7 +680,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -692,7 +692,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public IDictionary<string, GpsInfo> GpsPoints
         {
@@ -846,7 +846,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated use PublishedOn")]
+        [SwaggerDeprecated("Deprecated use PublishedOn", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public bool OdhActive
         {
@@ -866,7 +866,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use Tags")]
+        [SwaggerDeprecated("Deprecated, use Tags", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public ICollection<ODHActivityPoiTypesLink>? ODHActivityPoiTypes
         {
@@ -920,13 +920,13 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use Tags of type gastronomycategory")]
+        [SwaggerDeprecated("Deprecated, use Tags of type gastronomycategory", "2025-01-01", "2026-12-31")]
         public new ICollection<CategoryCodesLinked>? CategoryCodes { get; set; }
-        [SwaggerDeprecated("Deprecated, use Tags of type gastronomydishcodes")]
+        [SwaggerDeprecated("Deprecated, use Tags of type gastronomydishcodes", "2025-01-01", "2026-12-31")]
         public new ICollection<DishRatesLinked>? DishRates { get; set; }
-        [SwaggerDeprecated("Deprecated, use Tags of type gastronomyceremonycodes")] 
+        [SwaggerDeprecated("Deprecated, use Tags of type gastronomyceremonycodes", "2025-01-01", "2026-12-31")] 
         public new ICollection<CapacityCeremonyLinked>? CapacityCeremony { get; set; }
-        [SwaggerDeprecated("Deprecated, use Tags of type gastronomyfacilities")] 
+        [SwaggerDeprecated("Deprecated, use Tags of type gastronomyfacilities", "2025-01-01", "2026-12-31")] 
         public new ICollection<FacilitiesLinked>? Facilities { get; set; }
 
         //Overwrites The LocationInfo
@@ -1125,7 +1125,7 @@ namespace DataModel
         }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -1137,7 +1137,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Latitude
         {
@@ -1149,7 +1149,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Longitude
         {
@@ -1161,7 +1161,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Altitude
         {
@@ -1173,7 +1173,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -1185,7 +1185,7 @@ namespace DataModel
             }
         }
 
-        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         //[SwaggerSchema(Description = "generated field", ReadOnly = true)]
         //public IDictionary<string, GpsInfo>? GpsPoints
         //{
@@ -1272,7 +1272,7 @@ namespace DataModel
         }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -1284,7 +1284,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Latitude
         {
@@ -1296,7 +1296,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Longitude
         {
@@ -1308,7 +1308,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Altitude
         {
@@ -1320,7 +1320,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -1332,7 +1332,7 @@ namespace DataModel
             }
         }
 
-        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         //[SwaggerSchema(Description = "generated field", ReadOnly = true)]
         //public IDictionary<string, GpsInfo> GpsPoints
         //{
@@ -1422,7 +1422,7 @@ namespace DataModel
         }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -1434,7 +1434,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Latitude
         {
@@ -1446,7 +1446,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Longitude
         {
@@ -1458,7 +1458,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Altitude
         {
@@ -1470,7 +1470,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -1482,7 +1482,7 @@ namespace DataModel
             }
         }
 
-        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         //[SwaggerSchema(Description = "generated field", ReadOnly = true)]
         //public IDictionary<string, GpsInfo> GpsPoints
         //{
@@ -1552,7 +1552,7 @@ namespace DataModel
         }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -1564,7 +1564,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Latitude
         {
@@ -1576,7 +1576,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Longitude
         {
@@ -1588,7 +1588,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Altitude
         {
@@ -1600,7 +1600,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -1612,7 +1612,7 @@ namespace DataModel
             }
         }
 
-        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         //[SwaggerSchema(Description = "generated field", ReadOnly = true)]
         //public IDictionary<string, GpsInfo> GpsPoints
         //{
@@ -1716,7 +1716,7 @@ namespace DataModel
         }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -1728,7 +1728,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Latitude
         {
@@ -1740,7 +1740,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Longitude
         {
@@ -1752,7 +1752,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Altitude
         {
@@ -1764,7 +1764,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -1776,7 +1776,7 @@ namespace DataModel
             }
         }
 
-        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         //[SwaggerSchema(Description = "generated field", ReadOnly = true)]
         //public IDictionary<string, GpsInfo> GpsPoints
         //{
@@ -1859,7 +1859,7 @@ namespace DataModel
         public ICollection<GpsInfo>? GpsInfo { get; set; }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -1871,7 +1871,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Latitude
         {
@@ -1883,7 +1883,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Longitude
         {
@@ -1895,7 +1895,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double? Altitude
         {
@@ -1907,7 +1907,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -1919,7 +1919,7 @@ namespace DataModel
             }
         }
 
-        //[SwaggerDeprecated("Deprecated, use GpsInfo")]
+        //[SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         //[SwaggerSchema(Description = "generated field", ReadOnly = true)]
         //public IDictionary<string, GpsInfo> GpsPoints
         //{
@@ -2111,7 +2111,7 @@ namespace DataModel
         }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -2123,7 +2123,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double Latitude
         {
@@ -2135,7 +2135,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double Longitude
         {
@@ -2147,7 +2147,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new Nullable<double> Altitude
         {
@@ -2159,7 +2159,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -2171,7 +2171,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public IDictionary<string, GpsInfo> GpsPoints
         {
@@ -2228,7 +2228,7 @@ namespace DataModel
         }
 
         //Overwrite Latitude/Longitude/GpsType/Altitude/AltitudeUnitofMeasure and set it to obsolete and readonly
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? Gpstype
         {
@@ -2240,7 +2240,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double Latitude
         {
@@ -2252,7 +2252,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new double Longitude
         {
@@ -2264,7 +2264,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new Nullable<double> Altitude
         {
@@ -2276,7 +2276,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public new string? AltitudeUnitofMeasure
         {
@@ -2288,7 +2288,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Deprecated, use GpsInfo")]
+        [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
         public IDictionary<string, GpsInfo> GpsPoints
         {
@@ -2572,7 +2572,7 @@ namespace DataModel
             }
         }
 
-        [SwaggerDeprecated("Obsolete use Type")]
+        [SwaggerDeprecated("Obsolete use Type", "2025-01-01", "2026-12-31")]
         public string? OdhType { get; set; }
 
         [SwaggerSchema("Optional _Meta.Type of the dataset (valid for the content domain)")]
@@ -2730,7 +2730,7 @@ public class CoordinateSource
 //    public ICollection<GpsInfo> GpsInfo { get; set; }
 
 //    //Overwrite Latitude/Longitude/
-//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
 //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
 //    public new string? Gpstype
 //    {
@@ -2742,7 +2742,7 @@ public class CoordinateSource
 //        }
 //    }
 
-//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
 //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
 //    public new double Latitude
 //    {
@@ -2754,7 +2754,7 @@ public class CoordinateSource
 //        }
 //    }
 
-//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
 //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
 //    public new double Longitude
 //    {
@@ -2766,7 +2766,7 @@ public class CoordinateSource
 //        }
 //    }
 
-//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
 //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
 //    public new Nullable<double> Altitude
 //    {
@@ -2778,7 +2778,7 @@ public class CoordinateSource
 //        }
 //    }
 
-//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
 //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
 //    public new string? AltitudeUnitofMeasure
 //    {
@@ -2790,7 +2790,7 @@ public class CoordinateSource
 //        }
 //    }
 
-//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
 //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
 //    public IDictionary<string, GpsInfo> GpsPoints
 //    {
@@ -2893,7 +2893,7 @@ public class CoordinateSource
 //    //Overwrites LTSTags
 //    public new List<LTSTagsLinked>? LTSTags { get; set; }
 
-//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
 //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
 //    public IDictionary<string, GpsInfo> GpsPoints
 //    {
@@ -2995,7 +2995,7 @@ public class CoordinateSource
 //    //Overwrites LTSTags
 //    public new List<LTSTagsLinked>? LTSTags { get; set; }
 
-//    [SwaggerDeprecated("Deprecated, use GpsInfo")]
+//    [SwaggerDeprecated("Deprecated, use GpsInfo", "2025-01-01", "2026-12-31")]
 //    [SwaggerSchema(Description = "generated field", ReadOnly = true)]
 //    public IDictionary<string, GpsInfo> GpsPoints
 //    {

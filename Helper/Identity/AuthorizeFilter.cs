@@ -64,7 +64,9 @@ namespace Helper.Identity
 
             if (!isAuthorized)
             {
-                context.Result = new ForbidResult();
+                context.Result = CustomApiActionResults.ForbiddenValidation(
+                    "You do not have permission to perform this action"
+                );
             }
         }
 
