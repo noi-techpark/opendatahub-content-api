@@ -16,6 +16,10 @@ namespace Helper.JsonHelpers
 {
     public class GetOnlyContractResolver : DefaultContractResolver
     {
+        //Use this shared instance, the resolver caches the contracts (and the generated reflection code) per instance,
+        //creating a new one for every deserialization recompiles all of it and lets the memory grow
+        public static readonly GetOnlyContractResolver Instance = new GetOnlyContractResolver();
+
         protected override JsonProperty CreateProperty(
             MemberInfo member,
             MemberSerialization memberSerialization

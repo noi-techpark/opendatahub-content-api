@@ -99,7 +99,7 @@ namespace Helper
             var deserializeSettings = new JsonSerializerSettings
             {
                 ObjectCreationHandling = ObjectCreationHandling.Replace,
-                ContractResolver = new GetOnlyContractResolver(),
+                ContractResolver = GetOnlyContractResolver.Instance,
             };
 
             return JsonConvert.DeserializeObject<T>(

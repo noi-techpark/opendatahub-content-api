@@ -115,6 +115,40 @@ namespace OdhApiImporter.Controllers
 
         #endregion
 
+        #region REPROCESS IMPORT FAILURE QUEUE
+
+        /// <summary>
+        /// Retries the failed single imports stored in importfailures (normally done by the ImportFailureRetryService on schedule)
+        /// </summary>
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("ImportFailureQueue/Retry")]
+        public async Task<IActionResult> ElaborateImportFailureQueue(
+            int elementstoprocess = 100,
+            int maxretries = 5,
+            CancellationToken cancellationToken = default
+        )
+        {
+            try
+            {
+                var results = await ImportFailureQueue.RetryOpenFailures(
+                    settings,
+                    QueryFactory,
+                    OdhPushnotifier,
+                    elementstoprocess,
+                    maxretries,
+                    cancellationToken
+                );
+
+                return Ok(results);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        #endregion
+
         #region CUSTOM PUSH SEND
 
         /// <summary>
@@ -2082,10 +2116,11 @@ namespace OdhApiImporter.Controllers
             string source = "api";
             string otherinfo = datatype.ToLower();
 
+            string idtopass = id;
+            string datatypecalculated = datatype;
+
             try
             {
-                string idtopass = id;
-                string datatypecalculated = datatype;
 
                 if (datatype.ToLower() == "odhactivitypoi")
                 {
@@ -2139,6 +2174,16 @@ namespace OdhApiImporter.Controllers
                 );
                 updatedetail = resulttuple.Item2;
 
+                await ImportFailureQueue.WriteOrResolveFailure(
+                    QueryFactory,
+                    "lts",
+                    datatypecalculated,
+                    idtopass,
+                    updatedetail,
+                    GetEditIdentifier(),
+                    UrlGeneratorStatic("LTS/" + datatypecalculated)
+                );
+
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     resulttuple.Item1,
                     source,
@@ -2155,6 +2200,17 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
+                //Store for reprocessing (only if the LTS datatype could be resolved)
+                await ImportFailureQueue.WriteFailure(
+                    QueryFactory,
+                    "lts",
+                    datatypecalculated,
+                    idtopass,
+                    ex.Message,
+                    GetEditIdentifier(),
+                    UrlGeneratorStatic("LTS/" + datatypecalculated)
+                );
+
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
                     source,
@@ -2215,6 +2271,16 @@ namespace OdhApiImporter.Controllers
                 );
                 updatedetail = resulttuple.Item2;
 
+                await ImportFailureQueue.WriteOrResolveFailure(
+                    QueryFactory,
+                    "lts",
+                    datatype,
+                    id,
+                    updatedetail,
+                    GetEditIdentifier(),
+                    UrlGeneratorStatic("LTS/" + datatype)
+                );
+
                 var updateResult = GenericResultsHelper.GetSuccessUpdateResult(
                     resulttuple.Item1,
                     source,
@@ -2231,6 +2297,17 @@ namespace OdhApiImporter.Controllers
             }
             catch (Exception ex)
             {
+                //Store for reprocessing
+                await ImportFailureQueue.WriteFailure(
+                    QueryFactory,
+                    "lts",
+                    datatype,
+                    id,
+                    ex.Message,
+                    GetEditIdentifier(),
+                    UrlGeneratorStatic("LTS/" + datatype)
+                );
+
                 var errorResult = GenericResultsHelper.GetErrorUpdateResult(
                     id,
                     source,
