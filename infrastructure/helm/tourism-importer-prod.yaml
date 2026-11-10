@@ -22,9 +22,9 @@ replicaCount: 1
 resources:
   requests:
     cpu: 100m
-    memory: 2Gi
+    memory: 2560Mi
   limits:
-    memory: 2Gi
+    memory: 2560Mi
 
 service:
   type: ClusterIP
@@ -71,6 +71,12 @@ env:
   ASPNETCORE_XmlConfig__Xmldir: "xml/"
   ASPNETCORE_XmlConfig__XmldirWeather: "xml/"
   ASPNETCORE_JsonConfig__Jsondir: "./json/"
+
+  # Reprocessing of failed single imports (importfailures table)
+  ASPNETCORE_ImportFailureConfig__Enabled: "true"
+  ASPNETCORE_ImportFailureConfig__IntervalMinutes: "60"
+  ASPNETCORE_ImportFailureConfig__ElementsToProcess: "100"
+  ASPNETCORE_ImportFailureConfig__MaxRetries: "5"
 
   ASPNETCORE_S3ImageresizerConfig__Url: "https://images.opendatahub.com/api/Image/GetImage?imageurl="
   ASPNETCORE_S3ImageresizerConfig__DocUrl: "https://images.opendatahub.com/api/File/GetFile/"

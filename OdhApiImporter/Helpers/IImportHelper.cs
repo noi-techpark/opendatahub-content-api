@@ -418,14 +418,10 @@ namespace OdhApiImporter.Helpers
             }
         }
 
-        public static async Task<JArray> LoadFromJsonAndDeSerialize(string filename, string path)
+        public static Task<JArray> LoadFromJsonAndDeSerialize(string filename, string path)
         {
-            using (StreamReader r = new StreamReader(Path.Combine(path, filename + ".json")))
-            {
-                string json = await r.ReadToEndAsync();
-
-                return JArray.Parse(json) ?? new JArray();
-            }
+            //Cached, reloaded only when the file changes
+            return Task.FromResult(ImportFileCache.GetJson(Path.Combine(path, filename + ".json")));
         }
 
         public static async Task<IDictionary<string, JArray>> LoadJsonFiles(
@@ -451,7 +447,7 @@ namespace OdhApiImporter.Helpers
 
             foreach (var filename in filenames)
             {
-                myxmlfiles.Add(filename, XDocument.Load(directory + filename + ".xml"));
+                myxmlfiles.Add(filename, ImportFileCache.GetXml(directory + filename + ".xml"));
             }
 
             return myxmlfiles;
