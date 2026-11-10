@@ -407,6 +407,25 @@ namespace DataModel
         public Nullable<int> RetryCount { get; set; }
     }
 
+    //Failed single imports (e.g. LTS pushes), reprocessed by the ImportFailureRetryService
+    public class ImportFailure
+    {
+        public string Id { get; set; }
+        public string ItemId { get; set; }
+        public string Type { get; set; }
+        public string Source { get; set; }
+        public string Exception { get; set; }
+        //open = will be retried, failed = MaxRetries reached, not retried anymore
+        public string Status { get; set; }
+        public string EditedBy { get; set; }
+        public string ImporterURL { get; set; }
+        public int FailureCount { get; set; }
+        public int RetryCount { get; set; }
+        public DateTime FirstFailure { get; set; }
+        public DateTime LastChange { get; set; }
+        public DateTime? LastRetry { get; set; }
+    }
+
     public class NotifierResponse
     {
         public object? Response { get; set; }

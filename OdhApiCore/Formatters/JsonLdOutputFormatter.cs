@@ -40,7 +40,7 @@ namespace OdhApiCore.Formatters
             //TODO: extract language
             var settings = new JsonSerializerSettings
             {
-                ContractResolver = new GetOnlyContractResolver(),
+                ContractResolver = GetOnlyContractResolver.Instance,
             };
 
             if (path.StartsWithSegments("/v1/Accommodation"))

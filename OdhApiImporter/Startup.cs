@@ -60,6 +60,9 @@ namespace OdhApiImporter
             //turns healthy (and Kubernetes only starts routing traffic) once they actually exist
             services.AddHostedService<JsonGeneratorStartupService>();
 
+            //Reprocesses failed single imports (importfailures table), schedule in ImportFailureConfig
+            services.AddHostedService<ImportFailureRetryService>();
+
             //Logging Config
             services.AddLogging(options =>
             {

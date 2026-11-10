@@ -61,7 +61,7 @@ namespace Helper
             //using this ContractResolver avoids duplicate Lists
             var settings = new JsonSerializerSettings
             {
-                ContractResolver = new GetOnlyContractResolver(),
+                ContractResolver = GetOnlyContractResolver.Instance,
             };
 
             var result = await query.FirstOrDefaultAsync<JsonRaw>();
@@ -88,7 +88,7 @@ namespace Helper
             //using this ContractResolver avoids duplicate Lists
             var settings = new JsonSerializerSettings
             {
-                ContractResolver = new GetOnlyContractResolver(),
+                ContractResolver = GetOnlyContractResolver.Instance,
             };
 
             var result = await query.GetAsync<JsonRaw>();
@@ -108,7 +108,7 @@ namespace Helper
             //using this ContractResolver avoids duplicate Lists
             var settings = new JsonSerializerSettings
             {
-                ContractResolver = new GetOnlyContractResolver(),
+                ContractResolver = GetOnlyContractResolver.Instance,
             };
             var method = typeof(JsonConvert)
                 .GetMethods()
@@ -138,7 +138,7 @@ namespace Helper
             //Reflection Json Deserialize
             var settings = new JsonSerializerSettings
             {
-                ContractResolver = new GetOnlyContractResolver(),
+                ContractResolver = GetOnlyContractResolver.Instance,
             };
             List<IIdentifiable> datalist = new List<IIdentifiable>();
 
