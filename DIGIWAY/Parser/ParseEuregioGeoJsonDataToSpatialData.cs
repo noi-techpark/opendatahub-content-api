@@ -6,6 +6,9 @@ using DataModel;
 using DIGIWAY.Model.GeoJsonReadModel;
 using Helper;
 using Helper.Geo;
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace DIGIWAY
 {
@@ -27,6 +30,49 @@ namespace DIGIWAY
             };
 
             return result;
+        }
+
+        /// <summary>
+        /// Attributes which, together with the geometry, identify a feature. The source delivers no feature id.
+        /// All other attributes (surface, difficulty, closures, DATA_STATUS ...) may change and then update the same record.
+        /// routes: one record per route on a path segment, so the route attributes are part of the key.
+        /// roadnetwork: one record per segment, the geometry alone is unique.
+        /// </summary>
+        private static readonly IDictionary<string, string[]> idattributes = new Dictionary<string, string[]>()
+        {
+            { "euregio.routes", new[] { "PATH_CODE", "PATH_D", "RESPORGPATH_D" } },
+            { "euregio.roadnetwork", Array.Empty<string>() },
+        };
+
+        /// <summary>
+        /// Creates a deterministic id (SHA1 of the source coordinates and the identifying attributes, shortened to 32 hex chars),
+        /// so a reimport of the same feature updates the existing record instead of creating a new one.
+        /// </summary>
+        public static string CreateStableId(GeoJsonFeature digiwaydata, string identifier, string source)
+        {
+            var key = new StringBuilder();
+
+            foreach (var coordinate in digiwaydata.Geometry?.Coordinates ?? Array.Empty<NetTopologySuite.Geometries.Coordinate>())
+            {
+                key.Append(coordinate.X.ToString("R", CultureInfo.InvariantCulture))
+                    .Append(' ')
+                    .Append(coordinate.Y.ToString("R", CultureInfo.InvariantCulture))
+                    .Append(',');
+            }
+
+            if (idattributes.TryGetValue(identifier, out var attributes))
+            {
+                foreach (var attribute in attributes)
+                {
+                    digiwaydata.Attributes.TryGetValue(attribute, out var value);
+                    key.Append('|').Append(attribute).Append('=').Append(value?.ToString());
+                }
+            }
+
+            //First 32 hex chars (128 bit) of the SHA1, collisions are practically excluded (and handled by the importer anyway)
+            var hash = Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(key.ToString())))[..32];
+
+            return ("urn:" + source + ":" + identifier + ":" + hash).ToLower();
         }
 
 
@@ -74,7 +120,7 @@ namespace DIGIWAY
             if (spatialdata == null)
                 spatialdata = new SpatialData();
 
-            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + System.Guid.NewGuid()).ToLower();
+            spatialdata.Id = CreateStableId(digiwaydata, identifier, source);
             spatialdata.Active = true;
             spatialdata.FirstImport = spatialdata.FirstImport == null ? DateTime.Now : spatialdata.FirstImport;
             spatialdata.LastChange =
@@ -97,8 +143,7 @@ namespace DIGIWAY
 
             spatialdata.Source = source;
 
-            spatialdata.TagIds = new List<string>();
-            spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds = EuregioTagHelper.GetTags(digiwaydata, identifier);
 
             //TODO Add each Geojson Featurecollection to Mapping
             spatialdata.Mapping = new Dictionary<string, IDictionary<string, string>>();
@@ -127,7 +172,7 @@ namespace DIGIWAY
             if (spatialdata == null)
                 spatialdata = new SpatialData();
 
-            spatialdata.Id = ("urn:" + source + ":" + identifier + ":" + System.Guid.NewGuid()).ToLower();
+            spatialdata.Id = CreateStableId(digiwaydata, identifier, source);
             spatialdata.Active = true;
             spatialdata.FirstImport = spatialdata.FirstImport == null ? DateTime.Now : spatialdata.FirstImport;
 
@@ -151,8 +196,7 @@ namespace DIGIWAY
 
             spatialdata.Source = source;
 
-            spatialdata.TagIds = new List<string>();
-            spatialdata.TagIds.Add(identifier);
+            spatialdata.TagIds = EuregioTagHelper.GetTags(digiwaydata, identifier);
 
 
             ////Add Tags
