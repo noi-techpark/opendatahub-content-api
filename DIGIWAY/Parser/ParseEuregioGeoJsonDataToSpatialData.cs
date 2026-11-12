@@ -170,19 +170,51 @@ namespace DIGIWAY
         /// </summary>
         private static string? GetRouteTitle(GeoJsonFeature digiwaydata, string suffix)
         {
-            var name = EuregioTagHelper.GetAttribute(digiwaydata, "PATH_" + suffix);
-            var code = EuregioTagHelper.GetAttribute(digiwaydata, "PATH_CODE");
+            var name = GetTextAttribute(digiwaydata, "PATH_" + suffix);
+            var code = GetTextAttribute(digiwaydata, "PATH_CODE");
 
             if (!string.IsNullOrEmpty(name))
                 return string.IsNullOrEmpty(code) ? name : name + " (" + code + ")";
 
-            var title = !string.IsNullOrEmpty(code) ? code : EuregioTagHelper.GetAttribute(digiwaydata, "TYPE_" + suffix);
-            var municipality = EuregioTagHelper.GetAttribute(digiwaydata, "MUNICIPALITY_NAME");
+            var title = !string.IsNullOrEmpty(code) ? code : GetTextAttribute(digiwaydata, "TYPE_" + suffix);
+
+            return AppendMunicipality(digiwaydata, title);
+        }
+
+        /// <summary>
+        /// Road segment title as delivered by the source, suffix D/I/E is the language of the attribute:
+        /// "STREETNAME - MUNICIPALITY_NAME", without street name "CATEGORY_x - MUNICIPALITY_NAME" (or DRAWCLASS_x if there is no category)
+        /// </summary>
+        private static string? GetRoadNetworkTitle(GeoJsonFeature digiwaydata, string suffix)
+        {
+            var title = GetTextAttribute(digiwaydata, "STREETNAME");
+
+            if (string.IsNullOrEmpty(title))
+                title = GetTextAttribute(digiwaydata, "CATEGORY_" + suffix);
+            if (string.IsNullOrEmpty(title))
+                title = GetTextAttribute(digiwaydata, "DRAWCLASS_" + suffix);
+
+            return AppendMunicipality(digiwaydata, title);
+        }
+
+        private static string? AppendMunicipality(GeoJsonFeature digiwaydata, string? title)
+        {
+            var municipality = GetTextAttribute(digiwaydata, "MUNICIPALITY_NAME");
 
             if (string.IsNullOrEmpty(municipality))
                 return title;
 
             return string.IsNullOrEmpty(title) ? municipality : title + " - " + municipality;
+        }
+
+        /// <summary>
+        /// Attribute value for titles/texts, placeholders without any letter or digit (e.g. "." or "-") are treated as empty
+        /// </summary>
+        private static string? GetTextAttribute(GeoJsonFeature digiwaydata, string key)
+        {
+            var value = EuregioTagHelper.GetAttribute(digiwaydata, key);
+
+            return value != null && value.Any(char.IsLetterOrDigit) ? value : null;
         }
 
         private static SpatialData ParseRoadNetworksToSpatialData(
@@ -206,17 +238,21 @@ namespace DIGIWAY
                     ? dt
                     : DateTime.Now;
 
-            //odhactivitypoi.HasLanguage = new List<string>() { "it" };
-            //odhactivitypoi.Shortname = digiwaydata.Attributes["TYPE_E"] != null ? digiwaydata.Attributes["denominazi"].ToString() : null;
-            //odhactivitypoi.Detail = new Dictionary<string, Detail>();
+            spatialdata.HasLanguage = new List<string>() { "de", "it", "en" };
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
 
-            //spatialdata.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
-            //{
-            //    Title = digiwaydata.Attributes["denominazi"].ToString() != null ? digiwaydata.Attributes["denominazi"].ToString() : null,
-            //    AdditionalText = digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null,
-            //    GetThereText = gettheretext,
-            //    Language = "it"
-            //});
+            foreach (var (language, suffix) in new[] { ("de", "D"), ("it", "I"), ("en", "E") })
+            {
+                spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>(language, new DetailGeneric()
+                {
+                    Title = GetRoadNetworkTitle(digiwaydata, suffix),
+                    //Trail closure description is delivered only in german
+                    BaseText = language == "de" ? GetTextAttribute(digiwaydata, "TRAILCLOSURE_DESCRIPTION") : null,
+                    Language = language
+                });
+            }
+
+            spatialdata.Shortname = spatialdata.Detail["de"].Title;
 
             spatialdata.Source = source;
 
