@@ -129,17 +129,20 @@ namespace DIGIWAY
                 DateTime.TryParse(digiwaydata.Attributes["DATA_STATUS"].ToString(), out var dt)
                     ? dt
                     : DateTime.Now;
-            //odhactivitypoi.HasLanguage = new List<string>() { "it" };
-            //odhactivitypoi.Shortname = digiwaydata.Attributes["TYPE_E"] != null ? digiwaydata.Attributes["denominazi"].ToString() : null;
-            //odhactivitypoi.Detail = new Dictionary<string, Detail>();
 
-            //spatialdata.Detail.TryAddOrUpdate<string, Detail>("it", new Detail()
-            //{
-            //    Title = digiwaydata.Attributes["denominazi"].ToString() != null ? digiwaydata.Attributes["denominazi"].ToString() : null,
-            //    AdditionalText = digiwaydata.Attributes["numero"] != null ? digiwaydata.Attributes["numero"].ToString() : null,
-            //    GetThereText = gettheretext,
-            //    Language = "it"
-            //});
+            spatialdata.HasLanguage = new List<string>() { "de", "it", "en" };
+            spatialdata.Detail = new Dictionary<string, DetailGeneric>();
+
+            foreach (var (language, suffix) in new[] { ("de", "D"), ("it", "I"), ("en", "E") })
+            {
+                spatialdata.Detail.TryAddOrUpdate<string, DetailGeneric>(language, new DetailGeneric()
+                {
+                    Title = GetRouteTitle(digiwaydata, suffix),
+                    Language = language
+                });
+            }
+
+            spatialdata.Shortname = spatialdata.Detail["de"].Title;
 
             spatialdata.Source = source;
 
@@ -159,6 +162,27 @@ namespace DIGIWAY
 
 
             return spatialdata;
+        }
+
+        /// <summary>
+        /// Route title as delivered by the source, suffix D/I/E is the language of the attribute:
+        /// "PATH_x (PATH_CODE)", without name "PATH_CODE - MUNICIPALITY_NAME", without code "TYPE_x - MUNICIPALITY_NAME"
+        /// </summary>
+        private static string? GetRouteTitle(GeoJsonFeature digiwaydata, string suffix)
+        {
+            var name = EuregioTagHelper.GetAttribute(digiwaydata, "PATH_" + suffix);
+            var code = EuregioTagHelper.GetAttribute(digiwaydata, "PATH_CODE");
+
+            if (!string.IsNullOrEmpty(name))
+                return string.IsNullOrEmpty(code) ? name : name + " (" + code + ")";
+
+            var title = !string.IsNullOrEmpty(code) ? code : EuregioTagHelper.GetAttribute(digiwaydata, "TYPE_" + suffix);
+            var municipality = EuregioTagHelper.GetAttribute(digiwaydata, "MUNICIPALITY_NAME");
+
+            if (string.IsNullOrEmpty(municipality))
+                return title;
+
+            return string.IsNullOrEmpty(title) ? municipality : title + " - " + municipality;
         }
 
         private static SpatialData ParseRoadNetworksToSpatialData(

@@ -163,7 +163,7 @@ namespace DIGIWAY
                 end >= DateTime.Now;
         }
 
-        private static string? GetAttribute(GeoJsonFeature digiwaydata, string key) =>
+        internal static string? GetAttribute(GeoJsonFeature digiwaydata, string key) =>
             digiwaydata.Attributes.TryGetValue(key, out var value) && value != null
                 ? value.ToString()?.Trim()
                 : null;
