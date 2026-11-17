@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -16,7 +16,7 @@
     <PackageReference Include="SqlKata.Execution" Version="3.0.0-beta" />
     <!--<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" /> not working if this update is done-->
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.36.0" />
-    <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
+    <PackageReference Include="System.Interactive.Async" Version="7.0.0" />
     <PackageReference Include="System.ServiceModel.Duplex" Version="4.9.0" />
     <PackageReference Include="System.ServiceModel.Http" Version="4.9.0" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.9.0" />
