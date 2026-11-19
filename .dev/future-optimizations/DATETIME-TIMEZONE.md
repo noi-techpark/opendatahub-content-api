@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # DateTime / Time Zone: Analysis and TODOs
 
 Status: analysis, nothing implemented yet. Based on the code in this repository and on samples from the public API (`https://tourism.api.opendatahub.com/v1`, 2026-11-18).
@@ -57,14 +63,14 @@ All of these are local time Europe/Rome, written without an offset. Times of day
 
 Sources: LTS (`EventParser`: `startDate` + `startTime` as strings), NOI EventShort converter, Ninja. None of them delivers a time zone.
 
-DB: the generated columns `gen_eventdates` (`tsmultirange`) and `gen_eventdatearray` (`tsrange[]`) are built with `(From)::timestamp + (Begin)::time` ([Events.sql](../Helper/PGDBScripts/Events.sql)), so they are local without a time zone. The filter (`gen_eventdates && tsrange(...)`) and the sort (`get_nearest_tsrange_distance`) compare local against local. That is consistent.
+DB: the generated columns `gen_eventdates` (`tsmultirange`) and `gen_eventdatearray` (`tsrange[]`) are built with `(From)::timestamp + (Begin)::time` ([Events.sql](../../Helper/PGDBScripts/Events.sql)), so they are local without a time zone. The filter (`gen_eventdates && tsrange(...)`) and the sort (`get_nearest_tsrange_distance`) compare local against local. That is consistent.
 
 TODO:
 
 - [ ] Add `TimeZone` (`"Europe/Rome"`) on `Event`. It applies to `DateBegin`/`DateEnd`, and `DateBeginUTC`/`DateEndUTC` already carry the UTC value.
 - [ ] Add `TimeZone` on `EventDate`. It applies to `From`/`To` + `Begin`/`End`/`Entrance`, and `FromUTC`/`ToUTC` carry the UTC value. Also add it on `IEventDate`.
 - [ ] Set `TimeZone` in the parsers: the LTS `EventParser` (opendatahub-content-importer), `EventEventShortConverter` and `ParseNinjaData`.
-- [ ] Filter documentation ([EventApiController.cs](../OdhApiCore/Controllers/api/EventApiController.cs) `begindate`/`enddate`): add that `yyyy-MM-dd` / `yyyy-MM-dd HH:mm` are interpreted as **local time Europe/Rome**, and that a Unix timestamp is converted to Europe/Rome (`DateTimeHelper.UnixTimeStampToDateTimeMilliseconds`).
+- [ ] Filter documentation ([EventApiController.cs](../../OdhApiCore/Controllers/api/EventApiController.cs) `begindate`/`enddate`): add that `yyyy-MM-dd` / `yyyy-MM-dd HH:mm` are interpreted as **local time Europe/Rome**, and that a Unix timestamp is converted to Europe/Rome (`DateTimeHelper.UnixTimeStampToDateTimeMilliseconds`).
 - [ ] Optional: a calculated field with an offset (e.g. `"2027-06-19T10:00:00+02:00"`) if clients need ISO 8601 with an offset. The offset has to be calculated per date (summer time). An `EventDate` spanning several days can have different offsets for `From` and `To`.
 
 ### OperationSchedule
@@ -93,7 +99,7 @@ TODO:
 | `OperationSchedule` | | see above |
 | `AdditionalArticleInfos.<lang>.Elements.zeit` | `01:00` | free-text time |
 
-Filter: `startdate`/`enddate` "Format (yyyy-MM-dd HH:mm)" ([ArticleApiController.cs](../OdhApiCore/Controllers/api/ArticleApiController.cs)), filters on `gen_begindate`/`gen_enddate` (`ArticleDateNewsFilterBeginEndWithIN_GeneratedColumn`).
+Filter: `startdate`/`enddate` "Format (yyyy-MM-dd HH:mm)" ([ArticleApiController.cs](../../OdhApiCore/Controllers/api/ArticleApiController.cs)), filters on `gen_begindate`/`gen_enddate` (`ArticleDateNewsFilterBeginEndWithIN_GeneratedColumn`).
 
 TODO:
 
@@ -178,8 +184,8 @@ Rule: **the input is local time, the server sets `TimeZone`.**
 ## Possible bugs to verify
 
 1. **Announcement filter possibly off by 1–2 hours.**
-   - `Announcement.StartTime`/`EndTime` are stored without a time zone (`2024-08-05T01:00:00`, parsed with `Convert.ToDateTime` in [ParseMapServicesDataToAnnouncement.cs](../DIGIWAY/Parser/ParseMapServicesDataToAnnouncement.cs)).
-   - The generated columns `gen_begindate`/`gen_enddate` are `timestamptz` and are built with `text2tstz()` ([03-Announcements.sql](../.dev/content-api-db-init/03-Announcements.sql)). For a value without an offset, `text2tstz()` uses the **session time zone of the DB** (probably UTC). The function is declared `IMMUTABLE`, although the result depends on the session.
+   - `Announcement.StartTime`/`EndTime` are stored without a time zone (`2024-08-05T01:00:00`, parsed with `Convert.ToDateTime` in [ParseMapServicesDataToAnnouncement.cs](../../DIGIWAY/Parser/ParseMapServicesDataToAnnouncement.cs)).
+   - The generated columns `gen_begindate`/`gen_enddate` are `timestamptz` and are built with `text2tstz()` ([03-Announcements.sql](../content-api-db-init/03-Announcements.sql)). For a value without an offset, `text2tstz()` uses the **session time zone of the DB** (probably UTC). The function is declared `IMMUTABLE`, although the result depends on the session.
    - The filter documentation asks for RFC 3339 with `Z`.
    - If the source value is local time, every announcement is shifted by 1–2 hours in the filter.
    - [ ] Check what the source delivers (local or UTC) and what `SHOW timezone` returns on the prod DB.
@@ -197,7 +203,7 @@ Rule: **the input is local time, the server sets `TimeZone`.**
 
 ## Updating existing data (DataModifyApiController)
 
-New fields are only visible after a record is saved again: the API returns the JSON stored in the DB directly (`JsonRaw`) and does not re-serialize it through the model. So every new `TimeZone` field needs a method in [DataModifyApiController.cs](../OdhApiImporter/Controllers/DataModifyApiController.cs) plus [CustomDataOperation.cs](../OdhApiImporter/Helpers/CUSTOM/CustomDataOperation.cs), following the existing pattern:
+New fields are only visible after a record is saved again: the API returns the JSON stored in the DB directly (`JsonRaw`) and does not re-serialize it through the model. So every new `TimeZone` field needs a method in [DataModifyApiController.cs](../../OdhApiImporter/Controllers/DataModifyApiController.cs) plus [CustomDataOperation.cs](../../OdhApiImporter/Helpers/CUSTOM/CustomDataOperation.cs), following the existing pattern:
 
 - `[Authorize(Roles = "DataPush")]`, `HttpGet`
 - parameters `id`, `forceupdate`, `takethefirst` (like `ModifyODHActivityPoi`)
