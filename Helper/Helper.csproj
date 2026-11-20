@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -14,9 +14,9 @@
     <PackageReference Include="ProjNET" Version="2.1.0" />
     <PackageReference Include="Serilog" Version="2.10.0" />
     <PackageReference Include="SqlKata.Execution" Version="3.0.0-beta" />
-    <!--<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" /> not working if this update is done-->
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.36.0" />
-    <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
+    <!-- Keep the Microsoft.IdentityModel version in sync with Microsoft.AspNetCore.Authentication.JwtBearer (OdhApiCore, OdhApiImporter), mixed major versions break loading the Keycloak metadata (IDX20803, every token 401) -->
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
+    <PackageReference Include="System.Interactive.Async" Version="7.0.0" />
     <PackageReference Include="System.ServiceModel.Duplex" Version="4.9.0" />
     <PackageReference Include="System.ServiceModel.Http" Version="4.9.0" />
     <PackageReference Include="System.ServiceModel.NetTcp" Version="4.9.0" />

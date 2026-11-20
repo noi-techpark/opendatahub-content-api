@@ -161,11 +161,11 @@ namespace OdhApiCore.Controllers
                     || string.IsNullOrEmpty(x.Entity)
                 );
 
-                foreach (var field in fields)
+                foreach (var fieldconfig in fields)
                 {
-                    if (roleclaims.Intersect(field.DisplayOnRoles ?? new()).Count() == 0)
+                    if (roleclaims.Intersect(fieldconfig.DisplayOnRoles ?? new()).Count() == 0)
                     {
-                        fieldstohide.AddRange(field.Fields ?? new());
+                        fieldstohide.AddRange(fieldconfig.Fields ?? new());
                     }
                 }
 
