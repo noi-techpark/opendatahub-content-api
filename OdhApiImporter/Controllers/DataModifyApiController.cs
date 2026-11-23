@@ -1299,6 +1299,37 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        //Creates Tags out of the IDM AccommodationTypes, Badges, Themes and SpecialFeatures (accommodationtypes table)
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("AccommodationTypesToTags")]
+        public async Task<IActionResult> AccommodationTypesToTags(CancellationToken cancellationToken)
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var (objectscount, skipped) = await customdataoperation.AccommodationTypesToTags();
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "AccommodationTypesToTags",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message =
+                        skipped.Count > 0
+                            ? "Done, skipped: " + String.Join(",", skipped)
+                            : "Done",
+                    recordsmodified = objectscount,
+                    created = 0,
+                    deleted = 0,
+                    id = "",
+                    updated = 0,
+                    success = true,
+                }
+            );
+        }
+
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("TagSourceFix")]
         public async Task<IActionResult> TagSourceFix(CancellationToken cancellationToken)

@@ -2635,6 +2635,209 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        //Tag Types for the IDM Accommodation Types/Badges/Themes/SpecialFeatures (accommodationtypes table, Type field), shared with the Accommodation import
+        public static IReadOnlyDictionary<string, string> AccommodationTypesTagTypes => Helper.Tagging.AccommodationIdmTagHelper.TagTypes;
+
+        //English Tag key per accommodationtypes Id (Type|Id), Tag Id = {tagtype}:{englishkey}
+        //Entries not listed here are not converted (returned as unmapped), null = not converted on purpose
+        public static readonly Dictionary<string, string?> AccommodationTypesTagKeys = new Dictionary<string, string?>()
+        {
+            //Type
+            { "Type|hotelpension", "hotel-boardinghouse" },
+            { "Type|bedbreakfast", "bed-and-breakfast" },
+            { "Type|farm", "farm-holiday" },
+            { "Type|camping", "camping" },
+            { "Type|youth", "youth-hostel" },
+            { "Type|mountain", "mountain-refuge" },
+            { "Type|apartment", "apartment" },
+            { "Type|notdefined", "not-defined" },
+            //Badge
+            { "Badge|wellnesshotel", "wellness-hotel" },
+            { "Badge|familienhotel", "family-hotel" },
+            { "Badge|bikehotel", "bike-hotel" },
+            { "Badge|bauernhof", "red-rooster-farm" },
+            { "Badge|wanderhotel", "hiking-hotel" },
+            { "Badge|südtirol privat", "private-rooms" },
+            { "Badge|vinumhotel", "wine-hotel" },
+            { "Badge|sustainabilitylevel1", "sustainability-level-1" },
+            { "Badge|sustainabilitylevel2", "sustainability-level-2" },
+            { "Badge|sustainabilitylevel3", "sustainability-level-3" },
+            //Theme ("alle" is only a filter pseudo entry)
+            { "Theme|alle", null },
+            { "Theme|gourmet", "gourmet" },
+            { "Theme|in der höhe", "at-altitude" },
+            { "Theme|regionale wellness", "regional-wellness" },
+            { "Theme|biken", "biking" },
+            { "Theme|familie", "family" },
+            { "Theme|wandern", "hiking" },
+            { "Theme|wein", "wine" },
+            { "Theme|städtisches flair", "urban" },
+            { "Theme|am skigebiet", "ski-resort" },
+            { "Theme|mediterran", "mediterranean" },
+            { "Theme|dolomiten", "dolomites" },
+            { "Theme|alpin", "alpine" },
+            { "Theme|hütten und berggasthöfe", "huts-and-mountain-inns" },
+            { "Theme|bäuerliche welten", "rural-life" },
+            { "Theme|christkindlmarkt", "christmas-markets" },
+            { "Theme|kleine betriebe", "small-and-charming" },
+            { "Theme|bonus vacanze", "bonus-vacanze" },
+            { "Theme|sustainability", "sustainability" },
+            //SpecialFeature (guestcard already exists as Tag "guestcard" maintained by the Guestpass cardtypes import and is already assigned)
+            { "SpecialFeature|gruppenfreundlich", "group-friendly" },
+            { "SpecialFeature|tagung", "meeting-rooms" },
+            { "SpecialFeature|schwimmbad", "swimming-pool" },
+            { "SpecialFeature|sauna", "sauna" },
+            { "SpecialFeature|garage", "garage" },
+            { "SpecialFeature|abholservice", "pick-up-service" },
+            { "SpecialFeature|wlan", "wifi" },
+            { "SpecialFeature|barrierefrei", "barrier-free" },
+            { "SpecialFeature|allergikerküche", "allergy-menu" },
+            { "SpecialFeature|kleine haustiere", "pets-welcome" },
+            { "SpecialFeature|guestcard", null },
+        };
+
+        /// <summary>
+        /// Creates/Updates Tags (Source idm) out of the accommodationtypes table entries of Type Type, Badge, Theme and SpecialFeature.
+        /// Tag Id = {tagtype}:{english key} (see AccommodationTypesTagKeys), the original Key (used in AccoTypeId, BadgeIds, ThemeIds, SpecialFeaturesIds) and Bitmask are stored in Mapping.idm
+        /// Entries without english key are returned as unmapped, already existing Tags not created by this method are not overwritten and returned as skipped
+        /// </summary>
+        public async Task<(int updated, List<string> skipped)> AccommodationTypesToTags()
+        {
+            var query = QueryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("accommodationtypes")
+                .WhereInJsonb(
+                    AccommodationTypesTagTypes.Keys.ToList(),
+                    type => new { Type = type }
+                );
+
+            var data = await query.GetObjectListAsync<AccoTypes>();
+
+            List<string> skipped = new List<string>();
+
+            //Calculate the Tag Ids
+            var tagids = new Dictionary<AccoTypes, string>();
+            foreach (var accotype in data)
+            {
+                if (
+                    accotype.Id == null
+                    || accotype.Type == null
+                    || !AccommodationTypesTagTypes.ContainsKey(accotype.Type)
+                )
+                    continue;
+
+                if (!AccommodationTypesTagKeys.TryGetValue(accotype.Type + "|" + accotype.Id, out var englishkey))
+                {
+                    skipped.Add("unmapped:" + accotype.Type + "|" + accotype.Id);
+                    continue;
+                }
+
+                if (englishkey == null)
+                    continue;
+
+                tagids.Add(accotype, AccommodationTypesTagTypes[accotype.Type] + ":" + englishkey);
+            }
+
+            //Load already existing Tags with the same Ids
+            var ids = tagids.Values.ToList();
+            var existingtags = (
+                await QueryFactory
+                    .Query()
+                    .SelectRaw("data")
+                    .From("tags")
+                    .WhereIn("id", ids)
+                    .GetObjectListAsync<TagLinked>()
+            ).Where(x => x.Id != null).ToDictionary(x => x.Id!, x => x);
+
+            int i = 0;
+
+            foreach (var (accotype, tagid) in tagids)
+            {
+                string tagtype = AccommodationTypesTagTypes[accotype.Type!];
+
+                existingtags.TryGetValue(tagid, out var existingtag);
+
+                //Do not overwrite Tags maintained by other imports
+                if (
+                    existingtag != null
+                    && (existingtag.Types == null || !existingtag.Types.Contains(tagtype))
+                )
+                {
+                    skipped.Add(tagid);
+                    continue;
+                }
+
+                TagLinked tag = new TagLinked();
+
+                tag.Id = tagid;
+                tag.Source = "idm";
+                tag.Active = true;
+                tag.TagName = accotype.TypeDesc;
+                tag._Meta = new Metadata()
+                {
+                    Id = tag.Id,
+                    LastUpdate = DateTime.Now,
+                    Reduced = false,
+                    Source = "idm",
+                    Type = "tag",
+                    UpdateInfo = new UpdateInfo()
+                    {
+                        UpdatedBy = "import",
+                        UpdateSource = "importer",
+                    },
+                };
+                tag.DisplayAsCategory = false;
+                tag.ValidForEntity = new List<string>() { "accommodation" };
+                tag.MainEntity = "accommodation";
+                tag.LastChange = DateTime.Now;
+                tag.LicenseInfo = new LicenseInfo()
+                {
+                    Author = "",
+                    ClosedData = false,
+                    License = "CC0",
+                    LicenseHolder = "https://www.idm-suedtirol.com",
+                };
+                tag.Shortname = tag.TagName.ContainsKey("en")
+                    ? tag.TagName["en"]
+                    : tag.TagName.FirstOrDefault().Value;
+                tag.FirstImport = existingtag?.FirstImport ?? DateTime.Now;
+                tag.PublishedOn = null;
+                tag.Types = new List<string>() { tagtype };
+
+                //Key (used in AccoTypeId, BadgeIds, ThemeIds, SpecialFeaturesIds) and Bitmask (used by the filters)
+                tag.Mapping = new Dictionary<string, IDictionary<string, string>>()
+                {
+                    {
+                        "idm",
+                        new Dictionary<string, string>()
+                        {
+                            { "key", accotype.Key ?? "" },
+                            { "bitmask", accotype.Bitmask.ToString() },
+                            { "type", accotype.Type! },
+                        }
+                    },
+                };
+
+                tag.PublishDataWithTagOn = null;
+                tag.IDMCategoryMapping = null;
+                tag.LTSTaggingInfo = null;
+                tag.MappedTagIds = null;
+
+                var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                    tag,
+                    new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                    new EditInfo("tag.modify", "importer"),
+                    new CRUDConstraints(),
+                    new CompareConfig(false, false)
+                );
+
+                i++;
+            }
+
+            return (i, skipped);
+        }
+
         public async Task<int> TranslatedODHTagsFix()
         {
             //Load all data from PG and resave

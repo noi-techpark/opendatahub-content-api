@@ -393,7 +393,9 @@ namespace Helper
                 .Query()
                 .SelectRaw("data")
                 .From("tags")
-                .TagTypesFilter(new List<string>() { "accommodationoption", "accommodationtitle", "accommodationcategory", "accommodationtypes", "accommodationmealplans" });
+                .TagTypesFilter(new List<string>() { "accommodationoption", "accommodationtitle", "accommodationcategory", "accommodationtypes", "accommodationmealplans" })
+                //only LTS Tags (accommodationtypes also contains the idm Accommodation Types)
+                .SourceFilter_GeneratedColumn(new List<string>() { "lts" });
 
             var datafirst = await query.GetObjectListAsync<TagLinked>();
 
