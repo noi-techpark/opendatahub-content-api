@@ -326,6 +326,7 @@ namespace DataModel
 
         //Taglist
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags> ODHTags
         {
             get
@@ -600,6 +601,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags>? ODHTags
         {
             get
@@ -771,6 +773,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags> ODHTags
         {
             get
@@ -804,6 +807,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags> ODHTags
         {
             get
@@ -854,6 +858,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags> ODHTags
         {
             get
@@ -1013,6 +1018,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags>? ODHTags
         {
             get
@@ -1047,6 +1053,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags>? ODHTags
         {
             get
@@ -1209,6 +1216,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags>? ODHTags
         {
             get
@@ -1361,6 +1369,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags>? ODHTags
         {
             get
@@ -1506,6 +1515,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags>? ODHTags
         {
             get
@@ -1636,6 +1646,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags>? ODHTags
         {
             get
@@ -1803,6 +1814,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags>? ODHTags
         {
             get
@@ -2018,6 +2030,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags> ODHTags
         {
             get
@@ -2195,6 +2208,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags> ODHTags
         {
             get
@@ -2331,6 +2345,7 @@ namespace DataModel
         }
 
         [SwaggerSchema(Description = "generated field", ReadOnly = true)]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<ODHTags> ODHTags
         {
             get

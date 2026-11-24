@@ -2635,6 +2635,153 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
+        //Tag Types and English Tag keys for the IDM Accommodation Types/Badges/Themes/SpecialFeatures come from the LTS Api importer package
+        //(LTSAPI.Utils.AccommodationIdmTagMapping), the same mapping is used by the AccommodationParser to assign the TagIds
+
+        /// <summary>
+        /// Creates/Updates Tags (Source idm) out of the accommodationtypes table entries of Type Type, Badge, Theme and SpecialFeature.
+        /// Tag Id = {tagtype}:{english key} (see LTSAPI.Utils.AccommodationIdmTagMapping), the original Key (used in AccoTypeId, BadgeIds, ThemeIds, SpecialFeaturesIds) and Bitmask are stored in Mapping.idm
+        /// Entries without english key are returned as unmapped, already existing Tags not created by this method are not overwritten and returned as skipped
+        /// </summary>
+        public async Task<(int updated, List<string> skipped)> AccommodationTypesToTags()
+        {
+            var query = QueryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("accommodationtypes")
+                .WhereInJsonb(
+                    global::LTSAPI.Utils.AccommodationIdmTagMapping.TagTypes.Keys.ToList(),
+                    type => new { Type = type }
+                );
+
+            var data = await query.GetObjectListAsync<AccoTypes>();
+
+            List<string> skipped = new List<string>();
+
+            //Calculate the Tag Ids
+            var tagids = new Dictionary<AccoTypes, string>();
+            foreach (var accotype in data)
+            {
+                if (
+                    accotype.Id == null
+                    || accotype.Type == null
+                    || !global::LTSAPI.Utils.AccommodationIdmTagMapping.TagTypes.ContainsKey(accotype.Type)
+                )
+                    continue;
+
+                if (!global::LTSAPI.Utils.AccommodationIdmTagMapping.TagKeys.ContainsKey(accotype.Type + "|" + accotype.Id))
+                {
+                    skipped.Add("unmapped:" + accotype.Type + "|" + accotype.Id);
+                    continue;
+                }
+
+                //null = not converted on purpose
+                var tagid = global::LTSAPI.Utils.AccommodationIdmTagMapping.GetTagId(accotype.Type, accotype.Id);
+                if (tagid == null)
+                    continue;
+
+                tagids.Add(accotype, tagid);
+            }
+
+            //Load already existing Tags with the same Ids
+            var ids = tagids.Values.ToList();
+            var existingtags = (
+                await QueryFactory
+                    .Query()
+                    .SelectRaw("data")
+                    .From("tags")
+                    .WhereIn("id", ids)
+                    .GetObjectListAsync<TagLinked>()
+            ).Where(x => x.Id != null).ToDictionary(x => x.Id!, x => x);
+
+            int i = 0;
+
+            foreach (var (accotype, tagid) in tagids)
+            {
+                string tagtype = global::LTSAPI.Utils.AccommodationIdmTagMapping.TagTypes[accotype.Type!];
+
+                existingtags.TryGetValue(tagid, out var existingtag);
+
+                //Do not overwrite Tags maintained by other imports
+                if (
+                    existingtag != null
+                    && (existingtag.Types == null || !existingtag.Types.Contains(tagtype))
+                )
+                {
+                    skipped.Add(tagid);
+                    continue;
+                }
+
+                TagLinked tag = new TagLinked();
+
+                tag.Id = tagid;
+                tag.Source = "idm";
+                tag.Active = true;
+                tag.TagName = accotype.TypeDesc;
+                tag._Meta = new Metadata()
+                {
+                    Id = tag.Id,
+                    LastUpdate = DateTime.Now,
+                    Reduced = false,
+                    Source = "idm",
+                    Type = "tag",
+                    UpdateInfo = new UpdateInfo()
+                    {
+                        UpdatedBy = "import",
+                        UpdateSource = "importer",
+                    },
+                };
+                tag.DisplayAsCategory = false;
+                tag.ValidForEntity = new List<string>() { "accommodation" };
+                tag.MainEntity = "accommodation";
+                tag.LastChange = DateTime.Now;
+                tag.LicenseInfo = new LicenseInfo()
+                {
+                    Author = "",
+                    ClosedData = false,
+                    License = "CC0",
+                    LicenseHolder = "https://www.idm-suedtirol.com",
+                };
+                tag.Shortname = tag.TagName.ContainsKey("en")
+                    ? tag.TagName["en"]
+                    : tag.TagName.FirstOrDefault().Value;
+                tag.FirstImport = existingtag?.FirstImport ?? DateTime.Now;
+                tag.PublishedOn = null;
+                tag.Types = new List<string>() { tagtype };
+
+                //Key (used in AccoTypeId, BadgeIds, ThemeIds, SpecialFeaturesIds) and Bitmask (used by the filters)
+                tag.Mapping = new Dictionary<string, IDictionary<string, string>>()
+                {
+                    {
+                        "idm",
+                        new Dictionary<string, string>()
+                        {
+                            { "key", accotype.Key ?? "" },
+                            { "bitmask", accotype.Bitmask.ToString() },
+                            { "type", accotype.Type! },
+                        }
+                    },
+                };
+
+                tag.PublishDataWithTagOn = null;
+                tag.IDMCategoryMapping = null;
+                tag.LTSTaggingInfo = null;
+                tag.MappedTagIds = null;
+
+                var pgcrudresult = await QueryFactory.UpsertData<TagLinked>(
+                    tag,
+                    new DataInfo("tags", CRUDOperation.Update) { ErrorWhendataIsNew = false },
+                    new EditInfo("tag.modify", "importer"),
+                    new CRUDConstraints(),
+                    new CompareConfig(false, false)
+                );
+
+                i++;
+            }
+
+            return (i, skipped);
+        }
+
         public async Task<int> TranslatedODHTagsFix()
         {
             //Load all data from PG and resave
