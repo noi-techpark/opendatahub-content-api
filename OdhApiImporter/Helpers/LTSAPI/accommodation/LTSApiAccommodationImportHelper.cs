@@ -359,8 +359,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                 }
 
 
-                //idm Accommodation Tags lookup (Type/Badge/Theme/SpecialFeature)
-                var idmtaglookup = await AccommodationIdmTagHelper.GetTagLookup(QueryFactory);
 
                 foreach (var data in accosdata)
                 {
@@ -433,9 +431,6 @@ namespace OdhApiImporter.Helpers.LTSAPI
                     }                                       
 
                     //FINALLY UPDATE ACCOMMODATION ROOT OBJECT
-
-                    //Assign the idm Tags for AccoTypeId, BadgeIds, ThemeIds, SpecialFeaturesIds (other TagIds are not touched)
-                    AccommodationIdmTagHelper.AssignTags(accommodationparsed, idmtaglookup);
 
                     //Create Tags and preserve the old TagEntries
                     await accommodationparsed.UpdateTagsExtension(QueryFactory);

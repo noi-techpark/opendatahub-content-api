@@ -2635,70 +2635,12 @@ namespace OdhApiImporter.Helpers
             return i;
         }
 
-        //Tag Types for the IDM Accommodation Types/Badges/Themes/SpecialFeatures (accommodationtypes table, Type field), shared with the Accommodation import
-        public static IReadOnlyDictionary<string, string> AccommodationTypesTagTypes => Helper.Tagging.AccommodationIdmTagHelper.TagTypes;
-
-        //English Tag key per accommodationtypes Id (Type|Id), Tag Id = {tagtype}:{englishkey}
-        //Entries not listed here are not converted (returned as unmapped), null = not converted on purpose
-        public static readonly Dictionary<string, string?> AccommodationTypesTagKeys = new Dictionary<string, string?>()
-        {
-            //Type
-            { "Type|hotelpension", "hotel-boardinghouse" },
-            { "Type|bedbreakfast", "bed-and-breakfast" },
-            { "Type|farm", "farm-holiday" },
-            { "Type|camping", "camping" },
-            { "Type|youth", "youth-hostel" },
-            { "Type|mountain", "mountain-refuge" },
-            { "Type|apartment", "apartment" },
-            { "Type|notdefined", "not-defined" },
-            //Badge
-            { "Badge|wellnesshotel", "wellness-hotel" },
-            { "Badge|familienhotel", "family-hotel" },
-            { "Badge|bikehotel", "bike-hotel" },
-            { "Badge|bauernhof", "red-rooster-farm" },
-            { "Badge|wanderhotel", "hiking-hotel" },
-            { "Badge|südtirol privat", "private-rooms" },
-            { "Badge|vinumhotel", "wine-hotel" },
-            { "Badge|sustainabilitylevel1", "sustainability-level-1" },
-            { "Badge|sustainabilitylevel2", "sustainability-level-2" },
-            { "Badge|sustainabilitylevel3", "sustainability-level-3" },
-            //Theme ("alle" is only a filter pseudo entry)
-            { "Theme|alle", null },
-            { "Theme|gourmet", "gourmet" },
-            { "Theme|in der höhe", "at-altitude" },
-            { "Theme|regionale wellness", "regional-wellness" },
-            { "Theme|biken", "biking" },
-            { "Theme|familie", "family" },
-            { "Theme|wandern", "hiking" },
-            { "Theme|wein", "wine" },
-            { "Theme|städtisches flair", "urban" },
-            { "Theme|am skigebiet", "ski-resort" },
-            { "Theme|mediterran", "mediterranean" },
-            { "Theme|dolomiten", "dolomites" },
-            { "Theme|alpin", "alpine" },
-            { "Theme|hütten und berggasthöfe", "huts-and-mountain-inns" },
-            { "Theme|bäuerliche welten", "rural-life" },
-            { "Theme|christkindlmarkt", "christmas-markets" },
-            { "Theme|kleine betriebe", "small-and-charming" },
-            { "Theme|bonus vacanze", "bonus-vacanze" },
-            { "Theme|sustainability", "sustainability" },
-            //SpecialFeature (guestcard already exists as Tag "guestcard" maintained by the Guestpass cardtypes import and is already assigned)
-            { "SpecialFeature|gruppenfreundlich", "group-friendly" },
-            { "SpecialFeature|tagung", "meeting-rooms" },
-            { "SpecialFeature|schwimmbad", "swimming-pool" },
-            { "SpecialFeature|sauna", "sauna" },
-            { "SpecialFeature|garage", "garage" },
-            { "SpecialFeature|abholservice", "pick-up-service" },
-            { "SpecialFeature|wlan", "wifi" },
-            { "SpecialFeature|barrierefrei", "barrier-free" },
-            { "SpecialFeature|allergikerküche", "allergy-menu" },
-            { "SpecialFeature|kleine haustiere", "pets-welcome" },
-            { "SpecialFeature|guestcard", null },
-        };
+        //Tag Types and English Tag keys for the IDM Accommodation Types/Badges/Themes/SpecialFeatures come from the LTS Api importer package
+        //(LTSAPI.Utils.AccommodationIdmTagMapping), the same mapping is used by the AccommodationParser to assign the TagIds
 
         /// <summary>
         /// Creates/Updates Tags (Source idm) out of the accommodationtypes table entries of Type Type, Badge, Theme and SpecialFeature.
-        /// Tag Id = {tagtype}:{english key} (see AccommodationTypesTagKeys), the original Key (used in AccoTypeId, BadgeIds, ThemeIds, SpecialFeaturesIds) and Bitmask are stored in Mapping.idm
+        /// Tag Id = {tagtype}:{english key} (see LTSAPI.Utils.AccommodationIdmTagMapping), the original Key (used in AccoTypeId, BadgeIds, ThemeIds, SpecialFeaturesIds) and Bitmask are stored in Mapping.idm
         /// Entries without english key are returned as unmapped, already existing Tags not created by this method are not overwritten and returned as skipped
         /// </summary>
         public async Task<(int updated, List<string> skipped)> AccommodationTypesToTags()
@@ -2708,7 +2650,7 @@ namespace OdhApiImporter.Helpers
                 .SelectRaw("data")
                 .From("accommodationtypes")
                 .WhereInJsonb(
-                    AccommodationTypesTagTypes.Keys.ToList(),
+                    global::LTSAPI.Utils.AccommodationIdmTagMapping.TagTypes.Keys.ToList(),
                     type => new { Type = type }
                 );
 
@@ -2723,20 +2665,22 @@ namespace OdhApiImporter.Helpers
                 if (
                     accotype.Id == null
                     || accotype.Type == null
-                    || !AccommodationTypesTagTypes.ContainsKey(accotype.Type)
+                    || !global::LTSAPI.Utils.AccommodationIdmTagMapping.TagTypes.ContainsKey(accotype.Type)
                 )
                     continue;
 
-                if (!AccommodationTypesTagKeys.TryGetValue(accotype.Type + "|" + accotype.Id, out var englishkey))
+                if (!global::LTSAPI.Utils.AccommodationIdmTagMapping.TagKeys.ContainsKey(accotype.Type + "|" + accotype.Id))
                 {
                     skipped.Add("unmapped:" + accotype.Type + "|" + accotype.Id);
                     continue;
                 }
 
-                if (englishkey == null)
+                //null = not converted on purpose
+                var tagid = global::LTSAPI.Utils.AccommodationIdmTagMapping.GetTagId(accotype.Type, accotype.Id);
+                if (tagid == null)
                     continue;
 
-                tagids.Add(accotype, AccommodationTypesTagTypes[accotype.Type] + ":" + englishkey);
+                tagids.Add(accotype, tagid);
             }
 
             //Load already existing Tags with the same Ids
@@ -2754,7 +2698,7 @@ namespace OdhApiImporter.Helpers
 
             foreach (var (accotype, tagid) in tagids)
             {
-                string tagtype = AccommodationTypesTagTypes[accotype.Type!];
+                string tagtype = global::LTSAPI.Utils.AccommodationIdmTagMapping.TagTypes[accotype.Type!];
 
                 existingtags.TryGetValue(tagid, out var existingtag);
 
