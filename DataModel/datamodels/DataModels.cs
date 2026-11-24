@@ -444,16 +444,23 @@ namespace DataModel
 
         public DistanceInfo? DistanceInfo { get; set; }
 
+        //TODO deprecate the following fields when the databrowser Categorization tab uses Tags and the Accommodation filters (type, category, board, badge, theme, specialfeature) work on TagIds
+        //[SwaggerDeprecated("Deprecated, use Tags/TagIds (Tag Type accommodationcategory)", "2026-11-24", "2027-04-30")]
         public string? AccoCategoryId { get; set; }
+        //[SwaggerDeprecated("Deprecated, use Tags/TagIds (Tag Type accommodationtypes)", "2026-11-24", "2027-04-30")]
         public string? AccoTypeId { get; set; }
         public string? DistrictId { get; set; }
 
+        //[SwaggerDeprecated("Deprecated, use Tags/TagIds (Tag Type accommodationmealplans)", "2026-11-24", "2027-04-30")]
         public ICollection<string>? BoardIds { get; set; }
         public ICollection<string>? MarketingGroupIds { get; set; }
         public ICollection<AccoFeature>? Features { get; set; }
 
+        //[SwaggerDeprecated("Deprecated, use Tags/TagIds (Tag Type accommodationbadge)", "2026-11-24", "2027-04-30")]
         public ICollection<string>? BadgeIds { get; set; }
+        //[SwaggerDeprecated("Deprecated, use Tags/TagIds (Tag Type accommodationtheme)", "2026-11-24", "2027-04-30")]
         public ICollection<string>? ThemeIds { get; set; }
+        //[SwaggerDeprecated("Deprecated, use Tags/TagIds (Tag Type accommodationspecialfeature)", "2026-11-24", "2027-04-30")]
         public ICollection<string>? SpecialFeaturesIds { get; set; }
 
         public IDictionary<string, AccoDetail>? AccoDetail { get; set; }
@@ -464,6 +471,7 @@ namespace DataModel
 
         //not used to remove
         public string? GastronomyId { get; set; }
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<string>? SmgTags { get; set; }
 
         public ICollection<string>? HasLanguage { get; set; }
@@ -843,7 +851,7 @@ namespace DataModel
         public IDictionary<string, EventPrice>? EventPrice { get; set; } //Stays here for compatibility reasons used in Centro Trevi Sync
         
 
-        //[SwaggerDeprecated("Obsolete, use Tags", "2025-01-01", "2026-12-31")] Temporary remove to show it in databrowser
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<string>? SmgTags { get; set; }
         
         [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
@@ -1201,6 +1209,7 @@ namespace DataModel
         [SwaggerDeprecated("Obsolete, use PublishedOn", "2025-01-01", "2026-12-31")]
         public bool SmgActive { get; set; }
 
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<string>? SmgTags { get; set; }
 
         public LocationInfo? LocationInfo { get; set; }
@@ -1327,7 +1336,7 @@ namespace DataModel
         //NEW Link Info
         public IDictionary<string, ArticleLinkInfo> ArticleLinkInfo { get; set; }
 
-        //[SwaggerDeprecated("Deprecated, use Tags", "2025-01-01", "2026-12-31")]
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<string>? SmgTags { get; set; }
 
         public ICollection<string>? HasLanguage { get; set; }
@@ -1960,6 +1969,7 @@ namespace DataModel
         public bool SmgActive { get; set; }
         public string? Shortname { get; set; }
 
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<string>? SmgTags { get; set; }
 
         public DateTime ValidStart { get; set; }
@@ -2277,6 +2287,7 @@ namespace DataModel
 
         public ICollection<string>? AreaIds { get; set; }
 
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<string>? SmgTags { get; set; }
        
         public ICollection<string>? PublishedOn { get; set; }
@@ -2840,6 +2851,7 @@ namespace DataModel
         public IDictionary<string, ContactInfos> ContactInfos { get; set; }
         public ICollection<ImageGallery>? ImageGallery { get; set; }
 
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<string>? SmgTags { get; set; }
 
         //public DateTime FirstImport { get; set; }
@@ -2978,6 +2990,7 @@ namespace DataModel
         public IDictionary<string, ContactInfos> ContactInfos { get; set; }
         public IDictionary<string, AdditionalPoiInfos> AdditionalPoiInfos { get; set; }
 
+        [SwaggerDeprecated("Deprecated, use Tags/TagIds", "2026-01-01", "2027-04-30")]
         public ICollection<string>? SmgTags { get; set; }
         public ICollection<string>? HasLanguage { get; set; }
 
