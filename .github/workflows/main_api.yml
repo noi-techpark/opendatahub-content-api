@@ -30,7 +30,7 @@ jobs:
     - name: Test
       run: dotnet test OdhApiCore --filter Category!=Integration
 
-  # Deploy Test (Kubernetes / EKS)
+  # Deploy Test (Kubernetes / Scaleway Kapsule)
   deploy-test-api:
     runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main'
@@ -99,16 +99,14 @@ jobs:
           yq -i '.envSecret.ASPNETCORE_LTSApiOpen__XLSClientid="${{ secrets.LTSAPI_IDM_XLTSCLIENTID }}"' infrastructure/helm/test.yaml
 
       - name: Deploy on cluster
-        uses: noi-techpark/github-actions/helm-deploy@v3
+        uses: noi-techpark/github-actions/helm-deploy-scw@v3
         with:
           k8s-name: tourism-api
           k8s-namespace: core
           chart-path: infrastructure/helm/tourism-api
           values-file: infrastructure/helm/test.yaml
-          aws-access-key-id: ${{ secrets[vars.AWS_KEY_ID] }}
-          aws-secret-access-key: ${{ secrets[vars.AWS_KEY_SECRET] }}
-          aws-eks-cluster-name: aws-main-eu-01
-          aws-region: eu-west-1
+          scw-access-key: ${{ secrets.SCW_DEV_ACCESS_KEY_ID }}
+          scw-secret-key: ${{ secrets.SCW_DEV_ACCESS_KEY_SECRET }}
 
   deploy-prod-api:
     runs-on: ubuntu-24.04
