@@ -2782,6 +2782,149 @@ namespace OdhApiImporter.Helpers
             return (i, skipped);
         }
 
+        /// <summary>
+        /// Sets the idm Accommodation Tags (Type, Category, Board, Badge, Theme, SpecialFeature) on TagIds and Tags of the Accommodations (all sources),
+        /// with the same result the LTS Accommodation import (ltsapi-importer >= 5.0.3) and the Accommodation PUT/POST produce.
+        /// The data is saved directly to the DB (no push, LastChange and _Meta are not changed), so the next import detects no change
+        /// and does not push all Accommodations to the publishers (marketplace).
+        /// Reduced (opendata) records: ThemeIds are removed (as the import does).
+        /// Only the idm Tags are added/removed, all other TagIds/Tags are not touched.
+        /// Run DataModify AccommodationTypesToTags before, otherwise the Tags cannot be added.
+        /// </summary>
+        public async Task<(int updated, int total, List<string> missingtags)> AccommodationAddIdmTags(string? id, int? takefirst)
+        {
+            //idm Accommodation Tags expected for the entries of the accommodationtypes table of this environment
+            var accotypes = await QueryFactory
+                .Query()
+                .SelectRaw("data")
+                .From("accommodationtypes")
+                .GetObjectListAsync<AccoTypes>();
+
+            var idmtagids = accotypes
+                .Where(x => x.Type != null && x.Id != null)
+                .Select(x => global::LTSAPI.Utils.AccommodationIdmTagMapping.GetTagId(x.Type!, x.Id!))
+                .Where(x => x != null)
+                .Select(x => x!)
+                .Distinct()
+                .ToList();
+
+            var idmtags = (
+                await QueryFactory
+                    .Query()
+                    .SelectRaw("data")
+                    .From("tags")
+                    .WhereIn("id", idmtagids)
+                    .GetObjectListAsync<TagLinked>()
+            ).Where(x => x.Id != null).ToDictionary(x => x.Id!, x => x);
+
+            var missingtags = idmtagids.Where(x => !idmtags.ContainsKey(x)).ToList();
+
+            //Tags not created yet (run AccommodationTypesToTags first), do nothing
+            if (missingtags.Count > 0)
+                return (0, 0, missingtags);
+
+            int updated = 0;
+            int total = 0;
+            const int batchsize = 500;
+            string? lastid = null;
+
+            while (takefirst == null || total < takefirst)
+            {
+                int take = takefirst != null ? Math.Min(batchsize, takefirst.Value - total) : batchsize;
+
+                var query = QueryFactory
+                    .Query()
+                    .SelectRaw("data")
+                    .From("accommodations")
+                    .When(
+                        !String.IsNullOrEmpty(id),
+                        q => q.WhereIn("id", new List<string>() { id!.ToUpper(), id!.ToUpper() + "_REDUCED" })
+                    )
+                    .When(lastid != null, q => q.Where("id", ">", lastid))
+                    .OrderBy("id")
+                    .Limit(take);
+
+                var data = await query.GetObjectListAsync<AccommodationV2>();
+
+                if (data.Count() == 0)
+                    break;
+
+                foreach (var acco in data)
+                {
+                    total++;
+
+                    bool reduced = acco._Meta?.Reduced == true;
+                    //Id of the record in the table (reduced records are stored with the suffix _REDUCED)
+                    string rowid = acco.Id + (reduced ? "_REDUCED" : "");
+                    lastid = rowid;
+
+                    bool changed = false;
+
+                    //Themes are not part of the reduced record (as in the import)
+                    if (reduced && acco.ThemeIds != null)
+                    {
+                        acco.ThemeIds = null;
+                        changed = true;
+                    }
+
+                    //Set the idm Tag Ids (adds the missing, removes the no longer valid idm Tags)
+                    var tagidsbefore = acco.TagIds != null ? new HashSet<string>(acco.TagIds) : new HashSet<string>();
+                    global::LTSAPI.Utils.AccommodationIdmTagMapping.AssignTags(acco);
+
+                    var tagidsafter = acco.TagIds != null ? new HashSet<string>(acco.TagIds) : new HashSet<string>();
+                    var addedtagids = tagidsafter.Where(x => !tagidsbefore.Contains(x)).ToList();
+                    var removedtagids = tagidsbefore.Where(x => !tagidsafter.Contains(x)).ToList();
+
+                    if (addedtagids.Count > 0 || removedtagids.Count > 0)
+                    {
+                        changed = true;
+
+                        //Same sorting as UpdateTagsExtension
+                        acco.TagIds = acco.TagIds!.Distinct().OrderBy(x => x).ToList();
+
+                        //Add only the missing Tags and remove the no longer valid idm Tags, the other ones are not touched
+                        var tags = acco.Tags != null
+                            ? acco.Tags.Where(x => !removedtagids.Contains(x.Id)).ToList()
+                            : new List<Tags>();
+                        foreach (var tagid in addedtagids)
+                        {
+                            if (!idmtags.TryGetValue(tagid, out var tag) || tags.Any(x => x.Id == tagid))
+                                continue;
+
+                            tags.Add(
+                                new Tags()
+                                {
+                                    Id = tagid,
+                                    Source = tag.Source,
+                                    Type = FillTagsObject.GetTypeFromTagTypes(tag.Types),
+                                    Name = FillTagsObject.GetTagName(tag.TagName),
+                                }
+                            );
+                        }
+                        //Same sorting as UpdateTagsExtension
+                        acco.Tags = tags.OrderBy(x => x.Id).ToList();
+                    }
+
+                    if (!changed)
+                        continue;
+
+                    //Save directly to the DB (no push, LastChange/_Meta not changed)
+                    var updatecount = await QueryFactory
+                        .Query("accommodations")
+                        .Where("id", rowid)
+                        .UpdateAsync(new JsonBData() { id = rowid, data = new JsonRaw(acco) });
+
+                    if (updatecount > 0)
+                        updated++;
+                }
+
+                if (!String.IsNullOrEmpty(id))
+                    break;
+            }
+
+            return (updated, total, missingtags);
+        }
+
         public async Task<int> TranslatedODHTagsFix()
         {
             //Load all data from PG and resave

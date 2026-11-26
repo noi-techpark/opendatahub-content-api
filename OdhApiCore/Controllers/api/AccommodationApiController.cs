@@ -1696,6 +1696,9 @@ namespace OdhApiCore.Controllers
 
                 //TODO DISTANCE Calculation
 
+                //Set the idm Tags for AccoTypeId, AccoCategoryId, BoardIds, BadgeIds, ThemeIds, SpecialFeaturesIds (valid for all sources)
+                global::LTSAPI.Utils.AccommodationIdmTagMapping.AssignTags(accommodation);
+
                 //Populate Tags (Id/Source/Type)
                 await accommodation.UpdateTagsExtension(QueryFactory);
 
@@ -1742,6 +1745,9 @@ namespace OdhApiCore.Controllers
                 accommodation.LocationInfo = await accommodation.UpdateLocationInfoExtension(
                     QueryFactory
                 );
+
+                //Set the idm Tags for AccoTypeId, AccoCategoryId, BoardIds, BadgeIds, ThemeIds, SpecialFeaturesIds (valid for all sources)
+                global::LTSAPI.Utils.AccommodationIdmTagMapping.AssignTags(accommodation);
 
                 //Populate Tags (Id/Source/Type)
                 await accommodation.UpdateTagsExtension(QueryFactory);

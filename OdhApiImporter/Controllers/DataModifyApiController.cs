@@ -1330,6 +1330,44 @@ namespace OdhApiImporter.Controllers
             );
         }
 
+        /// <summary>
+        /// Sets the idm Accommodation Tags (Type, Category, Board, Badge, Theme, SpecialFeature) on TagIds/Tags of the Accommodations (all sources)
+        /// without push and without changing LastChange, so the next import does not push all Accommodations to the marketplace
+        /// </summary>
+        [Authorize(Roles = "DataPush")]
+        [HttpGet, Route("AccommodationAddIdmTags")]
+        public async Task<IActionResult> AccommodationAddIdmTags(
+            string? id,
+            int? takefirst,
+            CancellationToken cancellationToken
+        )
+        {
+            CustomDataOperation customdataoperation = new CustomDataOperation(
+                settings,
+                QueryFactory
+            );
+            var (updated, total, missingtags) = await customdataoperation.AccommodationAddIdmTags(id, takefirst);
+
+            return Ok(
+                new UpdateResult
+                {
+                    operation = "AccommodationAddIdmTags",
+                    updatetype = "custom",
+                    otherinfo = "",
+                    message =
+                        missingtags.Count > 0
+                            ? "Not done, Tags missing (run AccommodationTypesToTags first): " + String.Join(",", missingtags)
+                            : $"Done, checked {total}",
+                    recordsmodified = updated,
+                    created = 0,
+                    deleted = 0,
+                    id = id ?? "",
+                    updated = updated,
+                    success = missingtags.Count == 0,
+                }
+            );
+        }
+
         [Authorize(Roles = "DataPush")]
         [HttpGet, Route("TagSourceFix")]
         public async Task<IActionResult> TagSourceFix(CancellationToken cancellationToken)
