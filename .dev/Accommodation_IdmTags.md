@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+
+SPDX-License-Identifier: CC0-1.0
+-->
+
 # Accommodation idm Tags (Type, Category, Board, Badge, Theme, SpecialFeature)
 
 Status: implemented, uncommitted, not yet run on test/prod (2026-11-26).
