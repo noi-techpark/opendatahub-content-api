@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+using AspNetCore.CacheOutput;
 using DataModel;
 using Helper;
 using Helper.Generic;
@@ -2083,6 +2084,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,RegionCreate")]
         [AuthorizeODH(PermissionAction.Create)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpPost, Route("Region")]
         public Task<IActionResult> Post([FromBody] RegionLinked data, bool generateid = true)
         {
@@ -2177,6 +2179,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,TourismAssociationCreate")]
         [AuthorizeODH(PermissionAction.Create)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpPost, Route("TourismAssociation")]
         public Task<IActionResult> Post([FromBody] TourismvereinLinked data, bool generateid = true)
         {
@@ -2232,6 +2235,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,MunicipalityCreate")]
         [AuthorizeODH(PermissionAction.Create)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpPost, Route("Municipality")]
         public Task<IActionResult> Post([FromBody] MunicipalityLinked data, bool generateid = true)
         {
@@ -2294,6 +2298,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataCreate,CommonManager,CommonCreate,DistrictCreate")]
         [AuthorizeODH(PermissionAction.Create)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpPost, Route("District")]
         public Task<IActionResult> Post([FromBody] DistrictLinked data, bool generateid = true)
         {
@@ -2586,6 +2591,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,RegionUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpPut, Route("Region/{id}")]
         public Task<IActionResult> Put(string id, [FromBody] RegionLinked data)
         {
@@ -2671,6 +2677,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,TourismAssociationUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpPut, Route("TourismAssociation/{id}")]
         public Task<IActionResult> Put(string id, [FromBody] TourismvereinLinked data)
         {
@@ -2721,6 +2728,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,MunicipalityUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpPut, Route("Municipality/{id}")]
         public Task<IActionResult> Put(string id, [FromBody] MunicipalityLinked data)
         {
@@ -2777,6 +2785,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataModify,CommonManager,CommonModify,CommonUpdate,DistrictUpdate")]
         [AuthorizeODH(PermissionAction.Update)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpPut, Route("District/{id}")]
         public Task<IActionResult> Put(string id, [FromBody] DistrictLinked data)
         {
@@ -3021,6 +3030,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,RegionDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpDelete, Route("Region/{id}")]
         public Task<IActionResult> DeleteRegion(string id)
         {
@@ -3073,6 +3083,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,TourismAssociationDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpDelete, Route("TourismAssociation/{id}")]
         public Task<IActionResult> DeleteTourismAssociation(string id)
         {
@@ -3099,6 +3110,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,MunicipalityDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpDelete, Route("Municipality/{id}")]
         public Task<IActionResult> DeleteMunicipality(string id)
         {
@@ -3125,6 +3137,7 @@ namespace OdhApiCore.Controllers.api
         //[ApiExplorerSettings(IgnoreApi = true)]
         //[Authorize(Roles = "DataWriter,DataDelete,CommonManager,CommonDelete,DistrictDelete")]
         [AuthorizeODH(PermissionAction.Delete)]
+        [InvalidateCacheOutput(typeof(LocationController), nameof(LocationController.GetTheLocationList))]
         [HttpDelete, Route("District/{id}")]
         public Task<IActionResult> DeleteDistrict(string id)
         {
